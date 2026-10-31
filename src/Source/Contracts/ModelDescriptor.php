@@ -20,6 +20,7 @@ final readonly class ModelDescriptor
      * @param array<string, string> $accessors appended or accessed name => accessor method name
      * @param list<string> $unresolved the properties ('with' | 'appends' | 'table') whose default was not a constant and was left out
      * @param list<string> $observers the observer classes the export gives (the nearest exported ancestor's, when inferred)
+     * @param list<string> $events the model events the export gives (the nearest exported ancestor's, when inferred)
      */
     public function __construct(
         public string $fqcn,
@@ -32,6 +33,7 @@ final readonly class ModelDescriptor
         public array $accessors,
         public array $unresolved = [],
         public array $observers = [],
+        public array $events = [],
     ) {
     }
 }
