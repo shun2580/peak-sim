@@ -12,7 +12,9 @@ namespace PeakSim\Tests\Support;
  *   <case>/SPEC.md      what the app must contain (for whoever writes it)
  *   <case>/app, bootstrap, routes, resources, composer.json   the app itself
  *
- * Directories whose name starts with "_" or "." are not cases (the shared notes live in _kit).
+ * Directories whose name starts with "_" or "." are not cases (the shared notes live in _kit), and neither is a
+ * directory without an expect.php: the src-* directories belong to the unit tests of the source index, which have no
+ * analysis expectation. (MiniAppHarnessSelfTest guards that only src-* directories are left out this way.)
  */
 final class MiniAppCase
 {
@@ -27,7 +29,7 @@ final class MiniAppCase
     {
         $cases = [];
         foreach (scandir($appsDir) ?: [] as $entry) {
-            if ($entry === '.' || $entry === '..' || $entry[0] === '_' || $entry[0] === '.' || !is_dir($appsDir . '/' . $entry)) {
+            if ($entry === '.' || $entry === '..' || $entry[0] === '_' || $entry[0] === '.' || !is_file($appsDir . '/' . $entry . '/expect.php')) {
                 continue;
             }
             $cases[] = new self($entry, $appsDir . '/' . $entry);

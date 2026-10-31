@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Acceptance;
 
+use PeakSim\Model\AnalysisReport;
 use PeakSim\Model\AssumptionCode;
+use PeakSim\Model\AxisVerdict;
+use PeakSim\Model\Confidence;
+use PeakSim\Model\Growth;
+use PeakSim\Model\RouteResult;
+use PeakSim\Model\Site;
 use PeakSim\Model\GapCode;
 use PeakSim\Tests\Support\Expectation;
 use PeakSim\Tests\Support\ExpectationFixtureRows;
@@ -161,29 +167,80 @@ final class MiniAppHarnessSelfTest extends TestCase
         $this->assertGreaterThanOrEqual(15, $misses);
     }
 
-    public function testDiscoveryFindsCasesByDirectoryAndSkipsKitAndHiddenOnes(): void
+    /** A real RouteResult in the Judge's frozen form (and the older bare-Site form) is read without a TypeError. */
+    public function testViewReadsTheJudgesFrozenEvidenceAndWorstCaseAndAlsoABareSite(): void
+    {
+        $axis = new AxisVerdict(Growth::Linear, 1, Confidence::High, null, null);
+        $result = static fn (array $evidence, ?array $worst): RouteResult => new RouteResult(
+            '/t', ['GET'], 'A@b', RouteResult::KIND_CONTROLLER, $axis, $axis, 'orders', null, null, Confidence::High, null, $worst,
+            ['query_coefficient' => null, 'per_item_queries' => null, 'extra_queries_per_request' => null], [], [], $evidence, 2, false, ['customers'],
+        );
+        $frozen = $result(
+            [['role' => 'call', 'site' => new Site('app/A.php', 4), 'axis' => null, 'note' => ''], ['role' => 'event', 'site' => new Site('app/A.php', 9, 'n'), 'axis' => 'query', 'note' => 'lazy_load customers']],
+            [['site' => new Site('app/P.php', 7), 'abstract' => 'App\\Contract', 'candidates' => ['X', 'Y'], 'chosen' => 'Y']],
+        );
+
+        $view = ReportAssert::view($frozen);
+
+        $this->assertSame([
+            ['role' => 'call', 'file' => 'app/A.php', 'line' => 4, 'axis' => null, 'note' => ''],
+            ['role' => 'event', 'file' => 'app/A.php', 'line' => 9, 'axis' => 'query', 'note' => 'lazy_load customers'],
+        ], $view['evidence']);
+        $this->assertSame([['file' => 'app/P.php', 'line' => 7, 'abstract' => 'App\\Contract', 'candidates' => ['X', 'Y'], 'chosen' => 'Y']], $view['worst_case']);
+        $this->assertTrue($view['worst_case_adopted']);
+        $this->assertSame(['customers'], $view['n_table_alternatives']);
+        $this->assertSame([], Expectation::check(['routes' => ['/t' => ['evidence_include' => ['app/A.php:9', 'app/A.php']]]], ['/t' => $view]));
+        $this->assertCount(1, Expectation::check(['routes' => ['/t' => ['evidence_include' => ['app/A.php:10']]]], ['/t' => $view]));
+
+        $bare = ReportAssert::view($result([new Site('app/B.php', 3)], null));
+        $this->assertSame([['role' => 'event', 'file' => 'app/B.php', 'line' => 3, 'axis' => null, 'note' => '']], $bare['evidence']);
+        $this->assertFalse($bare['worst_case_adopted']);
+        $this->assertStringContainsString('"n_table_alternatives"', ReportAssert::json(new AnalysisReport([$frozen], [], [])));
+    }
+
+    public function testDiscoveryFindsCasesByExpectationAndSkipsKitHiddenAndSourceOnlyDirectories(): void
     {
         $root = $this->tmp();
-        foreach (['b-case', 'a-case', '_kit', '.hidden'] as $dir) {
+        foreach (['b-case', 'a-case', '_kit', '.hidden', 'src-only', 'empty'] as $dir) {
             mkdir($root . '/' . $dir);
         }
+        foreach (['b-case', 'a-case', '_kit', '.hidden'] as $dir) {
+            file_put_contents($root . '/' . $dir . '/expect.php', "<?php return [];\n");
+        }
+        file_put_contents($root . '/src-only/SPEC.md', '#');
         file_put_contents($root . '/stray.txt', 'x');
 
         $names = array_map(static fn (MiniAppCase $c): string => $c->name, MiniAppCase::discover($root));
 
-        $this->assertSame(['a-case', 'b-case'], $names);
+        $this->assertSame(['a-case', 'b-case'], $names, 'a directory without expect.php is not a case; _ and . prefixes are never cases');
     }
 
-    public function testACaseMissingItsFilesIsReportedAsMalformed(): void
+    /** Leaving a directory out for lack of expect.php must only ever happen to a source-index (src-*) directory. */
+    public function testOnlySourceDirectoriesMayLackAnExpectation(): void
+    {
+        $left = [];
+        foreach (scandir(MiniAppWorkspace::appsDir()) ?: [] as $entry) {
+            $dir = MiniAppWorkspace::appsDir() . '/' . $entry;
+            if ($entry[0] !== '.' && $entry[0] !== '_' && is_dir($dir) && !is_file($dir . '/expect.php') && !str_starts_with($entry, 'src-')) {
+                $left[] = $entry;
+            }
+        }
+
+        $this->assertSame([], $left, 'directories that look like cases but have no expect.php (they would silently never run)');
+    }
+
+    public function testACaseMissingItsOtherFilesIsReportedAsMalformed(): void
     {
         $root = $this->tmp();
         mkdir($root . '/lonely');
+        file_put_contents($root . '/lonely/expect.php', "<?php return ['description' => 'd', 'routes' => []];\n");
         $case = MiniAppCase::discover($root)[0];
 
         $problems = $case->problems();
 
-        $this->assertCount(3, $problems);
-        $this->assertStringContainsString('expect.php is missing', $problems[0]);
+        $this->assertCount(2, $problems);
+        $this->assertStringContainsString('export.php is missing', $problems[0]);
+        $this->assertStringContainsString('SPEC.md is missing', $problems[1]);
     }
 
     public function testExpectationNamingARouteThatTheExportDoesNotRouteIsMalformed(): void

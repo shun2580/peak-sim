@@ -10,6 +10,6 @@ return E::build(
     ],
     models: [
         ...E::standardModels(),
-        E::model('App\\Models\\Order', 'orders', ['customer' => ['BelongsTo', 'App\\Models\\Customer'], 'items' => ['HasMany', 'App\\Models\\Item']], events: ['saved'], observers: ['App\\Observers\\OrderObserver']),
+        E::model('App\\Models\\Order', 'orders', ['customer' => ['BelongsTo', 'App\\Models\\Customer'], 'items' => ['HasMany', 'App\\Models\\Item']], events: [['event' => 'saved', 'class' => 'App\\Events\\OrderSaved']], observers: [['event' => 'saved', 'observer' => ['App\\Observers\\OrderObserver@saved']]]),
     ],
 );

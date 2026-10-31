@@ -20,11 +20,11 @@ use PeakSim\Model\Site;
  * View of one route (keys in this order):
  *   uri, methods, action, kind,
  *   query / memory: {growth, degree, confidence, lower_bound}   growth: "O(1)" | "O(N)" | "O(N*M)" | "unknown"
- *   n_table, m_table, m_per, confidence ("high" | "medium" | null),
+ *   n_table, m_table, m_per, n_table_alternatives (list<string>), confidence ("high" | "medium" | null),
  *   cache: null | {on_miss: {query, memory}, on_hit: {query, memory}, restores_all_on_hit, adopted_view}
- *   worst_case_adopted, worst_case, coefficients,
+ *   worst_case_adopted, worst_case: null | list<{file, line, abstract, candidates, chosen}>, coefficients,
  *   gaps: list<{code, file, line, note?, message, affects, loop_depth}>   assumptions: list<{code, affects, message, candidates}>
- *   evidence: list<{file, line}>, events_found, truncated
+ *   evidence: list<{role, file, line, axis, note}> (the Judge's frozen form; a bare Site is read as role "event"), events_found, truncated
  */
 final class ReportAssert
 {
@@ -43,14 +43,15 @@ final class ReportAssert
             'n_table' => $r->nTable,
             'm_table' => $r->mTable,
             'm_per' => $r->mPer,
+            'n_table_alternatives' => $r->nTableAlternatives,
             'confidence' => $r->confidence?->value,
             'cache' => $r->cache === null ? null : self::cache($r->cache),
             'worst_case_adopted' => $r->worstCase !== null,
-            'worst_case' => $r->worstCase,
+            'worst_case' => $r->worstCase === null ? null : array_map(self::worstCase(...), $r->worstCase),
             'coefficients' => $r->coefficients,
             'gaps' => array_map(self::gap(...), $r->gaps),
             'assumptions' => array_map(self::assumption(...), $r->assumptions),
-            'evidence' => array_map(static fn (Site $s): array => ['file' => $s->file, 'line' => $s->line, 'note' => $s->note], $r->evidence),
+            'evidence' => array_map(self::evidence(...), $r->evidence),
             'events_found' => $r->eventsFound,
             'truncated' => $r->truncated,
         ];
@@ -166,6 +167,41 @@ final class ReportAssert
         }
 
         return $out;
+    }
+
+    /**
+     * An evidence item as the Judge makes it: ['role', 'site' => Site, 'axis', 'note']. A bare Site (the older form
+     * of the contract's docblock) is accepted too, so a result in either form can be read.
+     *
+     * @return array{role: string, file: string, line: int, axis: ?string, note: string}
+     */
+    private static function evidence(Site|array $item): array
+    {
+        if ($item instanceof Site) {
+            return ['role' => 'event', 'file' => $item->file, 'line' => $item->line, 'axis' => null, 'note' => $item->note];
+        }
+        $site = $item['site'];
+
+        return ['role' => (string) ($item['role'] ?? ''), 'file' => $site->file, 'line' => $site->line, 'axis' => $item['axis'] ?? null, 'note' => (string) ($item['note'] ?? '')];
+    }
+
+    /**
+     * A worst-case entry as the Judge makes it: ['site' => Site, 'abstract', 'candidates', 'chosen'].
+     *
+     * @param array<string, mixed> $w
+     * @return array{file: ?string, line: ?int, abstract: ?string, candidates: list<string>, chosen: ?string}
+     */
+    private static function worstCase(array $w): array
+    {
+        $site = $w['site'] ?? null;
+
+        return [
+            'file' => $site instanceof Site ? $site->file : null,
+            'line' => $site instanceof Site ? $site->line : null,
+            'abstract' => $w['abstract'] ?? null,
+            'candidates' => array_values($w['candidates'] ?? []),
+            'chosen' => $w['chosen'] ?? null,
+        ];
     }
 
     /** @return array<string, mixed> */

@@ -39,4 +39,4 @@ class TestController extends Controller
 
 ## Notes for the writer
 
-- The model `Order` is the standard one. The *export* is what says it has an observer; the app needs no observer class.
+- The model `Order` is the standard one. The *export* is what says it has an observer and a dispatched event (in the form `model:show` prints: `events` = `[{event, class}]`, `observers` = `[{event, observer: [...]}]`); the app needs no observer or event class.

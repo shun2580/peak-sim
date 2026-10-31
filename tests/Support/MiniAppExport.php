@@ -51,8 +51,8 @@ final class MiniAppExport
      *
      * @param array<string, array{0: string, 1: string}> $relations name => [type, related class]
      * @param list<string> $attributes column names (an "id" column is always first)
-     * @param list<string> $events
-     * @param list<string> $observers
+     * @param list<array{event: string, class: string}> $events the model's dispatched events, as model:show prints them
+     * @param list<array{event: string, observer: list<string>}> $observers the observers per event, as model:show prints them
      * @return array<string, mixed>
      */
     public static function model(

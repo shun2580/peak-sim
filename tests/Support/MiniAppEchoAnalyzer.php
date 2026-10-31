@@ -96,6 +96,7 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
             'n_table' => $want['n_table'] ?? null,
             'm_table' => $want['m_table'] ?? null,
             'm_per' => $want['m_per'] ?? null,
+            'n_table_alternatives' => [],
             'confidence' => $want['confidence'] ?? ($confidences === [] ? null : ($medium ? 'medium' : 'high')),
             'cache' => $cache === null ? null : [
                 'on_miss' => ['query' => $this->axis($cache['on_miss']['query']), 'memory' => $this->axis($cache['on_miss']['memory'])],
@@ -104,7 +105,7 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
                 'adopted_view' => 'miss',
             ],
             'worst_case_adopted' => $worst,
-            'worst_case' => $worst ? [['candidate' => 'a'], ['candidate' => 'b']] : null,
+            'worst_case' => $worst ? [['file' => 'app/X.php', 'line' => 1, 'abstract' => 'A', 'candidates' => ['B', 'C'], 'chosen' => 'C']] : null,
             'coefficients' => $want['coefficients'] ?? [],
             'gaps' => array_map(static fn (string $c): array => [
                 'code' => $c, 'file' => 'app/X.php', 'line' => 1, 'note' => '', 'message' => 'echo', 'affects' => ['query', 'memory'], 'loop_depth' => 0,
@@ -115,7 +116,7 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
             'evidence' => array_map(static function (string $e): array {
                 [$file, $line] = array_pad(explode(':', $e, 2), 2, '1');
 
-                return ['file' => $file, 'line' => (int) $line, 'note' => ''];
+                return ['role' => 'event', 'file' => $file, 'line' => (int) $line, 'axis' => null, 'note' => ''];
             }, $want['evidence_include'] ?? []),
             'events_found' => $events === '>=1' ? 1 : $events,
             'truncated' => $want['truncated'] ?? in_array('DEPTH_LIMIT', $gapCodes, true),
