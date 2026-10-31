@@ -1,0 +1,608 @@
+{
+    "input_mode": "export-dir",
+    "scope": {
+        "not_covered": [
+            "route middleware",
+            "authorization gates and policies",
+            "form request validation"
+        ]
+    },
+    "skipped": [
+        {
+            "route": "up",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "Closure",
+            "kind": "closure"
+        },
+        {
+            "route": "storage/{path}",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "Closure",
+            "kind": "closure"
+        }
+    ],
+    "routes": [
+        {
+            "uri": "/unknown/dynamic",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Unknown\\DynamicController",
+            "kind": "controller",
+            "query": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": null
+            },
+            "n_table": null,
+            "m_table": null,
+            "m_per": null,
+            "confidence": null,
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [
+                {
+                    "code": "DYNAMIC_METHOD_NAME",
+                    "site": {
+                        "file": "app/Http/Controllers/Unknown/DynamicController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "message": "the method name is a variable",
+                    "affects": [
+                        "query",
+                        "memory"
+                    ],
+                    "loop_depth": 0,
+                    "scenario": []
+                }
+            ],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 0,
+            "truncated": false
+        },
+        {
+            "uri": "/deep/triple",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Deep\\TripleController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N*M)",
+                "degree": 3,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N*M)",
+                "degree": 3,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": "items",
+            "m_per": "orders",
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 4,
+            "truncated": false
+        },
+        {
+            "uri": "/hidden/model-with",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\ModelWithController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": 2,
+                "extra_queries_per_request": 1
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "uri": "/ng/n-plus-one",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNPlusOneController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNPlusOneController.php",
+                        "line": 11,
+                        "note": ""
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNPlusOneController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "LazyLoad customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "uri": "/ok/bulk",
+            "methods": [
+                "POST"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\BulkController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "customers",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "uri": "/hidden/conditional-binding",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\ConditionalBindingController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "medium",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "medium",
+            "cache": null,
+            "worst_case": [
+                {
+                    "site": {
+                        "file": "app/Hidden/Providers/ConditionalBindingServiceProvider.php",
+                        "line": 20,
+                        "note": ""
+                    },
+                    "abstract": "App\\Hidden\\Contracts\\OrderSummaries",
+                    "candidates": [
+                        "App\\Hidden\\Services\\EagerOrderSummaries",
+                        "App\\Hidden\\Services\\LazyOrderSummaries"
+                    ],
+                    "chosen": "App\\Hidden\\Services\\LazyOrderSummaries"
+                }
+            ],
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [
+                {
+                    "code": "WORST_CASE_OF_CANDIDATES",
+                    "site": {
+                        "file": "app/Hidden/Providers/ConditionalBindingServiceProvider.php",
+                        "line": 20,
+                        "note": ""
+                    },
+                    "message": "App\\Hidden\\Contracts\\OrderSummaries has 2 implementations; the worst one is taken",
+                    "affects": [
+                        "query"
+                    ],
+                    "scenario": [],
+                    "candidates": [
+                        "App\\Hidden\\Services\\EagerOrderSummaries",
+                        "App\\Hidden\\Services\\LazyOrderSummaries"
+                    ],
+                    "chosen": "App\\Hidden\\Services\\LazyOrderSummaries"
+                }
+            ],
+            "evidence": [
+                {
+                    "role": "binding",
+                    "site": {
+                        "file": "app/Hidden/Providers/ConditionalBindingServiceProvider.php",
+                        "line": 20,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "App\\Hidden\\Contracts\\OrderSummaries has 2 implementations; the worst one is taken"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "uri": "/framework/health",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "Illuminate\\Foundation\\Http\\HealthController",
+            "kind": "framework",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": null,
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 0,
+            "truncated": false
+        },
+        {
+            "uri": "/ng/nested",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNestedController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N*M)",
+                "degree": 2,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N*M)",
+                "degree": 2,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": "items",
+            "m_per": "orders",
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "uri": "/hidden/lower-bound",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\LowerBoundController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": "O(N)"
+            },
+            "memory": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": "O(N*M)"
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": null,
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [
+                {
+                    "code": "VENDOR_CALL_NOT_MODELLED",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/LowerBoundController.php",
+                        "line": 12,
+                        "note": "Storage::put"
+                    },
+                    "message": "a call into the framework that is not on the allow-list",
+                    "affects": [
+                        "query",
+                        "memory"
+                    ],
+                    "loop_depth": 1,
+                    "scenario": []
+                },
+                {
+                    "code": "UNRESOLVED_CALL",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/LowerBoundController.php",
+                        "line": 9,
+                        "note": ""
+                    },
+                    "message": "undefined function helper()",
+                    "affects": [
+                        "query"
+                    ],
+                    "loop_depth": 0,
+                    "scenario": []
+                }
+            ],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "uri": "/hidden/cache",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\CacheController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": {
+                "sites": [
+                    {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    }
+                ],
+                "on_miss": {
+                    "query": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "high",
+                        "lower_bound": null
+                    },
+                    "memory": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "high",
+                        "lower_bound": null
+                    }
+                },
+                "on_hit": {
+                    "query": {
+                        "growth": "O(1)",
+                        "degree": 0,
+                        "confidence": "high",
+                        "lower_bound": null
+                    },
+                    "memory": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "medium",
+                        "lower_bound": null
+                    }
+                },
+                "restores_all_on_hit": true,
+                "adopted_view": "miss"
+            },
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [
+                {
+                    "code": "CACHE_DRIVER_SERIALIZING",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "message": "a hit restores every row only with a serialising cache driver",
+                    "affects": [
+                        "memory"
+                    ],
+                    "scenario": [
+                        {
+                            "cache": 1,
+                            "side": "hit"
+                        }
+                    ],
+                    "candidates": null,
+                    "chosen": null
+                }
+            ],
+            "evidence": [],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "uri": "/ok/chunk",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@chunk",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": "1/100",
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 1,
+            "truncated": false
+        }
+    ]
+}

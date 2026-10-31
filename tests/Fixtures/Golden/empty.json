@@ -1,0 +1,38 @@
+{
+    "schema_version": "0.1",
+    "tool": {
+        "name": "peak-sim"
+    },
+    "input": {
+        "mode": "artisan-command"
+    },
+    "analysis_scope": {
+        "not_covered": []
+    },
+    "summary": {
+        "routes": 0,
+        "by_confidence": {
+            "high": 0,
+            "medium": 0,
+            "none": 0
+        },
+        "by_growth": {
+            "query": {
+                "O(1)": 0,
+                "O(N)": 0,
+                "O(N*M)": 0,
+                "unknown": 0
+            },
+            "memory": {
+                "O(1)": 0,
+                "O(N)": 0,
+                "O(N*M)": 0,
+                "unknown": 0
+            }
+        },
+        "gap_reasons": {},
+        "skipped": 0
+    },
+    "skipped": [],
+    "routes": []
+}

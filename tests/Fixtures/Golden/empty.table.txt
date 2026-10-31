@@ -1,0 +1,3 @@
+peak-sim: 0 routes analysed, 0 not analysed (framework / closure)
+confidence: high 0, medium 0, — 0
+gaps: none
