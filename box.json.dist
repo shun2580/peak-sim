@@ -1,0 +1,11 @@
+{
+    "$schema": "https://raw.githubusercontent.com/box-project/box/main/res/schema.json",
+    "output": "build/peak-sim.phar",
+    "directories": ["src"],
+    "finder": [
+        {
+            "in": "vendor",
+            "exclude": ["bin", "tests", "Tests"]
+        }
+    ]
+}

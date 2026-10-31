@@ -1,0 +1,29 @@
+{
+    "name": "peak-sim/peak-sim",
+    "description": "Static analysis of Laravel routes: how queries and memory grow with data size.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "nikic/php-parser": "^5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "PeakSim\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PeakSim\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
