@@ -6,6 +6,8 @@ namespace PeakSim\Judge;
 
 use PeakSim\Model\Axis;
 use PeakSim\Model\CostEvent;
+use PeakSim\Model\Frame;
+use PeakSim\Model\Origin;
 
 /**
  * Names N and M (design 1.8): the event with the largest degree on either axis; on a tie the query
@@ -31,18 +33,40 @@ final class TableChooser
         usort($ranked, static fn (array $a, array $b): int => [$b[0], $a[1], $a[2], $a[3], $a[4]->fingerprint()] <=> [$a[0], $b[1], $b[2], $b[3], $b[4]->fingerprint()]);
 
         [$degree, $axisIndex, $kind, , $event, $axis, $layers] = $ranked[0];
-        $n = $layers === [] ? Degree::ownTable($axis, $event) : $layers[0]->table;
+        [$n, $m, $per] = self::names($axis, $event, $layers);
         $alternatives = [];
         foreach (array_slice($ranked, 1) as [$d, $a, $k, , $e, $ax, $l]) {
             if ($d !== $degree || $a !== $axisIndex || $k !== $kind) {
                 continue;
             }
-            $other = $l === [] ? Degree::ownTable($ax, $e) : $l[0]->table;
+            $other = self::names($ax, $e, $l)[0];
             if ($other !== null && $other !== $n && !in_array($other, $alternatives, true)) {
                 $alternatives[] = $other;
             }
         }
 
-        return new TableChoice($n, $layers[1]->table ?? null, $layers[1]->perTable ?? null, $alternatives);
+        return new TableChoice($n, $m, $per, $alternatives);
+    }
+
+    /**
+     * N, M and what M is per. A first level that comes from no frame is the event's own origin; when that
+     * origin is per another table (an eager to-many load: items per orders), that table is N and the own
+     * origin's table is M (design 4.1).
+     *
+     * @param list<Origin> $layers
+     * @return array{0: ?string, 1: ?string, 2: ?string}
+     */
+    private static function names(Axis $axis, CostEvent $event, array $layers): array
+    {
+        if ($layers === []) {
+            return [Degree::ownTable($axis, $event), null, null];
+        }
+        $first = $layers[0];
+        $fromFrame = array_filter($event->frames, static fn (Frame $f): bool => $f->origin === $first) !== [];
+        if (!$fromFrame && $first->perTable !== null) {
+            return [$first->perTable, $first->table, $first->perTable];
+        }
+
+        return [$first->table, $layers[1]->table ?? null, $layers[1]->perTable ?? null];
     }
 }
