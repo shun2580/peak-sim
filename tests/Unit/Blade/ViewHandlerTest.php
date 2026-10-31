@@ -20,7 +20,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testForeachInATemplateIsAnNPlusOneAndTheEvidenceIsTheTemplateLine(): void
     {
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -30,7 +30,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testTheDataIsEvaluatedOnceSoTheOrderQueryIsOneEvent(): void
     {
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertCount(1, $this->events($s, EventKind::Select));
     }
@@ -38,7 +38,7 @@ final class ViewHandlerTest extends ViewHandlerCase
     public function testForelseWalksTheLoopBodyAndTheEmptyBranchIsAPlainBlock(): void
     {
         $blade = "@forelse (\$orders as \$order)\n    <p>{{ \$order->customer->name }}</p>\n@empty\n    <p>No orders.</p>\n@endforelse";
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -57,7 +57,7 @@ final class ViewHandlerTest extends ViewHandlerCase
             @endforeach
         @endif
         BLADE;
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:4'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -78,7 +78,7 @@ final class ViewHandlerTest extends ViewHandlerCase
         @endforeach
         <p>{{ $total }}</p>
         BLADE;
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:6'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -88,7 +88,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testAViewThatOnlyEchoesReadsNoRelation(): void
     {
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => '<p>{{ count($orders) }} orders</p>']);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => '<p>{{ count($orders) }} orders</p>']);
 
         self::assertSame([], $this->events($s, EventKind::LazyLoad));
         self::assertSame(['query' => 0, 'memory' => 1], $this->degrees($s));
@@ -102,7 +102,7 @@ final class ViewHandlerTest extends ViewHandlerCase
             't.blade.php' => "@foreach (\$orders as \$order)\n    @include('partials.row', ['order' => \$order])\n@endforeach",
             'partials/row.blade.php' => '<p>{{ $order->customer->name }}</p>',
         ];
-        $s = $this->run(self::RETURN_ORDERS, $views);
+        $s = $this->walk(self::RETURN_ORDERS, $views);
 
         self::assertSame([self::VIEW . 'partials/row.blade.php:1'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -116,7 +116,7 @@ final class ViewHandlerTest extends ViewHandlerCase
             't.blade.php' => "@foreach (\$orders as \$order)\n    @include(\$partial, ['order' => \$order])\n@endforeach",
             'partials/row.blade.php' => '<p>{{ $order->customer->name }}</p>',
         ];
-        $s = $this->run("return view('t', ['orders' => Order::get(), 'partial' => 'partials.row']);", $views);
+        $s = $this->walk("return view('t', ['orders' => Order::get(), 'partial' => 'partials.row']);", $views);
 
         self::assertSame([GapCode::VIEW_NOT_FOUND], $this->gapCodes($s));
         self::assertSame(['VIEW_NOT_FOUND@' . self::VIEW . 't.blade.php:2'], $this->gapSites($s));
@@ -130,7 +130,7 @@ final class ViewHandlerTest extends ViewHandlerCase
             'layouts/app.blade.php' => "<html>\n<body>\n    @yield('content')\n</body>\n</html>",
             't.blade.php' => "@extends('layouts.app')\n\n@section('content')\n    @foreach (\$orders as \$order)\n        <p>{{ \$order->customer->name }}</p>\n    @endforeach\n@endsection",
         ];
-        $s = $this->run(self::RETURN_ORDERS, $views);
+        $s = $this->walk(self::RETURN_ORDERS, $views);
 
         self::assertSame([self::VIEW . 't.blade.php:5'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -144,7 +144,7 @@ final class ViewHandlerTest extends ViewHandlerCase
             'layouts/app.blade.php' => "@foreach (\$orders as \$o)\n    {{ \$o->customer->name }}\n@endforeach\n@yield('content')",
             't.blade.php' => "@extends('layouts.app')\n@section('content')\n    ok\n@endsection",
         ];
-        $s = $this->run(self::RETURN_ORDERS, $views);
+        $s = $this->walk(self::RETURN_ORDERS, $views);
 
         self::assertSame([self::VIEW . 'layouts/app.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -153,7 +153,7 @@ final class ViewHandlerTest extends ViewHandlerCase
     public function testAnUnsupportedDirectiveIsAGapAtItsTemplateLine(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    @can('view', \$order)\n        <p>{{ \$order->id }}</p>\n    @endcan\n@endforeach";
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertContains(GapCode::BLADE_UNSUPPORTED, $this->gapCodes($s));
         self::assertContains('BLADE_UNSUPPORTED@' . self::VIEW . 't.blade.php:2', $this->gapSites($s));
@@ -164,7 +164,7 @@ final class ViewHandlerTest extends ViewHandlerCase
     public function testABladeComponentIsAGap(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    <x-order-row :order=\"\$order\" />\n@endforeach";
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertContains('BLADE_UNSUPPORTED@' . self::VIEW . 't.blade.php:2', $this->gapSites($s));
         $this->assertNoUnknownWithoutGap();
@@ -172,7 +172,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testCompactPassesVariablesByName(): void
     {
-        $s = $this->run("\$orders = Order::get();\n\nreturn view('t', compact('orders'));", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("\$orders = Order::get();\n\nreturn view('t', compact('orders'));", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -182,7 +182,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testWithAfterViewPassesAVariable(): void
     {
-        $s = $this->run("return view('t')->with('orders', Order::get());", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("return view('t')->with('orders', Order::get());", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -193,7 +193,7 @@ final class ViewHandlerTest extends ViewHandlerCase
 
     public function testViewMakeIsView(): void
     {
-        $s = $this->run("return \\Illuminate\\Support\\Facades\\View::make('t', ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("return \\Illuminate\\Support\\Facades\\View::make('t', ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($s));
@@ -204,7 +204,7 @@ final class ViewHandlerTest extends ViewHandlerCase
     public function testAnEmailAddressInTheTemplateIsNotADirective(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    <a href=\"mailto:support@example.com\">{{ \$order->customer->name }}</a>\n@endforeach";
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -214,7 +214,7 @@ final class ViewHandlerTest extends ViewHandlerCase
     public function testNestedForeachOverAToManyRelationIsNestedAndTheTablesArePerOrder(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    @foreach (\$order->items as \$item)\n        <p>{{ \$item->product->name }}</p>\n    @endforeach\n@endforeach";
-        $s = $this->run(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
+        $s = $this->walk(self::RETURN_ORDERS, ['t.blade.php' => $blade]);
 
         self::assertSame(['query' => 2, 'memory' => 2], $this->degrees($s));
         self::assertContains(self::VIEW . 't.blade.php:3', $this->eventSites($s, EventKind::LazyLoad));

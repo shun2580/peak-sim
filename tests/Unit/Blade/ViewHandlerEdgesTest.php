@@ -19,7 +19,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testResponseViewBuildsAView(): void
     {
-        $s = $this->run("return response()->view('t', ['orders' => Order::get()], 200);", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("return response()->view('t', ['orders' => Order::get()], 200);", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -29,7 +29,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testSeveralWithCallsRenderTheViewOnceWithAllTheData(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    {{ \$order->customer->name }} {{ \$title }}\n@endforeach";
-        $s = $this->run("return view('t')->with('title', 'x')->with('orders', Order::get());", ['t.blade.php' => $blade]);
+        $s = $this->walk("return view('t')->with('title', 'x')->with('orders', Order::get());", ['t.blade.php' => $blade]);
 
         self::assertCount(1, $this->events($s, EventKind::LazyLoad), 'rendered once, not once per with()');
         self::assertSame([], $s->gaps);
@@ -40,12 +40,12 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     {
         $blade = "@foreach (\$orders as \$order)\n    {{ \$order->customer->name }}{{ \$title }}\n@endforeach";
         $body = "\$orders = Order::get();\nreturn view('t', ['title' => 'a'])->with(compact('orders'));";
-        $s = $this->run($body, ['t.blade.php' => $blade]);
+        $s = $this->walk($body, ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
 
-        $s = $this->run("return view('t')->with(['orders' => Order::get(), 'title' => 'b']);", ['t.blade.php' => $blade]);
+        $s = $this->walk("return view('t')->with(['orders' => Order::get(), 'title' => 'b']);", ['t.blade.php' => $blade]);
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
         $this->assertNoUnknownWithoutGap();
@@ -54,7 +54,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testDataHeldInAVariableIsRead(): void
     {
         $body = "\$data = ['orders' => Order::get()];\nreturn view('t', \$data);";
-        $s = $this->run($body, ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk($body, ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -63,7 +63,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testMergeDataIsPassedToo(): void
     {
-        $s = $this->run("return view('t', [], ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("return view('t', [], ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -72,7 +72,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testAViewMadeInsideALoopIsWalkedUnderThatLoop(): void
     {
         $body = "foreach (Order::get() as \$o) {\n    view('t', ['orders' => Order::get()]);\n}";
-        $s = $this->run($body, ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk($body, ['t.blade.php' => self::LOOP_ROW]);
 
         $reads = $this->events($s, EventKind::LazyLoad);
         self::assertCount(1, $reads);
@@ -83,7 +83,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testWithOnAViewThatWasAlreadyBuiltIsAGap(): void
     {
         $body = "\$view = view('t', ['orders' => Order::get()]);\n\$view->with('title', 'x');\nreturn \$view;";
-        $s = $this->run($body, ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk($body, ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertContains(GapCode::UNRESOLVED_CALL, $this->gapCodes($s));
         $this->assertNoUnknownWithoutGap();
@@ -91,7 +91,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testWithOnAModelQueryIsNotTheViewHandlersBusiness(): void
     {
-        $s = $this->run("return Order::with('customer')->get();", []);
+        $s = $this->walk("return Order::with('customer')->get();", []);
 
         self::assertSame([], $s->gaps);
         self::assertCount(1, $this->events($s, EventKind::EagerLoad));
@@ -102,7 +102,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testADottedNameIsADirectoryPath(): void
     {
         $views = ['admin/orders/index.blade.php' => self::LOOP_ROW];
-        $s = $this->run("return view('admin.orders.index', ['orders' => Order::get()]);", $views);
+        $s = $this->walk("return view('admin.orders.index', ['orders' => Order::get()]);", $views);
 
         self::assertSame([self::VIEW . 'admin/orders/index.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -110,7 +110,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testAMissingViewIsAGapAtTheCall(): void
     {
-        $s = $this->run("return view('nope', ['orders' => Order::get()]);", []);
+        $s = $this->walk("return view('nope', ['orders' => Order::get()]);", []);
 
         self::assertSame(['VIEW_NOT_FOUND@app/Http/Controllers/T.php:' . self::BODY_LINE], $this->gapSites($s));
         self::assertCount(1, $this->events($s, EventKind::Select), 'the data was still evaluated');
@@ -119,7 +119,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testANameThatIsNotConstantIsAGap(): void
     {
-        $s = $this->run("\$name = request('v');\nreturn view(\$name, ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("\$name = request('v');\nreturn view(\$name, ['orders' => Order::get()]);", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertContains(GapCode::VIEW_NOT_FOUND, $this->gapCodes($s));
         $this->assertNoUnknownWithoutGap();
@@ -127,14 +127,14 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testAPackageViewNameIsAGap(): void
     {
-        $s = $this->run("return view('mail::message', []);", []);
+        $s = $this->walk("return view('mail::message', []);", []);
 
         self::assertSame([GapCode::VIEW_NOT_FOUND], $this->gapCodes($s));
     }
 
     public function testANameThatEscapesTheViewDirectoryIsAGap(): void
     {
-        $s = $this->run("return view('..secret', []);", ['t.blade.php' => 'x']);
+        $s = $this->walk("return view('..secret', []);", ['t.blade.php' => 'x']);
 
         self::assertSame([GapCode::VIEW_NOT_FOUND], $this->gapCodes($s));
     }
@@ -143,7 +143,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     {
         $config = "<?php\n\nreturn [\n    'paths' => [\n        resource_path('themes/plain'),\n        resource_path('views'),\n    ],\n];\n";
         $files = ['config/view.php' => $config, 'resources/themes/plain/t.blade.php' => self::LOOP_ROW];
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", [], $files);
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", [], $files);
 
         self::assertSame(['resources/themes/plain/t.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -152,7 +152,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testTheFirstConfiguredPathThatHasTheViewWins(): void
     {
         $config = "<?php\nreturn ['paths' => [resource_path('themes/plain'), resource_path('views')]];\n";
-        $s = $this->run(
+        $s = $this->walk(
             "return view('t', ['orders' => Order::get()]);",
             ['t.blade.php' => self::LOOP_ROW],
             ['config/view.php' => $config],
@@ -164,7 +164,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testAnExplicitViewPathReplacesTheDefault(): void
     {
         $files = ['templates/t.blade.php' => self::LOOP_ROW];
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", [], $files, 'templates');
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", [], $files, 'templates');
 
         self::assertSame(['templates/t.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -178,7 +178,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
             't.blade.php' => "@foreach (\$orders as \$order)\n    @include('partials.row')\n@endforeach",
             'partials/row.blade.php' => '<p>{{ $order->customer->name }}</p>',
         ];
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", $views);
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", $views);
 
         self::assertSame([self::VIEW . 'partials/row.blade.php:1'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -191,7 +191,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
             't.blade.php' => "@include('partials.list')",
             'partials/list.blade.php' => "@foreach (\$orders as \$o)\n{{ \$o->customer->name }}\n@endforeach",
         ];
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", $views);
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", $views);
 
         self::assertSame([self::VIEW . 'partials/list.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
         self::assertSame([], $s->gaps);
@@ -203,7 +203,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
             't.blade.php' => "@include('partials.list', ['rows' => \App\Models\Order::get()])",
             'partials/list.blade.php' => '{{ count($rows) }}',
         ];
-        $s = $this->run("return view('t');", $views);
+        $s = $this->walk("return view('t');", $views);
 
         self::assertCount(1, $this->events($s, EventKind::Select));
         self::assertSame([], $s->gaps);
@@ -212,7 +212,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testATemplateThatIncludesItselfIsARecursionGap(): void
     {
         $views = ['t.blade.php' => "@foreach (\$orders as \$o)\n@include('t')\n@endforeach"];
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", $views);
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", $views);
 
         self::assertContains(GapCode::RECURSION, $this->gapCodes($s));
         $this->assertNoUnknownWithoutGap();
@@ -224,14 +224,14 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
             'a.blade.php' => "@include('b')",
             'b.blade.php' => "@include('a')",
         ];
-        $s = $this->run("return view('a');", $views);
+        $s = $this->walk("return view('a');", $views);
 
         self::assertContains(GapCode::RECURSION, $this->gapCodes($s));
     }
 
     public function testAVariableTheViewWasNeverGivenIsAGapNotSilence(): void
     {
-        $s = $this->run("return view('t', []);", ['t.blade.php' => self::LOOP_ROW]);
+        $s = $this->walk("return view('t', []);", ['t.blade.php' => self::LOOP_ROW]);
 
         self::assertNotSame([], $s->gaps);
         $this->assertNoUnknownWithoutGap();
@@ -240,7 +240,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testLoopAndErrorsAreBuiltInVariables(): void
     {
         $blade = "@foreach (\$orders as \$order)\n    {{ \$loop->index }} {{ \$errors->first('x') }}\n@endforeach";
-        $s = $this->run("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => $blade]);
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => $blade]);
 
         self::assertSame([], $s->gaps);
         $this->assertNoUnknownWithoutGap();
@@ -249,7 +249,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     public function testADataKeyBeatsABuiltInOfTheSameName(): void
     {
         $blade = "@foreach (\$errors as \$e)\n{{ \$e->customer->name }}\n@endforeach";
-        $s = $this->run("return view('t', ['errors' => Order::get()]);", ['t.blade.php' => $blade]);
+        $s = $this->walk("return view('t', ['errors' => Order::get()]);", ['t.blade.php' => $blade]);
 
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
     }
@@ -260,7 +260,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
     {
         $blade = "@can('x')\nhi\n@endcan";
         $body = "view('t', []);\nreturn view('t', []);";
-        $s = $this->run($body, ['t.blade.php' => $blade]);
+        $s = $this->walk($body, ['t.blade.php' => $blade]);
 
         self::assertSame(
             ['BLADE_UNSUPPORTED@' . self::VIEW . 't.blade.php:1', 'BLADE_UNSUPPORTED@' . self::VIEW . 't.blade.php:3'],
@@ -271,7 +271,7 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
 
     public function testATemplateWithOnlyTextHasNoEventsAndNoGaps(): void
     {
-        $s = $this->run("return view('t');", ['t.blade.php' => "<h1>Hello</h1>\n"]);
+        $s = $this->walk("return view('t');", ['t.blade.php' => "<h1>Hello</h1>\n"]);
 
         self::assertSame([], $s->events);
         self::assertSame([], $s->gaps);

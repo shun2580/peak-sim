@@ -58,7 +58,7 @@ abstract class ViewHandlerCase extends TestCase
      * @param array<string, string> $views view file (under resources/views, with .blade.php) => Blade source
      * @param array<string, string> $more other app files (path => code), e.g. config/view.php
      */
-    protected function run(string $body, array $views, array $more = [], ?string $viewPath = null): Summary
+    protected function walk(string $body, array $views, array $more = [], ?string $viewPath = null): Summary
     {
         $files = ['app/Http/Controllers/T.php' => str_replace('@@BODY@@', $body, self::CONTROLLER)];
         foreach ($views as $name => $source) {
