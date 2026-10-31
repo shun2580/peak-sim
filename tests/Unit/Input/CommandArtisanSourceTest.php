@@ -23,7 +23,7 @@ final class CommandArtisanSourceTest extends TestCase
     private const STUB = __DIR__ . '/../../Support/artisan-stub/artisan';
     private const EXPORT_DIR = __DIR__ . '/../../../fixtures/artisan-export';
 
-    private const PHRASE_JA = 'PHP のバージョンが対象の Laravel の対応範囲外の可能性';
+    private const PHRASE = 'The PHP version may be outside the range supported by the target Laravel.';
 
     protected function setUp(): void
     {
@@ -209,9 +209,10 @@ final class CommandArtisanSourceTest extends TestCase
             $this->stubSource()->routes();
             self::fail('an exception was expected');
         } catch (ArtisanOutputNotJsonException $e) {
-            self::assertStringContainsString(self::PHRASE_JA, $e->getMessage());
+            self::assertStringContainsString(self::PHRASE, $e->getMessage());
             self::assertStringContainsString('display_errors=stderr', $e->getMessage());
             self::assertStringContainsString('route:list', $e->getMessage());
+            self::assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $e->getMessage());
         }
     }
 
@@ -223,7 +224,7 @@ final class CommandArtisanSourceTest extends TestCase
             $this->stubSource()->routes();
             self::fail('an exception was expected');
         } catch (ArtisanOutputNotJsonException $e) {
-            self::assertStringContainsString(self::PHRASE_JA, $e->getMessage());
+            self::assertStringContainsString(self::PHRASE, $e->getMessage());
             self::assertStringContainsString('not json', $e->getMessage(), 'the start of stdout is shown');
         }
     }
@@ -370,7 +371,7 @@ final class CommandArtisanSourceTest extends TestCase
         self::assertStringContainsString('exit code 1', $diagnostics[0]);
         self::assertStringContainsString('Connection refused', $diagnostics[0]);
         self::assertStringContainsString('local database', $diagnostics[0]);
-        self::assertStringContainsString('到達できるローカル DB', $diagnostics[0]);
+        self::assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $diagnostics[0]);
         self::assertStringContainsString('--export-dir', $diagnostics[0]);
     }
 
@@ -401,7 +402,7 @@ final class CommandArtisanSourceTest extends TestCase
             $this->stubSource()->modelInfo('App\\Models\\Order');
             self::fail('an exception was expected');
         } catch (ArtisanOutputNotJsonException $e) {
-            self::assertStringContainsString(self::PHRASE_JA, $e->getMessage());
+            self::assertStringContainsString(self::PHRASE, $e->getMessage());
             self::assertStringContainsString('model:show', $e->getMessage());
         }
     }

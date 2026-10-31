@@ -69,8 +69,7 @@ final class CommandArtisanSource implements ArtisanSource
         if ($result->exitCode !== 0) {
             // The caller makes a MODEL_INFO_UNAVAILABLE gap (the route turns unknown). The reason is kept here.
             $this->diagnostics[] = $this->failureMessage($label, $result)
-                . "\nmodel:show needs a local database the app can reach, with the schema migrated; or use a pre-exported directory (--export-dir)."
-                . "\nmodel:show にはアプリが到達できるローカル DB が要る。事前書き出し(--export-dir)を使う手もある。";
+                . "\nmodel:show needs a local database the app can reach, with the schema migrated; or use a pre-exported directory (--export-dir).";
 
             return $this->models[$fqcn] = null;
         }
@@ -81,7 +80,7 @@ final class CommandArtisanSource implements ArtisanSource
             throw new ArtisanOutputNotJsonException($this->notJsonMessage($label, $result, $e->getMessage()), 0, $e);
         }
         if (strcasecmp($info->class, $fqcn) !== 0) {
-            $this->diagnostics[] = "{$label} answered for {$info->class}, not {$fqcn}; it is not used / {$fqcn} を尋ねたが {$info->class} の答えが返ったので使わない";
+            $this->diagnostics[] = "{$label} answered for {$info->class}, not {$fqcn}; it is not used.";
 
             return $this->models[$fqcn] = null;
         }
@@ -90,7 +89,7 @@ final class CommandArtisanSource implements ArtisanSource
     }
 
     /**
-     * Why model:show gave no information, one text per model (English first, then Japanese). Empty when all went well.
+     * Why model:show gave no information, one text per model. Empty when all went well.
      *
      * @return list<string>
      */
@@ -107,7 +106,7 @@ final class CommandArtisanSource implements ArtisanSource
 
     private function failureMessage(string $label, ProcessResult $result): string
     {
-        $message = "artisan {$label} failed with exit code {$result->exitCode} / artisan {$label} が終了コード {$result->exitCode} で失敗した.";
+        $message = "artisan {$label} failed with exit code {$result->exitCode}.";
         if (trim($result->stderr) !== '') {
             $message .= "\nstderr (first " . self::EXCERPT_BYTES . " bytes):\n" . self::excerpt($result->stderr, self::EXCERPT_BYTES);
         }
@@ -122,17 +121,14 @@ final class CommandArtisanSource implements ArtisanSource
     private function notJsonMessage(string $label, ProcessResult $result, string $reason): string
     {
         $message = "artisan {$label} exited with code 0 but its standard output is not valid JSON ({$reason})."
-            . "\nartisan {$label} は終了コード 0 で終わったが、標準出力が JSON として読めない。"
-            . "\nThe PHP version may be outside the range the target Laravel supports."
-            . "\nPHP のバージョンが対象の Laravel の対応範囲外の可能性がある。"
+            . "\nThe PHP version may be outside the range supported by the target Laravel."
             . "\nstart of stdout:\n" . self::excerpt($result->stdout, self::STDOUT_HEAD_BYTES);
         if (trim($result->stderr) !== '') {
             $message .= "\nstderr (first " . self::EXCERPT_BYTES . " bytes):\n" . self::excerpt($result->stderr, self::EXCERPT_BYTES);
         }
 
         return $message
-            . "\nHint: set artisan_command (--artisan-command) to `php -d display_errors=stderr artisan` so that PHP warnings go to stderr, not into the JSON."
-            . "\n案: artisan_command(--artisan-command)に `php -d display_errors=stderr artisan` を指定し、PHP の警告を標準エラーへ逃がす。";
+            . "\nHint: set artisan_command (--artisan-command) to `php -d display_errors=stderr artisan` so that PHP warnings go to stderr, not into the JSON.";
     }
 
     /** At most $bytes bytes, no terminal decoration, never half of a UTF-8 character. */

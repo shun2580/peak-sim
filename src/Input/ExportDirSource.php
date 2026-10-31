@@ -34,7 +34,7 @@ final class ExportDirSource implements ArtisanSource
         try {
             return $this->routes = ArtisanPayload::routes($data);
         } catch (\UnexpectedValueException $e) {
-            throw new ArtisanOutputNotJsonException(self::ROUTE_LIST . ': ' . $e->getMessage() . ' / ' . self::ROUTE_LIST . ' の形が想定と違う', 0, $e);
+            throw new ArtisanOutputNotJsonException(self::ROUTE_LIST . ': ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -58,7 +58,7 @@ final class ExportDirSource implements ArtisanSource
             try {
                 $info = ArtisanPayload::model($this->decode($file, $label));
             } catch (\UnexpectedValueException $e) {
-                throw new ArtisanOutputNotJsonException($label . ': ' . $e->getMessage() . ' / ' . $label . ' の形が想定と違う', 0, $e);
+                throw new ArtisanOutputNotJsonException($label . ': ' . $e->getMessage(), 0, $e);
             }
             $models[$info->class] ??= $info;
         }
@@ -69,13 +69,13 @@ final class ExportDirSource implements ArtisanSource
     private function decode(string $path, string $label): mixed
     {
         if (!is_file($path) || !is_readable($path)) {
-            throw new ArtisanFailedException("export file not found or unreadable: {$label} (export directory: {$this->dir}) / 書き出しファイルが無い、または読めない: {$label}");
+            throw new ArtisanFailedException("export file not found or unreadable: {$label} (export directory: {$this->dir})");
         }
 
         try {
             return ArtisanPayload::decode((string) file_get_contents($path));
         } catch (\JsonException $e) {
-            throw new ArtisanOutputNotJsonException("{$label} is not valid JSON ({$e->getMessage()}) / {$label} は JSON として読めない", 0, $e);
+            throw new ArtisanOutputNotJsonException("{$label} is not valid JSON ({$e->getMessage()})", 0, $e);
         }
     }
 }

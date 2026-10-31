@@ -17,13 +17,13 @@ final class ProcOpenRunner implements ProcessRunner
     public function run(string $commandLine, string $cwd, int $timeoutSeconds = 120): ProcessResult
     {
         if (!is_dir($cwd)) {
-            throw new ArtisanFailedException("working directory does not exist: {$cwd} / 作業ディレクトリが無い");
+            throw new ArtisanFailedException("working directory does not exist: {$cwd}");
         }
 
         $pipes = [];
         $process = proc_open($commandLine, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $cwd);
         if (!is_resource($process)) {
-            throw new ArtisanFailedException('could not start the command / コマンドを起動できなかった');
+            throw new ArtisanFailedException('could not start the command');
         }
 
         // Nobody types into artisan: a command that reads stdin sees end of file instead of waiting.
@@ -47,7 +47,7 @@ final class ProcOpenRunner implements ProcessRunner
             $except = null;
             $ready = @stream_select($read, $write, $except, 0, (int) min(self::POLL_MICROSECONDS, $remaining * 1000000));
             if ($ready === false) {
-                $this->abort($process, $open, $seconds, 'waiting for the command output failed / 出力待ちに失敗した');
+                $this->abort($process, $open, $seconds, 'waiting for the command output failed');
             }
 
             foreach ($open as $id => $stream) {
@@ -102,6 +102,6 @@ final class ProcOpenRunner implements ProcessRunner
         }
         proc_close($process);
 
-        throw new ArtisanFailedException($reason ?? "the command timed out after {$seconds} seconds and was stopped / コマンドが {$seconds} 秒で時間切れになり止めた");
+        throw new ArtisanFailedException($reason ?? "the command timed out after {$seconds} seconds and was stopped");
     }
 }
