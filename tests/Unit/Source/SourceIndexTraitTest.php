@@ -23,7 +23,8 @@ final class SourceIndexTraitTest extends SourceCase
         $found = SourceShape::found($index->resolveMethod('App\Http\Controllers\ReportController', 'index'));
 
         self::assertSame('App\Http\Controllers\ReportController', $found['owner'] ?? null);
-        self::assertNull($found['via'] ?? 'unset', 'declared on the class itself: no trait in between');
+        self::assertNotNull($found);
+        self::assertNull($found['via'], 'declared on the class itself: no trait in between');
     }
 
     public function testLeadingBackslashOfTheClassNameIsTolerated(): void

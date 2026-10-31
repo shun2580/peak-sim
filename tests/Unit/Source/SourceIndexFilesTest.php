@@ -115,6 +115,14 @@ final class SourceIndexFilesTest extends SourceCase
         self::assertSame('App\Services\Fine', $index->findClass('App\Services\Fine')?->fqcn);
     }
 
+    public function testSubclassesCannotBeListedWhileAFileUnderThePsr4DirectoriesIsBroken(): void
+    {
+        $index = self::index('src-parse-error-gap');
+
+        $this->expectException(ParseFailed::class);
+        $index->subclassesOf('App\Services\Fine');
+    }
+
     public function testAnUnreadableFileIsParseFailedToo(): void
     {
         $index = self::index('src-parse-error-gap');

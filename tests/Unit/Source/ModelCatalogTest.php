@@ -84,9 +84,14 @@ final class ModelCatalogTest extends SourceCase
         self::assertSame(['customer', 'items'], $descriptor->with, 'ancestors first, then the class itself, no duplicates');
         self::assertSame(['customer_name', 'label'], $descriptor->appends);
         self::assertSame(
-            ['customer_name' => 'getCustomerNameAttribute', 'label' => 'label', 'status_label' => 'getStatusLabelAttribute'],
+            [
+                'customer_name' => 'getCustomerNameAttribute',
+                'label' => 'label',
+                'short_code' => 'getShortCodeAttribute',
+                'status_label' => 'getStatusLabelAttribute',
+            ],
             SourceShape::accessors($descriptor),
-            'old and new style accessors, appended or not',
+            'old and new style accessors, appended or not, declared on the class or in a trait it uses',
         );
         self::assertSame(['customer' => 'inferred'], SourceShape::relationSources($descriptor));
     }
@@ -99,6 +104,42 @@ final class ModelCatalogTest extends SourceCase
         self::assertSame('orders', $descriptor->table);
         self::assertSame([], $descriptor->with);
         self::assertSame(['customer' => 'inferred'], SourceShape::relationSources($descriptor));
+    }
+
+    public function testAModelNoExportKnowsHasNoDescriptorButIsStillAModel(): void
+    {
+        $source = new class () implements ArtisanSource {
+            public function routes(): array
+            {
+                return [];
+            }
+
+            public function modelInfo(string $class): ?ModelInfo
+            {
+                return null;
+            }
+        };
+        $catalog = new AppModelCatalog(self::index('src-model-not-in-export-inherit'), $source);
+
+        self::assertTrue($catalog->isModel('App\Models\Order'));
+        self::assertNull($catalog->describe('App\Models\Order'), 'the caller turns this into a MODEL_INFO_UNAVAILABLE gap');
+    }
+
+    public function testNothingIsUnresolvedForTheFixtureModels(): void
+    {
+        $catalog = $this->catalog();
+
+        self::assertSame([], $catalog->unresolvedProperties('App\Models\AppendedOrder'));
+    }
+
+    public function testAPropertyThatIsNotConstantIsReportedInsteadOfDroppedSilently(): void
+    {
+        $catalog = $this->catalog();
+        $descriptor = $catalog->describe('App\Models\DynamicOrder');
+
+        self::assertNotNull($descriptor);
+        self::assertSame([], $descriptor->with);
+        self::assertSame(['App\Models\DynamicOrder::$with'], $catalog->unresolvedProperties('App\Models\DynamicOrder'));
     }
 
     public function testNonModelsAndUnknownClassesHaveNoDescriptor(): void

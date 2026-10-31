@@ -56,6 +56,25 @@ final class SourceIndexParentTest extends SourceCase
         self::assertSame('VendorParent', SourceShape::notFoundReason($resolution), 'the vendor parent may well define it');
     }
 
+    public function testAVendorTraitMayShadowAnInheritedMethod(): void
+    {
+        $index = self::index('src-parent-vendor-gap');
+        $class = 'App\Http\Controllers\AuditedController';
+
+        self::assertSame($class, SourceShape::found($index->resolveMethod($class, 'own'))['owner'] ?? null);
+
+        $resolution = $index->resolveMethod($class, 'shared');
+        self::assertNull(SourceShape::found($resolution), 'Notifiable could define shared() and would win over BaseController');
+        self::assertSame('VendorParent', SourceShape::notFoundReason($resolution));
+    }
+
+    public function testAnUnknownTopLevelClassIsTreatedAsLeavingTheApp(): void
+    {
+        $index = self::index('src-parent-vendor-gap');
+
+        self::assertSame('VendorParent', SourceShape::notFoundReason($index->resolveMethod('Illuminate\Support\Collection', 'map')));
+    }
+
     public function testExtendsVendorFollowsTheWholeChain(): void
     {
         $index = self::index('src-parent-vendor-gap');

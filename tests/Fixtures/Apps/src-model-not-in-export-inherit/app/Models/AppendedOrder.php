@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasShortCode;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class AppendedOrder extends EagerOrder
 {
+    use HasShortCode;
+
     /** Declared on top of EagerOrder's own $with: the catalog merges the chain. */
     protected $with = ['items'];
 
