@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Unit\Engine;
 
+use PeakSim\Binding\ProviderBindingTable;
 use PeakSim\Model\EventKind;
 use PeakSim\Model\GapCode;
 
@@ -89,5 +90,41 @@ final class BindingChainTest extends EngineCase
 
         self::assertSame([], $summary->gaps);
         self::assertCount(1, $this->events($summary, EventKind::Select));
+    }
+
+    public function testADecoratedBindingIsTheDecoratedGapAndNotTheUnresolvableOne(): void
+    {
+        $summary = $this->analyze($this->files(), 'App\Act', 'run', ['App\A' => ProviderBindingTable::REASON_DECORATED . ' extend() wraps App\A']);
+
+        self::assertSame([GapCode::BINDING_DECORATED], $this->gapCodes($summary));
+        self::assertSame([], $summary->events, 'the implementation behind the interface is not guessed');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testADecoratedBindingFurtherDownTheChainIsStillDecorated(): void
+    {
+        $summary = $this->analyze(
+            $this->files(),
+            'App\Act',
+            'run',
+            ['App\A' => ['App\B'], 'App\B' => ProviderBindingTable::REASON_DECORATED . ' afterResolving() hooks App\B'],
+        );
+
+        self::assertSame([GapCode::BINDING_DECORATED], $this->gapCodes($summary));
+        self::assertSame([], $summary->events);
+    }
+
+    public function testAnUnresolvableBindingKeepsItsOwnGap(): void
+    {
+        $summary = $this->analyze($this->files(), 'App\Act', 'run', ['App\A' => ProviderBindingTable::REASON_UNRESOLVABLE . ' a provider could not be read']);
+
+        self::assertSame([GapCode::UNRESOLVABLE_BINDING], $this->gapCodes($summary));
+    }
+
+    public function testAReasonWithoutAKnownPrefixIsUnresolvableNotDecorated(): void
+    {
+        $summary = $this->analyze($this->files(), 'App\Act', 'run', ['App\A' => 'something else went wrong']);
+
+        self::assertSame([GapCode::UNRESOLVABLE_BINDING], $this->gapCodes($summary));
     }
 }

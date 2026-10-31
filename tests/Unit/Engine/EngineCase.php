@@ -34,7 +34,7 @@ abstract class EngineCase extends TestCase
 
     /**
      * @param array<string, string> $files
-     * @param array<string, list<string>> $bindings
+     * @param array<string, list<string>|string> $bindings a string is the reason of an Unresolvable result
      */
     protected function analyze(array $files, string $class, string $method = '__invoke', array $bindings = [], ?EngineOptions $options = null, ?ActionReturnHook $hook = null): Summary
     {

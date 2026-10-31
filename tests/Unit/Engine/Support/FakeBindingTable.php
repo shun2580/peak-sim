@@ -11,7 +11,7 @@ use PeakSim\Model\Site;
 
 final class FakeBindingTable implements BindingTable
 {
-    /** @param array<string, list<string>> $bindings abstract => implementations */
+    /** @param array<string, list<string>|string> $bindings abstract => implementations, or the reason of an Unresolvable result */
     public function __construct(private readonly array $bindings = [])
     {
     }
@@ -19,6 +19,9 @@ final class FakeBindingTable implements BindingTable
     public function resolve(string $abstract, ?string $consumer = null): BindingResult
     {
         $impls = $this->bindings[ltrim($abstract, '\\')] ?? [];
+        if (is_string($impls)) {
+            return BindingResult::unresolvable(new Site('app/Providers/AppServiceProvider.php', 1), $impls);
+        }
         if ($impls === []) {
             return BindingResult::none();
         }

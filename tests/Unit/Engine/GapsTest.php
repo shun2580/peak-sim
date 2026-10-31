@@ -153,6 +153,48 @@ final class GapsTest extends EngineCase
         self::assertContains(GapCode::GENERATOR_NOT_ANALYZED, $this->gapCodes($summary));
     }
 
+    public function testTheBodyOfAGeneratorIsNotWalkedSoItCannotMakeALowerBound(): void
+    {
+        $summary = $this->analyze([
+            'app/Act.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Act\n{\n    public function run()\n    {\n        \$count = 0;\n        foreach (\$this->rows() as \$id) {\n            \$count++;\n        }\n        return \$count;\n    }\n    private function rows(): \\Generator\n    {\n        foreach (Order::get() as \$order) {\n            yield \$order->id;\n        }\n    }\n}\n",
+        ], 'App\Act', 'run');
+
+        self::assertSame([GapCode::GENERATOR_NOT_ANALYZED], $this->gapCodes($summary));
+        self::assertSame([], $summary->events, 'what the generator body would read is a fact nobody found');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testYieldFromMakesAGeneratorToo(): void
+    {
+        $summary = $this->analyze([
+            'app/Act.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Act\n{\n    public function run()\n    {\n        return \$this->rows();\n    }\n    private function rows()\n    {\n        Order::first();\n        yield from Order::get();\n    }\n}\n",
+        ], 'App\Act', 'run');
+
+        self::assertSame([GapCode::GENERATOR_NOT_ANALYZED], $this->gapCodes($summary));
+        self::assertSame([], $summary->events);
+    }
+
+    public function testAGeneratorCalledInALoopIsAGapAtThatDepth(): void
+    {
+        $summary = $this->analyze([
+            'app/Act.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Act\n{\n    public function run()\n    {\n        foreach (Order::get() as \$o) {\n            foreach (\$this->rows() as \$id) {\n            }\n        }\n    }\n    private function rows()\n    {\n        yield 1;\n    }\n}\n",
+        ], 'App\Act', 'run');
+
+        $gaps = array_values(array_filter($summary->gaps, static fn ($g): bool => $g->code === GapCode::GENERATOR_NOT_ANALYZED));
+        self::assertCount(1, $gaps);
+        self::assertSame(1, $gaps[0]->loopDepth);
+    }
+
+    public function testAYieldInsideAClosureDoesNotMakeTheMethodAroundItAGenerator(): void
+    {
+        $summary = $this->analyze([
+            'app/Act.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Act\n{\n    public function run()\n    {\n        \$later = function () {\n            yield 1;\n        };\n        return Order::get();\n    }\n}\n",
+        ], 'App\Act', 'run');
+
+        self::assertCount(1, $this->events($summary, EventKind::Select), 'run() is not a generator: its body is walked');
+        self::assertSame([], $this->gapCodes($summary), 'the closure is never called here');
+    }
+
     public function testAGapInsideALoopRemembersHowDeepItIs(): void
     {
         $summary = $this->invokable(<<<'PHP'
