@@ -33,7 +33,7 @@ MVPは繁忙期シミュレーターまで含める。ただし内部で3フェ�
 
 前提条件:
 
-- 対象:Laravel 11以降(ツールの動作要件はPHP 8.2以上)
+- 対象:Laravel 11以降(ツールの動作要件はPHP 8.2以上)。Laravel 11 はフレームワーク自体のサポートが終わっているため、ベストエフォート対応(動作は確認済み)
 - OSSとして公開する(GitHub / Packagist、Zenn記事化を想定)
 - 実装は将軍が担当し、仕様と要件はこのドキュメントで管理する
 
@@ -105,7 +105,23 @@ simulation:
 
 判定結果は「クエリ数の増え方」と「メモリの増え方」の2軸で持つ。各判定には、Nがどのテーブルの件数かを紐づける。
 
-静的に追えないもの(動的なメソッド名、コンテナ経由の解決など)は「不明」として明示し、推測で埋めない。各判定には確度(high / medium / low)を付ける。
+静的に追えないもの(動的なメソッド名、コンテナ経由の解決など)は「不明」として明示し、推測で埋めない。各判定には確度(high / medium)を付ける。
+
+### 確度と「不明」の定義
+
+根幹の原則:**「分からない」を「安全」にしない。** 追えない呼び出しが経路に1つでもあれば、その軸を O(1) とは出さない。危ないルートを安全と出す見逃しは、「不明」と出すより害が大きい。
+
+| 確度 | 意味 |
+| --- | --- |
+| high | 経路上の呼び出しが、すべて解決できた |
+| medium | すべて解決できたが、推定を含む(実装が複数ある束縛で最悪ケースを採った、リレーション名を推論で当てた、など) |
+| (low は使わない) | 追えない部分があれば、その軸は `unknown` とする |
+
+- `unknown` のときも、追えた範囲で分かった**下限**(「少なくとも O(N)」など)があれば、別の項目として添える。確度と「下限であること」は別の情報として出す
+- **追えなかった箇所(gap)** は、ファイル・行・理由つきで記録し、出力に含める
+- 「何も見つからなかった」と「見つけようとして追えなかった」を必ず区別する。前者は判定の根拠になるが、後者は根拠にならない
+
+出力には、各軸の判定と確度に加えて、下限と gap の一覧を含める。
 
 解析対象には、コントローラーの外で発生するクエリも含める:Bladeテンプレート、`JsonResource`、`$appends` のアクセサ、モデルの `$with` プロパティ。
 
@@ -222,7 +238,7 @@ CLIの終了コードで、閾値を超えたルートがある場合にCIを失
 | `/ok/chunk` | `chunk()` | O(N)(係数は1/チャンクサイズ) | O(1) | orders |
 | `/ok/lazy` | `lazy()` | O(N)(係数は1/チャンクサイズ) | O(1) | orders |
 | `/ok/with-count` | `withCount()` / `withSum()` | O(1) | O(N) | orders |
-| `/ok/bulk` | 全顧客分のレコードを `insert()` / `upsert()` で一括作成 | O(1) | O(N) | customers |
+| `POST /ok/bulk` | 全顧客分のレコードを `insert()` / `upsert()` で一括作成 | O(1) | O(N) | customers |
 | `/ng/n-plus-one` | ループ内で `$order->customer` | O(N) | O(N) | orders |
 | `/ng/nested` | 二重ループで `$order->items` → `$item->product` | O(N×M) | O(N×M) | N=orders、M=1注文あたりのitems |
 | `/ng/count-in-loop` | ループ内で `->items()->count()` | O(N) | O(N) | orders |
@@ -230,24 +246,40 @@ CLIの終了コードで、閾値を超えたルートがある場合にCIを失
 | `/ng/get-then-count` | `->get()->count()` | O(1) | O(N) | orders |
 | `/ng/collection-filter` | `get()` の後にCollectionの `where` / `filter` で絞り込む | O(1) | O(N) | orders |
 | `/ng/save-in-loop` | 全顧客をループして `save()` | O(N) | O(N) | customers |
-| `/ng/first-or-create-in-loop` | 全商品をループして `firstOrCreate` / `updateOrCreate` | O(N)(1件あたり2本) | O(N) | products |
+| `/ng/first-or-create-in-loop` | 全商品をループして `firstOrCreate` / `updateOrCreate` | O(N)(1件あたり2本。条件つき、下の注記参照) | O(N) | products |
 | `/ng/service` | N+1をサービスクラスの奥(2〜3段)に隠す | O(N) | O(N) | orders |
 | `/ng/layered` | Controller → UseCase → DomainService → Repositoryインターフェース → Eloquent実装の5段で、最奥にN+1 | O(N) | O(N) | orders |
 | `/hidden/blade` | Blade内でリレーション参照 | O(N) | O(N) | orders |
 | `/hidden/resource` | `JsonResource` 内でリレーション参照 | O(N) | O(N) | orders |
-| `/hidden/cache` | N+1を `Cache::remember` で包む | ミス時 O(N)、ヒット時 O(1)。キャッシュ付きと明示 | O(N)(ヒット時も全件を復元する) | orders |
+| `/hidden/cache` | N+1を `Cache::remember` で包む | ミス時 O(N)、ヒット時 O(1)。キャッシュ付きと明示 | O(N)(シリアライズするキャッシュドライバ(Redis、Memcached、database、file など本番で一般的なもの)では、ヒット時も全件を復元するためメモリ O(N)。シリアライズしない array ドライバは対象外) | orders |
 | `/hidden/appends` | `$appends` のアクセサ内でリレーション参照 | O(N) | O(N) | orders |
-| `/hidden/model-with` | モデルの `$with` プロパティ | O(1)(毎回1本追加) | O(N) | orders |
+| `/hidden/model-with` | モデルの `$with` プロパティ | O(1)(毎回1本追加。`$with` の先読み1つにつき1本、下の注記参照) | O(N) | orders |
 | `/hidden/cursor` | `cursor()` | O(1) | O(N)(PDOが結果を全件バッファする) | orders |
 | `/hidden/conditional-binding` | 環境によって実装が切り替わる束縛(先読みありの実装とN+1の実装) | O(N)(全候補のうち最悪ケースを採用したと明示) | O(N) | orders |
 | `/unknown/dynamic` | `$this->{$method}()` のような動的呼び出し | 不明 | 不明 | — |
+
+表の注記(2026-11-01、将軍裁定 S-32):
+
+- メソッドの記載がないルートは GET。`POST /ok/bulk` だけ POST
+- `/ok/bulk` の O(1) は、MySQL のプレースホルダ上限(このルートでは 13,107 顧客)の内に限る。ツールはこの上限を判定に使わない
+- `/ng/first-or-create-in-loop` の「1件あたり2本」は条件つき:`firstOrCreate` は行が無いとき(SELECT + INSERT)、`updateOrCreate` は値が変わるとき(SELECT + UPDATE)。検証用アプリは `?via=update` で `updateOrCreate` 側を認める
+- `/hidden/model-with` の「毎回1本追加」は、`$with` の先読み1つにつき1本と読む(実測で 2 / 2 / 2 本と合う)
+- 期待値との一致は、**クエリ・メモリ・N(M)のテーブル**の3軸で判定する。次は出力に必須だが、一致の判定の軸には入れない:キャッシュのミス時 / ヒット時とキャッシュ付きの明示、最悪ケース採用の明示。係数の補足(chunk の 1/チャンクサイズ、1件あたり2本、毎回1本追加)は、出せれば出す。一致の判定には入れず、出せなければ報告する
 
 インデックスが効かない書き方(`LIKE '%...'`、`inRandomOrder()`、インデックスのない列での `orderBy` / `whereHas`)は、1本あたりのコストの問題なのでフェーズ2の検証用として別枚で用意する。
 
 期待値そのものが正しいかは実測で確かめる。
 
 - クエリ数:[phpunit-query-scaling](https://github.com/ralder/phpunit-query-scaling)(PHP 8.3以上、Laravel 12/13)で、件数を変えたときの増え方を測る。使えない場合は `DB::listen` による自前の計測でよい。そのため検証用アプリはLaravel 12か13で作る
-- メモリ:`memory_get_peak_usage` を件数ごとに測り、O(1)かO(N)かを大まかに確かめる。誤差が大きいので参考値とする
+- メモリ:`memory_get_peak_usage` を件数ごとに測り、O(1)かO(N)かを大まかに確かめる。誤差が大きいので参考値とする。増加分が小さいルート(`/hidden/cursor`)は、バイト / 行も併記する
+- `/hidden/cache` のメモリは、シリアライズを有効にして測る(シリアライズするドライバでは、ヒット時も全件を復元するため)。この測り方は正しい
+- 増え方の判定規則:件数を動かして測った結果を、log-log グラフの傾きに一本化して判定する(2026-11-01、将軍裁定 S-32)
+  - O(1):傾き ≤ 0.2
+  - O(N):傾き ≥ 0.5
+  - 0.2 と 0.5 の間:判定不能。どちらかに合わせず、そのまま報告する
+  - O(N×M):N を動かした傾きと M を動かした傾きが、両方 ≥ 0.5
+  - クエリ数の区間ごとの傾きのばらつきは ±10% 以内
+  - メモリは参考値のまま
 - `/hidden/conditional-binding` は、テスト内で束縛を差し替えて両方の実装を測る。`/unknown/dynamic` は実測の対象外
 - 実測と期待値が食い違った場合は、無理に合わせず報告する(期待値の側が間違っている可能性があるため)
 
