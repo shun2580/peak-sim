@@ -35,11 +35,29 @@ abstract class QueryCase extends TestCase
      */
     protected function walker(array $vars = [], array $observers = [], array $databases = []): QueryWalker
     {
-        $source = new AppSourceIndex(__DIR__ . '/App');
-        $models = new AppModelCatalog($source, $this->export($observers, $databases));
+        [$source, $models] = $this->catalog($observers, $databases);
+
+        return new QueryWalker($source, $models, $this->handlers(), $vars);
+    }
+
+    /** @return list<\PeakSim\Analysis\Contracts\CallHandler> */
+    protected function handlers(): array
+    {
         $ops = new BuilderOps();
 
-        return new QueryWalker($source, $models, [new ModelStatic($ops), $ops, new RelationOps($ops)], $vars);
+        return [new ModelStatic($ops), $ops, new RelationOps($ops)];
+    }
+
+    /**
+     * @param array<string, list<mixed>> $observers
+     * @param array<string, string> $databases
+     * @return array{0: AppSourceIndex, 1: AppModelCatalog}
+     */
+    protected function catalog(array $observers = [], array $databases = []): array
+    {
+        $source = new AppSourceIndex(__DIR__ . '/App');
+
+        return [$source, new AppModelCatalog($source, $this->export($observers, $databases))];
     }
 
     /**
