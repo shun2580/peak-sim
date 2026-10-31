@@ -26,6 +26,7 @@ final class KnownTableTest extends TestCase
         'function:round',
         'method:illuminate\\http\\request::query',
         'static:illuminate\\database\\eloquent\\casts\\attribute::get',
+        'static:illuminate\\database\\eloquent\\casts\\attribute::make',
     ];
 
     public function testTheDefaultTableIsTheFileUnderResources(): void
@@ -160,7 +161,10 @@ final class KnownTableTest extends TestCase
         $this->assertSame('object:Illuminate\\Contracts\\Routing\\ResponseFactory', $table->forFunction('response')?->returns);
         $this->assertSame(0, $table->forFunction('response')?->argsMax);
         $this->assertSame('plain', $table->forFunction('now')?->returns);
-        $this->assertSame('arg:0', $table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'get')?->returns);
+        $this->assertSame('arg:0:get', $table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'get')?->returns);
+        $this->assertSame('arg:0:get', $table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'make')?->returns);
+        $this->assertSame([0, 2], [$table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'make')?->argsMin, $table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'make')?->argsMax]);
+        $this->assertTrue($table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'make')?->storesClosures ?? false);
         $this->assertTrue($table->forStatic('Illuminate\\Database\\Eloquent\\Casts\\Attribute', 'get')?->storesClosures ?? false);
         $this->assertFalse($table->forFunction('round')?->storesClosures ?? true);
         $this->assertSame('plain', $table->forMethod('Illuminate\\Http\\Request', 'query')?->returns);
@@ -241,6 +245,7 @@ final class KnownTableTest extends TestCase
             'unknown return' => [['functions' => ['f' => ['returns' => 'int'] + $ok]], 'returns'],
             'object without class' => [['functions' => ['f' => ['returns' => 'object:'] + $ok]], 'returns'],
             'arg without index' => [['functions' => ['f' => ['returns' => 'arg:x'] + $ok]], 'returns'],
+            'arg name that is not a name' => [['functions' => ['f' => ['returns' => 'arg:0:1x', 'args' => [1, 2]] + $ok]], 'returns'],
             'arg beyond the arity' => [['functions' => ['f' => ['returns' => 'arg:3', 'args' => [1, 2]] + $ok]], 'returns'],
             'min above max' => [['functions' => ['f' => ['args' => [3, 1]] + $ok]], 'args'],
             'negative min' => [['functions' => ['f' => ['args' => [-1, 1]] + $ok]], 'args'],

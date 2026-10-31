@@ -126,6 +126,50 @@ final class KnownCallsTest extends KnownCase
         $this->assertClean($w);
     }
 
+    /** @return array<string, array{0: string, 1: string|null}> source, the static method the returned getter calls (null = no getter) */
+    public static function attributes(): array
+    {
+        return [
+            'get' => ['Attribute::get(fn () => Order::get())', 'get'],
+            'get, named' => ['Attribute::get(get: fn () => Order::get())', 'get'],
+            'make with a getter first' => ['Attribute::make(fn () => Order::get(), fn () => Customer::count())', 'get'],
+            'make with a getter by name' => ['Attribute::make(get: fn () => Order::get(), set: fn () => Customer::count())', 'get'],
+            'make with the names the other way round' => ['Attribute::make(set: fn () => Customer::count(), get: fn () => Order::get())', 'get'],
+            'make with a getter alone' => ['Attribute::make(get: fn () => Order::get())', 'get'],
+            'make with a setter alone' => ['Attribute::make(set: fn () => Customer::count())', null],
+            'make with nothing' => ['Attribute::make()', null],
+        ];
+    }
+
+    #[DataProvider('attributes')]
+    public function testAnAccessorHandsBackItsGetterAndNeverRunsAClosure(string $php, ?string $getter): void
+    {
+        $w = $this->known();
+
+        $t = $w->run($php);
+
+        if ($getter === null) {
+            $this->assertInstanceOf(PlainT::class, $t);
+        } else {
+            $this->assertInstanceOf(ClosureT::class, $t);
+            $this->assertInstanceOf(\PhpParser\Node\Expr\ArrowFunction::class, $t->node);
+            $this->assertSame($getter, $t->node->expr->name->toString());
+        }
+        $this->assertSame(0, $w->closuresRun);
+        $this->assertSame([], $w->fake->events());
+        $this->assertSame([], $this->gapCodes($w));
+        $this->assertSame([], $w->unhandled);
+        $this->assertClean($w);
+    }
+
+    public function testAttributeMakeTakesNoMoreThanTwoArguments(): void
+    {
+        $w = $this->known();
+
+        $this->assertInstanceOf(UnknownT::class, $w->run('Attribute::make(fn () => 1, fn () => 2, fn () => 3)'));
+        $this->assertSame([self::MISSING], $this->gapCodes($w));
+    }
+
     public function testAClosureIsNotAcceptedWhereTheEntryDoesNotStoreIt(): void
     {
         $w = $this->known();
