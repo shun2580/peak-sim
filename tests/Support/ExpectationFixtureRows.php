@@ -127,6 +127,8 @@ final class ExpectationFixtureRows
             ];
         }
         if ($row['worst_case_adopted'] === true) {
+            // The candidates differ on queries only (one eager, one lazy), so only that axis is lowered by the assumption.
+            $want['query'] = ['growth' => $want['query'], 'confidence' => 'medium'];
             $want['worst_case_adopted'] = true;
             $want['assumptions'] = ['WORST_CASE_OF_CANDIDATES'];
             $want['confidence'] = 'medium';

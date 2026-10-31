@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Acceptance;
 
+use PeakSim\Model\AssumptionCode;
+use PeakSim\Model\GapCode;
 use PeakSim\Tests\Support\Expectation;
+use PeakSim\Tests\Support\ExpectationFixtureRows;
 use PeakSim\Tests\Support\MiniAppAnalyzer;
 use PeakSim\Tests\Support\MiniAppCase;
 use PeakSim\Tests\Support\MiniAppEchoAnalyzer;
@@ -93,6 +96,69 @@ final class MiniAppHarnessSelfTest extends TestCase
         $problems = $this->verifyWithoutApp($this->caseNamed($name), new MiniAppEchoAnalyzer(lighterBy: 1));
 
         $this->assertNotSame([], $problems, "{$name}: a tool that reports one degree too light went unnoticed");
+    }
+
+    /** Codes named in expect.php must exist in the frozen enums (a typo would otherwise make a case unsatisfiable). */
+    #[DataProvider('caseProvider')]
+    public function testEveryGapAndAssumptionCodeInAnExpectationExists(string $name): void
+    {
+        $invalid = [];
+        foreach ($this->caseNamed($name)->expect()['routes'] as $uri => $want) {
+            foreach (array_merge($want['gaps'] ?? [], $want['gaps_include'] ?? []) as $code) {
+                if (GapCode::tryFrom($code) === null) {
+                    $invalid[] = "{$uri}: {$code} is not a GapCode";
+                }
+            }
+            foreach (array_merge($want['assumptions'] ?? [], $want['assumptions_include'] ?? []) as $code) {
+                if (AssumptionCode::tryFrom($code) === null) {
+                    $invalid[] = "{$uri}: {$code} is not an AssumptionCode";
+                }
+            }
+        }
+
+        $this->assertSame([], $invalid, "{$name}: " . implode('; ', $invalid));
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function fixtureRouteProvider(): array
+    {
+        $cases = [];
+        foreach (array_keys(ExpectationFixtureRows::rows()) as $uri) {
+            $cases[$uri] = [$uri];
+        }
+
+        return $cases;
+    }
+
+    /** The 24-route comparison agrees with a tool that says what expected.json says. */
+    #[DataProvider('fixtureRouteProvider')]
+    public function testTheRouteComparisonAcceptsAnAnalyzerThatEchoesExpectedJson(string $uri): void
+    {
+        $row = ExpectationFixtureRows::rows()[$uri];
+        $view = (new MiniAppEchoAnalyzer())->analyzeRoute(MiniAppWorkspace::fixtureApp(), null, $uri);
+
+        $result = ExpectationFixtureRows::compare($row, $view);
+
+        $this->assertSame([], $result['problems'], implode("\n", $result['problems']));
+        $this->assertSame([], ReportAssert::invariants($view), $uri);
+        $this->assertNotContains('missed', [$result['query'], $result['memory']]);
+    }
+
+    /** ...and it names a miss when the tool is one degree too light on a route that grows. */
+    public function testTheRouteComparisonReportsAMissForALightAnalyzer(): void
+    {
+        $misses = 0;
+        foreach (ExpectationFixtureRows::rows() as $uri => $row) {
+            $view = (new MiniAppEchoAnalyzer(lighterBy: 1))->analyzeRoute(MiniAppWorkspace::fixtureApp(), null, $uri);
+            $result = ExpectationFixtureRows::compare($row, $view);
+            $grows = in_array('O(N)', [$row['query'], $row['memory'], $row['query_on_miss']], true) || in_array('O(N*M)', [$row['query'], $row['memory']], true);
+            if ($grows) {
+                $this->assertNotSame([], $result['problems'], "{$uri}: a light verdict went unnoticed");
+                $this->assertContains('missed', [$result['query'], $result['memory']], $uri);
+                ++$misses;
+            }
+        }
+        $this->assertGreaterThanOrEqual(15, $misses);
     }
 
     public function testDiscoveryFindsCasesByDirectoryAndSkipsKitAndHiddenOnes(): void
