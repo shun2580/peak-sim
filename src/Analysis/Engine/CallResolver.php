@@ -217,6 +217,11 @@ final class CallResolver
         $class = ltrim($class, '\\');
         $info = $source->findClass($class);
         if ($info === null) {
+            // A vendor type the app binds to its own class (or to another vendor type) is followed; unbound, it is not modelled.
+            if ($this->engine->bindings()->resolve($class, $scope->class)->kind !== BindingResultKind::None) {
+                return $this->throughBindings($class, $method, $args, $named, $site, $self, $scope, $run);
+            }
+
             return $this->gap($run, $scope, GapCode::VENDOR_CALL_NOT_MODELLED, $site, "{$class}::{$method}() belongs to a vendor class and is not modelled");
         }
 
@@ -248,23 +253,16 @@ final class CallResolver
      */
     private function throughBindings(string $abstract, string $method, array $args, array $named, Node $site, ?Type $self, Scope $scope, MethodRun $run): Type
     {
-        $result = $this->engine->bindings()->resolve($abstract, $scope->class);
-        if ($result->kind === BindingResultKind::None) {
-            return $this->gap($run, $scope, GapCode::NO_BINDING, $site, "no binding found for {$abstract}");
-        }
-        if ($result->kind === BindingResultKind::Unresolvable) {
-            return $this->gap($run, $scope, GapCode::UNRESOLVABLE_BINDING, $site, "the binding of {$abstract} cannot be followed: " . ($result->reason ?? ''));
-        }
+        $targets = [];
+        $problems = [];
+        $this->collectImplementations($abstract, $method, $site, $scope, $run, $targets, $problems, [$abstract => true], 0);
 
         $source = $this->engine->source();
         $outcomes = [];
         $results = [];
-        $problems = [];
-        foreach ($result->candidates as $candidate) {
-            $impl = ltrim($candidate->impl, '\\');
-            $ref = $source->findClass($impl) === null ? null : $source->resolveMethod($impl, $method)->method;
-            if ($ref === null || $ref->node->stmts === null) {
-                $problems[] = $this->gap($run, $scope, GapCode::METHOD_NOT_FOUND, $site, "{$impl}::{$method}() was not found (bound to {$abstract})");
+        foreach ($targets as $impl => $candidate) {
+            $ref = $source->resolveMethod($impl, $method)->method;
+            if ($ref === null) {
                 continue;
             }
             $implSelf = $self instanceof ObjectT || $self === null ? new ObjectT($impl) : $self;
@@ -294,6 +292,50 @@ final class CallResolver
         }
 
         return TypeMerge::joinAll([...$results, ...$problems])->type;
+    }
+
+    /**
+     * The concrete classes an abstract can be bound to, following a binding that points at another abstract
+     * (A -> B -> Concrete). Anything that cannot be followed becomes a gap in $problems.
+     *
+     * @param array<string, \PeakSim\Binding\Candidate> $targets filled: concrete class => the candidate that named it
+     * @param list<UnknownT> $problems
+     * @param array<string, true> $visited
+     */
+    private function collectImplementations(string $abstract, string $method, Node $site, Scope $scope, MethodRun $run, array &$targets, array &$problems, array $visited, int $depth): void
+    {
+        $result = $this->engine->bindings()->resolve($abstract, $scope->class);
+        if ($result->kind === BindingResultKind::None) {
+            $problems[] = $this->gap($run, $scope, GapCode::NO_BINDING, $site, $depth === 0 ? "no binding found for {$abstract}" : "{$abstract} is bound to another abstract type that has no binding");
+
+            return;
+        }
+        if ($result->kind === BindingResultKind::Unresolvable) {
+            $problems[] = $this->gap($run, $scope, GapCode::UNRESOLVABLE_BINDING, $site, "the binding of {$abstract} cannot be followed: " . ($result->reason ?? ''));
+
+            return;
+        }
+
+        $source = $this->engine->source();
+        foreach ($result->candidates as $candidate) {
+            $impl = ltrim($candidate->impl, '\\');
+            $info = $source->findClass($impl);
+            $ref = $info === null ? null : $source->resolveMethod($impl, $method)->method;
+            $hasBody = $ref !== null && $info !== null && $info->kind !== 'interface' && $ref->node->stmts !== null;
+            if ($hasBody) {
+                $targets[$impl] ??= $candidate;
+                continue;
+            }
+            if ($info !== null && ($info->kind === 'interface' || $info->isAbstract)) {
+                if (isset($visited[$impl]) || $depth >= 10) {
+                    $problems[] = $this->gap($run, $scope, GapCode::UNRESOLVABLE_BINDING, $site, "the bindings of {$abstract} lead back to {$impl}");
+                    continue;
+                }
+                $this->collectImplementations($impl, $method, $site, $scope, $run, $targets, $problems, $visited + [$impl => true], $depth + 1);
+                continue;
+            }
+            $problems[] = $this->gap($run, $scope, GapCode::METHOD_NOT_FOUND, $site, "{$impl}::{$method}() was not found (bound to {$abstract})");
+        }
     }
 
     /**
