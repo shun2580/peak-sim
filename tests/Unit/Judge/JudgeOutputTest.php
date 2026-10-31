@@ -187,7 +187,7 @@ final class JudgeOutputTest extends JudgeCase
 
         $dump = print_r(self::judge(self::summary([$event], [self::gap()], [self::assumption([Axis::Query])])), true);
 
-        self::assertStringNotContainsString('/home/', $dump);
+        self::assertSame(0, preg_match('~(?<![\w.])/(?:home|Users|mnt)/~', $dump));
         self::assertSame(0, preg_match('~\b20\d\d-\d\d-\d\d~', $dump));
     }
 }
