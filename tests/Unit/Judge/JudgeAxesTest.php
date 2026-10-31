@@ -163,7 +163,7 @@ final class JudgeAxesTest extends JudgeCase
 
     public function testAnAssumptionLowersConfidenceOnlyOnTheAxesItAffects(): void
     {
-        $event = $this->event(['frames' => [self::frame('orders')], 'memory' => self::memory(1, 'orders')]);
+        $event = $this->event(['frames' => [self::frame('orders')], 'memory' => self::memory(0, 'orders')]);
 
         $r = self::judge(self::summary([$event], [], [self::assumption([Axis::Memory])]));
 

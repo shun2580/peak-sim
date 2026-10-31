@@ -148,7 +148,9 @@ final class JudgeCacheTest extends JudgeCase
 
     public function testTheCacheViewIsAPlainValueSoItCanBeCompared(): void
     {
-        self::assertEquals(self::judge($this->cached()), self::judge($this->cached()));
-        self::assertInstanceOf(RouteResult::class, self::judge($this->cached()));
+        $summary = $this->cached();
+
+        self::assertEquals(self::judge($summary), self::judge($summary));
+        self::assertInstanceOf(RouteResult::class, self::judge($summary));
     }
 }
