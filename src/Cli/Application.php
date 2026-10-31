@@ -43,7 +43,7 @@ final class Application
     {
         $args = array_slice($argv, 1);
         if (Arguments::isHelp($args)) {
-            fwrite($stdout, self::usage());
+            self::write($stdout, self::usage());
 
             return self::EXIT_OK;
         }
@@ -92,7 +92,7 @@ final class Application
         $text = $command->format === Command::FORMAT_JSON
             ? (new JsonRenderer())->render($report, $runner->inputMode())
             : (new TableRenderer())->render($report);
-        fwrite($stdout, str_ends_with($text, "\n") ? $text : $text . "\n");
+        self::write($stdout, str_ends_with($text, "\n") ? $text : $text . "\n");
 
         $stats = $runner->stats();
         // What artisan said when it could not describe a model (no database, say): the reason a route turned unknown.
@@ -104,6 +104,17 @@ final class Application
         }
 
         return self::EXIT_OK;
+    }
+
+    /**
+     * Writes to standard output. When the reader has gone (`… | head`) the write fails with EPIPE; that is the
+     * reader's choice, so it is neither a notice nor a failure of the analysis.
+     *
+     * @param resource $stdout
+     */
+    private static function write($stdout, string $text): void
+    {
+        @fwrite($stdout, $text);
     }
 
     /** @param array<string, mixed> $stats */

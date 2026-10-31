@@ -6,12 +6,15 @@ namespace PeakSim\Cli;
 
 /**
  * Reads the command line: `analyze <app-root> [--artisan-command=…|--export-dir=…] [--format=table|json]
- * [--route=<uri>] [--max-depth=20] [--stats]`. Options take their value after `=`. Anything not understood is a
- * UsageError: a mistyped option must not be ignored, or the user reads an answer to a question they did not ask.
+ * [--route=<uri>] [--max-depth=20] [--stats]`. Options take their value after `=`; `--export-dir` and
+ * `--artisan-command` may also take it as the next argument. Anything not understood is a UsageError: a mistyped option must not be ignored, or the user reads an answer to a question they did not ask.
  */
 final class Arguments
 {
     public const DEFAULT_MAX_DEPTH = 20;
+
+    /** Options whose value may be the next argument (`--export-dir <dir>`), as the output schema's examples show. */
+    private const SPACE_SEPARATED = ['--export-dir', '--artisan-command'];
 
     /** @param list<string> $args the arguments after the program name */
     public static function isHelp(array $args): bool
@@ -34,9 +37,18 @@ final class Arguments
 
         $roots = [];
         $options = [];
-        foreach (array_slice($args, 1) as $arg) {
+        $rest = array_slice($args, 1);
+        for ($i = 0; $i < count($rest); $i++) {
+            $arg = $rest[$i];
             if ($arg === '--stats') {
                 $options['stats'] = true;
+            } elseif (in_array($arg, self::SPACE_SEPARATED, true)) {
+                $value = $rest[$i + 1] ?? null;
+                if ($value === null || str_starts_with($value, '--')) {
+                    throw new UsageError("{$arg} needs a value: {$arg} <value>");
+                }
+                $options = self::option($arg . '=' . $value, $options);
+                $i++;
             } elseif (str_starts_with($arg, '--')) {
                 $options = self::option($arg, $options);
             } else {
