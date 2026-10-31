@@ -1,0 +1,17 @@
+
+  Dropping all tables .......................................... 105.52ms DONE
+
+   INFO  Preparing database.  
+
+  Creating migration table ...................................... 20.41ms DONE
+
+   INFO  Running migrations.  
+
+  0001_01_01_000000_create_users_table .......................... 90.92ms DONE
+  0001_01_01_000001_create_cache_table .......................... 56.53ms DONE
+  0001_01_01_000002_create_jobs_table ........................... 75.65ms DONE
+  2026_01_01_000001_create_customers_table ...................... 26.60ms DONE
+  2026_01_01_000002_create_products_table ....................... 15.39ms DONE
+  2026_01_01_000003_create_orders_table ......................... 62.56ms DONE
+  2026_01_01_000004_create_items_table ......................... 113.10ms DONE
+

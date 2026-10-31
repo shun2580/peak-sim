@@ -1,0 +1,19 @@
+
+   ErrorException 
+
+  probe warning
+
+  at routes/web.php:15
+     11▕ Route::get('/orders', [OrderController::class, 'index'])->name('orders.index')->middleware('throttle:60,1');
+     12▕ Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+     13▕ Route::resource('items', OrderController::class)->only(['index', 'store']);
+     14▕ 
+  ➜  15▕ trigger_error("probe warning", E_USER_WARNING);
+     16▕
+
+  1   routes/web.php:15
+      [2m+20 vendor frames [22m
+
+  22  [internal]:0
+      Illuminate\Foundation\Application::{closure:Illuminate\Foundation\Application::boot():1131}(Object(Illuminate\Foundation\Support\Providers\RouteServiceProvider), "Illuminate\Foundation\Support\Providers\RouteServiceProvider")
+
