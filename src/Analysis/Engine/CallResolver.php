@@ -1,0 +1,457 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PeakSim\Analysis\Engine;
+
+use PeakSim\Analysis\Contracts\CallSite;
+use PeakSim\Analysis\Type\ClosureT;
+use PeakSim\Analysis\Type\ListT;
+use PeakSim\Analysis\Type\ModelT;
+use PeakSim\Analysis\Type\ObjectT;
+use PeakSim\Analysis\Type\PlainT;
+use PeakSim\Analysis\Type\Type;
+use PeakSim\Analysis\Type\UnionT;
+use PeakSim\Analysis\Type\UnknownT;
+use PeakSim\Binding\BindingResultKind;
+use PeakSim\Model\Cardinality;
+use PeakSim\Model\GapCode;
+use PeakSim\Model\Site;
+use PeakSim\Source\MethodMiss;
+use PeakSim\Source\MethodRef;
+use PhpParser\Node;
+use PhpParser\Node\Expr;
+
+/**
+ * Gives a call its meaning. Handlers are asked first, in priority order; a call nobody takes is a method of an
+ * app class (summarised and absorbed), or else a gap. A gap here is never silent: the result is an UnknownT.
+ *
+ * What a handler sees in a CallSite:
+ *  - method call:     node = MethodCall | NullsafeMethodCall, receiver = the receiver's type, name = method
+ *  - static call:     node = StaticCall, staticClass = the class (self / static / parent already resolved)
+ *  - function call:   node = FuncCall, name = the function name as written
+ *  - new:             node = New_, staticClass = the class, name = '__construct'
+ *  - property read:   node = PropertyFetch | NullsafePropertyFetch, receiver = the base's type, name = the property
+ */
+final class CallResolver
+{
+    public function __construct(
+        private readonly Engine $engine,
+        private readonly Walker $walker,
+    ) {
+    }
+
+    /**
+     * Put the arguments of a call into the parameters' variables.
+     *
+     * @param array<Node\Param> $params
+     * @param list<Type> $args
+     * @param array<string, Type> $named
+     */
+    public function bindParameters(array $params, array $args, array $named, Scope $scope, MethodRun $run, bool $closure): void
+    {
+        foreach ($params as $i => $param) {
+            if (!$param->var instanceof Expr\Variable || !is_string($param->var->name)) {
+                continue;
+            }
+            $name = $param->var->name;
+            if ($param->variadic) {
+                $rest = array_slice($args, $i);
+                $type = new ListT($rest === [] ? new PlainT() : TypeMerge::joinAll($rest)->type, Cardinality::bounded());
+            } else {
+                $type = $args[$i] ?? $named[$name] ?? null;
+                if ($type === null && $param->default !== null) {
+                    $type = $this->walker->evaluate($param->default, $scope, $run);
+                }
+                // A route parameter or an argument the caller left out: whatever the declaration says, else plain.
+                $type ??= $this->engine->types()->fromDeclaration($param->type, $scope->class, $scope->declClass, $this->engine->parentOf(...)) ?? new PlainT();
+            }
+            $scope->set($name, $type, count($run->frames));
+        }
+    }
+
+    // ----- expressions ------------------------------------------------------------------------------------
+
+    public function methodCall(Expr\MethodCall|Expr\NullsafeMethodCall $n, Scope $scope, MethodRun $run): Type
+    {
+        $recv = $this->walker->evaluate($n->var, $scope, $run);
+        [$args, $eval] = $this->prepareArgs($n->args, $scope, $run);
+        if ($n->isFirstClassCallable()) {
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'first-class callable syntax is not followed');
+        }
+        if (!$n->name instanceof Node\Identifier) {
+            $this->evaluateAll($args, $eval);
+
+            return $this->gap($run, $scope, GapCode::DYNAMIC_METHOD_NAME, $n, 'the method name is not a literal');
+        }
+
+        return $this->onReceiver($n, $recv, $n->name->toString(), $args, $eval, $scope, $run);
+    }
+
+    public function staticCall(Expr\StaticCall $n, Scope $scope, MethodRun $run): Type
+    {
+        [$args, $eval] = $this->prepareArgs($n->args, $scope, $run);
+        if ($n->isFirstClassCallable()) {
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'first-class callable syntax is not followed');
+        }
+        if (!$n->class instanceof Node\Name) {
+            $this->walker->evaluate($n->class, $scope, $run);
+            $this->evaluateAll($args, $eval);
+
+            return $this->gap($run, $scope, GapCode::DYNAMIC_CLASS_NAME, $n, 'the class name is not a literal');
+        }
+        if (!$n->name instanceof Node\Identifier) {
+            $this->evaluateAll($args, $eval);
+
+            return $this->gap($run, $scope, GapCode::DYNAMIC_METHOD_NAME, $n, 'the method name is not a literal');
+        }
+        $class = $this->className($n->class, $scope);
+        if ($class === null) {
+            $this->evaluateAll($args, $eval);
+
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'cannot tell which class ' . $n->class->toString() . ':: means here');
+        }
+        $name = $n->name->toString();
+
+        $handled = $this->dispatch(new CallSite($n, null, $class, $name, $args, $eval), $scope, $run);
+        if ($handled !== null) {
+            return $handled;
+        }
+        [$positional, $named] = $this->evaluateAll($args, $eval);
+        $special = in_array(strtolower($n->class->toString()), ['self', 'static', 'parent'], true);
+
+        return $this->callOnClass($class, $name, $positional, $named, $n, $special ? $scope->selfType : null, $scope, $run, $special ? $scope->class : null);
+    }
+
+    public function funcCall(Expr\FuncCall $n, Scope $scope, MethodRun $run): Type
+    {
+        [$args, $eval] = $this->prepareArgs($n->args, $scope, $run);
+        if ($n->isFirstClassCallable()) {
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'first-class callable syntax is not followed');
+        }
+        if (!$n->name instanceof Node\Name) {
+            $callee = $this->walker->evaluate($n->name, $scope, $run);
+            [$positional] = $this->evaluateAll($args, $eval);
+            if ($callee instanceof ClosureT) {
+                return $this->walker->invokeClosure($callee, $positional, $run);
+            }
+            if ($callee instanceof UnknownT) {
+                return $callee;
+            }
+
+            return $this->gap($run, $scope, GapCode::DYNAMIC_METHOD_NAME, $n, 'the function being called is not a known closure');
+        }
+        $name = ltrim($n->name->toString(), '\\');
+
+        $handled = $this->dispatch(new CallSite($n, null, null, $name, $args, $eval), $scope, $run);
+        if ($handled !== null) {
+            return $handled;
+        }
+        $this->evaluateAll($args, $eval);
+
+        return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, "function {$name}() is not modelled");
+    }
+
+    public function newExpr(Expr\New_ $n, Scope $scope, MethodRun $run): Type
+    {
+        [$args, $eval] = $this->prepareArgs($n->args, $scope, $run);
+        if (!$n->class instanceof Node\Name) {
+            $this->evaluateAll($args, $eval);
+
+            return $n->class instanceof Node\Stmt\Class_
+                ? $this->gap($run, $scope, GapCode::NEW_UNKNOWN_CLASS, $n, 'anonymous class is not followed')
+                : $this->gap($run, $scope, GapCode::DYNAMIC_CLASS_NAME, $n, 'the class name is not a literal');
+        }
+        $class = $this->className($n->class, $scope);
+        if ($class === null) {
+            $this->evaluateAll($args, $eval);
+
+            return $this->gap($run, $scope, GapCode::NEW_UNKNOWN_CLASS, $n, 'cannot tell which class ' . $n->class->toString() . ' means here');
+        }
+
+        $handled = $this->dispatch(new CallSite($n, null, $class, '__construct', $args, $eval), $scope, $run);
+        if ($handled !== null) {
+            return $handled;
+        }
+        [$positional, $named] = $this->evaluateAll($args, $eval);
+        if ($this->engine->models()->isModel($class)) {
+            return new ModelT($class);
+        }
+        if ($this->engine->source()->findClass($class) === null) {
+            return $this->gap($run, $scope, GapCode::NEW_UNKNOWN_CLASS, $n, "class {$class} is not in the app and is not modelled");
+        }
+        $self = new ObjectT($class);
+        $constructor = $this->engine->source()->resolveMethod($class, '__construct');
+        if ($constructor->method !== null) {
+            $this->invoke($constructor->method, $class, $self, $positional, $named, $n, $scope, $run);
+        }
+
+        return $self;
+    }
+
+    public function propertyFetch(Expr\PropertyFetch|Expr\NullsafePropertyFetch $n, Scope $scope, MethodRun $run): Type
+    {
+        $recv = $this->walker->evaluate($n->var, $scope, $run);
+        if (!$n->name instanceof Node\Identifier) {
+            $this->walker->evaluate($n->name, $scope, $run);
+
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'the property name is not a literal');
+        }
+
+        return $this->propertyOf($n, $recv, $n->name->toString(), $scope, $run);
+    }
+
+    // ----- calls into app code -----------------------------------------------------------------------------
+
+    /**
+     * Call $class::$method with already evaluated arguments: resolve it (through bindings for an interface),
+     * summarise it, and take the summary in at the current loops.
+     *
+     * @param list<Type> $args
+     * @param array<string, Type> $named
+     * @param string|null $receiver the class self:: and static:: mean in the callee, when it is not $class (parent:: calls)
+     */
+    public function callOnClass(string $class, string $method, array $args, array $named, Node $site, ?Type $self, Scope $scope, MethodRun $run, ?string $receiver = null): Type
+    {
+        $source = $this->engine->source();
+        $class = ltrim($class, '\\');
+        $info = $source->findClass($class);
+        if ($info === null) {
+            return $this->gap($run, $scope, GapCode::VENDOR_CALL_NOT_MODELLED, $site, "{$class}::{$method}() belongs to a vendor class and is not modelled");
+        }
+
+        $resolution = $source->resolveMethod($class, $method);
+        $ref = $resolution->method;
+        $hasBody = $ref !== null && $info->kind !== 'interface' && $ref->node->stmts !== null;
+        if ($hasBody) {
+            return $this->invoke($ref, $receiver ?? $class, $self ?? $this->engine->types()->forClass($class), $args, $named, $site, $scope, $run);
+        }
+        if ($info->kind === 'interface' || $info->isAbstract || $ref !== null) {
+            return $this->throughBindings($class, $method, $args, $named, $site, $self, $scope, $run);
+        }
+
+        $isModel = $this->engine->models()->isModel($class);
+        [$code, $why] = match ($resolution->miss) {
+            MethodMiss::VendorParent => $isModel
+                ? [GapCode::UNKNOWN_BUILDER_METHOD, "{$class}::{$method}() is not declared in the model and is not a known builder method"]
+                : [GapCode::VENDOR_PARENT, "{$class}::{$method}() is not declared in the app; it may come from a vendor parent class"],
+            MethodMiss::TraitConflict => [GapCode::TRAIT_CONFLICT, "{$class}::{$method}() is declared by more than one trait"],
+            default => [GapCode::METHOD_NOT_FOUND, "{$class}::{$method}() was not found"],
+        };
+
+        return $this->gap($run, $scope, $code, $site, $why);
+    }
+
+    /**
+     * @param list<Type> $args
+     * @param array<string, Type> $named
+     */
+    private function throughBindings(string $abstract, string $method, array $args, array $named, Node $site, ?Type $self, Scope $scope, MethodRun $run): Type
+    {
+        $result = $this->engine->bindings()->resolve($abstract, $scope->class);
+        if ($result->kind === BindingResultKind::None) {
+            return $this->gap($run, $scope, GapCode::NO_BINDING, $site, "no binding found for {$abstract}");
+        }
+        if ($result->kind === BindingResultKind::Unresolvable) {
+            return $this->gap($run, $scope, GapCode::UNRESOLVABLE_BINDING, $site, "the binding of {$abstract} cannot be followed: " . ($result->reason ?? ''));
+        }
+
+        $source = $this->engine->source();
+        $outcomes = [];
+        $results = [];
+        $problems = [];
+        foreach ($result->candidates as $candidate) {
+            $impl = ltrim($candidate->impl, '\\');
+            $ref = $source->findClass($impl) === null ? null : $source->resolveMethod($impl, $method)->method;
+            if ($ref === null || $ref->node->stmts === null) {
+                $problems[] = $this->gap($run, $scope, GapCode::METHOD_NOT_FOUND, $site, "{$impl}::{$method}() was not found (bound to {$abstract})");
+                continue;
+            }
+            $implSelf = $self instanceof ObjectT || $self === null ? new ObjectT($impl) : $self;
+            $outcomes[$impl] = [$ref, $implSelf, $this->engine->summarize($ref, $impl, $implSelf, $args, $named, $run)];
+            $run->trace[] = new Site($candidate->site->file, $candidate->site->line, "binding {$abstract} => {$impl}");
+        }
+
+        $computed = [];
+        foreach ($outcomes as $impl => [, , $outcome]) {
+            if ($outcome->refusal === null) {
+                $computed[$impl] = $outcome->summary;
+            }
+        }
+        $disagreement = CandidateComparison::disagreement($computed);
+        if ($disagreement !== null) {
+            (new EvalContextImpl($this->engine, $run, $scope))->assume(
+                \PeakSim\Model\AssumptionCode::WORST_CASE_OF_CANDIDATES,
+                $site,
+                "{$abstract} has " . count($computed) . ' implementations that cost differently; the costliest is adopted',
+                $disagreement['axes'],
+                [...array_keys($computed), 'chosen' => $disagreement['chosen']],
+            );
+        }
+
+        foreach ($outcomes as $impl => [$ref, , $outcome]) {
+            $results[] = $this->take($outcome, $ref, $impl, $site, $scope, $run);
+        }
+
+        return TypeMerge::joinAll([...$results, ...$problems])->type;
+    }
+
+    /**
+     * @param list<Type> $args
+     * @param array<string, Type> $named
+     */
+    private function invoke(MethodRef $ref, string $receiver, ?Type $self, array $args, array $named, Node $site, Scope $scope, MethodRun $run): Type
+    {
+        return $this->take($this->engine->summarize($ref, $receiver, $self, $args, $named, $run), $ref, $receiver, $site, $scope, $run);
+    }
+
+    private function take(SummaryOutcome $outcome, MethodRef $ref, string $receiver, Node $site, Scope $scope, MethodRun $run): Type
+    {
+        $what = $ref->owner . '::' . $ref->node->name->toString() . '()';
+        if ($outcome->refusal !== null) {
+            return $this->gap($run, $scope, $outcome->refusal, $site, match ($outcome->refusal) {
+                GapCode::DEPTH_LIMIT => "call depth limit of {$this->engine->options()->maxDepth} reached before {$what}",
+                GapCode::RECURSION => "recursion into {$what}: not followed",
+                default => "analysis budget exhausted before {$what}",
+            });
+        }
+        $run->absorb($outcome->summary, $outcome->deepest, $outcome->poisoned);
+
+        return $outcome->summary->returnType;
+    }
+
+    // ----- helpers -----------------------------------------------------------------------------------------
+
+    /** @param list<Node\Arg> $args @param \Closure(int): Type $eval */
+    private function onReceiver(Node $n, Type $recv, string $name, array $args, \Closure $eval, Scope $scope, MethodRun $run): Type
+    {
+        if ($recv instanceof UnionT) {
+            $results = [];
+            foreach ($recv->members as $member) {
+                $results[] = $this->onReceiver($n, $member, $name, $args, $eval, $scope, $run);
+            }
+
+            return TypeMerge::joinAll($results)->type;
+        }
+        if ($recv instanceof UnknownT) {
+            $this->evaluateAll($args, $eval);
+
+            return $recv;
+        }
+
+        $handled = $this->dispatch(new CallSite($n, $recv, null, $name, $args, $eval), $scope, $run);
+        if ($handled !== null) {
+            return $handled;
+        }
+        [$positional, $named] = $this->evaluateAll($args, $eval);
+        if ($recv instanceof ObjectT || $recv instanceof ModelT) {
+            return $this->callOnClass($recv->class, $name, $positional, $named, $n, $recv, $scope, $run);
+        }
+
+        return $this->gap($run, $scope, GapCode::VENDOR_CALL_NOT_MODELLED, $n, "{$name}() on a " . $this->kindName($recv) . ' is not modelled');
+    }
+
+    private function propertyOf(Node $n, Type $recv, string $name, Scope $scope, MethodRun $run): Type
+    {
+        if ($recv instanceof UnionT) {
+            $results = [];
+            foreach ($recv->members as $member) {
+                $results[] = $this->propertyOf($n, $member, $name, $scope, $run);
+            }
+
+            return TypeMerge::joinAll($results)->type;
+        }
+        if ($recv instanceof UnknownT) {
+            return $recv;
+        }
+        $handled = $this->dispatch(new CallSite($n, $recv, null, $name, [], null), $scope, $run);
+        if ($handled !== null) {
+            return $handled;
+        }
+        if ($recv instanceof PlainT) {
+            return $recv;
+        }
+        if ($recv instanceof ObjectT) {
+            if ($this->engine->source()->findClass($recv->class) === null) {
+                return $this->gap($run, $scope, GapCode::VENDOR_CALL_NOT_MODELLED, $n, "property {$name} of vendor class {$recv->class} is not modelled");
+            }
+            $declared = $this->engine->types()->fromTypeString($this->engine->source()->propertyType($recv->class, $name), $recv->class);
+            if ($declared !== null) {
+                return $declared;
+            }
+
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, "the type of property {$recv->class}::\${$name} is not declared");
+        }
+
+        return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, "property {$name} of a " . $this->kindName($recv) . ' is not modelled');
+    }
+
+    private function dispatch(CallSite $call, Scope $scope, MethodRun $run): ?Type
+    {
+        $ctx = new EvalContextImpl($this->engine, $run, $scope);
+        foreach ($this->engine->registry()->handlers() as $handler) {
+            if ($handler->handles($call, $ctx)) {
+                return $handler->handle($call, $ctx);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<Node\Arg|Node\VariadicPlaceholder> $raw
+     * @return array{0: list<Node\Arg>, 1: \Closure(int): Type}
+     */
+    private function prepareArgs(array $raw, Scope $scope, MethodRun $run): array
+    {
+        $args = array_values(array_filter($raw, static fn (Node $a): bool => $a instanceof Node\Arg));
+        $cache = [];
+        $eval = function (int $i) use (&$cache, $args, $scope, $run): Type {
+            return $cache[$i] ??= $this->walker->evaluateArg($args[$i]->value, $scope, $run);
+        };
+
+        return [$args, $eval];
+    }
+
+    /**
+     * Evaluate every argument (once) and split them into positional and named.
+     *
+     * @param list<Node\Arg> $args
+     * @param \Closure(int): Type $eval
+     * @return array{0: list<Type>, 1: array<string, Type>}
+     */
+    private function evaluateAll(array $args, \Closure $eval): array
+    {
+        $positional = [];
+        $named = [];
+        foreach ($args as $i => $arg) {
+            $type = $eval($i);
+            if ($arg->name !== null) {
+                $named[$arg->name->toString()] = $type;
+            } else {
+                $positional[] = $type;
+            }
+        }
+
+        return [$positional, $named];
+    }
+
+    private function className(Node\Name $name, Scope $scope): ?string
+    {
+        return match (strtolower($name->toString())) {
+            'self', 'static' => $scope->class,
+            'parent' => $scope->declClass === null ? null : $this->engine->parentOf($scope->declClass),
+            default => ltrim($name->toString(), '\\'),
+        };
+    }
+
+    private function kindName(Type $t): string
+    {
+        return strtolower((new \ReflectionClass($t))->getShortName());
+    }
+
+    private function gap(MethodRun $run, Scope $scope, GapCode $code, Node $at, string $message): UnknownT
+    {
+        return (new EvalContextImpl($this->engine, $run, $scope))->gap($code, $at, $message);
+    }
+}
