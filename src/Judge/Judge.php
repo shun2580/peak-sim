@@ -74,17 +74,8 @@ final class Judge
             Evidence::of($summary->trace, $events, $gaps, $assumptions),
             count($events),
             $summary->truncated,
+            $tables->alternatives,
         );
-    }
-
-    /**
-     * Other tables that tie with N (same degree, axis and kind). RouteResult has no field for them yet.
-     *
-     * @return list<string>
-     */
-    public function tableAlternatives(Summary $summary): array
-    {
-        return TableChooser::choose(self::ordered($summary)[0])->alternatives;
     }
 
     /**
