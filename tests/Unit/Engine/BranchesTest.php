@@ -123,6 +123,22 @@ final class BranchesTest extends EngineCase
         self::assertSame(['query' => 1, 'memory' => 1], $this->degrees($summary));
     }
 
+    public function testTheWorstCaseAssumptionNamesTheAbstractItWasBoundFor(): void
+    {
+        $files = [
+            'app/Act.php' => "<?php\nnamespace App;\nclass Act\n{\n    public function __construct(private readonly Summaries \$s) {}\n    public function run()\n    {\n        return \$this->s->all();\n    }\n}\n",
+            'app/Summaries.php' => "<?php\nnamespace App;\ninterface Summaries\n{\n    public function all();\n}\n",
+            'app/Eager.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Eager implements Summaries\n{\n    public function all()\n    {\n        foreach (Order::with('customer')->get() as \$o) {\n            \$o->customer;\n        }\n    }\n}\n",
+            'app/Lazy.php' => "<?php\nnamespace App;\nuse App\\Models\\Order;\nclass Lazy implements Summaries\n{\n    public function all()\n    {\n        foreach (Order::get() as \$o) {\n            \$o->customer;\n        }\n    }\n}\n",
+        ];
+        $summary = $this->analyze($files, 'App\Act', 'run', ['App\Summaries' => ['App\Eager', 'App\Lazy']]);
+
+        $candidates = $summary->assumptions[0]->candidates;
+        self::assertSame('App\Summaries', $candidates['abstract'], 'the Judge shows it in worst_case');
+        self::assertSame('App\Lazy', $candidates['chosen']);
+        self::assertSame(['App\Eager', 'App\Lazy'], array_values(array_filter($candidates, 'is_int', ARRAY_FILTER_USE_KEY)), 'the candidate list stays keyed by position');
+    }
+
     public function testSeveralBindingsThatCostTheSameAssumeNothing(): void
     {
         $files = [
