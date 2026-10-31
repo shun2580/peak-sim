@@ -26,6 +26,7 @@ final class ContractCodesTest extends TestCase
     private const ASSUMPTION_CODES = [
         'WORST_CASE_OF_CANDIDATES', 'BRANCH_WORST_CASE', 'RELATION_INFERRED', 'DRIVER_ASSUMED',
         'CACHE_DRIVER_SERIALIZING', 'SQL_NOT_PARSED', 'TABLE_NAME_UNKNOWN', 'ACCUMULATION_HEURISTIC',
+        'FIND_ARGUMENT_ASSUMED_SCALAR',
     ];
 
     public function testGapCodeSetIsExactlyTheFrozenList(): void
