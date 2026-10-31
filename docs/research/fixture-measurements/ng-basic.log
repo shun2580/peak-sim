@@ -1,0 +1,43 @@
+PHPUnit 12.5.42 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.36
+Configuration: <scrubbed>/fixtures/laravel-app/phpunit.xml
+
+[measure] memory /ng/n-plus-one N=orders M=3 scales=[100,1000,10000] peak_bytes=[424144,3638704,36039224] class=linear
+.[measure] memory /ng/nested N=orders M=3 scales=[100,1000,10000] peak_bytes=[1212240,11523456,115105464] class=linear
+.[measure] memory /ng/count-in-loop N=orders M=3 scales=[100,1000,10000] peak_bytes=[234840,1714200,16707480] class=linear
+.[measure] memory /ng/unbounded N=orders M=3 scales=[100,1000,10000] peak_bytes=[217800,1929608,19180808] class=linear
+.[measure] memory /ng/get-then-count N=orders M=3 scales=[100,1000,10000] peak_bytes=[158840,1317880,13041400] class=linear
+.[measure] memory /ng/collection-filter N=orders M=3 scales=[100,1000,10000] peak_bytes=[158840,1317880,13041400] class=linear
+.[measure] memory /ng/nested M-sweep N=500 scales=[1,4,16] peak_bytes=[2830008,7282224,25312224] class=linear
+.[measure] queries /ng/n-plus-one N=orders M=3 scales=[5,10,20] counts=[6,11,21]
+.[measure] queries /ng/nested N=orders M=3 scales=[5,10,20] counts=[21,41,81]
+.[measure] queries /ng/count-in-loop N=orders M=3 scales=[5,10,20] counts=[6,11,21]
+.[measure] queries /ng/unbounded N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/get-then-count N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/collection-filter N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/nested M-sweep N=10 scales=[1,2,4] counts=[21,31,51]
+[measure] queries /ng/nested M-sweep N=20 scales=[1,2,4] counts=[41,61,101]
+.                                                    14 / 14 (100%)
+
+Time: 01:34.352, Memory: 164.50 MB
+
+Basic Memory (Tests\Feature\Ng\BasicMemory)
+ ✔ Peak memory grows as expected with orders with data set "/ng/n-plus-one"
+ ✔ Peak memory grows as expected with orders with data set "/ng/nested"
+ ✔ Peak memory grows as expected with orders with data set "/ng/count-in-loop"
+ ✔ Peak memory grows as expected with orders with data set "/ng/unbounded"
+ ✔ Peak memory grows as expected with orders with data set "/ng/get-then-count"
+ ✔ Peak memory grows as expected with orders with data set "/ng/collection-filter"
+ ✔ Nested peak memory grows with items per order
+
+Basic Query Scaling (Tests\Feature\Ng\BasicQueryScaling)
+ ✔ Query count grows as expected with orders with data set "/ng/n-plus-one"
+ ✔ Query count grows as expected with orders with data set "/ng/nested"
+ ✔ Query count grows as expected with orders with data set "/ng/count-in-loop"
+ ✔ Query count grows as expected with orders with data set "/ng/unbounded"
+ ✔ Query count grows as expected with orders with data set "/ng/get-then-count"
+ ✔ Query count grows as expected with orders with data set "/ng/collection-filter"
+ ✔ Nested query count grows with items per order times orders
+
+OK (14 tests, 84 assertions)
