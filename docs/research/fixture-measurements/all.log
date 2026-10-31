@@ -1,0 +1,225 @@
+PHPUnit 12.5.42 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.36
+Configuration: <scrubbed>
+
+....[measure] route=/hidden/appends phase=request n=10 queries=11 memory_bytes=119216
+[measure] route=/hidden/appends phase=request n=100 queries=101 memory_bytes=548008
+[measure] route=/hidden/appends phase=request n=1000 queries=1001 memory_bytes=4551472
+.[measure] route=/hidden/appends phase=request n=100 queries=101 memory_bytes=558648
+[measure] route=/hidden/appends phase=request n=1000 queries=1001 memory_bytes=4518704
+[measure] route=/hidden/appends phase=request n=10000 queries=10001 memory_bytes=45289664
+..[measure] route=/hidden/blade phase=request n=10 queries=11 memory_bytes=127952
+[measure] route=/hidden/blade phase=request n=100 queries=101 memory_bytes=461704
+[measure] route=/hidden/blade phase=request n=1000 queries=1001 memory_bytes=3480392
+.[measure] route=/hidden/blade phase=request n=100 queries=101 memory_bytes=472344
+[measure] route=/hidden/blade phase=request n=1000 queries=1001 memory_bytes=3480392
+[measure] route=/hidden/blade phase=request n=10000 queries=10001 memory_bytes=34583488
+..[measure] route=/hidden/cache phase=miss n=10 queries=11 memory_bytes=108784
+[measure] route=/hidden/cache phase=hit n=10 queries=0 memory_bytes=31176
+[measure] route=/hidden/cache phase=miss n=100 queries=101 memory_bytes=477896
+[measure] route=/hidden/cache phase=hit n=100 queries=0 memory_bytes=38600
+[measure] route=/hidden/cache phase=miss n=1000 queries=1001 memory_bytes=3639192
+[measure] route=/hidden/cache phase=hit n=1000 queries=0 memory_bytes=104136
+.[measure] route=/hidden/cache phase=miss n=100 queries=101 memory_bytes=488536
+[measure] route=/hidden/cache phase=hit n=100 queries=0 memory_bytes=38600
+[measure] route=/hidden/cache phase=miss n=1000 queries=1001 memory_bytes=3639192
+[measure] route=/hidden/cache phase=hit n=1000 queries=0 memory_bytes=104136
+[measure] route=/hidden/cache phase=miss n=10000 queries=10001 memory_bytes=36208208
+[measure] route=/hidden/cache phase=hit n=10000 queries=0 memory_bytes=755400
+.[measure] route=/hidden/cache (restore only) phase=restore n=100 queries=0 memory_bytes=71800
+[measure] route=/hidden/cache (restore only) phase=restore n=1000 queries=0 memory_bytes=590936
+[measure] route=/hidden/cache (restore only) phase=restore n=10000 queries=0 memory_bytes=6109976
+...[measure] route=/hidden/conditional-binding phase=adopted n=10 queries=11 memory_bytes=107864
+[measure] route=/hidden/conditional-binding phase=eager n=10 queries=2 memory_bytes=90656
+[measure] route=/hidden/conditional-binding phase=lazy n=10 queries=11 memory_bytes=108224
+[measure] route=/hidden/conditional-binding phase=adopted n=100 queries=101 memory_bytes=464640
+[measure] route=/hidden/conditional-binding phase=eager n=100 queries=2 memory_bytes=251016
+[measure] route=/hidden/conditional-binding phase=lazy n=100 queries=101 memory_bytes=423760
+[measure] route=/hidden/conditional-binding phase=adopted n=1000 queries=1001 memory_bytes=3638272
+[measure] route=/hidden/conditional-binding phase=eager n=1000 queries=2 memory_bytes=2086696
+[measure] route=/hidden/conditional-binding phase=lazy n=1000 queries=1001 memory_bytes=3638320
+.[measure] route=/hidden/conditional-binding phase=adopted n=100 queries=101 memory_bytes=484864
+[measure] route=/hidden/conditional-binding phase=eager n=100 queries=2 memory_bytes=251016
+[measure] route=/hidden/conditional-binding phase=lazy n=100 queries=101 memory_bytes=423760
+[measure] route=/hidden/conditional-binding phase=adopted n=1000 queries=1001 memory_bytes=3638272
+[measure] route=/hidden/conditional-binding phase=eager n=1000 queries=2 memory_bytes=2086696
+[measure] route=/hidden/conditional-binding phase=lazy n=1000 queries=1001 memory_bytes=3638320
+[measure] route=/hidden/conditional-binding phase=adopted n=10000 queries=10001 memory_bytes=36207288
+[measure] route=/hidden/conditional-binding phase=eager n=10000 queries=2 memory_bytes=20709736
+[measure] route=/hidden/conditional-binding phase=lazy n=10000 queries=10001 memory_bytes=36207336
+..[measure] route=/hidden/cursor phase=request n=10 queries=1 memory_bytes=78608
+[measure] route=/hidden/cursor phase=request n=100 queries=1 memory_bytes=80232
+[measure] route=/hidden/cursor phase=request n=1000 queries=1 memory_bytes=143976
+.[measure] route=/hidden/cursor phase=request n=100 queries=1 memory_bytes=80232
+[measure] route=/hidden/cursor phase=request n=1000 queries=1 memory_bytes=143976
+[measure] route=/hidden/cursor phase=request n=10000 queries=1 memory_bytes=782952
+..[measure] route=/hidden/model-with phase=request n=10 queries=2 memory_bytes=91888
+[measure] route=/hidden/model-with phase=request n=100 queries=2 memory_bytes=336432
+[measure] route=/hidden/model-with phase=request n=1000 queries=2 memory_bytes=2905456
+.[measure] route=/hidden/model-with phase=request n=100 queries=2 memory_bytes=336112
+[measure] route=/hidden/model-with phase=request n=1000 queries=2 memory_bytes=2905456
+[measure] route=/hidden/model-with phase=request n=10000 queries=2 memory_bytes=28740232
+.[measure] route=/hidden/model-with phase=request n=10 queries=2 memory_bytes=91888
+[measure] route=/hidden/model-with phase=request n=100 queries=2 memory_bytes=336432
+[measure] route=/hidden/model-with phase=request n=1000 queries=2 memory_bytes=2905456
+..[measure] route=/hidden/resource phase=request n=10 queries=11 memory_bytes=109640
+[measure] route=/hidden/resource phase=request n=100 queries=101 memory_bytes=488832
+[measure] route=/hidden/resource phase=request n=1000 queries=1001 memory_bytes=3764152
+.[measure] route=/hidden/resource phase=request n=100 queries=101 memory_bytes=499472
+[measure] route=/hidden/resource phase=request n=1000 queries=1001 memory_bytes=3764152
+[measure] route=/hidden/resource phase=request n=10000 queries=10001 memory_bytes=37786416
+.[measure] memory /ng/n-plus-one N=orders M=3 scales=[100,1000,10000] peak_bytes=[424144,3638704,36037888] class=linear
+.[measure] memory /ng/nested N=orders M=3 scales=[100,1000,10000] peak_bytes=[1212240,11523456,115105464] class=linear
+.[measure] memory /ng/count-in-loop N=orders M=3 scales=[100,1000,10000] peak_bytes=[234840,1714200,16707480] class=linear
+.[measure] memory /ng/unbounded N=orders M=3 scales=[100,1000,10000] peak_bytes=[217800,1929608,19180808] class=linear
+.[measure] memory /ng/get-then-count N=orders M=3 scales=[100,1000,10000] peak_bytes=[158840,1317880,13041400] class=linear
+.[measure] memory /ng/collection-filter N=orders M=3 scales=[100,1000,10000] peak_bytes=[158840,1317880,13041400] class=linear
+.[measure] memory /ng/nested M-sweep N=500 scales=[1,4,16] peak_bytes=[2830008,7282224,25312224] class=linear
+.[measure] queries /ng/n-plus-one N=orders M=3 scales=[5,10,20] counts=[6,11,21]
+.[measure] queries /ng/nested N=orders M=3 scales=[5,10,20] counts=[21,41,81]
+.[measure] queries /ng/count-in-loop N=orders M=3 scales=[5,10,20] counts=[6,11,21]
+.[measure] queries /ng/unbounded N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/get-then-count N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/collection-filter N=orders M=3 scales=[5,10,20] counts=[1,1,1]
+.[measure] queries /ng/nested M-sweep N=10 scales=[1,2,4] counts=[21,31,51]
+[measure] queries /ng/nested M-sweep N=20 scales=[1,2,4] counts=[41,61,101]
+...[measure] queries route=/ng/first-or-create-in-loop scales=2,5,10,20 counts=5,11,21,41
+.[measure] queries route=/ng/first-or-create-in-loop?via=update scales=2,5,10,20 counts=5,11,21,41
+.[measure] memory route=/ng/first-or-create-in-loop scales=100,1000,10000 peak_bytes=293880,1362856,13924760
+.[measure] memory route=/ng/first-or-create-in-loop?via=update scales=100,1000,10000 peak_bytes=257752,1214000,12001520
+...[measure] queries route=/ng/layered scales=2,5,10,20 counts=3,6,11,21
+.[measure] memory route=/ng/layered scales=100,1000,10000 peak_bytes=484600,3618024,35717544
+..[measure] queries route=/ng/save-in-loop scales=2,5,10,20 counts=3,6,11,21
+.[measure] memory route=/ng/save-in-loop scales=100,1000,10000 peak_bytes=313128,2044792,20146560
+..[measure] queries route=/ng/service scales=2,5,10,20 counts=3,6,11,21
+.[measure] memory route=/ng/service scales=100,1000,10000 peak_bytes=485392,3626016,35797536
+.MEASURE peak_bytes /ok/eager 100=259184 1000=2126096 10000=20990800
+.MEASURE peak_bytes /ok/paginate 100=72960 1000=72960 10000=72960
+.MEASURE peak_bytes /ok/chunk 100=159912 1000=164304 10000=174064
+.MEASURE peak_bytes /ok/lazy 100=160688 1000=166192 10000=175952
+.MEASURE peak_bytes /ok/with-count 100=200520 1000=1739656 10000=17339464
+.MEASURE peak_bytes /ok/bulk 100=261960 1000=2325832 10000=22389064
+.MEASURE queries /ok/eager 100=2 1000=2 10000=2
+.MEASURE queries /ok/paginate 100=2 1000=2 10000=2
+. 65 / 77 ( 84%)
+MEASURE queries /ok/chunk 100=2 1000=11 10000=101
+.MEASURE queries /ok/lazy 100=2 1000=11 10000=101
+.MEASURE queries /ok/with-count 100=1 1000=1 10000=1
+.MEASURE queries /ok/bulk 100=2 1000=2 10000=2
+.........                                                      77 / 77 (100%)
+
+Time: 03:31.310, Memory: 202.50 MB
+
+Appends (Tests\Feature\Hidden\Appends)
+ ✔ It lists every order with its customer
+ ✔ Queries grow linearly in the number of orders
+ ✔ Memory grows linearly in the number of orders
+
+Basic Memory (Tests\Feature\Ng\BasicMemory)
+ ✔ Peak memory grows as expected with orders with data set "/ng/n-plus-one"
+ ✔ Peak memory grows as expected with orders with data set "/ng/nested"
+ ✔ Peak memory grows as expected with orders with data set "/ng/count-in-loop"
+ ✔ Peak memory grows as expected with orders with data set "/ng/unbounded"
+ ✔ Peak memory grows as expected with orders with data set "/ng/get-then-count"
+ ✔ Peak memory grows as expected with orders with data set "/ng/collection-filter"
+ ✔ Nested peak memory grows with items per order
+
+Basic Query Scaling (Tests\Feature\Ng\BasicQueryScaling)
+ ✔ Query count grows as expected with orders with data set "/ng/n-plus-one"
+ ✔ Query count grows as expected with orders with data set "/ng/nested"
+ ✔ Query count grows as expected with orders with data set "/ng/count-in-loop"
+ ✔ Query count grows as expected with orders with data set "/ng/unbounded"
+ ✔ Query count grows as expected with orders with data set "/ng/get-then-count"
+ ✔ Query count grows as expected with orders with data set "/ng/collection-filter"
+ ✔ Nested query count grows with items per order times orders
+
+Blade (Tests\Feature\Hidden\Blade)
+ ✔ It lists every order with its customer
+ ✔ Queries grow linearly in the number of orders
+ ✔ Memory grows linearly in the number of orders
+
+Cache (Tests\Feature\Hidden\Cache)
+ ✔ A hit returns the same rows as the miss
+ ✔ Queries grow on a miss and stay constant on a hit
+ ✔ Memory grows with the number of orders on a hit as well
+ ✔ Restoring the cached rows alone grows with the number of orders
+
+Conditional Binding (Tests\Feature\Hidden\ConditionalBinding)
+ ✔ The binding follows the environment
+ ✔ Both implementations return the same rows
+ ✔ Queries are constant with eager loading and linear with n plus one and the route is the worst case
+ ✔ Memory grows with the number of orders
+
+Cursor (Tests\Feature\Hidden\Cursor)
+ ✔ It lists every order with its customer
+ ✔ Queries stay constant in the number of orders
+ ✔ Memory grows linearly in the number of orders
+
+Database Seeder (Tests\Unit\DatabaseSeeder)
+ ✔ It seeds the requested sizes and leaves product stats empty
+ ✔ Every order has the requested number of items and a matching total
+ ✔ The same sizes produce the same rows
+
+Deep First Or Create In Loop (Tests\Feature\Ng\DeepFirstOrCreateInLoop)
+ ✔ First or create makes one stat row per product
+ ✔ Update or create changes the existing stat rows
+ ✔ First or create queries grow two per product
+ ✔ Update or create queries grow two per product
+ ✔ First or create peak memory grows with the product count
+ ✔ Update or create peak memory grows with the product count
+
+Deep Layered (Tests\Feature\Ng\DeepLayered)
+ ✔ It lists every order with its customer name
+ ✔ The repository interface is bound to the eloquent implementation
+ ✔ Queries grow linearly with the order count
+ ✔ Peak memory grows with the order count
+
+Deep Save In Loop (Tests\Feature\Ng\DeepSaveInLoop)
+ ✔ It changes and saves every customer
+ ✔ Queries grow linearly with the customer count
+ ✔ Peak memory grows with the customer count
+
+Deep Service (Tests\Feature\Ng\DeepService)
+ ✔ It lists every order with its customer name
+ ✔ Queries grow linearly with the order count
+ ✔ Peak memory grows with the order count
+
+Model With (Tests\Feature\Hidden\ModelWith)
+ ✔ It lists every order with its customer
+ ✔ Queries stay constant in the number of orders
+ ✔ Memory grows linearly in the number of orders
+ ✔ The declared relation costs exactly one extra query per request
+
+Ok Memory (Tests\Feature\Ok\OkMemory)
+ ✔ Memory growth matches the expectation with data set "/ok/eager"
+ ✔ Memory growth matches the expectation with data set "/ok/paginate"
+ ✔ Memory growth matches the expectation with data set "/ok/chunk"
+ ✔ Memory growth matches the expectation with data set "/ok/lazy"
+ ✔ Memory growth matches the expectation with data set "/ok/with-count"
+ ✔ Memory growth matches the expectation with data set "/ok/bulk"
+
+Ok Query Scaling (Tests\Feature\Ok\OkQueryScaling)
+ ✔ Query growth matches the expectation with data set "/ok/eager"
+ ✔ Query growth matches the expectation with data set "/ok/paginate"
+ ✔ Query growth matches the expectation with data set "/ok/chunk"
+ ✔ Query growth matches the expectation with data set "/ok/lazy"
+ ✔ Query growth matches the expectation with data set "/ok/with-count"
+ ✔ Query growth matches the expectation with data set "/ok/bulk"
+
+Ok Routes (Tests\Feature\Ok\OkRoutes)
+ ✔ Eager lists every order with its customer
+ ✔ Paginate returns one page only
+ ✔ Chunk visits every order
+ ✔ Lazy visits every order
+ ✔ With count returns the item aggregates per order
+ ✔ Bulk creates one order per customer at once
+ ✔ Unknown dynamic answers 200
+ ✔ Unknown dynamic refuses a method that is not listed
+
+Resource (Tests\Feature\Hidden\Resource)
+ ✔ It lists every order with its customer
+ ✔ Queries grow linearly in the number of orders
+ ✔ Memory grows linearly in the number of orders
+
+OK (77 tests, 528 assertions)
