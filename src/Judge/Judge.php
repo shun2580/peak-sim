@@ -121,20 +121,16 @@ final class Judge
         return ['query' => AxisJudge::verdict(Axis::Query, $view), 'memory' => AxisJudge::verdict(Axis::Memory, $view)];
     }
 
-    /** The lower confidence of the axes that are known; null when both are unknown. */
+    /** The lower confidence of the two axes; null when either axis is unknown. */
     private static function routeConfidence(AxisVerdict $query, AxisVerdict $memory): ?Confidence
     {
-        $known = array_filter([$query, $memory], static fn (AxisVerdict $v): bool => $v->growth !== Growth::Unknown);
-        if ($known === []) {
+        if ($query->growth === Growth::Unknown || $memory->growth === Growth::Unknown) {
             return null;
         }
-        foreach ($known as $v) {
-            if ($v->confidence === Confidence::Medium) {
-                return Confidence::Medium;
-            }
-        }
 
-        return Confidence::High;
+        return $query->confidence === Confidence::Medium || $memory->confidence === Confidence::Medium
+            ? Confidence::Medium
+            : Confidence::High;
     }
 
     private static function kindOf(string $action): string

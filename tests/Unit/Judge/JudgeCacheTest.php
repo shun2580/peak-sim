@@ -131,6 +131,7 @@ final class JudgeCacheTest extends JudgeCase
         self::assertSame('unknown', $r->cache->onHit['memory']->growth->value);
         self::assertSame('O(N)', $r->cache->onMiss['memory']->growth->value);
         self::assertSame(['O(N)', 1, 'high', null], self::shape($r->query));
+        self::assertNull($r->confidence);
     }
 
     public function testNestedTagsBelongToAViewOnlyWhenEveryTagAgrees(): void

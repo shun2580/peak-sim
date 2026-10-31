@@ -57,7 +57,7 @@ final class JudgeAxesTest extends JudgeCase
 
         self::assertSame(['unknown', 0, null, null], self::shape($r->query));
         self::assertSame(['O(1)', 0, 'high', null], self::shape($r->memory));
-        self::assertSame('high', $r->confidence?->value);
+        self::assertNull($r->confidence);
     }
 
     public function testADegreeOneEventWithAGapIsUnknownWithALowerBoundOfLinear(): void
@@ -186,10 +186,10 @@ final class JudgeAxesTest extends JudgeCase
 
         self::assertSame(['unknown', 0, null, null], self::shape($r->query));
         self::assertSame(['O(1)', 0, 'medium', null], self::shape($r->memory));
-        self::assertSame('medium', $r->confidence?->value);
+        self::assertNull($r->confidence);
     }
 
-    public function testRouteConfidenceIsTheLowerOfTheKnownAxes(): void
+    public function testRouteConfidenceIsTheLowerOfTheTwoAxesWhenBothAreKnown(): void
     {
         $r = self::judge(self::summary([], [], [self::assumption([Axis::Query])]));
 
