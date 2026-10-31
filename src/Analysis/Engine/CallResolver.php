@@ -10,6 +10,7 @@ use PeakSim\Analysis\Type\ListT;
 use PeakSim\Analysis\Type\ModelT;
 use PeakSim\Analysis\Type\ObjectT;
 use PeakSim\Analysis\Type\PlainT;
+use PeakSim\Analysis\Type\ShapeT;
 use PeakSim\Analysis\Type\Type;
 use PeakSim\Analysis\Type\UnionT;
 use PeakSim\Analysis\Type\UnknownT;
@@ -35,6 +36,9 @@ use PhpParser\Node\Expr;
  */
 final class CallResolver
 {
+    /** Collection methods that add to the collection they are called on. */
+    private const COLLECTING_METHODS = ['push', 'add', 'prepend', 'put'];
+
     public function __construct(
         private readonly Engine $engine,
         private readonly Walker $walker,
@@ -85,7 +89,52 @@ final class CallResolver
             return $this->gap($run, $scope, GapCode::DYNAMIC_METHOD_NAME, $n, 'the method name is not a literal');
         }
 
-        return $this->onReceiver($n, $recv, $n->name->toString(), $args, $eval, $scope, $run);
+        $name = $n->name->toString();
+        $result = $this->onReceiver($n, $recv, $name, $args, $eval, $scope, $run);
+
+        return $this->collectsIntoItsReceiver($n, $recv, $name, $args, $eval, $scope, $run) ?? $result;
+    }
+
+    /**
+     * `$rows->push($v)` (add / prepend / put alike) and `$rows = $rows->merge($more)` (concat) in a loop below where
+     * $rows was made are an append, as `$rows[] = $v` is. Null when the call is not one; else the list now in $rows.
+     *
+     * @param list<Node\Arg> $args
+     * @param \Closure(int): Type $eval
+     */
+    private function collectsIntoItsReceiver(Expr\MethodCall|Expr\NullsafeMethodCall $n, Type $recv, string $name, array $args, \Closure $eval, Scope $scope, MethodRun $run): ?Type
+    {
+        if (!$recv instanceof ListT || !$n->var instanceof Expr\Variable) {
+            return null;
+        }
+        $lower = strtolower($name);
+        $mutates = in_array($lower, self::COLLECTING_METHODS, true);
+        if (!$mutates && !($n instanceof Expr\MethodCall && in_array($lower, ['merge', 'concat'], true) && $this->walker->isSelfMerge($n))) {
+            return null;
+        }
+        $result = null;
+        if ($mutates) {
+            // put($key, $value) is the one with the value second.
+            $valueAt = $lower === 'put' ? [1] : ($lower === 'push' ? array_keys($args) : [0]);
+            foreach ($valueAt as $i) {
+                if (!isset($args[$i])) {
+                    continue;
+                }
+                $value = $eval($i);
+                $unpacked = $args[$i]->unpack && $value instanceof ListT;
+                $result = $this->walker->collectOnVariable($n->var, $unpacked ? $value->elem : $value, $value, $n, $scope, $run) ?? $result;
+            }
+
+            return $result;
+        }
+        $other = isset($args[0]) ? $eval(0) : new PlainT();
+        $element = match (true) {
+            $other instanceof ListT => $other->elem,
+            $other instanceof ShapeT => TypeMerge::joinAll(array_values($other->entries))->type,
+            default => $other,
+        };
+
+        return $this->walker->collectOnVariable($n->var, $element, $other, $n, $scope, $run);
     }
 
     public function staticCall(Expr\StaticCall $n, Scope $scope, MethodRun $run): Type

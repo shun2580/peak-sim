@@ -52,10 +52,14 @@ final class Walker implements BodyAnalyzer
     /** @var \WeakMap<ClosureT, array{scope: Scope, refs: list<string>}> where a closure was made, for the variables it captured by reference */
     private \WeakMap $origins;
 
+    /** @var \WeakMap<Node, true> the `$x->merge(..)` calls whose result is assigned back to `$x` */
+    private \WeakMap $selfMerges;
+
     public function __construct(
         private readonly Engine $engine,
     ) {
         $this->origins = new \WeakMap();
+        $this->selfMerges = new \WeakMap();
     }
 
     // ----- BodyAnalyzer ------------------------------------------------------------------------------------
@@ -468,6 +472,11 @@ final class Walker implements BodyAnalyzer
 
     private function assign(Expr\Assign|Expr\AssignRef $e, Scope $scope, MethodRun $run): Type
     {
+        if ($e->var instanceof Expr\Variable && $e->expr instanceof Expr\MethodCall && $e->expr->var instanceof Expr\Variable
+            && is_string($e->var->name) && $e->var->name === $e->expr->var->name
+            && $e->expr->name instanceof Node\Identifier && in_array(strtolower($e->expr->name->toString()), ['merge', 'concat'], true)) {
+            $this->selfMerges[$e->expr] = true;
+        }
         $value = $this->evaluateArg($e->expr, $scope, $run);
         $this->assignTo($e->var, $value, $scope, $run);
 
@@ -548,22 +557,48 @@ final class Walker implements BodyAnalyzer
         }
         $name = $root->name;
         $current = $scope->get($name);
-        $now = count($run->frames);
-        $declared = $scope->declaredAt[$name] ?? $now;
 
         if ($current instanceof ShapeT && $target->dim instanceof Scalar\String_) {
             $scope->vars[$name] = $current->with($target->dim->value, $value);
 
             return;
         }
+        $this->collectInto($name, $current, $value, $value, $target, $scope, $run);
+    }
+
+    /**
+     * The same accumulation for a Collection that collects through a method: push / add / prepend / put on the
+     * variable, or `$x = $x->merge(..)` / concat (isSelfMerge). $element is what the list now holds more of,
+     * $held what is added (a list of table rows makes one more degree). The variable's new type is returned.
+     */
+    public function collectOnVariable(Expr\Variable $var, Type $element, Type $held, Node $at, Scope $scope, MethodRun $run): ?ListT
+    {
+        if (!is_string($var->name) || !($scope->get($var->name) instanceof ListT)) {
+            return null;
+        }
+
+        return $this->collectInto($var->name, $scope->get($var->name), $element, $held, $at, $scope, $run);
+    }
+
+    /** `$x = $x->merge(..)` and concat: the call replaces the variable, which is an append to it. */
+    public function isSelfMerge(Node $call): bool
+    {
+        return isset($this->selfMerges[$call]);
+    }
+
+    private function collectInto(string $name, ?Type $current, Type $element, Type $held, Node $at, Scope $scope, MethodRun $run): ?ListT
+    {
+        $now = count($run->frames);
+        $declared = $scope->declaredAt[$name] ?? $now;
+
         if ($current === null || $current instanceof PlainT) {
-            $list = new ListT($value, Cardinality::bounded());
+            $list = new ListT($element, Cardinality::bounded());
         } elseif ($current instanceof ListT) {
-            $list = $current->withElem(TypeMerge::joinAll([$current->elem, $value])->type);
+            $list = $current->withElem(TypeMerge::joinAll([$current->elem, $element])->type);
         } elseif ($current instanceof ShapeT) {
-            $list = new ListT(TypeMerge::joinAll([...array_values($current->entries), $value])->type, Cardinality::bounded());
+            $list = new ListT(TypeMerge::joinAll([...array_values($current->entries), $element])->type, Cardinality::bounded());
         } else {
-            return;
+            return null;
         }
 
         $inner = array_slice($run->frames, $declared);
@@ -575,19 +610,21 @@ final class Walker implements BodyAnalyzer
         $streamed = array_filter($inner, static fn (Frame $f): bool => $f->streamed);
         if ($streamed !== []) {
             $ctx = $this->ctx($scope, $run);
-            $holdsRows = $value instanceof ListT && $value->card->kind === CardinalityKind::Table;
+            $holdsRows = $held instanceof ListT && $held->card->kind === CardinalityKind::Table;
             $ctx->emit(new CostEvent(
                 EventKind::Accumulate,
-                $ctx->site($target),
+                $ctx->site($at),
                 [],
                 null,
-                new MemoryPart($holdsRows ? 1 : 0, $holdsRows && $value instanceof ListT ? $value->card->origin : null, MemoryCause::Accumulate, $declared),
+                new MemoryPart($holdsRows ? 1 : 0, $holdsRows && $held instanceof ListT ? $held->card->origin : null, MemoryCause::Accumulate, $declared),
                 $inner[0]->origin->table,
                 [],
                 $ctx->seq(),
             ));
-            $ctx->assume(AssumptionCode::ACCUMULATION_HEURISTIC, $target, 'a value collected inside a streamed loop is counted as held in memory', [Axis::Memory]);
+            $ctx->assume(AssumptionCode::ACCUMULATION_HEURISTIC, $at, 'a value collected inside a streamed loop is counted as held in memory', [Axis::Memory]);
         }
+
+        return $list;
     }
 
     private function dimFetch(Expr\ArrayDimFetch $e, Scope $scope, MethodRun $run): Type
