@@ -7,6 +7,7 @@ namespace PeakSim\Tests\Support;
 use PeakSim\Application\AnalysisConfig;
 use PeakSim\Application\AnalysisRunner;
 use PeakSim\Model\AnalysisReport;
+use PeakSim\Output\JsonRenderer;
 
 /** The real tool, through the facade of design 2.3. Until PW lands, every call fails because the class is missing. */
 final class MiniAppRealAnalyzer implements MiniAppAnalyzer
@@ -24,6 +25,11 @@ final class MiniAppRealAnalyzer implements MiniAppAnalyzer
     public function json(string $appRoot, ?string $exportDir, array $options = []): string
     {
         return ReportAssert::json($this->report($appRoot, $exportDir, $options));
+    }
+
+    public function renderedJson(string $appRoot, ?string $exportDir, string $inputMode, array $options = []): string
+    {
+        return (new JsonRenderer())->render($this->report($appRoot, $exportDir, $options), $inputMode);
     }
 
     private function report(string $appRoot, ?string $exportDir, array $options): AnalysisReport

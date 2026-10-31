@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Acceptance;
 
+use PeakSim\Output\JsonRenderer;
 use PeakSim\Tests\Support\ExpectationFixtureRows;
 use PeakSim\Tests\Support\MiniAppAnalyzer;
 use PeakSim\Tests\Support\MiniAppRealAnalyzer;
@@ -59,6 +60,30 @@ final class InputModesTest extends TestCase
 
         $this->assertNotSame('', $fromExport);
         $this->assertSame($fromExport, $fromCommand);
+    }
+
+    /**
+     * The document the CLI prints: it says how the app was read ("input.mode"), and that is the only thing that may
+     * differ. Everything else, key for key, must be the same.
+     */
+    public function testTheRenderedJsonDiffersBetweenTheInputsOnlyInInputMode(): void
+    {
+        $app = MiniAppWorkspace::fixtureApp();
+        $viaExport = $this->analyzer()->renderedJson($app, MiniAppWorkspace::fixtureExport(), JsonRenderer::MODE_EXPORT_DIR);
+        $viaCommand = $this->analyzer()->renderedJson($app, null, JsonRenderer::MODE_ARTISAN_COMMAND, ['artisan_command' => $this->stubCommand()]);
+
+        $export = json_decode($viaExport, true, 512, JSON_THROW_ON_ERROR);
+        $command = json_decode($viaCommand, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('export-dir', $export['input']['mode']);
+        $this->assertSame('artisan-command', $command['input']['mode']);
+        unset($export['input'], $command['input']);
+        $this->assertNotSame([], $export['routes']);
+        $this->assertSame($export, $command);
+        $this->assertSame(
+            str_replace('"mode": "export-dir"', '"mode": "artisan-command"', $viaExport),
+            $viaCommand,
+            'apart from input.mode the two documents must be the same bytes'
+        );
     }
 
     public function testBothInputsReachAllTwentyFourRoutes(): void

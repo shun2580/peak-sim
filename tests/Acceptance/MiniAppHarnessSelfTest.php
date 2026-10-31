@@ -198,6 +198,16 @@ final class MiniAppHarnessSelfTest extends TestCase
         $this->assertStringContainsString('"n_table_alternatives"', ReportAssert::json(new AnalysisReport([$frozen], [], [])));
     }
 
+    public function testTheRenderedJsonOfTheStandInDiffersOnlyInInputMode(): void
+    {
+        $echo = new MiniAppEchoAnalyzer();
+        $a = $echo->renderedJson(MiniAppWorkspace::fixtureApp(), null, 'export-dir');
+        $b = $echo->renderedJson(MiniAppWorkspace::fixtureApp(), null, 'artisan-command');
+
+        $this->assertNotSame($a, $b);
+        $this->assertSame(str_replace('"mode": "export-dir"', '"mode": "artisan-command"', $a), $b);
+    }
+
     public function testDiscoveryFindsCasesByExpectationAndSkipsKitHiddenAndSourceOnlyDirectories(): void
     {
         $root = $this->tmp();

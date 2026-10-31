@@ -49,6 +49,11 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
         return ReportAssert::encode(['routes' => array_values($this->analyzeAll($appRoot, $exportDir, $options)), 'skipped' => [], 'scope' => []]);
     }
 
+    public function renderedJson(string $appRoot, ?string $exportDir, string $inputMode, array $options = []): string
+    {
+        return ReportAssert::encode(['schema_version' => '0.1', 'input' => ['mode' => $inputMode], 'routes' => array_values($this->analyzeAll($appRoot, $exportDir, $options))]);
+    }
+
     /** @return array<string, array<string, mixed>> */
     private function wants(string $appRoot): array
     {

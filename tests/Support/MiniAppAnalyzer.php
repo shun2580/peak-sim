@@ -21,6 +21,12 @@ interface MiniAppAnalyzer
     /** @return array<string, mixed> the view of one route */
     public function analyzeRoute(string $appRoot, ?string $exportDir, string $uri, array $options = []): array;
 
-    /** The JSON of the whole report: the bytes the determinism and input-mode tests compare. */
+    /** The JSON of the whole report as views: the bytes the determinism and input-mode tests compare. */
     public function json(string $appRoot, ?string $exportDir, array $options = []): string;
+
+    /**
+     * The JSON the command line prints (PeakSim\Output\JsonRenderer), with "input.mode" set to $inputMode. That mode is
+     * the one thing allowed to differ between the two ways of reading the app.
+     */
+    public function renderedJson(string $appRoot, ?string $exportDir, string $inputMode, array $options = []): string;
 }
