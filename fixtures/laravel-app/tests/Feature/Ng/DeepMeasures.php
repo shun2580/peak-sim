@@ -4,18 +4,17 @@ namespace Tests\Feature\Ng;
 
 use Closure;
 use Illuminate\Support\Facades\DB;
-use Ralder\QueryScaling\Assertions\QueryScalingAssertions;
-use Ralder\QueryScaling\QueryGrowth;
-use Tests\Support\MeasuresMemory;
+use Tests\Support\AssertsGrowth;
+use Tests\Support\GrowthRules;
 
 /**
- * Shared checks for the deep /ng routes: query counts through phpunit-query-scaling,
- * peak memory through MeasuresMemory. Every measurement is logged to STDERR as a "[measure]" line.
+ * Shared checks for the deep /ng routes: query counts measured through phpunit-query-scaling,
+ * peak memory through MeasuresMemory, and the verdict on both from GrowthRules (D26).
+ * Every measurement is logged to STDERR as a "[growth]" line.
  */
 trait DeepMeasures
 {
-    use MeasuresMemory;
-    use QueryScalingAssertions;
+    use AssertsGrowth;
 
     /** Row counts for the query measurements. */
     protected function queryScales(): array
@@ -30,8 +29,8 @@ trait DeepMeasures
     }
 
     /**
-     * The query count grows linearly with the row count: every segment adds queries, at the same rate,
-     * and no faster than $perItem queries per added row. With $exact the rate must equal $perItem.
+     * The query count is O(N) (GrowthRules), and the added queries per added row stay within $perItem
+     * on every segment. With $exact the rate must equal $perItem: that is the coefficient in expected.json.
      *
      * @return list<int> the query counts per scale
      */
@@ -43,30 +42,16 @@ trait DeepMeasures
         bool $exact = false,
         ?array $scales = null,
     ): array {
-        $recorded = new DeepRecordedGrowth(QueryGrowth::atMostSlope($perItem, 0));
+        $scales ??= $this->queryScales();
+        $counts = $this->measureQueryCounts($scales, $populate, $run);
 
-        $this->assertQueryScaling(
-            scales: $scales ?? $this->queryScales(),
-            populate: $populate,
-            run: $run,
-            expectation: $recorded,
-        );
+        $this->assertGrowth('queries', $route, 'O(N)', $scales, $counts);
 
-        $scalesMeasured = $recorded->series->scales();
-        $counts = $recorded->series->counts();
-        fwrite(STDERR, sprintf(
-            "[measure] queries route=%s scales=%s counts=%s\n",
-            $route, implode(',', $scalesMeasured), implode(',', $counts),
-        ));
-
-        $firstSlope = null;
-        for ($i = 1; $i < count($counts); $i++) {
-            $slope = ($counts[$i] - $counts[$i - 1]) / ($scalesMeasured[$i] - $scalesMeasured[$i - 1]);
-            $this->assertGreaterThan(0, $slope, "{$route}: the query count must grow between scale {$scalesMeasured[$i - 1]} and {$scalesMeasured[$i]}");
-            $firstSlope ??= $slope;
-            $this->assertEqualsWithDelta($firstSlope, $slope, 1e-9, "{$route}: the growth must be linear (same queries per added row on every segment)");
+        foreach (GrowthRules::segmentSlopes($scales, $counts) as $slope) {
             if ($exact) {
                 $this->assertEqualsWithDelta($perItem, $slope, 1e-9, "{$route}: expected exactly {$perItem} queries per row");
+            } else {
+                $this->assertLessThanOrEqual($perItem + 1e-9, $slope, "{$route}: expected at most {$perItem} queries per row");
             }
         }
 
@@ -74,8 +59,8 @@ trait DeepMeasures
     }
 
     /**
-     * The peak memory grows with the row count: it rises at every step, and the last 10x step
-     * (1000 -> 10000 rows) at least triples it. Constant memory would stay near 1x.
+     * The peak memory is O(N): the log-log slope between the two largest row counts is at least the linear limit.
+     * Peak memory is noisy, so this is a reference value, not an exact claim.
      *
      * @return array<int, int> peak bytes per row count
      */
@@ -103,17 +88,7 @@ trait DeepMeasures
             }
         }
 
-        fwrite(STDERR, sprintf(
-            "[measure] memory route=%s scales=%s peak_bytes=%s\n",
-            $route, implode(',', $scales), implode(',', $peaks),
-        ));
-
-        for ($i = 1; $i < count($scales); $i++) {
-            $this->assertGreaterThan($peaks[$scales[$i - 1]], $peaks[$scales[$i]], "{$route}: peak memory must rise from {$scales[$i - 1]} to {$scales[$i]} rows");
-        }
-        $last = $scales[count($scales) - 1];
-        $before = $scales[count($scales) - 2];
-        $this->assertGreaterThanOrEqual(3 * $peaks[$before], $peaks[$last], "{$route}: peak memory must at least triple from {$before} to {$last} rows");
+        $this->assertGrowth('memory', $route, 'O(N)', $scales, array_values($peaks));
 
         return $peaks;
     }

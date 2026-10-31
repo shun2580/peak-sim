@@ -4,17 +4,17 @@ namespace Tests\Feature\Ng;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Ralder\QueryScaling\Assertions\QueryScalingAssertions;
+use Tests\Support\GrowthRules;
 use Tests\TestCase;
 
 /**
  * How the query count of the six simple /ng routes grows, checked against fixtures/expected.json.
- * Which contract is asserted (constant / linear) is read from the expected value, not hard-coded per route.
+ * Which growth is asserted (O(1) / O(N)) is read from the expected value, not hard-coded per route.
+ * phpunit-query-scaling measures; the verdict comes from GrowthRules.
  */
 class BasicQueryScalingTest extends TestCase
 {
     use BasicMeasurement;
-    use QueryScalingAssertions;
     use RefreshDatabase;
 
     private const ITEMS_PER_ORDER = 3;
@@ -36,13 +36,15 @@ class BasicQueryScalingTest extends TestCase
     public function test_query_count_grows_as_expected_with_orders(string $route): void
     {
         $growth = $this->expectedFor($route)['query'];
+        $scales = [5, 10, 20];
 
-        $this->assertQueryScaling(
-            scales: [5, 10, 20],
+        $counts = $this->measureQueryCounts(
+            scales: $scales,
             populate: fn (int $orders) => $this->seedOrders($orders, self::ITEMS_PER_ORDER),
             run: fn () => $this->getJson($route)->assertOk(),
-            expectation: $this->queryExpectation($growth, "{$route} N=orders M=".self::ITEMS_PER_ORDER),
         );
+
+        $this->assertGrowth('queries', "{$route} N=orders M=".self::ITEMS_PER_ORDER, $this->orderSweepGrowth($growth), $scales, $counts);
     }
 
     /** O(N*M): the count also grows with the items per order, and the slope per item depends on N. */
@@ -51,19 +53,31 @@ class BasicQueryScalingTest extends TestCase
         $route = '/ng/nested';
         $this->assertSame('O(N*M)', $this->expectedFor($route)['query']);
 
-        $slopes = [];
+        $orderScales = [5, 10, 20];
+        $itemScales = [1, 2, 4];
+        $byOrders = $this->measureQueryCounts(
+            scales: $orderScales,
+            populate: fn (int $orders) => $this->seedOrders($orders, self::ITEMS_PER_ORDER),
+            run: fn () => $this->getJson($route)->assertOk(),
+        );
+
+        $byItems = [];
         foreach ([10, 20] as $orders) {
-            $expectation = $this->queryExpectation('O(N*M)', "{$route} M-sweep N={$orders}");
-            $this->assertQueryScaling(
-                scales: [1, 2, 4],
+            $byItems[$orders] = $this->measureQueryCounts(
+                scales: $itemScales,
                 populate: fn (int $itemsPerOrder) => $this->seedOrders($orders, $itemsPerOrder),
                 run: fn () => $this->getJson($route)->assertOk(),
-                expectation: $expectation,
             );
-            $slopes[$orders] = $expectation->lastSlope();
         }
 
+        $this->assertProductGrowth('queries', "{$route} N=orders M=items", [$orderScales, $byOrders], [$itemScales, $byItems[10]]);
+
         // N*M, not N+M: doubling the orders doubles the extra queries each added item costs.
-        $this->assertEqualsWithDelta(2.0, $slopes[20] / $slopes[10], 0.1);
+        $perItem = array_map(function (array $counts) use ($itemScales): float {
+            $segments = GrowthRules::segmentSlopes($itemScales, $counts);
+
+            return $segments[array_key_last($segments)];
+        }, $byItems);
+        $this->assertEqualsWithDelta(2.0, $perItem[20] / $perItem[10], 0.1);
     }
 }

@@ -4,18 +4,12 @@ namespace Tests\Feature\Ng;
 
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
-use Ralder\QueryScaling\QueryGrowth;
-use Tests\Support\MeasuresMemory;
+use Tests\Support\AssertsGrowth;
 
-/** Shared helpers for the ng-basic tests: expected values, seeding, memory classification. */
+/** Shared helpers for the ng-basic tests: expected values and seeding. Growth is judged by GrowthRules (D26). */
 trait BasicMeasurement
 {
-    use MeasuresMemory;
-
-    /** Memory growth is classified from the log-log slope of the last two scales (fixed up front). */
-    private const MEMORY_LINEAR_MIN_SLOPE = 0.5;
-
-    private const MEMORY_CONSTANT_MAX_SLOPE = 0.2;
+    use AssertsGrowth;
 
     /** @return array<string, mixed> the row of fixtures/expected.json for this route */
     protected function expectedFor(string $route): array
@@ -42,39 +36,18 @@ trait BasicMeasurement
         }
     }
 
-    protected function queryExpectation(string $growth, string $label): BasicRecordingExpectation
+    /**
+     * The growth to hold a sweep over the orders to. O(N*M) is checked by its two sweeps elsewhere;
+     * the sweep over the orders alone has to be O(N).
+     *
+     * @return 'O(1)'|'O(N)'
+     */
+    protected function orderSweepGrowth(string $growth): string
     {
-        $inner = match ($growth) {
-            'O(1)' => QueryGrowth::constant(),
-            'O(N)', 'O(N*M)' => new BasicGrowsLinearly,
-            default => $this->fail("unexpected query growth {$growth} in expected.json"),
+        return match ($growth) {
+            'O(1)' => 'O(1)',
+            'O(N)', 'O(N*M)' => 'O(N)',
+            default => $this->fail("unexpected growth {$growth} in expected.json"),
         };
-
-        return new BasicRecordingExpectation($inner, $label);
-    }
-
-    /** @param  list<int>  $scales  @param  list<int>  $peaks */
-    protected function memoryClass(array $scales, array $peaks): string
-    {
-        $n = count($scales);
-        $slope = log($peaks[$n - 1] / $peaks[$n - 2]) / log($scales[$n - 1] / $scales[$n - 2]);
-
-        return match (true) {
-            $slope >= self::MEMORY_LINEAR_MIN_SLOPE => 'linear',
-            $slope <= self::MEMORY_CONSTANT_MAX_SLOPE => 'constant',
-            default => 'inconclusive',
-        };
-    }
-
-    /** @param  list<int>  $scales  @param  list<int>  $peaks */
-    protected function logMemory(string $label, array $scales, array $peaks): void
-    {
-        fwrite(STDERR, sprintf(
-            "[measure] memory %s scales=[%s] peak_bytes=[%s] class=%s\n",
-            $label,
-            implode(',', $scales),
-            implode(',', $peaks),
-            $this->memoryClass($scales, $peaks),
-        ));
     }
 }
