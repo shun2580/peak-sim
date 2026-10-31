@@ -1,0 +1,26 @@
+PHPUnit 12.5.42 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.36
+Configuration: <scrubbed>
+
+MEASURE peak_bytes /ok/eager 100=259184 1000=2158864 10000=21188744
+.MEASURE peak_bytes /ok/paginate 100=72960 1000=72960 10000=72960
+.MEASURE peak_bytes /ok/chunk 100=159912 1000=164304 10000=174064
+.MEASURE peak_bytes /ok/lazy 100=160688 1000=166192 10000=175952
+.MEASURE peak_bytes /ok/with-count 100=200520 1000=1739656 10000=17340800
+.MEASURE peak_bytes /ok/bulk 100=261960 1000=2325832 10000=22389064
+.MEASURE queries /ok/eager 100=2 1000=2 10000=2
+.MEASURE queries /ok/paginate 100=2 1000=2 10000=2
+.MEASURE queries /ok/chunk 100=2 1000=11 10000=101
+.MEASURE queries /ok/lazy 100=2 1000=11 10000=101
+.MEASURE queries /ok/with-count 100=1 1000=1 10000=1
+.MEASURE queries /ok/bulk 100=2 1000=2 10000=2
+.........                                              20 / 20 (100%)
+
+Time: 00:21.963, Memory: 90.50 MB
+
+OK (20 tests, 106 assertions)
+
+Command (inside the php-dev container, cwd = fixtures/laravel-app):
+  vendor/bin/phpunit tests/Feature/Ok --colors=never --display-skipped
+Exit code: 0 (20 tests, 106 assertions, 0 failures, 0 skipped)
