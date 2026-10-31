@@ -4,18 +4,14 @@ namespace Tests\Feature\Ok;
 
 use App\Http\Controllers\Ok\OrderController;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Ralder\QueryScaling\Assertions\QueryScalingAssertions;
-use Ralder\QueryScaling\QueryGrowth;
 
 /**
  * Query-count growth of the /ok routes against fixtures/expected.json.
- * The verdict comes from ralder/phpunit-query-scaling; a plain DB::listen counter reports the numbers.
+ * phpunit-query-scaling measures; the verdict comes from GrowthRules (the one rule for every group, D26).
  * A mismatch stays red: expectations are never loosened to fit a measurement (D18).
  */
 class OkQueryScalingTest extends OkRouteTestCase
 {
-    use QueryScalingAssertions;
-
     /** @return array<string, array{string}> */
     public static function routes(): array
     {
@@ -34,37 +30,23 @@ class OkQueryScalingTest extends OkRouteTestCase
     {
         $expected = $this->expected($route);
 
-        $counts = [];
-        foreach (self::SCALES as $scale) {
-            $counts[$scale] = $this->atScale($route, $scale, fn () => $this->countQueries(
-                fn () => $this->get($route)->assertOk(),
-            ));
-        }
-        $this->report('queries', $route, $counts);
-
-        $populate = fn (int $scale) => $this->seedFor($route, $scale);
-        $run = fn () => $this->get($route)->assertOk();
+        $counts = $this->measureQueryCounts(
+            scales: self::SCALES,
+            populate: fn (int $scale) => $this->seedFor($route, $scale),
+            run: fn () => $this->request($route)->assertOk(),
+        );
+        $this->assertGrowth('queries', $route, $expected['query'], self::SCALES, $counts);
 
         if ($expected['query'] === 'O(1)') {
-            $this->assertQueriesScaleConstantly(scales: self::SCALES, populate: $populate, run: $run);
-
             return;
         }
 
-        // O(N) with a coefficient of 1/chunk_size: no faster than one query per chunk, and really growing.
-        $this->assertSame('O(N)', $expected['query']);
+        // O(N) with a coefficient of 1/chunk_size: about one query per chunk of rows.
         $this->assertSame('1/chunk_size', $expected['query_coefficient']);
-
-        $this->assertQueryScaling(
-            scales: self::SCALES,
-            expectation: QueryGrowth::atMostSlope(1 / OrderController::CHUNK_SIZE),
-            populate: $populate,
-            run: $run,
-        );
 
         $first = self::SCALES[0];
         $last = self::SCALES[array_key_last(self::SCALES)];
-        $perRow = ($counts[$last] - $counts[$first]) / ($last - $first);
+        $perRow = ($counts[array_key_last($counts)] - $counts[0]) / ($last - $first);
         $this->assertEqualsWithDelta(
             1 / OrderController::CHUNK_SIZE,
             $perRow,

@@ -6,18 +6,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Peak memory of the /ok routes against fixtures/expected.json. Reference values only (D18):
- * peak usage is noisy, so the test compares growth between the smallest and largest scale.
- *
- * Fixed before measuring: growth ratio = peak(10000 rows) / peak(100 rows).
- *   O(1) expected -> ratio must be at most 2;  O(N) expected -> ratio must be at least 10 (linear would be about 100).
- * A ratio in between fits neither and fails.
+ * peak usage is noisy, so the verdict is the log-log slope between the two largest scales (GrowthRules, D26).
+ * A slope between the O(1) and O(N) limits is inconclusive and fails, so it gets reported and not rounded.
  */
 class OkMemoryTest extends OkRouteTestCase
 {
-    private const CONSTANT_AT_MOST = 2.0;
-
-    private const LINEAR_AT_LEAST = 10.0;
-
     /** @return array<string, array{string}> */
     public static function routes(): array
     {
@@ -37,21 +30,16 @@ class OkMemoryTest extends OkRouteTestCase
         $expected = $this->expected($route)['memory'];
 
         // Boot the app and load the classes once, so the first scale does not pay for them.
-        $this->atScale($route, 10, fn () => $this->get($route)->assertOk());
+        $this->atScale($route, 10, fn () => $this->request($route)->assertOk());
 
         $peaks = [];
         foreach (self::SCALES as $scale) {
             $peaks[$scale] = $this->atScale($route, $scale, fn () => $this->measurePeakMemory(
-                fn () => $this->get($route)->assertOk(),
+                fn () => $this->request($route)->assertOk(),
             ));
         }
         $this->report('peak_bytes', $route, $peaks);
 
-        $ratio = $peaks[self::SCALES[array_key_last(self::SCALES)]] / max(1, $peaks[self::SCALES[0]]);
-
-        match ($expected) {
-            'O(1)' => $this->assertLessThanOrEqual(self::CONSTANT_AT_MOST, $ratio, "{$route}: expected O(1), growth ratio {$ratio}"),
-            'O(N)' => $this->assertGreaterThanOrEqual(self::LINEAR_AT_LEAST, $ratio, "{$route}: expected O(N), growth ratio {$ratio}"),
-        };
+        $this->assertGrowth('memory', $route, $expected, self::SCALES, array_values($peaks));
     }
 }

@@ -12,4 +12,4 @@ Route::get('paginate', [OrderController::class, 'paginate']);
 Route::get('chunk', [OrderController::class, 'chunk']);
 Route::get('lazy', [OrderController::class, 'lazy']);
 Route::get('with-count', [OrderController::class, 'withCount']);
-Route::get('bulk', BulkController::class);
+Route::post('bulk', BulkController::class);

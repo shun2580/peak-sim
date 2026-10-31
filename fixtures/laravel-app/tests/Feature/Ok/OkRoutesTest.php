@@ -62,10 +62,15 @@ class OkRoutesTest extends OkRouteTestCase
     {
         $before = Order::count();
 
-        $this->get('/ok/bulk')->assertOk()->assertJson(['created' => 7]);
+        $this->post('/ok/bulk')->assertOk()->assertJson(['created' => 7]);
 
         $this->assertSame($before + 7, Order::count());
         $this->assertSame(7, Order::where('status', 'pending')->where('total', 0)->distinct('customer_id')->count('customer_id'));
+    }
+
+    public function test_bulk_is_not_a_get(): void
+    {
+        $this->get('/ok/bulk')->assertStatus(405);
     }
 
     public function test_unknown_dynamic_answers_200(): void

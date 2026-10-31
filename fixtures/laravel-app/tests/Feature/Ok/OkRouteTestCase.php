@@ -5,20 +5,30 @@ namespace Tests\Feature\Ok;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Tests\Support\MeasuresMemory;
+use Illuminate\Testing\TestResponse;
+use Tests\Support\AssertsGrowth;
 use Tests\TestCase;
 
 /**
  * Shared helpers for the /ok group tests: the expected values (fixtures/expected.json),
- * seeding at a given size, and a plain query counter used to report the numbers.
+ * seeding at a given size, and the request helper (the method each route answers to).
  */
 abstract class OkRouteTestCase extends TestCase
 {
-    use MeasuresMemory;
+    use AssertsGrowth;
     use RefreshDatabase;
 
     /** Row counts used for every measurement (three or more points, two orders of magnitude). */
     protected const SCALES = [100, 1000, 10000];
+
+    /** The routes of the group that write and so are POST; every other /ok route is a GET. */
+    protected const POST_ROUTES = ['/ok/bulk'];
+
+    /** Call $route with its method (CSRF is off under the test environment, as in any Laravel test). */
+    protected function request(string $route): TestResponse
+    {
+        return in_array($route, self::POST_ROUTES, true) ? $this->post($route) : $this->get($route);
+    }
 
     /** @return array<string, mixed> the entry of fixtures/expected.json for $route */
     protected function expected(string $route): array
@@ -64,21 +74,8 @@ abstract class OkRouteTestCase extends TestCase
         }
     }
 
-    /** Number of queries $work issues. */
-    protected function countQueries(callable $work): int
-    {
-        $count = 0;
-        DB::listen(function () use (&$count): void {
-            $count++;
-        });
-
-        $work();
-
-        return $count;
-    }
-
     /**
-     * One line per measurement on stderr, e.g. "MEASURE queries /ok/chunk 100=2 1000=11 10000=101".
+     * One line per measurement on stderr, e.g. "MEASURE peak_bytes /ok/chunk 100=159912 1000=164304 10000=174064".
      * Run phpunit directly (vendor/bin/phpunit) to see them; they are what the measurement report quotes.
      *
      * @param  array<int, int|float>  $byScale
