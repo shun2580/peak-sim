@@ -314,6 +314,7 @@ final class MiniAppHarnessSelfTest extends TestCase
             'no confidence on a finite axis' => [['memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => null, 'lower_bound' => null]], 'has no confidence'],
             'degree and label disagree' => [['memory' => ['growth' => 'O(N)', 'degree' => 2, 'confidence' => 'high', 'lower_bound' => null]], 'does not fit label'],
             'route confidence is not the lower axis' => [['memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => 'medium', 'lower_bound' => null], 'confidence' => 'high'], 'lower of the two axes'],
+            'route confidence kept while one axis is unknown' => [['query' => ['growth' => 'unknown', 'degree' => 0, 'confidence' => null, 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]], 'confidence' => 'high'], 'must be null'],
             'nothing found, nothing missed, yet not O(1)' => [['events_found' => 0, 'memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => 'high', 'lower_bound' => null]], 'both axes must be O(1)'],
             'truncated without DEPTH_LIMIT' => [['truncated' => true], 'DEPTH_LIMIT'],
             'worst case without its assumption' => [['worst_case_adopted' => true], 'WORST_CASE_OF_CANDIDATES'],

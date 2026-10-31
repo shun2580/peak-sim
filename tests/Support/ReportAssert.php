@@ -144,10 +144,12 @@ final class ReportAssert
             }
         }
 
-        $confidences = array_filter([$v['query']['confidence'], $v['memory']['confidence']], static fn (?string $c): bool => $c !== null);
-        $want = $confidences === [] ? null : (in_array('medium', $confidences, true) ? 'medium' : 'high');
+        // Q3 (D21): a route has a confidence only when both axes are known; then it is the lower of the two.
+        $axisConfidences = [$v['query']['confidence'], $v['memory']['confidence']];
+        $anyUnknown = $v['query']['growth'] === 'unknown' || $v['memory']['growth'] === 'unknown';
+        $want = $anyUnknown || in_array(null, $axisConfidences, true) ? null : (in_array('medium', $axisConfidences, true) ? 'medium' : 'high');
         if ($v['confidence'] !== $want) {
-            $out[] = '' . $uri . ': route confidence must be the lower of the two axes (expected '
+            $out[] = '' . $uri . ': route confidence must be null when either axis is unknown, otherwise the lower of the two axes (expected '
                 . var_export($want, true) . ', got ' . var_export($v['confidence'], true) . ')';
         }
 
