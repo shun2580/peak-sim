@@ -1,7 +1,6 @@
 # prototype test log (phpunit, tests/Prototype)
 # command: docker compose run --rm --no-deps php-dev vendor/bin/phpunit --colors=never --display-skipped --testdox
-# src at commit 96d1d32 (feat: add analyzer prototype for three routes).
-# tests/ as in the working tree at run time: ExpectedRoutesTest.php (with uncommitted edits by the test owner) and MetamorphicTest.php (not yet committed).
+# repository state: src/ committed; tests/ at HEAD f2b11f2 plus 12 uncommitted lines in tests/Prototype/ExpectedRoutesTest.php (the test owner's edit in progress at run time).
 # skipped tests: 0 in both runs (--display-skipped prints none).
 
 === PHP 8.2 ===
@@ -11,9 +10,9 @@ PHPUnit 11.5.57 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.35
 Configuration: /app/phpunit.xml
 
-................................                                  32 / 32 (100%)
+...................................                               35 / 35 (100%)
 
-Time: 00:00.355, Memory: 12.00 MB
+Time: 00:00.412, Memory: 12.00 MB
 
 Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
  ✔ Query complexity matches expected json with data set "/ok/eager"
@@ -28,6 +27,9 @@ Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
  ✔ Result uses documented vocabulary with data set "/ng/n-plus-one"
  ✔ Result uses documented vocabulary with data set "/ok/eager"
  ✔ Result uses documented vocabulary with data set "/ng/layered"
+ ✔ Uri is the string that was passed in with data set "/ng/n-plus-one"
+ ✔ Uri is the string that was passed in with data set "/ok/eager"
+ ✔ Uri is the string that was passed in with data set "/ng/layered"
  ✔ Evidence is not empty with data set "/ng/n-plus-one"
  ✔ Evidence is not empty with data set "/ok/eager"
  ✔ Evidence is not empty with data set "/ng/layered"
@@ -51,7 +53,7 @@ Metamorphic (PeakSim\Tests\Prototype\Metamorphic)
  ✔ Rebinding to an eager implementation removes the n plus one
  ✔ Removing the binding stops the verdict from pointing at the implementation
 
-OK (32 tests, 376 assertions)
+OK (35 tests, 379 assertions)
 exit code: 0
 
 === PHP 8.3 ===
@@ -61,9 +63,9 @@ PHPUnit 11.5.57 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.36
 Configuration: /app/phpunit.xml
 
-................................                                  32 / 32 (100%)
+...................................                               35 / 35 (100%)
 
-Time: 00:00.359, Memory: 12.00 MB
+Time: 00:00.377, Memory: 12.00 MB
 
 Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
  ✔ Query complexity matches expected json with data set "/ok/eager"
@@ -78,6 +80,9 @@ Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
  ✔ Result uses documented vocabulary with data set "/ng/n-plus-one"
  ✔ Result uses documented vocabulary with data set "/ok/eager"
  ✔ Result uses documented vocabulary with data set "/ng/layered"
+ ✔ Uri is the string that was passed in with data set "/ng/n-plus-one"
+ ✔ Uri is the string that was passed in with data set "/ok/eager"
+ ✔ Uri is the string that was passed in with data set "/ng/layered"
  ✔ Evidence is not empty with data set "/ng/n-plus-one"
  ✔ Evidence is not empty with data set "/ok/eager"
  ✔ Evidence is not empty with data set "/ng/layered"
@@ -101,5 +106,5 @@ Metamorphic (PeakSim\Tests\Prototype\Metamorphic)
  ✔ Rebinding to an eager implementation removes the n plus one
  ✔ Removing the binding stops the verdict from pointing at the implementation
 
-OK (32 tests, 376 assertions)
+OK (35 tests, 379 assertions)
 exit code: 0
