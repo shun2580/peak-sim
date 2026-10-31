@@ -94,10 +94,10 @@ final class BladeLinesTest extends TestCase
 
     public function testCrlfInsideAnExpressionDoesNotBreakTheParse(): void
     {
-        $view = self::transpile("@if(\r\n \$a\r\n)\r\n x\r\n@endif\r\n{{ \$m5 }}");
+        $view = self::transpile("@if(\r\n \$a\r\n)\r\n x\r\n@endif\r\n{{ \$m6 }}");
 
         $this->assertSame([], $view->gaps);
-        $this->assertStringContainsString('$m5', explode("\n", $view->php)[4]);
+        $this->assertStringContainsString('$m6', explode("\n", $view->php)[5]);
     }
 
     public function testNodeLinesInTheParsedTreeMatchTheTemplate(): void
