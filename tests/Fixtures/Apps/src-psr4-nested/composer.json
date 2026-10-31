@@ -1,0 +1,7 @@
+{
+    "name": "peak-sim/mini-app",
+    "type": "project",
+    "autoload": {
+        "psr-4": { "App\\": "app/", "App\\Domain\\Billing\\": "src/Billing/", "Shared\\": ["lib/shared/", "lib/extra/"] }
+    }
+}
