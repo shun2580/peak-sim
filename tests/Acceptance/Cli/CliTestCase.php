@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Acceptance\Cli;
 
-use PeakSim\Input\Contracts\ProcessResult;
+use PeakSim\Input\ProcessResult;
 use PeakSim\Input\ProcOpenRunner;
 use PeakSim\Tests\Support\MiniAppWorkspace;
 use PHPUnit\Framework\TestCase;

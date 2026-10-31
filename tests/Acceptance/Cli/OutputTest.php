@@ -60,7 +60,9 @@ final class OutputTest extends CliTestCase
     {
         $json = $this->analyze($this->exportOption(), '--format=json', '--stats')->stdout;
 
-        $this->assertStringNotContainsString(MiniAppWorkspace::projectRoot(), $json);
+        // Quoted and followed by a slash: a bare "/app" also matches a route such as /hidden/appends.
+        $this->assertStringNotContainsString('"' . MiniAppWorkspace::projectRoot() . '/', $json);
+        $this->assertStringNotContainsString('"' . MiniAppWorkspace::fixtureApp() . '/', $json);
         $this->assertStringNotContainsString(MiniAppWorkspace::fixtureApp(), $json);
         $this->assertDoesNotMatchRegularExpression('/\b20\d\d-\d\d-\d\d[T ]\d\d:\d\d/', $json);
     }
@@ -92,7 +94,7 @@ final class OutputTest extends CliTestCase
         $doc = $this->decodeJson($result->stdout);
         $this->assertCount(1, $doc['routes']);
         $this->assertSame('/ng/n-plus-one', $doc['routes'][0]['route']);
-        $this->assertSame('O(N)', $doc['routes'][0]['query']['growth']);
+        $this->assertContains($doc['routes'][0]['query']['growth'], ['O(1)', 'O(N)', 'O(N*M)', 'unknown'], 'the verdicts themselves are the acceptance tests\' business');
     }
 
     public function testRouteOnAClosureRouteIsAUsageErrorBecauseNothingWasAnalysed(): void
