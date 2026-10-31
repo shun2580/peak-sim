@@ -80,9 +80,9 @@ final class ModelFacts
         return $d->with;
     }
 
-    /** True when the model has observers, so a write may fire hidden queries. */
+    /** True when the model has observers or registered events, so a write may fire hidden queries. */
     public function hasObservers(ModelDescriptor $d): bool
     {
-        return $d->observers !== [];
+        return $d->observers !== [] || $d->events !== [];
     }
 }

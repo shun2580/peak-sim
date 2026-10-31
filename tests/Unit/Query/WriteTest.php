@@ -7,6 +7,7 @@ namespace PeakSim\Tests\Unit\Query;
 use PeakSim\Analysis\Type\ListT;
 use PeakSim\Analysis\Type\ModelT;
 use PeakSim\Analysis\Type\PlainT;
+use PeakSim\Model\Axis;
 use PeakSim\Model\Cardinality;
 use PeakSim\Model\Delivery;
 
@@ -176,6 +177,20 @@ final class WriteTest extends QueryCase
 
         $this->assertSame(['MODEL_OBSERVER_NOT_ANALYZED', 'MODEL_OBSERVER_NOT_ANALYZED', 'MODEL_OBSERVER_NOT_ANALYZED'], $this->gapCodes($w));
         $this->assertSame(['write orders q=1', 'write orders q=1', 'write orders q=2c'], $this->events($w));
+        $this->assertClean($w);
+    }
+
+    public function testAModelWithRegisteredEventsIsAGapToo(): void
+    {
+        $w = $this->walker(['saved' => new ModelT(self::M . 'ObservedOrder')], [], [], [self::M . 'ObservedOrder' => ['saved']]);
+        $w->run('ObservedOrder::updateOrCreate(["a" => 1])');
+        $w->run('$saved->delete()');
+
+        $this->assertSame(['MODEL_OBSERVER_NOT_ANALYZED', 'MODEL_OBSERVER_NOT_ANALYZED'], $this->gapCodes($w));
+        $this->assertSame(
+            [[Axis::Query, Axis::Memory], [Axis::Query, Axis::Memory]],
+            array_map(static fn ($g): array => $g->affects, $w->fake->gaps()),
+        );
         $this->assertClean($w);
     }
 

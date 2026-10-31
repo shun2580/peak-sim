@@ -32,10 +32,11 @@ abstract class QueryCase extends TestCase
     /**
      * @param array<string, list<mixed>> $observers class => observers
      * @param array<string, string> $databases class => database (default mysql)
+     * @param array<string, list<mixed>> $events class => registered model events
      */
-    protected function walker(array $vars = [], array $observers = [], array $databases = []): QueryWalker
+    protected function walker(array $vars = [], array $observers = [], array $databases = [], array $events = []): QueryWalker
     {
-        [$source, $models] = $this->catalog($observers, $databases);
+        [$source, $models] = $this->catalog($observers, $databases, $events);
 
         return new QueryWalker($source, $models, $this->handlers(), $vars);
     }
@@ -51,20 +52,22 @@ abstract class QueryCase extends TestCase
     /**
      * @param array<string, list<mixed>> $observers
      * @param array<string, string> $databases
+     * @param array<string, list<mixed>> $events
      * @return array{0: AppSourceIndex, 1: AppModelCatalog}
      */
-    protected function catalog(array $observers = [], array $databases = []): array
+    protected function catalog(array $observers = [], array $databases = [], array $events = []): array
     {
         $source = new AppSourceIndex(__DIR__ . '/App');
 
-        return [$source, new AppModelCatalog($source, $this->export($observers, $databases))];
+        return [$source, new AppModelCatalog($source, $this->export($observers, $databases, $events))];
     }
 
     /**
      * @param array<string, list<mixed>> $observers
      * @param array<string, string> $databases
+     * @param array<string, list<mixed>> $events
      */
-    private function export(array $observers, array $databases): ArtisanSource
+    private function export(array $observers, array $databases, array $events): ArtisanSource
     {
         $rel = static fn (string $name, string $type, string $related): RelationInfo
             => new RelationInfo($name, $type, self::M . $related, in_array($type, self::MANY, true));
@@ -96,8 +99,8 @@ abstract class QueryCase extends TestCase
             $class = self::M . $short;
             $infos[$class] = new ModelInfo($class, $table, $databases[$class] ?? 'mysql', $relations, [], [], $observers[$class] ?? []);
         }
-        foreach ($observers as $class => $list) {
-            $infos[$class] = new ModelInfo($class, $infos[$class]->table, $infos[$class]->database, $infos[$class]->relations, [], [], $list);
+        foreach ($observers + array_map(static fn (array $e): array => [], $events) as $class => $list) {
+            $infos[$class] = new ModelInfo($class, $infos[$class]->table, $infos[$class]->database, $infos[$class]->relations, [], $events[$class] ?? [], $list);
         }
 
         return new class ($infos) implements ArtisanSource {
