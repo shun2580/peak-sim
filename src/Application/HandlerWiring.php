@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace PeakSim\Application;
 
 use PeakSim\Analysis\Contracts\HandlerRegistry;
-use PeakSim\Analysis\Engine\ActionReturnHook;
+use PeakSim\Analysis\Blade\ViewHandler;
+use PeakSim\Analysis\Handlers\Cache\CacheOps;
 use PeakSim\Analysis\Handlers\Collection\CollectionHandlers;
+use PeakSim\Analysis\Handlers\Known\KnownCalls;
 use PeakSim\Analysis\Handlers\Query\BuilderOps;
 use PeakSim\Analysis\Handlers\Query\ModelStatic;
 use PeakSim\Analysis\Handlers\Query\RelationOps;
+use PeakSim\Analysis\Serialization\Serialization;
 
 /**
  * The one place that decides which call handlers exist and in which order they are asked. A smaller number is
@@ -17,14 +20,14 @@ use PeakSim\Analysis\Handlers\Query\RelationOps;
  * and the allow-list of known calls comes last, because "known" means "touches no database and calls nothing
  * back", which is a claim that must never shadow a handler that knows more.
  *
- *   10  ViewHandler            view() and Blade                       (PBl2)  not wired yet
- *   20  ResourceHandler, ResponseSink  resources, $appends, json()    (PR)    not wired yet
- *   30  CacheOps               Cache::remember and friends            (PK)    not wired yet
+ *   10  ViewHandler            view() and Blade                       (PBl2)
+ *   20  ResourceHandler, ResponseSink  resources, $appends, json()    (PR)
+ *   30  CacheOps               Cache::remember and friends            (PK)
  *   40  Query                  models, builders, relations            (PQ)
  *   50  Collection             lists, array functions, proxies        (PC)
- *   90  KnownCalls             the allow-list                         (PK)    not wired yet
+ *   90  KnownCalls             the allow-list                         (PK)
  *
- * Wiring a handler that exists later is one line in register() (and one in returnHook() for the sink).
+ * Wiring a handler is one line in register(). The sink is also the Engine's end-of-action hook; wire() returns it.
  */
 final class HandlerWiring
 {
@@ -35,19 +38,31 @@ final class HandlerWiring
     public const PRIORITY_COLLECTION = 50;
     public const PRIORITY_KNOWN = 90;
 
-    public static function registry(): HandlerRegistry
+    /**
+     * The registry and the end-of-action hook that go together (the sink is both a handler and the hook, and its
+     * Serializer must be the one the resource handler uses).
+     *
+     * @param string $appRoot the app whose views the ViewHandler reads
+     * @param string|null $viewPath a view directory that replaces config/view.php's paths
+     */
+    public static function wire(string $appRoot, ?string $viewPath = null): WiredHandlers
     {
         $registry = new HandlerRegistry();
-        self::register($registry);
+        $serialization = self::register($registry, $appRoot, $viewPath);
 
-        return $registry;
+        return new WiredHandlers($registry, $serialization->hook);
     }
 
-    public static function register(HandlerRegistry $registry): void
+    public static function register(HandlerRegistry $registry, string $appRoot, ?string $viewPath = null): Serialization
     {
-        // PRIORITY_VIEW: ViewHandler (PBl2) is not committed yet.
-        // PRIORITY_RESPONSE: ResourceHandler and ResponseSink (PR) are not committed yet.
-        // PRIORITY_CACHE: CacheOps (PK) is not committed yet.
+        $registry->register(new ViewHandler($appRoot, $viewPath), self::PRIORITY_VIEW);
+
+        $serialization = Serialization::create();
+        foreach ($serialization->handlers as $handler) {
+            $registry->register($handler, self::PRIORITY_RESPONSE);
+        }
+
+        $registry->register(new CacheOps(), self::PRIORITY_CACHE);
 
         $ops = new BuilderOps();
         $registry->register(new ModelStatic($ops), self::PRIORITY_QUERY);
@@ -56,22 +71,8 @@ final class HandlerWiring
 
         CollectionHandlers::register($registry, self::PRIORITY_COLLECTION);
 
-        // PRIORITY_KNOWN: KnownCalls (PK) is not committed yet.
-    }
+        $registry->register(new KnownCalls(), self::PRIORITY_KNOWN);
 
-    /** The serialisation point at the end of an action (PR's ResponseSink). Null until PR is committed. */
-    public static function returnHook(): ?ActionReturnHook
-    {
-        return null;
-    }
-
-    /**
-     * What is not wired yet, for the reports and for anyone who wonders why a route is unknown.
-     *
-     * @return list<string>
-     */
-    public static function unwired(): array
-    {
-        return ['ViewHandler (PBl2)', 'ResourceHandler and ResponseSink (PR)', 'CacheOps (PK)', 'KnownCalls (PK)'];
+        return $serialization;
     }
 }

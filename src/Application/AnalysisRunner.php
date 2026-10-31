@@ -62,13 +62,14 @@ final class AnalysisRunner
     {
         $artisan = self::artisanSource($config, $runner);
         $source = new AppSourceIndex($config->appRoot);
+        $wired = HandlerWiring::wire($config->appRoot, $config->viewPath);
         $engine = new Engine(
             $source,
             new AppModelCatalog($source, $artisan),
             new ProviderBindingTable($source),
-            HandlerWiring::registry(),
+            $wired->registry,
             new EngineOptions(maxDepth: $config->maxDepth),
-            HandlerWiring::returnHook(),
+            $wired->hook,
         );
 
         return new self($config, $artisan, $source, $engine, new Judge());
