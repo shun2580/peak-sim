@@ -95,6 +95,7 @@ final class AppModelCatalog implements ModelCatalog
             $appends,
             $this->accessors($chain),
             $unresolved,
+            array_values(array_filter($export->observers, 'is_string')),
         );
     }
 
