@@ -6,8 +6,8 @@ use Closure;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Ralder\QueryScaling\Assertions\QueryScalingAssertions;
-use Tests\Support\MeasuresMemory;
+use Tests\Support\AssertsGrowth;
+use Tests\Support\GrowthRules;
 use Tests\TestCase;
 
 /**
@@ -18,19 +18,18 @@ use Tests\TestCase;
  * peak memory above the starting usage. Every measurement is also written to stderr so the test
  * log carries the raw numbers (lines starting with "[measure]").
  *
- * Classification rules are fixed here, up front, and are not tuned per route:
- * - queries: O(1) when the count is identical at every scale; O(N) when it rises by at least
- *   half a query per added row between the smallest and the largest scale.
- * - memory (reference only, peak usage is noisy): compare the two largest scales (10x the rows);
- *   O(1) when the peak grows less than 2x, O(N) when it grows 5x or more, otherwise "unclear".
+ * The verdict on a series comes from GrowthRules (D26), the same rule as every other group; this class
+ * has no thresholds of its own. Memory is a reference value only (peak usage is noisy).
  */
 abstract class HiddenRouteTestCase extends TestCase
 {
-    use MeasuresMemory;
-    use QueryScalingAssertions;
+    use AssertsGrowth;
     use RefreshDatabase;
 
     private int $queryCount = 0;
+
+    /** The route last passed to measure(); it labels the verdict. */
+    private string $measuredRoute = '';
 
     private bool $counting = false;
 
@@ -57,6 +56,8 @@ abstract class HiddenRouteTestCase extends TestCase
      */
     protected function measure(string $route, array $scales, array $phases): array
     {
+        $this->measuredRoute = $route;
+
         // Warm up once on a single row so class loading and view compilation are not measured.
         $this->inTransaction(1, function () use ($phases): void {
             foreach ($phases as $phase) {
@@ -107,51 +108,57 @@ abstract class HiddenRouteTestCase extends TestCase
         }
     }
 
+    /** @param  'O(1)'|'O(N)'  $expected */
     protected function assertQueryClass(string $expected, array $results, string $phase = 'request'): void
     {
-        $this->assertSame($expected, $this->queryClass($results, $phase), $this->describe($results, $phase, 'queries'));
+        $series = $this->series($results, $phase, 'queries');
+
+        $this->assertGrowth('queries', "{$this->measuredRoute} [{$phase}]", $expected, array_keys($series), array_values($series));
     }
 
+    /** @param  'O(1)'|'O(N)'  $expected */
     protected function assertMemoryClass(string $expected, array $results, string $phase = 'request'): void
     {
-        $this->assertSame($expected, $this->memoryClass($results, $phase), $this->describe($results, $phase, 'memory'));
-    }
-
-    protected function queryClass(array $results, string $phase): string
-    {
-        $series = $this->series($results, $phase, 'queries');
-        $scales = array_keys($series);
-        $first = $scales[0];
-        $last = $scales[array_key_last($scales)];
-
-        if (count(array_unique($series)) === 1) {
-            return 'O(1)';
-        }
-
-        return ($series[$last] - $series[$first]) >= 0.5 * ($last - $first) ? 'O(N)' : 'unclear';
-    }
-
-    protected function memoryClass(array $results, string $phase): string
-    {
         $series = $this->series($results, $phase, 'memory');
-        $scales = array_keys($series);
-        $ratio = $series[$scales[count($scales) - 1]] / max(1, $series[$scales[count($scales) - 2]]);
 
-        return match (true) {
-            $ratio < 2 => 'O(1)',
-            $ratio >= 5 => 'O(N)',
-            default => 'unclear',
-        };
+        $this->assertGrowth('memory', "{$this->measuredRoute} [{$phase}]", $expected, array_keys($series), array_values($series));
+    }
+
+    /**
+     * The same verdict on a second sweep at small sizes, measured by phpunit-query-scaling
+     * (a cross-check on the instrument, not a second rule). $atMostPerRow also holds the added queries per added row.
+     *
+     * @param  'O(1)'|'O(N)'  $expected
+     * @param  list<int>  $scales
+     */
+    protected function assertQueryGrowthAtSmallScales(
+        string $route,
+        string $expected,
+        array $scales = [5, 10, 20],
+        ?Closure $populate = null,
+        ?Closure $run = null,
+        ?Closure $warmup = null,
+        bool $allowNoQueries = false,
+        ?int $atMostPerRow = null,
+    ): void {
+        $counts = $this->measureQueryCounts(
+            scales: $scales,
+            populate: $populate ?? fn (int $scale) => $this->seedOrders($scale),
+            run: $run ?? fn () => $this->get($route)->assertOk(),
+            warmup: $warmup,
+            allowNoQueries: $allowNoQueries,
+        );
+
+        $this->assertGrowth('queries', "{$route} [small scales]", $expected, $scales, $counts);
+
+        foreach ($atMostPerRow === null ? [] : GrowthRules::segmentSlopes($scales, $counts) as $slope) {
+            $this->assertLessThanOrEqual($atMostPerRow + 1e-9, $slope, "{$route}: expected at most {$atMostPerRow} queries per added row");
+        }
     }
 
     /** @return array<int, int> scale => value */
     protected function series(array $results, string $phase, string $key): array
     {
         return array_map(fn (array $row) => $row[$phase][$key], $results);
-    }
-
-    private function describe(array $results, string $phase, string $key): string
-    {
-        return sprintf('%s by row count (%s): %s', $key, $phase, json_encode($this->series($results, $phase, $key)));
     }
 }

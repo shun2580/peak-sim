@@ -7,7 +7,6 @@ use App\Hidden\Providers\ConditionalBindingServiceProvider;
 use App\Hidden\Services\EagerOrderSummaries;
 use App\Hidden\Services\LazyOrderSummaries;
 use Closure;
-use Ralder\QueryScaling\QueryGrowth;
 
 /**
  * /hidden/conditional-binding: the binding picks an eager-loading or an N+1 implementation by environment.
@@ -45,18 +44,9 @@ class ConditionalBindingTest extends HiddenRouteTestCase
         $this->assertQueryClass('O(N)', $results, 'adopted');
 
         $this->bind(LazyOrderSummaries::class)();
-        $this->assertQueryScaling(
-            scales: [5, 10, 20],
-            expectation: QueryGrowth::atMostSlope(1, 0),
-            populate: fn (int $scale) => $this->seedOrders($scale),
-            run: fn () => $this->get('/hidden/conditional-binding')->assertOk(),
-        );
+        $this->assertQueryGrowthAtSmallScales('/hidden/conditional-binding (lazy)', 'O(N)', run: fn () => $this->get('/hidden/conditional-binding')->assertOk(), atMostPerRow: 1);
         $this->bind(EagerOrderSummaries::class)();
-        $this->assertQueriesScaleConstantly(
-            scales: [5, 10, 20],
-            populate: fn (int $scale) => $this->seedOrders($scale),
-            run: fn () => $this->get('/hidden/conditional-binding')->assertOk(),
-        );
+        $this->assertQueryGrowthAtSmallScales('/hidden/conditional-binding (eager)', 'O(1)', run: fn () => $this->get('/hidden/conditional-binding')->assertOk());
     }
 
     public function test_memory_grows_with_the_number_of_orders(): void

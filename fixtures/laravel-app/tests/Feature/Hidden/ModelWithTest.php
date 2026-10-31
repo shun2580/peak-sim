@@ -22,11 +22,7 @@ class ModelWithTest extends HiddenRouteTestCase
     {
         $this->assertQueryClass('O(1)', $this->measureGet('/hidden/model-with', [10, 100, 1000]));
 
-        $this->assertQueriesScaleConstantly(
-            scales: [5, 10, 20],
-            populate: fn (int $scale) => $this->seedOrders($scale),
-            run: fn () => $this->get('/hidden/model-with')->assertOk(),
-        );
+        $this->assertQueryGrowthAtSmallScales('/hidden/model-with', 'O(1)');
     }
 
     public function test_memory_grows_linearly_in_the_number_of_orders(): void

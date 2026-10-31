@@ -3,7 +3,6 @@
 namespace Tests\Feature\Hidden;
 
 use App\Models\Order;
-use Ralder\QueryScaling\QueryGrowth;
 
 /** /hidden/resource: the relation is read inside a JsonResource (expected: queries O(N), memory O(N)). */
 class ResourceTest extends HiddenRouteTestCase
@@ -23,12 +22,7 @@ class ResourceTest extends HiddenRouteTestCase
     {
         $this->assertQueryClass('O(N)', $this->measureGet('/hidden/resource', [10, 100, 1000]));
 
-        $this->assertQueryScaling(
-            scales: [5, 10, 20],
-            expectation: QueryGrowth::atMostSlope(1, 0),
-            populate: fn (int $scale) => $this->seedOrders($scale),
-            run: fn () => $this->get('/hidden/resource')->assertOk(),
-        );
+        $this->assertQueryGrowthAtSmallScales('/hidden/resource', 'O(N)', atMostPerRow: 1);
     }
 
     public function test_memory_grows_linearly_in_the_number_of_orders(): void

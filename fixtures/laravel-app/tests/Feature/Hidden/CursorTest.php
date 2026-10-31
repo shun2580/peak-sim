@@ -21,15 +21,20 @@ class CursorTest extends HiddenRouteTestCase
     {
         $this->assertQueryClass('O(1)', $this->measureGet('/hidden/cursor', [10, 100, 1000]));
 
-        $this->assertQueriesScaleConstantly(
-            scales: [5, 10, 20],
-            populate: fn (int $scale) => $this->seedOrders($scale),
-            run: fn () => $this->get('/hidden/cursor')->assertOk(),
-        );
+        $this->assertQueryGrowthAtSmallScales('/hidden/cursor', 'O(1)');
     }
 
     public function test_memory_grows_linearly_in_the_number_of_orders(): void
     {
-        $this->assertMemoryClass('O(N)', $this->measureGet('/hidden/cursor', [100, 1000, 10000]));
+        $results = $this->measureGet('/hidden/cursor', [100, 1000, 10000]);
+
+        $this->assertMemoryClass('O(N)', $results);
+
+        // The growth is small next to a model collection, so the cost per row is reported too (D25 (6)):
+        // what PDO buffers for each added row of the largest step.
+        $peaks = $this->series($results, 'request', 'memory');
+        $bytesPerRow = ($peaks[10000] - $peaks[1000]) / (10000 - 1000);
+        fwrite(STDERR, sprintf("[growth] bytes_per_row /hidden/cursor 1000->10000=%.1f\n", $bytesPerRow));
+        $this->assertGreaterThan(0, $bytesPerRow);
     }
 }

@@ -30,23 +30,24 @@ class CacheTest extends HiddenRouteTestCase
         $this->assertQueryClass('O(N)', $results, 'miss');
         $this->assertQueryClass('O(1)', $results, 'hit');
 
-        $this->assertQueryScaling(
-            scales: [5, 10, 20],
-            expectation: \Ralder\QueryScaling\QueryGrowth::atMostSlope(1, 0),
+        $this->assertQueryGrowthAtSmallScales(
+            '/hidden/cache',
+            'O(N)',
             populate: function (int $scale): void {
                 $this->seedOrders($scale);
                 Cache::flush();
             },
-            run: fn () => $this->get('/hidden/cache')->assertOk(),
+            atMostPerRow: 1,
         );
-        $this->assertQueriesScaleConstantly(
-            scales: [5, 10, 20],
+        $this->assertQueryGrowthAtSmallScales(
+            '/hidden/cache (hit)',
+            'O(1)',
             populate: function (int $scale): void {
                 $this->seedOrders($scale);
                 Cache::flush();
             },
-            warmup: fn () => $this->get('/hidden/cache')->assertOk(),
             run: fn () => $this->get('/hidden/cache')->assertOk(),
+            warmup: fn () => $this->get('/hidden/cache')->assertOk(),
             allowNoQueries: true,
         );
     }
