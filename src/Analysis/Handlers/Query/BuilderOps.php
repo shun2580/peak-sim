@@ -449,12 +449,23 @@ final class BuilderOps implements CallHandler
         return $b->class === null ? new PlainT() : new ModelT($b->class, $b->eager);
     }
 
-    /** find($id) is a row; find([ids]) and findMany() are rows the size of the list. */
+    /**
+     * find($id) is a row; find([ids]) and findMany() are rows the size of the list. A plain value (a request
+     * parameter, a variable) cannot say which it is: it is taken for one id, the common case, and that is recorded.
+     */
     private function find(BuilderT $b, CallSite $c, QueryKit $k, string $key): Type
     {
         $arg = isset($c->args[0]) ? $c->argType(0) : new PlainT();
         $many = $key === 'findmany' || $arg instanceof ShapeT || $arg instanceof ListT;
         if (!$many) {
+            if ($arg instanceof PlainT && isset($c->args[0]) && !self::isOneId($c->argNode(0))) {
+                $k->ctx->assume(
+                    AssumptionCode::FIND_ARGUMENT_ASSUMED_SCALAR,
+                    $c->node,
+                    "{$c->name}() was given a plain value: it is taken for one id, but it may be an array of ids, which would load that many rows",
+                    [Axis::Query, Axis::Memory],
+                );
+            }
             $k->events->statement(EventKind::Select, $c->node, $b->table, new QueryPart());
             $this->loadEager($b, $c, $k, EagerLoads::SINGLE);
 
@@ -470,6 +481,16 @@ final class BuilderOps implements CallHandler
         $this->loadEager($b, $c, $k, $card->kind === CardinalityKind::Table ? EagerLoads::MANY : EagerLoads::BOUNDED);
 
         return $this->rows($b, $card, Delivery::Materialized);
+    }
+
+    /** An integer or string literal is one id for certain; any other plain value may be an array. */
+    private static function isOneId(?Node $node): bool
+    {
+        if ($node instanceof Node\Expr\UnaryMinus) {
+            $node = $node->expr;
+        }
+
+        return $node instanceof Node\Scalar\Int_ || $node instanceof Node\Scalar\String_;
     }
 
     private function paginate(BuilderT $b, CallSite $c, QueryKit $k, int $statements): Type
