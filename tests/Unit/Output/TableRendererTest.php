@@ -132,6 +132,16 @@ final class TableRendererTest extends TestCase
         $this->assertSame('', $lines[count($lines) - 4], 'a blank line before the summary');
     }
 
+    public function testOneRouteIsSingular(): void
+    {
+        $spec = ReportBuilder::inputSpec();
+        $spec['routes'] = array_values(array_filter($spec['routes'], static fn (array $r): bool => $r['uri'] === '/ok/chunk'));
+        $spec['skipped'] = [];
+
+        $this->assertStringContainsString(Name::TOOL_NAME . ': 1 route analysed, 0 not analysed', $this->render($spec));
+        $this->assertStringContainsString('gaps: none', $this->render($spec));
+    }
+
     public function testThereAreNoTrailingSpacesAndTheTextEndsWithOneNewline(): void
     {
         $table = $this->render(ReportBuilder::inputSpec());

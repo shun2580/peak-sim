@@ -142,7 +142,8 @@ final class JsonRendererTest extends TestCase
     {
         $json = $this->render(ReportBuilder::inputSpec());
 
-        array_walk_recursive($this->decode($json), function (mixed $v): void {
+        $decoded = $this->decode($json);
+        array_walk_recursive($decoded, function (mixed $v): void {
             $this->assertFalse(is_float($v), 'a float in the output');
         });
         $this->assertStringNotContainsString('\\/', $json, 'slashes must not be escaped');
