@@ -32,3 +32,4 @@ class TestController extends Controller
 ## What the tool must say (`expect.php`)
 
 Nothing in the model defines `mysteryMethod`; it may come from a macro. Gap `UNKNOWN_BUILDER_METHOD`, both axes `unknown`.
+Because `mysteryMethod()` is unknown, nothing proves that the following `->get()` is a query, so no query event is found (`events_found` is 0). The gap and the `unknown` axes carry the verdict.

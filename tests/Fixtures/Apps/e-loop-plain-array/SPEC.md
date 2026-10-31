@@ -37,3 +37,4 @@ class TestController extends Controller
 ## What the tool must say (`expect.php`)
 
 Three iterations at most, whatever the data: the loop adds no growth. The queries inside are constant in number.
+The tool cannot prove that `$id` is a single id (it could be an array of ids), so `find($id)` is taken as one row and says so: assumption `FIND_ARGUMENT_ASSUMED_SCALAR` on both axes, confidence `medium`. No gap.

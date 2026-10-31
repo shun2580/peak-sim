@@ -10,7 +10,7 @@ return [
             'memory' => ['growth' => 'unknown', 'confidence' => null, 'lower_bound' => null],
             'confidence' => null,
             'gaps_include' => ['UNKNOWN_BUILDER_METHOD'],
-            'events_found' => '>=1',
+            'events_found' => 0,
         ],
     ],
 ];
