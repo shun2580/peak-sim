@@ -17,6 +17,7 @@ use PeakSim\Analysis\Type\Type;
 use PeakSim\Model\Cardinality;
 use PeakSim\Model\Delivery;
 use PeakSim\Model\Frame;
+use PeakSim\Model\GapCode;
 use PeakSim\Tests\Support\FakeEvalContext;
 use PeakSim\Tests\Unit\Collection\Support\Calls;
 use PeakSim\Tests\Unit\Collection\Support\Probe;
@@ -126,17 +127,18 @@ final class ProxyTest extends TestCase
         self::assertSame('orders', $result->card->origin?->table);
     }
 
-    public function testACallNobodyTakesOnAnAppModelIsAGapNotSilence(): void
+    public function testACallOnElementsOfAnUnknownKindNobodyTakesIsAGapNotSilence(): void
     {
         $handler = new HigherOrderProxies(new HandlerRegistry());
-        $probe = new Probe(null, new FakeEvalContext(closureInvoker: null));
-        $proxy = $probe->run($handler, Calls::property($this->orders(), 'each'));
+        $probe = new Probe();
+        $plainElems = new ListT(new PlainT(), Cardinality::table('orders'));
+        $proxy = $probe->run($handler, Calls::property($plainElems, 'each'));
 
         $result = $probe->run($handler, Calls::method($proxy, 'mystery()'));
 
-        self::assertNotEmpty($probe->fake->gaps());
+        self::assertSame([GapCode::UNRESOLVED_CALL], array_map(static fn ($g) => $g->code, $probe->fake->gaps()));
         self::assertSame([], $probe->ctx->violations());
-        self::assertInstanceOf(\PeakSim\Analysis\Type\UnknownT::class, $result);
+        self::assertInstanceOf(ListT::class, $result, 'the list is still given back; the gap says it is not the whole story');
     }
 
     public function testASumProxyGivesAPlainValue(): void

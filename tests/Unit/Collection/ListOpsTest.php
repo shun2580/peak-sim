@@ -38,7 +38,7 @@ final class ListOpsTest extends TestCase
 
     private function ops(): CollectionOps
     {
-        return new CollectionOps(new HandlerRegistry());
+        return new CollectionOps();
     }
 
     private function models(): FakeEvalContext

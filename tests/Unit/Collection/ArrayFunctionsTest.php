@@ -202,7 +202,7 @@ final class ArrayFunctionsTest extends TestCase
     public function testCollectOfAnUnknownStaysUnknown(): void
     {
         $probe = new Probe();
-        $unknown = $probe->ctx->gap(GapCode::UNRESOLVED_CALL, Calls::parse('foo()'), 'made elsewhere');
+        $unknown = $probe->ctx->gap(GapCode::UNRESOLVED_CALL, Calls::parse('foo();'), 'made elsewhere');
 
         $result = $probe->run(new ArrayFunctions(), Calls::func('collect($x)', [0 => $unknown]));
 
