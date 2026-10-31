@@ -1,0 +1,21 @@
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for unreachable.invalid failed: Name or service not known (Connection: mysql, Host: unreachable.invalid, Port: 3306, Database: laravel, SQL: select column_name as `name`, data_type as `type_name`, column_type as `type`, collation_name as `collation`, is_nullable as `nullable`, column_default as `default`, column_comment as `comment`, generation_expression as `expression`, extra as `extra` from information_schema.columns where table_schema = schema() and table_name = 'orders' order by ordinal_position asc)
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:864
+    860▕             $exceptionType = ($isUniqueConstraintError = $this->isUniqueConstraintError($e))
+    861▕                 ? UniqueConstraintViolationException::class
+    862▕                 : QueryException::class;
+    863▕ 
+  ➜ 864▕             $exception = new $exceptionType(
+    865▕                 $this->getNameWithReadWriteType(),
+    866▕                 $query,
+    867▕                 $this->prepareBindings($bindings),
+    868▕                 $e,
+
+      [2m+33 vendor frames [22m
+
+  34  artisan:16
+      Illuminate\Foundation\Application::handleCommand(Object(Symfony\Component\Console\Input\ArgvInput))
+
