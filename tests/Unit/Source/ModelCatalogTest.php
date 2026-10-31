@@ -127,9 +127,10 @@ final class ModelCatalogTest extends SourceCase
 
     public function testNothingIsUnresolvedForTheFixtureModels(): void
     {
-        $catalog = $this->catalog();
+        $descriptor = $this->catalog()->describe('App\Models\AppendedOrder');
 
-        self::assertSame([], $catalog->unresolvedProperties('App\Models\AppendedOrder'));
+        self::assertNotNull($descriptor);
+        self::assertSame([], $descriptor->unresolved);
     }
 
     public function testAPropertyThatIsNotConstantIsReportedInsteadOfDroppedSilently(): void
@@ -139,7 +140,7 @@ final class ModelCatalogTest extends SourceCase
 
         self::assertNotNull($descriptor);
         self::assertSame([], $descriptor->with);
-        self::assertSame(['App\Models\DynamicOrder::$with'], $catalog->unresolvedProperties('App\Models\DynamicOrder'));
+        self::assertSame(['with'], $descriptor->unresolved);
     }
 
     public function testNonModelsAndUnknownClassesHaveNoDescriptor(): void

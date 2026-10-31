@@ -23,9 +23,6 @@ final class AppModelCatalog implements ModelCatalog
     /** @var array<string, ModelDescriptor|null> */
     private array $descriptors = [];
 
-    /** @var array<string, list<string>> */
-    private array $unresolved = [];
-
     public function __construct(
         private readonly SourceIndex $source,
         private readonly ArtisanSource $artisan,
@@ -48,6 +45,9 @@ final class AppModelCatalog implements ModelCatalog
      * Null for a class that is not a model, and for a model that neither the export nor an exported
      * ancestor knows (isModel() tells the two apart: the caller raises MODEL_INFO_UNAVAILABLE).
      *
+     * A property whose default is not a constant expression is left out and named in `unresolved`.
+     * A caller that must not under-count (a `$with` adds queries) has to raise MODEL_PROPERTY_UNRESOLVED for it.
+     *
      * @throws ParseFailed
      */
     public function describe(string $fqcn): ?ModelDescriptor
@@ -58,21 +58,6 @@ final class AppModelCatalog implements ModelCatalog
         }
 
         return $this->descriptors[$fqcn] = $this->build($fqcn);
-    }
-
-    /**
-     * Names like "App\Models\Order::$with" whose default is not a constant expression and was therefore
-     * left out of the descriptor. A caller that must not under-count (a `$with` adds queries) has to treat
-     * a non-empty list as a gap. Call describe() first.
-     *
-     * @return list<string>
-     */
-    public function unresolvedProperties(string $fqcn): array
-    {
-        $fqcn = AppSourceIndex::normalize($fqcn);
-        $this->describe($fqcn);
-
-        return $this->unresolved[$fqcn] ?? [];
     }
 
     private function build(string $fqcn): ?ModelDescriptor
@@ -97,8 +82,8 @@ final class AppModelCatalog implements ModelCatalog
         $table = $export->class === $fqcn ? $export->table : ($this->declaredTable($chain, $unresolved) ?? $export->table);
         $with = $this->mergedList($chain, 'with', $unresolved);
         $appends = $this->mergedList($chain, 'appends', $unresolved);
+        $unresolved = array_values(array_unique($unresolved));
         sort($unresolved, SORT_STRING);
-        $this->unresolved[$fqcn] = array_values(array_unique($unresolved));
 
         return new ModelDescriptor(
             $fqcn,
@@ -109,6 +94,7 @@ final class AppModelCatalog implements ModelCatalog
             $with,
             $appends,
             $this->accessors($chain),
+            $unresolved,
         );
     }
 
@@ -191,7 +177,7 @@ final class AppModelCatalog implements ModelCatalog
         }
         $value = $this->source->evaluate($default, $class);
         if (!$value->known) {
-            $unresolved[] = $class . '::$' . $property;
+            $unresolved[] = $property;
 
             return null;
         }
