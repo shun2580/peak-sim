@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Acceptance\Cli;
 
+use PeakSim\Tests\Support\MiniAppWorkspace;
+
 /**
  * The two ways in give one answer (design 3.1): reading a pre-exported directory and running artisan (here the
  * stub, which prints the same export) print the same table, and the same JSON apart from `input.mode`, which
@@ -54,5 +56,34 @@ final class InputModesCliTest extends CliTestCase
 
         $this->assertSame(0, $viaStub->exitCode, $viaStub->stderr);
         $this->assertSame($plain->stdout, $viaStub->stdout);
+    }
+
+    public function testExportDirTakesItsValueAfterASpaceToo(): void
+    {
+        $withEquals = $this->analyze($this->exportOption(), '--format=json');
+        $withSpace = $this->analyze('--export-dir', MiniAppWorkspace::fixtureExport(), '--format=json');
+
+        $this->assertSame(0, $withSpace->exitCode, $withSpace->stderr);
+        $this->assertSame($withEquals->stdout, $withSpace->stdout);
+    }
+
+    public function testArtisanCommandTakesItsValueAfterASpaceToo(): void
+    {
+        $stub = MiniAppWorkspace::projectRoot() . '/tests/Support/artisan-stub/artisan';
+        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($stub);
+
+        $withEquals = $this->analyze($this->stubOption(), '--format=json');
+        $withSpace = $this->analyze('--artisan-command', $command, '--format=json');
+
+        $this->assertSame(0, $withSpace->exitCode, $withSpace->stderr);
+        $this->assertSame($withEquals->stdout, $withSpace->stdout);
+    }
+
+    public function testTheSpaceFormMayComeBeforeTheAppRoot(): void
+    {
+        $result = $this->peakSim(['analyze', '--export-dir', MiniAppWorkspace::fixtureExport(), MiniAppWorkspace::fixtureApp()]);
+
+        $this->assertSame(0, $result->exitCode, $result->stderr);
+        $this->assertSame($this->analyze($this->exportOption())->stdout, $result->stdout);
     }
 }

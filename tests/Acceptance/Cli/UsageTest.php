@@ -30,6 +30,10 @@ final class UsageTest extends CliTestCase
             'an empty route' => [['analyze', '@app', '--route='], '--route'],
             'an empty export dir' => [['analyze', '@app', '--export-dir='], '--export-dir'],
             'an empty artisan command' => [['analyze', '@app', '--artisan-command='], '--artisan-command'],
+            'an export dir with no value after it' => [['analyze', '@app', '--export-dir'], '--export-dir'],
+            'an export dir followed by another option' => [['analyze', '@app', '--export-dir', '--format=json'], '--export-dir'],
+            'an artisan command with no value after it' => [['analyze', '@app', '--artisan-command'], '--artisan-command'],
+            'both ways in at once, one with a space' => [['analyze', '@app', '--artisan-command', 'php artisan', '--export-dir', '@export'], 'exclusive'],
             'an app root that is not a directory' => [['analyze', '/no/such/dir/for/peak/sim'], 'app-root'],
         ];
     }
