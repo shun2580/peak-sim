@@ -1,0 +1,98 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * スタブ artisan(テスト専用)。実 Laravel を動かさず、事前書き出しの JSON を artisan 風に返す。
+ *
+ *   php tests/Support/artisan-stub/artisan route:list --json
+ *   php tests/Support/artisan-stub/artisan model:show <FQCN> --json
+ *
+ * 環境変数:
+ *   PEAK_STUB_EXPORT_DIR  必須。route-list.json と model-show/*.json のあるディレクトリ。
+ *   PEAK_STUB_MODE        ok(既定) / warn_stdout / exit1 / big_stderr / nonjson
+ *
+ * モードは成功時の出力にだけ掛かる。使い方の誤り・該当なしのエラーはそのまま返す。
+ * 出力(標準出力・標準エラー)に絶対パス・ユーザー名・ホスト名は入れない。
+ */
+
+const STUB_MODES = ['ok', 'warn_stdout', 'exit1', 'big_stderr', 'nonjson'];
+
+exit(stubMain($argv));
+
+function stubMain(array $argv): int
+{
+    $exportDir = getenv('PEAK_STUB_EXPORT_DIR');
+    if ($exportDir === false || $exportDir === '') {
+        fwrite(STDERR, "stub: PEAK_STUB_EXPORT_DIR is not set\n");
+        return 2;
+    }
+
+    $mode = getenv('PEAK_STUB_MODE');
+    $mode = ($mode === false || $mode === '') ? 'ok' : $mode;
+    if (!in_array($mode, STUB_MODES, true)) {
+        fwrite(STDERR, "stub: unknown PEAK_STUB_MODE\n");
+        return 2;
+    }
+
+    [$code, $stdout, $stderr] = stubRun($argv, $exportDir);
+
+    if ($code !== 0) {
+        fwrite(STDERR, $stderr);
+        return $code;
+    }
+
+    switch ($mode) {
+        case 'warn_stdout':
+            // 終了コード0のまま、JSON の前に非 JSON の行を混ぜる(PHP の Deprecated 風)。
+            fwrite(STDOUT, "PHP Deprecated:  stub notice for testing the reader\n" . $stdout);
+            fwrite(STDERR, $stderr);
+            return 0;
+        case 'exit1':
+            fwrite(STDERR, "stub: forced failure\n");
+            return 1;
+        case 'big_stderr':
+            // 標準エラーに 200KB を先に出してから、正常な JSON を出す。パイプ詰まりの試験用。
+            fwrite(STDERR, str_repeat('E', 200 * 1024) . "\n" . $stderr);
+            fwrite(STDOUT, $stdout);
+            return 0;
+        case 'nonjson':
+            fwrite(STDOUT, "not json\n");
+            fwrite(STDERR, $stderr);
+            return 0;
+        default:
+            fwrite(STDOUT, $stdout);
+            fwrite(STDERR, $stderr);
+            return 0;
+    }
+}
+
+/** @return array{0:int,1:string,2:string} 終了コード・標準出力・標準エラー(モード適用前) */
+function stubRun(array $argv, string $exportDir): array
+{
+    $command = $argv[1] ?? '';
+    $json = in_array('--json', array_slice($argv, 2), true);
+
+    if ($command === 'route:list' && $json) {
+        $path = $exportDir . '/route-list.json';
+        if (!is_file($path)) {
+            return [3, '', "stub: route list is not exported\n"];
+        }
+        return [0, (string) file_get_contents($path), ''];
+    }
+
+    if ($command === 'model:show' && $json && isset($argv[2])) {
+        $wanted = ltrim($argv[2], '\\');
+        foreach (glob($exportDir . '/model-show/*.json') ?: [] as $path) {
+            $body = (string) file_get_contents($path);
+            $data = json_decode($body, true);
+            if (is_array($data) && isset($data['class']) && ltrim((string) $data['class'], '\\') === $wanted) {
+                return [0, $body, ''];
+            }
+        }
+        return [1, '', "stub: model [{$wanted}] has no export\n"];
+    }
+
+    return [2, '', "stub: usage: route:list --json | model:show <FQCN> --json\n"];
+}
