@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use PeakSim\Cli\Application;
+
+// Warnings must never end up in the report on standard output.
+ini_set('display_errors', 'stderr');
+
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+if (!class_exists(Application::class)) {
+    fwrite(STDERR, "peak-sim: the autoloader was not found; run `composer install`.\n");
+    exit(4);
+}
+
+exit((new Application())->run($argv, STDOUT, STDERR));
