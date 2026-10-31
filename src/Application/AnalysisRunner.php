@@ -37,13 +37,16 @@ final class AnalysisRunner
 {
     /** What the tool does not look at. Declared, not safe: a route that depends on these is still only as good as this list. */
     private const NOT_COVERED = [
+        'application middleware',
         'authorization (gates and policies)',
-        'events and listeners other than model observers',
+        'route model binding',
         'form request validation',
         'global scopes',
-        'middleware',
-        'route model binding',
+        'observers and event listeners',
+        'jobs',
     ];
+
+    private const SCOPE_NOTE = 'The cost of the processing listed here is not included in the results. This does not mean the route is safe.';
 
     private const FRAMEWORK_NAMESPACES = ['Illuminate', 'Laravel', 'Symfony', 'Livewire'];
 
@@ -126,7 +129,7 @@ final class AnalysisRunner
     /** @return array<string, mixed> what the tool declares it does not look at (the report's analysis_scope) */
     public function scope(): array
     {
-        return ['not_covered' => self::NOT_COVERED];
+        return ['not_covered' => self::NOT_COVERED, 'note' => self::SCOPE_NOTE];
     }
 
     /**

@@ -47,6 +47,28 @@ final class OutputTest extends CliTestCase
         $this->assertSame($sorted, $uris, 'routes come in URI order');
     }
 
+    public function testTheJsonDeclaresWhatTheToolDoesNotLookAt(): void
+    {
+        $doc = $this->decodeJson($this->analyze($this->exportOption(), '--format=json')->stdout);
+
+        $this->assertEqualsCanonicalizing(
+            [
+                'application middleware',
+                'authorization (gates and policies)',
+                'route model binding',
+                'form request validation',
+                'global scopes',
+                'observers and event listeners',
+                'jobs',
+            ],
+            $doc['analysis_scope']['not_covered'],
+        );
+        $this->assertSame(
+            'The cost of the processing listed here is not included in the results. This does not mean the route is safe.',
+            $doc['analysis_scope']['note'],
+        );
+    }
+
     public function testTheJsonIsTheSameBytesOnEveryRun(): void
     {
         $first = $this->analyze($this->exportOption(), '--format=json');
