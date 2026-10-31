@@ -14,7 +14,9 @@ set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 APP="$ROOT/fixtures/laravel-app"
 OUT="$ROOT/fixtures/artisan-export"
-MODELS="Customer Order Item Product ProductStat"
+# A bare name is an App\Models class; the two hidden-group models live elsewhere, so they are given in full.
+# The output file is named after the last segment.
+MODELS='Customer Order Item Product ProductStat App\Hidden\Models\EagerOrder App\Hidden\Models\AppendedOrder'
 
 case $(php -r 'echo PHP_VERSION_ID >= 80300 ? "ok" : "old";') in
     ok) ;;
@@ -84,5 +86,6 @@ export_one() {
 
 export_one route-list "$OUT/route-list.json" route:list --json
 for m in $MODELS; do
-    export_one "model-$m" "$OUT/model-show/$m.json" model:show "$m" --json
+    short=$(printf '%s' "$m" | sed 's/.*\\//')
+    export_one "model-$short" "$OUT/model-show/$short.json" model:show "$m" --json
 done

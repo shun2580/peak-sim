@@ -188,7 +188,7 @@
     },
     {
         "domain": null,
-        "method": "GET|HEAD",
+        "method": "POST",
         "uri": "ok/bulk",
         "name": null,
         "action": "App\\Http\\Controllers\\Ok\\BulkController",

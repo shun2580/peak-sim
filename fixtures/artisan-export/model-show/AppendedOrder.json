@@ -1,0 +1,109 @@
+{
+    "class": "App\\Hidden\\Models\\AppendedOrder",
+    "database": "mysql",
+    "table": "orders",
+    "policy": null,
+    "attributes": [
+        {
+            "name": "id",
+            "type": "bigint unsigned",
+            "increments": true,
+            "nullable": false,
+            "default": null,
+            "unique": true,
+            "fillable": false,
+            "hidden": false,
+            "appended": null,
+            "cast": "int"
+        },
+        {
+            "name": "customer_id",
+            "type": "bigint unsigned",
+            "increments": false,
+            "nullable": false,
+            "default": null,
+            "unique": false,
+            "fillable": true,
+            "hidden": false,
+            "appended": null,
+            "cast": null
+        },
+        {
+            "name": "status",
+            "type": "varchar(255)",
+            "increments": false,
+            "nullable": false,
+            "default": null,
+            "unique": false,
+            "fillable": true,
+            "hidden": false,
+            "appended": null,
+            "cast": null
+        },
+        {
+            "name": "total",
+            "type": "decimal(12,2)",
+            "increments": false,
+            "nullable": false,
+            "default": null,
+            "unique": false,
+            "fillable": true,
+            "hidden": false,
+            "appended": null,
+            "cast": null
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "increments": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "fillable": false,
+            "hidden": false,
+            "appended": null,
+            "cast": "datetime"
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "increments": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "fillable": false,
+            "hidden": false,
+            "appended": null,
+            "cast": "datetime"
+        },
+        {
+            "name": "customer_name",
+            "type": null,
+            "increments": false,
+            "nullable": null,
+            "default": null,
+            "unique": null,
+            "fillable": false,
+            "hidden": false,
+            "appended": true,
+            "cast": "attribute"
+        }
+    ],
+    "relations": [
+        {
+            "name": "customer",
+            "type": "BelongsTo",
+            "related": "App\\Models\\Customer"
+        },
+        {
+            "name": "items",
+            "type": "HasMany",
+            "related": "App\\Models\\Item"
+        }
+    ],
+    "events": [],
+    "observers": [],
+    "collection": "Illuminate\\Database\\Eloquent\\Collection",
+    "builder": "Illuminate\\Database\\Eloquent\\Builder",
+    "resource": null
+}
