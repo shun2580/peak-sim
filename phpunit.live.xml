@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PHP 8.3 only: checks that need a real artisan and the fixture app's MySQL.
+     Run it on its own (phpunit -c phpunit.live.xml). It is a separate configuration, so the Unit and
+     Acceptance suites never skip anything to avoid it; it is empty until the final stage fills it. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         failOnSkipped="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         failOnIncomplete="true"
+         failOnEmptyTestSuite="false"
+         cacheDirectory=".phpunit.cache">
+    <testsuites>
+        <testsuite name="Live"/>
+    </testsuites>
+</phpunit>
