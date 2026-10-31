@@ -89,6 +89,11 @@ final class MiniCasesTest extends TestCase
             'c-flatmap' => ['        $ids = Order::get()->flatMap(fn (Order $order) => $order->items->pluck(\'id\'));' . "\n" . '        return response()->json($ids);', 1, 2],
             'c-accumulate-nested' => ['        $all = [];' . "\n" . '        foreach (Order::get() as $order) {' . "\n" . '            foreach ($order->items as $item) {' . "\n" . '                $all[] = $item->id;' . "\n" . '            }' . "\n" . '        }' . "\n" . '        return response()->json($all);', 1, 2],
             'c-accumulate-in-chunk' => ['        $ids = [];' . "\n" . '        Order::chunk(100, function ($orders) use (&$ids): void {' . "\n" . '            foreach ($orders as $order) {' . "\n" . '                $ids[] = $order->id;' . "\n" . '            }' . "\n" . '        });' . "\n" . '        return response()->json($ids);', 1, 1],
+            'c-accumulate-push-nested' => ['        $all = collect();' . "\n" . '        foreach (Order::get() as $order) {' . "\n" . '            foreach ($order->items as $item) {' . "\n" . '                $all->push($item->id);' . "\n" . '            }' . "\n" . '        }' . "\n" . '        return response()->json($all);', 1, 2],
+            'c-accumulate-push-in-chunk' => ['        $ids = collect();' . "\n" . '        Order::chunk(100, function ($orders) use (&$ids): void {' . "\n" . '            foreach ($orders as $order) {' . "\n" . '                $ids->push($order->id);' . "\n" . '            }' . "\n" . '        });' . "\n" . '        return response()->json($ids);', 1, 1],
+            'c-accumulate-add-in-lazy' => ['        $ids = collect();' . "\n" . '        foreach (Order::lazy(100) as $order) {' . "\n" . '            $ids->add($order->id);' . "\n" . '        }' . "\n" . '        return response()->json($ids);', 1, 1],
+            'c-accumulate-put-in-lazy' => ['        $byId = collect();' . "\n" . '        foreach (Order::lazy(100) as $order) {' . "\n" . '            $byId->put($order->id, $order);' . "\n" . '        }' . "\n" . '        return response()->json($byId);', 1, 1],
+            'c-accumulate-merge-in-chunk' => ['        $ids = collect();' . "\n" . '        Order::chunk(100, function ($orders) use (&$ids): void {' . "\n" . '            $ids = $ids->merge($orders->pluck(\'id\'));' . "\n" . '        });' . "\n" . '        return response()->json($ids);', 1, 2],
         ];
     }
 
@@ -135,6 +140,63 @@ final class MiniCasesTest extends TestCase
         self::assertContains(AssumptionCode::ACCUMULATION_HEURISTIC, array_map(static fn ($a) => $a->code, $summary->assumptions));
         $chunk = array_values(array_filter($summary->events, static fn (CostEvent $e): bool => $e->kind === EventKind::Select || $e->kind === EventKind::Aggregate));
         self::assertNotEmpty($chunk);
+    }
+
+    /** @return array<string, array{string, string}> a collection body and the array body it must count the same as */
+    public static function collectingLikeAnArray(): array
+    {
+        $chunk = static fn (string $init, string $statement): string => '        ' . $init . "\n" . '        Order::chunk(100, function ($orders) use (&$ids): void {' . "\n" . '            foreach ($orders as $order) {' . "\n" . '                ' . $statement . "\n" . '            }' . "\n" . '        });' . "\n" . '        return response()->json($ids);';
+        $window = static fn (string $init, string $statement): string => '        ' . $init . "\n" . '        Order::chunk(100, function ($orders) use (&$ids): void {' . "\n" . '            ' . $statement . "\n" . '        });' . "\n" . '        return response()->json($ids);';
+
+        return [
+            'push' => [$chunk('$ids = collect();', '$ids->push($order->id);'), $chunk('$ids = [];', '$ids[] = $order->id;')],
+            'push of the models' => [$chunk('$ids = collect();', '$ids->push($order);'), $chunk('$ids = [];', '$ids[] = $order;')],
+            'add' => [$chunk('$ids = collect();', '$ids->add($order->id);'), $chunk('$ids = [];', '$ids[] = $order->id;')],
+            'prepend' => [$chunk('$ids = collect();', '$ids->prepend($order->id);'), $chunk('$ids = [];', '$ids[] = $order->id;')],
+            'put' => [$chunk('$ids = collect();', '$ids->put($order->id, $order);'), $chunk('$ids = [];', '$ids[] = $order;')],
+            'merge of a window' => [$window('$ids = collect();', '$ids = $ids->merge($orders->pluck(\'id\'));'), $window('$ids = [];', '$ids[] = $orders->pluck(\'id\');')],
+            'concat of a window' => [$window('$ids = collect();', '$ids = $ids->concat($orders->pluck(\'id\'));'), $window('$ids = [];', '$ids[] = $orders->pluck(\'id\');')],
+        ];
+    }
+
+    #[DataProvider('collectingLikeAnArray')]
+    public function testCollectingThroughAMethodCountsLikeAppendingToAnArray(string $collection, string $array): void
+    {
+        $viaMethod = $this->summary($collection);
+        $viaArray = $this->summary($array);
+
+        self::assertSame([], $viaMethod->gaps);
+        self::assertSame(CandidateComparison::degrees($viaArray), CandidateComparison::degrees($viaMethod));
+        self::assertSame($this->accumulations($viaArray), $this->accumulations($viaMethod));
+        self::assertCount(1, $this->accumulations($viaMethod));
+        self::assertSame(
+            array_map(static fn ($a): string => $a->code->value, $viaArray->assumptions),
+            array_map(static fn ($a): string => $a->code->value, $viaMethod->assumptions),
+        );
+    }
+
+    public function testCollectingWithAnotherMethodInTheSameLoopDoesNotAccumulate(): void
+    {
+        $summary = $this->summary("        \$ids = collect();\n        foreach (Order::lazy(100) as \$order) {\n            \$kept = \$ids->merge([\$order->id]);\n        }\n        return response()->json(\$ids);");
+
+        self::assertSame([], $this->accumulations($summary), 'merge() into another variable leaves $ids as it was');
+    }
+
+    public function testWhatIsPassedToPushIsWalkedWhoeverTheReceiverIs(): void
+    {
+        $summary = $this->summary("        collect()->push(Order::first());\n        return response()->json(true);");
+
+        self::assertSame([], $summary->gaps);
+        self::assertNotEmpty(array_filter($summary->events, static fn (CostEvent $e): bool => $e->query !== null), 'the read inside push() is found');
+    }
+
+    /** @return list<array{int|null, string|null, int|null}> */
+    private function accumulations(Summary $s): array
+    {
+        return array_values(array_map(
+            static fn (CostEvent $e): array => [$e->memory?->ownDegree, $e->memory?->ownOrigin?->table, $e->memory?->retainFrom],
+            array_filter($s->events, static fn (CostEvent $e): bool => $e->kind === EventKind::Accumulate),
+        ));
     }
 
     public function testASteamMadeIntoAnArrayHoldsEveryRow(): void
