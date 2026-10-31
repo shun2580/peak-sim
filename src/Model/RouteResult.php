@@ -18,7 +18,7 @@ final readonly class RouteResult
      * @param array<string, mixed> $coefficients shown only; never compared (null when it could not be derived)
      * @param list<Gap> $gaps
      * @param list<Assumption> $assumptions
-     * @param list<Site> $evidence
+     * @param list<array{role: string, site: Site, axis: string|null, note: string}> $evidence
      * @param list<string> $nTableAlternatives other tables that tie with nTable (same degree, axis and kind)
      */
     public function __construct(

@@ -145,6 +145,13 @@ final class CollectionOps implements CallHandler
                 unset($returned);
 
                 return $list; // each gives the list back; reject / takeWhile / ... keep a part of it, which is no longer
+            case in_array($name, ['push', 'put', 'prepend', 'add'], true):
+                // What is added may read the database; the engine counts the growth when the receiver is a variable.
+                foreach (array_keys($c->args) as $i) {
+                    $c->argType($i);
+                }
+
+                return $list;
             case in_array($name, self::SAME_LIST, true):
                 return $list;
             case in_array($name, self::SCALAR, true):
