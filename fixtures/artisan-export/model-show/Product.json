@@ -1,0 +1,61 @@
+{
+    "class": "App\\Models\\Product",
+    "database": "mysql",
+    "table": "products",
+    "policy": null,
+    "attributes": [
+        {
+            "name": "id",
+            "type": "bigint unsigned",
+            "increments": true,
+            "nullable": false,
+            "default": null,
+            "unique": true,
+            "fillable": false,
+            "hidden": false,
+            "appended": null,
+            "cast": "int"
+        },
+        {
+            "name": "name",
+            "type": "varchar(255)",
+            "increments": false,
+            "nullable": false,
+            "default": null,
+            "unique": false,
+            "fillable": true,
+            "hidden": false,
+            "appended": null,
+            "cast": null
+        },
+        {
+            "name": "price",
+            "type": "decimal(10,2)",
+            "increments": false,
+            "nullable": false,
+            "default": null,
+            "unique": false,
+            "fillable": true,
+            "hidden": false,
+            "appended": null,
+            "cast": null
+        }
+    ],
+    "relations": [
+        {
+            "name": "items",
+            "type": "HasMany",
+            "related": "App\\Models\\Item"
+        },
+        {
+            "name": "stat",
+            "type": "HasOne",
+            "related": "App\\Models\\ProductStat"
+        }
+    ],
+    "events": [],
+    "observers": [],
+    "collection": "Illuminate\\Database\\Eloquent\\Collection",
+    "builder": "Illuminate\\Database\\Eloquent\\Builder",
+    "resource": null
+}

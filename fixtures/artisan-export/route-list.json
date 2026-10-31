@@ -1,0 +1,284 @@
+[
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/appends",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\AppendsController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/blade",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\BladeController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/cache",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\CacheController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/conditional-binding",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\ConditionalBindingController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/cursor",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\CursorController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/model-with",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\ModelWithController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "hidden/resource",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Hidden\\ResourceController@index",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/collection-filter",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicCollectionFilterController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/count-in-loop",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicCountInLoopController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/first-or-create-in-loop",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\DeepFirstOrCreateInLoopController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/get-then-count",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicGetThenCountController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/layered",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\DeepLayeredController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/n-plus-one",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicNPlusOneController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/nested",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicNestedController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/save-in-loop",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\DeepSaveInLoopController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/service",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\DeepServiceController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ng/unbounded",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ng\\BasicUnboundedController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/bulk",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\BulkController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/chunk",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\OrderController@chunk",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/eager",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\OrderController@eager",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/lazy",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\OrderController@lazy",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/paginate",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\OrderController@paginate",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "ok/with-count",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Ok\\OrderController@withCount",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "storage/{path}",
+        "name": "storage.local",
+        "action": "Closure",
+        "middleware": [],
+        "path": "vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:111"
+    },
+    {
+        "domain": null,
+        "method": "PUT",
+        "uri": "storage/{path}",
+        "name": "storage.local.upload",
+        "action": "Closure",
+        "middleware": [],
+        "path": "vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:119"
+    },
+    {
+        "domain": null,
+        "method": "GET|HEAD",
+        "uri": "unknown/dynamic",
+        "name": null,
+        "action": "App\\Http\\Controllers\\Unknown\\DynamicController",
+        "middleware": [
+            "web"
+        ],
+        "path": null
+    }
+]
