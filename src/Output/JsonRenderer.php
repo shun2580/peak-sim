@@ -64,8 +64,8 @@ final class JsonRenderer
      */
     private function scope(array $scope): array
     {
+        // The declared order is the tool's own and is fixed, so it is kept: the list is not sorted.
         $notCovered = array_values(array_unique(array_map('strval', (array) ($scope['not_covered'] ?? []))));
-        sort($notCovered, SORT_STRING);
         unset($scope['not_covered']);
         ksort($scope, SORT_STRING);
 

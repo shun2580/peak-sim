@@ -16,7 +16,7 @@ use PeakSim\Name;
  */
 final class TableRenderer
 {
-    private const HEADER = ['ROUTE', 'QUERY', 'MEMORY', 'N(M)', '確度', '下限', 'GAP'];
+    private const HEADER = ['ROUTE', 'QUERY', 'MEMORY', 'N(M)', 'CONFIDENCE', 'LOWER BOUND', 'GAPS'];
 
     private const NONE = '—';
 
