@@ -82,6 +82,7 @@ final class ReportBuilder
             ], $r['evidence']),
             $r['events_found'],
             $r['truncated'],
+            $r['n_table_alternatives'] ?? [],
         );
     }
 

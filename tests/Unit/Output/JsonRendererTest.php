@@ -71,7 +71,7 @@ final class JsonRendererTest extends TestCase
         $this->assertSame(['O(1)', 'O(N)', 'O(N*M)', 'unknown'], array_keys($doc['summary']['by_growth']['query']));
         $route = $doc['routes'][0];
         $this->assertSame([
-            'route', 'methods', 'action', 'kind', 'query', 'memory', 'n_table', 'm_table', 'm_per', 'confidence', 'cache',
+            'route', 'methods', 'action', 'kind', 'query', 'memory', 'n_table', 'm_table', 'm_per', 'n_table_alternatives', 'confidence', 'cache',
             'worst_case', 'coefficients', 'gaps', 'assumptions', 'evidence', 'events_found', 'truncated',
         ], array_keys($route));
         $this->assertSame(['growth', 'degree', 'confidence', 'lower_bound'], array_keys($route['query']));
@@ -220,6 +220,14 @@ final class JsonRendererTest extends TestCase
         $doc = $this->decode((new JsonRenderer())->render($report));
 
         $this->assertSame([['route' => 'up', 'methods' => ['GET'], 'action' => 'Closure', 'kind' => 'closure']], $doc['skipped']);
+    }
+
+    public function testTheTablesThatTieWithNAreListedOnceEachInNameOrder(): void
+    {
+        $doc = $this->decode($this->render(ReportBuilder::inputSpec()));
+
+        $this->assertSame(['customers', 'items'], $this->routeNamed($doc, '/hidden/model-with')['n_table_alternatives']);
+        $this->assertSame([], $this->routeNamed($doc, '/ng/n-plus-one')['n_table_alternatives']);
     }
 
     public function testAnAbsolutePathInTheResultIsRefusedNotWritten(): void

@@ -99,6 +99,7 @@ final class JsonRenderer
             'n_table' => $r->nTable,
             'm_table' => $r->mTable,
             'm_per' => $r->mPer,
+            'n_table_alternatives' => $this->alternatives($r->nTableAlternatives),
             'confidence' => $r->confidence?->value,
             'cache' => $r->cache === null ? null : $this->cache($r->cache),
             'worst_case' => $r->worstCase === null ? null : array_map($this->worstCase(...), $r->worstCase),
@@ -114,6 +115,20 @@ final class JsonRenderer
             'events_found' => $r->eventsFound,
             'truncated' => $r->truncated,
         ];
+    }
+
+    /**
+     * The other tables that tie with N, once each, in name order.
+     *
+     * @param list<string> $tables
+     * @return list<string>
+     */
+    private function alternatives(array $tables): array
+    {
+        $tables = array_values(array_unique(array_map('strval', $tables)));
+        sort($tables, SORT_STRING);
+
+        return $tables;
     }
 
     /** @return array<string, mixed> */
