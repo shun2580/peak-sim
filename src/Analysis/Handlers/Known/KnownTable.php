@@ -230,15 +230,16 @@ final class KnownTable
         if (is_string($returns) && preg_match('/^object:[A-Za-z_\\\\][A-Za-z0-9_\\\\]*$/', $returns) === 1) {
             return $returns;
         }
-        if (is_string($returns) && preg_match('/^arg:(\d+)$/', $returns, $m) === 1) {
-            if ((int) $m[1] >= $argsMin) {
+        if (is_string($returns) && preg_match('/^arg:(\d+)(:([A-Za-z_][A-Za-z0-9_]*))?$/', $returns, $m) === 1) {
+            // Without a name the argument must always be there; with one, a call that leaves it out gets a plain value.
+            if (!isset($m[3]) && (int) $m[1] >= $argsMin) {
                 throw new \InvalidArgumentException("returns '{$returns}' of {$where} points past the arguments that are always there (args min {$argsMin})");
             }
 
             return $returns;
         }
 
-        throw new \InvalidArgumentException("returns of {$where} must be 'plain', 'object:<class>' or 'arg:<n>'");
+        throw new \InvalidArgumentException("returns of {$where} must be 'plain', 'object:<class>', 'arg:<n>' or 'arg:<n>:<name>'");
     }
 
     /**

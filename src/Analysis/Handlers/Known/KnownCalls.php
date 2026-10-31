@@ -106,7 +106,7 @@ final class KnownCalls implements CallHandler
             }
         }
 
-        return $this->answer($entry, $types);
+        return $this->answer($entry, $c, $types);
     }
 
     /**
@@ -136,18 +136,33 @@ final class KnownCalls implements CallHandler
         return ["{$c->name}()", null, null];
     }
 
-    /** @param array<int, Type> $types */
-    private function answer(KnownEntry $entry, array $types): Type
+    /** @param array<int, Type> $types the argument types by position */
+    private function answer(KnownEntry $entry, CallSite $c, array $types): Type
     {
         $returns = (string) $entry->returns;
         if (str_starts_with($returns, 'object:')) {
             return new ObjectT(substr($returns, strlen('object:')));
         }
-        if (str_starts_with($returns, 'arg:')) {
-            return $types[(int) substr($returns, strlen('arg:'))] ?? new PlainT();
+        if (preg_match('/^arg:(\d+)(?::(\w+))?$/', $returns, $m) === 1) {
+            return $types[$this->argumentIndex($c, (int) $m[1], $m[2] ?? null)] ?? new PlainT();
         }
 
         return new PlainT();
+    }
+
+    /** The argument given by name, else the unnamed one at that position; null when the call leaves it out. */
+    private function argumentIndex(CallSite $c, int $position, ?string $name): ?int
+    {
+        if ($name !== null) {
+            foreach ($c->args as $i => $arg) {
+                if ($arg->name?->toString() === $name) {
+                    return $i;
+                }
+            }
+        }
+        $arg = $c->args[$position] ?? null;
+
+        return $arg !== null && $arg->name === null ? $position : null;
     }
 
     /** True for a class the app does not define and does not bind to a class of its own. */

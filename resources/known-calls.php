@@ -26,6 +26,7 @@ declare(strict_types=1);
  *
  * An entry is either
  *   answered   returns: 'plain' | 'object:<class>' | 'arg:<n>' (the n-th argument's own type)
+ *                       | 'arg:<n>:<name>' (the argument called <name>, else the n-th unnamed one, else a plain value)
  *              args:    [min, max] number of arguments the claim covers (max null = any); default [0, null]
  *              stores_closures: true when a closure argument is only kept, never called
  *              basis, why
@@ -137,11 +138,18 @@ return [
         ],
         'Illuminate\\Database\\Eloquent\\Casts\\Attribute' => [
             'get' => [
-                'returns' => 'arg:0',
+                'returns' => 'arg:0:get',
                 'args' => [1, 1],
                 'stores_closures' => true,
                 'basis' => 'verified',
-                'why' => 'Database/Eloquent/Casts/Attribute.php: new static($get) keeps the callable and calls nothing. It hands back the closure itself so whoever evaluates the accessor can run its body.',
+                'why' => 'Database/Eloquent/Casts/Attribute.php: new static($get) keeps the callable and calls nothing. It hands back the getter closure itself so whoever evaluates the accessor can run its body.',
+            ],
+            'make' => [
+                'returns' => 'arg:0:get',
+                'args' => [0, 2],
+                'stores_closures' => true,
+                'basis' => 'verified',
+                'why' => 'Database/Eloquent/Casts/Attribute.php: new static($get, $set) keeps the callables and calls nothing. It hands back the getter (the argument named get, else the first); a call with no getter gives a plain value, and the setter is never run.',
             ],
         ],
         'Illuminate\\Support\\Facades\\Cache' => [
