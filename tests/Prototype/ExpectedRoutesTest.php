@@ -156,6 +156,18 @@ final class ExpectedRoutesTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('targetRouteProvider')]
+    public function testUriIsTheStringThatWasPassedIn(string $route): void
+    {
+        $actual = self::analyzer()->analyzeRoute($route);
+
+        $this->assertSame(
+            $route,
+            $actual->uri,
+            "{$route}: uri must be the input string as given (same form as expected.json route), not a normalised one"
+        );
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('targetRouteProvider')]
     public function testEvidenceIsNotEmpty(string $route): void
     {
         $actual = self::analyzer()->analyzeRoute($route);
