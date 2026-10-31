@@ -12,15 +12,15 @@ use PeakSim\Source\AppModelCatalog;
 final class ModelCatalogTest extends SourceCase
 {
     /**
-     * @param list<string> $orderObservers the observers the export gives Order
-     * @param list<string> $orderEvents the model events the export gives Order
+     * @param list<mixed> $orderObservers the observers the export gives Order (strings, or arrays as `model:show --json` may give)
+     * @param list<mixed> $orderEvents the model events the export gives Order (strings, or arrays as `model:show --json` may give)
      */
     private function catalog(string $case = 'src-model-not-in-export-inherit', array $orderObservers = [], array $orderEvents = []): AppModelCatalog
     {
         $source = new class ($orderObservers, $orderEvents) implements ArtisanSource {
             /**
-             * @param list<string> $orderObservers
-             * @param list<string> $orderEvents
+             * @param list<mixed> $orderObservers
+             * @param list<mixed> $orderEvents
              */
             public function __construct(private readonly array $orderObservers, private readonly array $orderEvents)
             {
@@ -118,6 +118,59 @@ final class ModelCatalogTest extends SourceCase
 
         self::assertNotNull($descriptor);
         self::assertSame(['saving', 'created'], $descriptor->events, 'the ancestor\'s events, as for observers');
+    }
+
+    public function testAnExportedObserverGivenAsAnArrayIsKeptNotDropped(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [
+            ['event' => 'created', 'class' => 'App\Observers\OrderObserver'],
+            ['event' => 'saving', 'observer' => ['App\Observers\OrderObserver']],
+        ])->describe('App\Models\Order');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(
+            [
+                '{"event":"created","class":"App\\\\Observers\\\\OrderObserver"}',
+                '{"event":"saving","observer":["App\\\\Observers\\\\OrderObserver"]}',
+            ],
+            $descriptor->observers,
+            'a non-string entry is kept as JSON text, in the order the export gives',
+        );
+    }
+
+    public function testAnInheritedObserverGivenAsAnArrayIsKept(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [
+            ['event' => 'created', 'class' => 'App\Observers\OrderObserver'],
+        ])->describe('App\Models\EagerOrder');
+
+        self::assertNotNull($descriptor);
+        self::assertCount(1, $descriptor->observers, 'the ancestor\'s array-shaped observer, not an empty list');
+    }
+
+    public function testAnExportedEventGivenAsAnArrayIsKeptNotDropped(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [], [
+            ['event' => 'saving', 'observer' => ['App\Observers\OrderObserver']],
+            'created',
+        ])->describe('App\Models\Order');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(
+            ['{"event":"saving","observer":["App\\\\Observers\\\\OrderObserver"]}', 'created'],
+            $descriptor->events,
+            'string entries stay as they are; array entries are kept as JSON text',
+        );
+    }
+
+    public function testAnInheritedEventGivenAsAnArrayIsKept(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [], [
+            ['event' => 'saving', 'observer' => ['App\Observers\OrderObserver']],
+        ])->describe('App\Models\EagerOrder');
+
+        self::assertNotNull($descriptor);
+        self::assertCount(1, $descriptor->events, 'the ancestor\'s array-shaped event, not an empty list');
     }
 
     public function testWithAppendsAndAccessorsAreMergedAlongTheChain(): void
