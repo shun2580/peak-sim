@@ -41,7 +41,7 @@ reachable only on the compose network):
 services:
   mysql:
     image: mysql:8.4.7
-    environment: { MYSQL_ROOT_PASSWORD: root, MYSQL_DATABASE: laravel }
+    environment: { MYSQL_ROOT_PASSWORD: <throwaway>, MYSQL_DATABASE: laravel }
     healthcheck: { test: ["CMD","mysqladmin","ping","-h","127.0.0.1","-proot"], interval: 3s, timeout: 3s, retries: 40 }
   php82:   # php85 is identical with image t1-12-php85 and working_dir /work/app-php8.5
     image: t1-12-php82
