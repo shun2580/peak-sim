@@ -5,3 +5,10 @@
 - /hidden/cache: query は null、query_on_miss="O(N)"・query_on_hit="O(1)"・cached=true、memory_restores_all_on_hit=true。
 - /hidden/cursor: memory_cause="pdo_buffers_all_rows"。/hidden/conditional-binding: worst_case_adopted=true。
 - /ng/nested: n_table=orders、m_table=items、m_per=orders(M=1注文あたりのitems)。planted は表の「仕込む内容」を原文のまま。
+- route は URI のみ。メソッドの記載がないルートは GET で、`/ok/bulk` だけ POST(D25(1))。期待値は変えていない。
+- /ok/bulk の O(1) は、MySQL のプレースホルダ上限(このルートで 13,107 顧客)の内に限る(D25(2))。試験はこの上限の内で測る。
+- per_item_queries=2(/ng/first-or-create-in-loop)は条件つき。`firstOrCreate` は行が無いとき、`updateOrCreate`(`?via=update`)は値が変わるとき(D25(3))。
+- query_extra_per_request=1(/hidden/model-with)は、`$with` の先読み1つにつき1本と読む(D25(4))。
+- メモリは参考値。増加分が小さい /hidden/cursor は、バイト/行も試験の出力に併記する(D25(6))。
+- 増え方の判定は `laravel-app/tests/Support/GrowthRules.php` の1か所に集め、4群の試験が共有する(D26)。O(1) は log-log 傾き ≤0.2、O(N) は ≥0.5、その間は「判定不能」(どちらにも合わせず報告)、O(N*M) は N と M の両方の傾きが ≥0.5、クエリ数の区間傾きのばらつきは ±10% 以内。
+- `artisan-export/` は `docker/export-artisan.sh` で取り直した派生物。`route-list.json` に `POST /ok/bulk`、`model-show/` に隠しルート用の `EagerOrder`・`AppendedOrder` を含む。
