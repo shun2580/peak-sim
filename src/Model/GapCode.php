@@ -47,4 +47,6 @@ enum GapCode: string
     /** P2. */
     case MIDDLEWARE_APP_CLASS = 'MIDDLEWARE_APP_CLASS';
     case WITH_CYCLE = 'WITH_CYCLE';
+    /** A model's $with / $appends / $table is not a constant, so it was left out. A $with can add queries. */
+    case MODEL_PROPERTY_UNRESOLVED = 'MODEL_PROPERTY_UNRESOLVED';
 }

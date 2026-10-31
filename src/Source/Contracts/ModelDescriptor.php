@@ -18,6 +18,7 @@ final readonly class ModelDescriptor
      * @param list<string> $with the $with property, parents included
      * @param list<string> $appends the $appends property, parents included
      * @param array<string, string> $accessors appended or accessed name => accessor method name
+     * @param list<string> $unresolved the properties ('with' | 'appends' | 'table') whose default was not a constant and was left out
      */
     public function __construct(
         public string $fqcn,
@@ -28,6 +29,7 @@ final readonly class ModelDescriptor
         public array $with,
         public array $appends,
         public array $accessors,
+        public array $unresolved = [],
     ) {
     }
 }
