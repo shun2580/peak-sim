@@ -11,9 +11,15 @@ use PeakSim\Source\AppModelCatalog;
 
 final class ModelCatalogTest extends SourceCase
 {
-    private function catalog(string $case = 'src-model-not-in-export-inherit'): AppModelCatalog
+    /** @param list<string> $orderObservers the observers the export gives Order */
+    private function catalog(string $case = 'src-model-not-in-export-inherit', array $orderObservers = []): AppModelCatalog
     {
-        $source = new class () implements ArtisanSource {
+        $source = new class ($orderObservers) implements ArtisanSource {
+            /** @param list<string> $orderObservers */
+            public function __construct(private readonly array $orderObservers)
+            {
+            }
+
             public function routes(): array
             {
                 return [];
@@ -29,7 +35,7 @@ final class ModelCatalogTest extends SourceCase
                         ['customer' => new RelationInfo('customer', 'BelongsTo', 'App\Models\Customer', false)],
                         [],
                         [],
-                        [],
+                        $this->orderObservers,
                     ),
                     'App\Models\Customer' => new ModelInfo('App\Models\Customer', 'customers', 'mysql', [], [], [], []),
                     default => null,
@@ -74,6 +80,22 @@ final class ModelCatalogTest extends SourceCase
         self::assertSame('mysql', $descriptor->driver);
         self::assertSame(['customer' => 'inferred'], SourceShape::relationSources($descriptor), 'RELATION_INFERRED is raised from this marker');
         self::assertSame(['customer'], $descriptor->with);
+    }
+
+    public function testAnExportedModelCarriesItsObserversFromTheExport(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', ['App\Observers\OrderObserver'])->describe('App\Models\Order');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(['App\Observers\OrderObserver'], $descriptor->observers);
+    }
+
+    public function testAModelMissingFromTheExportInheritsItsAncestorsObservers(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', ['App\Observers\OrderObserver'])->describe('App\Models\EagerOrder');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(['App\Observers\OrderObserver'], $descriptor->observers, 'the ancestor\'s observers, as for relations');
     }
 
     public function testWithAppendsAndAccessorsAreMergedAlongTheChain(): void

@@ -33,4 +33,29 @@ final class ModelDescriptorTest extends TestCase
 
         self::assertSame(['with', 'appends'], $descriptor->unresolved);
     }
+
+    public function testObserversDefaultsToNoneSoExistingCallsStillWork(): void
+    {
+        $descriptor = new ModelDescriptor('App\Models\Order', 'orders', 'mysql', [], ModelDescriptor::SOURCE_EXPORT, [], [], []);
+
+        self::assertSame([], $descriptor->observers);
+    }
+
+    public function testObserversKeepsTheNamesItIsGiven(): void
+    {
+        $descriptor = new ModelDescriptor(
+            'App\Models\ObservedOrder',
+            'orders',
+            'mysql',
+            [],
+            ModelDescriptor::SOURCE_EXPORT,
+            [],
+            [],
+            [],
+            [],
+            ['App\Observers\OrderObserver'],
+        );
+
+        self::assertSame(['App\Observers\OrderObserver'], $descriptor->observers);
+    }
 }
