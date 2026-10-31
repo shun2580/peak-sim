@@ -9,6 +9,7 @@ use PeakSim\Analysis\Type\ListT;
 use PeakSim\Analysis\Type\ModelT;
 use PeakSim\Analysis\Type\PlainT;
 use PeakSim\Analysis\Type\UnknownT;
+use PeakSim\Model\Cardinality;
 use PeakSim\Model\CardinalityKind;
 use PeakSim\Model\Delivery;
 
@@ -90,17 +91,32 @@ final class ReadTest extends QueryCase
         $this->assertClean($w);
     }
 
-    public function testFindWithAnArrayLiteralIsBoundedButWithAnUnknownArrayHasUnknownSize(): void
+    public function testFindWithAnArrayLiteralIsBoundedAndWithAListKeepsItsSize(): void
     {
-        $w = $this->walker(['ids' => new PlainT()]);
+        $w = $this->walker(['ids' => $this->rows('Customer', 'customers'), 'few' => new ListT(new PlainT(), Cardinality::bounded(), Delivery::Materialized)]);
         $literal = $w->run('Order::find([1, 2, 3])');
-        $unknown = $w->run('Order::find($ids)');
+        $fromTable = $w->run('Order::find($ids)');
+        $fromBounded = $w->run('Order::findMany($few)');
 
-        $this->assertSame(['select orders q=1', 'select orders q=1'], $this->events($w));
-        $this->assertInstanceOf(ListT::class, $literal);
+        $this->assertSame([
+            'select orders q=1',
+            'select orders q=1 m=1:orders:materialize',
+            'select orders q=1',
+        ], $this->events($w));
         $this->assertSame(CardinalityKind::Bounded, $literal->card->kind);
-        $this->assertInstanceOf(ListT::class, $unknown);
-        $this->assertSame(CardinalityKind::Unknown, $unknown->card->kind);
+        $this->assertSame(CardinalityKind::Table, $fromTable->card->kind);
+        $this->assertSame('orders', $fromTable->card->origin?->table);
+        $this->assertSame(CardinalityKind::Bounded, $fromBounded->card->kind);
+        $this->assertClean($w);
+    }
+
+    public function testFindWithAnIdThatIsPlainIsOneRow(): void
+    {
+        $w = $this->walker(['id' => new PlainT()]);
+        $t = $w->run('Order::find($id)');
+
+        $this->assertInstanceOf(ModelT::class, $t);
+        $this->assertSame(['select orders q=1'], $this->events($w));
         $this->assertClean($w);
     }
 

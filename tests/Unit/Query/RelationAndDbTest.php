@@ -168,7 +168,7 @@ final class RelationAndDbTest extends QueryCase
         $w = $this->walker(['name' => new PlainT()]);
         $t = $w->run('DB::table($name)->get()');
 
-        $this->assertSame(['select - q=1 m=1:-:materialize'], $this->events($w));
+        $this->assertSame(['select - q=1 m=1:?:materialize'], $this->events($w));
         $this->assertNull($t->card->origin?->table);
         $this->assertSame(['SQL_NOT_PARSED'], array_values(array_unique($this->assumptionCodes($w))));
         $this->assertClean($w);
@@ -179,7 +179,7 @@ final class RelationAndDbTest extends QueryCase
         $w = $this->walker();
         $t = $w->run('DB::select("select * from orders")');
 
-        $this->assertSame(['select - q=1 m=1:-:materialize'], $this->events($w));
+        $this->assertSame(['select - q=1 m=1:?:materialize'], $this->events($w));
         $this->assertInstanceOf(ListT::class, $t);
         $this->assertSame(CardinalityKind::Table, $t->card->kind);
         $this->assertNull($t->card->origin?->table);

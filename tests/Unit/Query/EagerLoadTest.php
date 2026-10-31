@@ -319,6 +319,15 @@ final class EagerLoadTest extends QueryCase
         $this->assertClean($w);
     }
 
+    public function testAWithThatIsNotAConstantListIsAGapBecauseItAddsQueriesWeCannotCount(): void
+    {
+        $w = $this->walker();
+        $w->run('DynamicWithOrder::get()');
+
+        $this->assertContains('RELATION_TARGET_UNKNOWN', $this->gapCodes($w));
+        $this->assertClean($w);
+    }
+
     public function testEagerLoadingOfTheTerminalIsNotRepeatedOnAPaginatedRead(): void
     {
         $w = $this->walker();

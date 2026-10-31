@@ -60,6 +60,7 @@ abstract class QueryCase extends TestCase
             'WithOrder' => ['orders', $order],
             'TwoWithOrder' => ['orders', $order],
             'ObservedOrder' => ['orders', $order],
+            'DynamicWithOrder' => ['orders', $order],
             'Customer' => ['customers', ['orders' => $rel('orders', 'HasMany', 'Order')]],
             'Item' => ['items', [
                 'order' => $rel('order', 'BelongsTo', 'Order'),
