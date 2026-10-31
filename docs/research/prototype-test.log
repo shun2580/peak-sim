@@ -1,0 +1,105 @@
+# prototype test log (phpunit, tests/Prototype)
+# command: docker compose run --rm --no-deps php-dev vendor/bin/phpunit --colors=never --display-skipped --testdox
+# src at commit 96d1d32 (feat: add analyzer prototype for three routes).
+# tests/ as in the working tree at run time: ExpectedRoutesTest.php (with uncommitted edits by the test owner) and MetamorphicTest.php (not yet committed).
+# skipped tests: 0 in both runs (--display-skipped prints none).
+
+=== PHP 8.2 ===
+PHP 8.2.35
+PHPUnit 11.5.57 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.35
+Configuration: /app/phpunit.xml
+
+................................                                  32 / 32 (100%)
+
+Time: 00:00.355, Memory: 12.00 MB
+
+Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
+ ✔ Query complexity matches expected json with data set "/ok/eager"
+ ✔ Query complexity matches expected json with data set "/ng/n-plus-one"
+ ✔ Query complexity matches expected json with data set "/ng/layered"
+ ✔ Memory complexity matches expected json with data set "/ok/eager"
+ ✔ Memory complexity matches expected json with data set "/ng/n-plus-one"
+ ✔ Memory complexity matches expected json with data set "/ng/layered"
+ ✔ Growth table matches expected json with data set "/ok/eager"
+ ✔ Growth table matches expected json with data set "/ng/n-plus-one"
+ ✔ Growth table matches expected json with data set "/ng/layered"
+ ✔ Result uses documented vocabulary with data set "/ng/n-plus-one"
+ ✔ Result uses documented vocabulary with data set "/ok/eager"
+ ✔ Result uses documented vocabulary with data set "/ng/layered"
+ ✔ Evidence is not empty with data set "/ng/n-plus-one"
+ ✔ Evidence is not empty with data set "/ok/eager"
+ ✔ Evidence is not empty with data set "/ng/layered"
+ ✔ Evidence points to real files and lines with data set "/ng/n-plus-one"
+ ✔ Evidence points to real files and lines with data set "/ok/eager"
+ ✔ Evidence points to real files and lines with data set "/ng/layered"
+ ✔ Analysis is deterministic with data set "/ng/n-plus-one"
+ ✔ Analysis is deterministic with data set "/ok/eager"
+ ✔ Analysis is deterministic with data set "/ng/layered"
+ ✔ Layered route shows binding resolution and innermost query
+ ✔ Eager loading route is not judged as n plus one
+ ✔ Lazy relation in loop route is judged as n plus one
+
+Metamorphic (PeakSim\Tests\Prototype\Metamorphic)
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ng/n-plus-one"
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ok/eager"
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ng/layered"
+ ✔ Removing eager loading makes ok eager linear in queries
+ ✔ Replacing the relation read makes n plus one route constant in queries
+ ✔ Rebinding to another lazy implementation moves the evidence to it
+ ✔ Rebinding to an eager implementation removes the n plus one
+ ✔ Removing the binding stops the verdict from pointing at the implementation
+
+OK (32 tests, 376 assertions)
+exit code: 0
+
+=== PHP 8.3 ===
+PHP 8.3.36
+PHPUnit 11.5.57 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.36
+Configuration: /app/phpunit.xml
+
+................................                                  32 / 32 (100%)
+
+Time: 00:00.359, Memory: 12.00 MB
+
+Expected Routes (PeakSim\Tests\Prototype\ExpectedRoutes)
+ ✔ Query complexity matches expected json with data set "/ok/eager"
+ ✔ Query complexity matches expected json with data set "/ng/n-plus-one"
+ ✔ Query complexity matches expected json with data set "/ng/layered"
+ ✔ Memory complexity matches expected json with data set "/ok/eager"
+ ✔ Memory complexity matches expected json with data set "/ng/n-plus-one"
+ ✔ Memory complexity matches expected json with data set "/ng/layered"
+ ✔ Growth table matches expected json with data set "/ok/eager"
+ ✔ Growth table matches expected json with data set "/ng/n-plus-one"
+ ✔ Growth table matches expected json with data set "/ng/layered"
+ ✔ Result uses documented vocabulary with data set "/ng/n-plus-one"
+ ✔ Result uses documented vocabulary with data set "/ok/eager"
+ ✔ Result uses documented vocabulary with data set "/ng/layered"
+ ✔ Evidence is not empty with data set "/ng/n-plus-one"
+ ✔ Evidence is not empty with data set "/ok/eager"
+ ✔ Evidence is not empty with data set "/ng/layered"
+ ✔ Evidence points to real files and lines with data set "/ng/n-plus-one"
+ ✔ Evidence points to real files and lines with data set "/ok/eager"
+ ✔ Evidence points to real files and lines with data set "/ng/layered"
+ ✔ Analysis is deterministic with data set "/ng/n-plus-one"
+ ✔ Analysis is deterministic with data set "/ok/eager"
+ ✔ Analysis is deterministic with data set "/ng/layered"
+ ✔ Layered route shows binding resolution and innermost query
+ ✔ Eager loading route is not judged as n plus one
+ ✔ Lazy relation in loop route is judged as n plus one
+
+Metamorphic (PeakSim\Tests\Prototype\Metamorphic)
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ng/n-plus-one"
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ok/eager"
+ ✔ Unmodified copy gives the same verdict as the original with data set "/ng/layered"
+ ✔ Removing eager loading makes ok eager linear in queries
+ ✔ Replacing the relation read makes n plus one route constant in queries
+ ✔ Rebinding to another lazy implementation moves the evidence to it
+ ✔ Rebinding to an eager implementation removes the n plus one
+ ✔ Removing the binding stops the verdict from pointing at the implementation
+
+OK (32 tests, 376 assertions)
+exit code: 0
