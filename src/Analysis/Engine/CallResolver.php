@@ -15,6 +15,7 @@ use PeakSim\Analysis\Type\Type;
 use PeakSim\Analysis\Type\UnionT;
 use PeakSim\Analysis\Type\UnknownT;
 use PeakSim\Binding\BindingResultKind;
+use PeakSim\Binding\ProviderBindingTable;
 use PeakSim\Model\Cardinality;
 use PeakSim\Model\GapCode;
 use PeakSim\Model\Site;
@@ -38,6 +39,9 @@ final class CallResolver
 {
     /** Collection methods that add to the collection they are called on. */
     private const COLLECTING_METHODS = ['push', 'add', 'prepend', 'put'];
+
+    /** Methods that load relations or aggregates onto the value they are called on (Collection and Model). */
+    private const LOADING_METHODS = ['load', 'loadmissing', 'loadcount', 'loadsum', 'loadmax', 'loadmin', 'loadavg', 'loadexists', 'loadmorph'];
 
     public function __construct(
         private readonly Engine $engine,
@@ -91,8 +95,27 @@ final class CallResolver
 
         $name = $n->name->toString();
         $result = $this->onReceiver($n, $recv, $name, $args, $eval, $scope, $run);
+        $this->rebindAfterLoad($n, $recv, $name, $result, $scope, $run);
 
         return $this->collectsIntoItsReceiver($n, $recv, $name, $args, $eval, $scope, $run) ?? $result;
+    }
+
+    /**
+     * `$orders->load('customer')` changes $orders, not just what the call returns: from here on the variable holds
+     * the type the handler gave back (the same kind of value, with the relations now loaded). Flow-sensitive by
+     * variable; where branches meet, TypeMerge keeps only what every branch loaded.
+     */
+    private function rebindAfterLoad(Expr\MethodCall|Expr\NullsafeMethodCall $n, Type $recv, string $name, Type $result, Scope $scope, MethodRun $run): void
+    {
+        if (!$n->var instanceof Expr\Variable || !is_string($n->var->name) || $n->var->name === 'this') {
+            return;
+        }
+        if (!in_array(strtolower($name), self::LOADING_METHODS, true)) {
+            return;
+        }
+        if (($recv instanceof ListT && $result instanceof ListT) || ($recv instanceof ModelT && $result instanceof ModelT)) {
+            $scope->set($n->var->name, $result, count($run->frames));
+        }
     }
 
     /**
@@ -360,7 +383,17 @@ final class CallResolver
             return;
         }
         if ($result->kind === BindingResultKind::Unresolvable) {
-            $problems[] = $this->gap($run, $scope, GapCode::UNRESOLVABLE_BINDING, $site, "the binding of {$abstract} cannot be followed: " . ($result->reason ?? ''));
+            $reason = $result->reason ?? '';
+            $decorated = str_starts_with($reason, ProviderBindingTable::REASON_DECORATED);
+            $problems[] = $this->gap(
+                $run,
+                $scope,
+                $decorated ? GapCode::BINDING_DECORATED : GapCode::UNRESOLVABLE_BINDING,
+                $site,
+                $decorated
+                    ? "the binding of {$abstract} is decorated, so the implementation behind it is not known: " . trim(substr($reason, strlen(ProviderBindingTable::REASON_DECORATED)))
+                    : "the binding of {$abstract} cannot be followed: " . $reason,
+            );
 
             return;
         }

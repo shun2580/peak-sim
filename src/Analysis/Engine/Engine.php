@@ -147,6 +147,17 @@ final class Engine
         $viaTrait = $ref->via !== null;
         $scope = new Scope($ref->file, $viaTrait ? $receiverClass : $ref->owner, $viaTrait ? $receiverClass : $ref->owner, $self);
         $run->trace[] = new Site($ref->file, max(1, $node->getStartLine()), $ref->owner . '::' . $node->name->toString() . '()');
+        if (GeneratorDetector::isGenerator($node)) {
+            // The body runs only when something pulls from the generator, and that is not followed: nothing in it is a
+            // fact the walk found (invariant I3), so none of it may be counted, not even as a lower bound.
+            $unknown = (new EvalContextImpl($this, $run, $scope))->gap(
+                GapCode::GENERATOR_NOT_ANALYZED,
+                $node,
+                $ref->owner . '::' . $node->name->toString() . '() is a generator: its body runs when it is pulled and is not followed',
+            );
+
+            return new Summary([], $run->gaps, [], $run->trace, $unknown, false);
+        }
         $this->resolver->bindParameters($node->params, $args, $named, $scope, $run, false);
 
         $returned = $this->walker->analyzeBody($node->stmts ?? [], $scope, $run, $node);
