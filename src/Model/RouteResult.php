@@ -19,6 +19,7 @@ final readonly class RouteResult
      * @param list<Gap> $gaps
      * @param list<Assumption> $assumptions
      * @param list<Site> $evidence
+     * @param list<string> $nTableAlternatives other tables that tie with nTable (same degree, axis and kind)
      */
     public function __construct(
         public string $uri,
@@ -41,6 +42,7 @@ final readonly class RouteResult
         /** 0 with no gap = nothing was there; 0 with a gap = could not follow. */
         public int $eventsFound,
         public bool $truncated,
+        public array $nTableAlternatives = [],
     ) {
     }
 }
