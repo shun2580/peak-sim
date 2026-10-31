@@ -15,9 +15,6 @@
         <testsuite name="Acceptance">
             <directory>tests/Acceptance</directory>
         </testsuite>
-        <testsuite name="Prototype">
-            <directory>tests/Prototype</directory>
-        </testsuite>
     </testsuites>
     <source>
         <include>
