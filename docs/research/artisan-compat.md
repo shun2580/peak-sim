@@ -95,7 +95,7 @@ SQLite は、版ごとに 1 つの PHP でしか取っていない(11 は 8.4、
 | `model:show` の `database` | `"mysql"` | `"sqlite"` |
 | 列の `type`(`model:show`・`db:table`) | `bigint unsigned`、`varchar(255)`、`decimal(10,2)`、`int unsigned` | `integer`、`varchar`、`numeric`、`integer`(長さ・精度・符号が落ちる) |
 | `db:table` の `columns[].attributes` | 基本型に加え、文字列列は照合順序(例 `{"0":"varchar","4":"utf8mb4_unicode_ci"}`) | 基本型のみ(`["varchar"]`) |
-| `db:table` の `table` | `size` は 32768 / 49152、`comment` は `""`、`collation` は `utf8mb4_unicode_ci`、`engine` は `InnoDB` | `size` は 4096、`comment`・`collation`・`engine` は `null` |
+| `db:table` の `table` | `size` は 32768 / 49152、`comment` は `""`、`collation` は `utf8mb4_unicode_ci`、`engine` は `InnoDB` | `size` は 11・12 が 4096、13 が `null`。`comment`・`collation`・`engine` は `null` |
 | `db:table` の `table.schema` | データベース名(`laravel`) | 12・13 は `main`(`schema_qualified_name` は `main.orders`)。11 は `null`(`schema_qualified_name` のキーが無い) |
 | `db:table` の `indexes` | 主キーに加え、**外部キーの列ごとに 1 本**(`orders_customer_id_foreign` など) | **主キーのみ**。外部キーの列に索引が出ない |
 | `db:table` の `foreign_keys[].name` | 制約名(`orders_customer_id_foreign` など) | `null` |
@@ -113,6 +113,7 @@ D20 に直結する点: SQLite は外部キーの列に索引を報告しない�
 | モデルの `timestamps` | なし(`$timestamps = false`) | なし(`$timestamps = false`) | あり(`created_at`・`updated_at` の列が `model:show` に出る) |
 | 足したルート | 補足パスで拡充(下記) | `GET /orders`(`throttle:60,1`)、`GET /orders/{order}`、`Route::resource('items')->only(['index','store'])` | `GET /orders`、`GET /orders/{order}`(コントローラ)、`POST /orders`(クロージャ) |
 | `middleware` に出る名前 | 素のルートは `web` | `web` に加え `throttle:60,1` が出る行がある | `web` |
+| `orders.total` の型 | `decimal(10,2)`(SQLite では `numeric`) | `int unsigned`(SQLite では `integer`) | `int unsigned`(SQLite では `integer`) |
 
 したがって、`model:show` の属性数や `route:list` の行数、`middleware` の中身を三版で比べても、版差の根拠にならない。版間の比較ができるのは、題材が重なる部分(§2.1 のキー構成、素の骨組みのルート、列の型の書式など)だけである。
 
