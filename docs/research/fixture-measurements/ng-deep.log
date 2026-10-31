@@ -1,0 +1,47 @@
+# ng-deep test log (subtask_243_T2_ng_deep). Env info scrubbed: <scrubbed>
+# command: docker compose -p peak-sim-<name> exec -T php-dev sh -c 'cd fixtures/laravel-app && php artisan test --no-ansi --filter "Tests.Feature.Ng.Deep"'
+PHP 8.3.36 (cli) (built: Oct 28 2026 01:26:49) (NTS)
+Laravel Framework 13.39.0
+name     : ralder/phpunit-query-scaling
+versions : * v0.2.0
+names    : ralder/phpunit-query-scaling
+mysql: 8.4.7
+---
+[measure] queries route=/ng/first-or-create-in-loop scales=2,5,10,20 counts=5,11,21,41
+[measure] queries route=/ng/first-or-create-in-loop?via=update scales=2,5,10,20 counts=5,11,21,41
+[measure] memory route=/ng/first-or-create-in-loop scales=100,1000,10000 peak_bytes=293880,1395624,14122704
+[measure] memory route=/ng/first-or-create-in-loop?via=update scales=100,1000,10000 peak_bytes=257752,1214000,12001520
+
+   PASS  Tests\Feature\Ng\DeepFirstOrCreateInLoopTest
+  ✓ first or create makes one stat row per product                       0.58s  
+  ✓ update or create changes the existing stat rows                      0.02s  
+  ✓ first or create queries grow two per product                         0.07s  
+  ✓ update or create queries grow two per product                        0.08s  
+  ✓ first or create peak memory grows with the product count            15.01s  
+  ✓ update or create peak memory grows with the product count           14.35s  
+[measure] queries route=/ng/layered scales=2,5,10,20 counts=3,6,11,21
+[measure] memory route=/ng/layered scales=100,1000,10000 peak_bytes=484600,3618024,35718936
+
+   PASS  Tests\Feature\Ng\DeepLayeredTest
+  ✓ it lists every order with its customer name                          0.03s  
+  ✓ the repository interface is bound to the eloquent implementation     0.01s  
+  ✓ queries grow linearly with the order count                           0.05s  
+  ✓ peak memory grows with the order count                               6.67s  
+[measure] queries route=/ng/save-in-loop scales=2,5,10,20 counts=3,6,11,21
+[measure] memory route=/ng/save-in-loop scales=100,1000,10000 peak_bytes=313128,2044792,20146560
+
+   PASS  Tests\Feature\Ng\DeepSaveInLoopTest
+  ✓ it changes and saves every customer                                  0.02s  
+  ✓ queries grow linearly with the customer count                        0.05s  
+  ✓ peak memory grows with the customer count                            6.11s  
+[measure] queries route=/ng/service scales=2,5,10,20 counts=3,6,11,21
+[measure] memory route=/ng/service scales=100,1000,10000 peak_bytes=485392,3626016,35797536
+
+   PASS  Tests\Feature\Ng\DeepServiceTest
+  ✓ it lists every order with its customer name                          0.03s  
+  ✓ queries grow linearly with the order count                           0.05s  
+  ✓ peak memory grows with the order count                               6.75s  
+
+  Tests:    16 passed (132 assertions)
+  Duration: 49.97s
+
