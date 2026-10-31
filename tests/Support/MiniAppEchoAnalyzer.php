@@ -72,6 +72,9 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
         $assumptions = $want['assumptions'] ?? ($want['assumptions_include'] ?? []);
         $axes = ['query' => $this->axis($want['query'] ?? 'O(1)'), 'memory' => $this->axis($want['memory'] ?? 'O(1)')];
         $gapCodes = $want['gaps'] ?? ($want['gaps_include'] ?? []);
+        if (!isset($want['gaps']) && isset($want['gaps_any']) && array_intersect($want['gaps_any'], $gapCodes) === []) {
+            $gapCodes[] = $want['gaps_any'][0];
+        }
         foreach ($axes as $a) {
             if ($a['growth'] === 'unknown' && $gapCodes === []) {
                 $gapCodes = ['UNRESOLVED_CALL'];

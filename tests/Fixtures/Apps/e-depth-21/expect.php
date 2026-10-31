@@ -6,8 +6,8 @@ return [
     'description' => 'A chain of 21 calls from the route action to the N+1.',
     'routes' => [
         '/t' => [
-            'query' => ['growth' => 'unknown', 'lower_bound' => null, 'confidence' => null],
-            'memory' => ['growth' => 'unknown', 'lower_bound' => null, 'confidence' => null],
+            'query' => ['growth' => 'unknown', 'confidence' => null, 'lower_bound' => null],
+            'memory' => ['growth' => 'unknown', 'confidence' => null, 'lower_bound' => null],
             'confidence' => null,
             'gaps' => ['DEPTH_LIMIT'],
             'events_found' => 0,

@@ -19,7 +19,8 @@ namespace PeakSim\Tests\Support;
  *   confidence           'high' | 'medium' | null
  *   n_table, m_table, m_per   string | null
  *   gaps                 exact set of gap codes, e.g. ['UNRESOLVED_CALL']; [] = no gap at all
- *   gaps_include         codes that must be among the gaps
+ *   gaps_include         codes that must all be among the gaps
+ *   gaps_any             at least one of these codes must be among the gaps (the design leaves open which one it is)
  *   assumptions, assumptions_include   the same for assumption codes
  *   events_found         int | '>=1'
  *   truncated            bool
@@ -32,7 +33,7 @@ namespace PeakSim\Tests\Support;
 final class Expectation
 {
     public const ROUTE_KEYS = [
-        'query', 'memory', 'confidence', 'n_table', 'm_table', 'm_per', 'gaps', 'gaps_include', 'assumptions',
+        'query', 'memory', 'confidence', 'n_table', 'm_table', 'm_per', 'gaps', 'gaps_include', 'gaps_any', 'assumptions',
         'assumptions_include', 'events_found', 'truncated', 'kind', 'cache', 'worst_case_adopted', 'coefficients',
         'evidence_include',
     ];
@@ -109,6 +110,9 @@ final class Expectation
             if (!in_array($code, $gapCodes, true)) {
                 $p[] = "{$uri}: gap {$code} expected, got " . self::show($gapCodes);
             }
+        }
+        if (isset($want['gaps_any']) && array_intersect($want['gaps_any'], $gapCodes) === []) {
+            $p[] = "{$uri}: one of the gaps " . self::show($want['gaps_any']) . ' expected, got ' . self::show($gapCodes);
         }
         foreach ($want['assumptions_include'] ?? [] as $code) {
             if (!in_array($code, $assumptionCodes, true)) {

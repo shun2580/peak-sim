@@ -10,9 +10,6 @@ return E::build(
     ],
     models: [
         ...E::standardModels(),
-        E::model('App\\Models\\WithOrder', 'orders', [
-    'customer' => ['BelongsTo', 'App\\Models\\Customer'],
-    'items' => ['HasMany', 'App\\Models\\Item'],
-]),
+        E::model('App\\Models\\WithOrder', 'orders', ['customer' => ['BelongsTo', 'App\\Models\\Customer'], 'items' => ['HasMany', 'App\\Models\\Item']]),
     ],
 );

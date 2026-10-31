@@ -104,7 +104,7 @@ final class MiniAppHarnessSelfTest extends TestCase
     {
         $invalid = [];
         foreach ($this->caseNamed($name)->expect()['routes'] as $uri => $want) {
-            foreach (array_merge($want['gaps'] ?? [], $want['gaps_include'] ?? []) as $code) {
+            foreach (array_merge($want['gaps'] ?? [], $want['gaps_include'] ?? [], $want['gaps_any'] ?? []) as $code) {
                 if (GapCode::tryFrom($code) === null) {
                     $invalid[] = "{$uri}: {$code} is not a GapCode";
                 }
@@ -222,6 +222,15 @@ final class MiniAppHarnessSelfTest extends TestCase
         $this->assertStringContainsString("unknown expectation key 'qeury'", $problems[0]);
         $this->assertStringContainsString('/missing', $problems[1]);
         $this->assertStringContainsString('/extra', $problems[2]);
+    }
+
+    public function testGapsAnyAcceptsAnyOneOfTheListedCodes(): void
+    {
+        $view = $this->view();
+        $view['gaps'] = [['code' => 'NO_BINDING', 'file' => 'a', 'line' => 1, 'note' => '', 'message' => '', 'affects' => ['query', 'memory'], 'loop_depth' => 0]];
+
+        $this->assertSame([], Expectation::check(['routes' => ['/t' => ['gaps_any' => ['VENDOR_CALL_NOT_MODELLED', 'NO_BINDING']]]], ['/t' => $view]));
+        $this->assertCount(1, Expectation::check(['routes' => ['/t' => ['gaps_any' => ['DEPTH_LIMIT', 'RECURSION']]]], ['/t' => $view]));
     }
 
     public function testExpectationCheckRefusesAnEmptyRoutesList(): void

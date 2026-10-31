@@ -96,7 +96,7 @@ abstract class Controller
 }
 ```
 
-`routes/web.php` — one line per route listed in the SPEC, in this form (the default route is `GET /t`):
+`routes/web.php` — one line per route listed in the SPEC (`Route::get` / `Route::post` to match the method; the default route is `GET /t`), in this form:
 
 ```php
 <?php
