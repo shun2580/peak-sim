@@ -94,8 +94,13 @@ final class Application
             : (new TableRenderer())->render($report);
         fwrite($stdout, str_ends_with($text, "\n") ? $text : $text . "\n");
 
+        $stats = $runner->stats();
+        // What artisan said when it could not describe a model (no database, say): the reason a route turned unknown.
+        foreach ($stats['artisan_diagnostics'] as $note) {
+            fwrite($stderr, Name::TOOL_NAME . ': note: ' . $note . "\n");
+        }
         if ($command->stats) {
-            fwrite($stderr, self::stats($runner->stats(), (hrtime(true) - $started) / 1e9));
+            fwrite($stderr, self::stats($stats, (hrtime(true) - $started) / 1e9));
         }
 
         return self::EXIT_OK;
@@ -112,9 +117,6 @@ final class Application
             "  summaries: {$stats['summaries_computed']} computed, {$stats['summaries_reused']} reused",
             "  deepest call depth: {$stats['deepest_level']}",
         ];
-        foreach ($stats['artisan_diagnostics'] as $note) {
-            $lines[] = "  artisan: {$note}";
-        }
 
         return implode("\n", $lines) . "\n";
     }

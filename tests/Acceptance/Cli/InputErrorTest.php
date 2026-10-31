@@ -78,4 +78,32 @@ final class InputErrorTest extends CliTestCase
             MiniAppWorkspace::remove($root);
         }
     }
+
+    public function testWhenArtisanCannotDescribeAModelTheRoutesTurnUnknownAndTheReasonIsOnStandardError(): void
+    {
+        $dir = MiniAppWorkspace::make('cli-no-db');
+        try {
+            $artisan = $dir . '/artisan';
+            file_put_contents($artisan, '<?php
+if (($argv[1] ?? "") === "route:list") {
+    readfile(' . var_export(MiniAppWorkspace::fixtureExport() . '/route-list.json', true) . ');
+    exit(0);
+}
+fwrite(STDERR, "SQLSTATE[HY000] [2002] Connection refused");
+exit(1);
+');
+            $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($artisan);
+            $result = $this->analyze('--artisan-command=' . $command, '--format=json');
+
+            $this->assertSame(0, $result->exitCode, $result->stderr);
+            $this->assertStringContainsString('note:', $result->stderr);
+            $this->assertStringContainsString('model:show', $result->stderr);
+            $doc = $this->decodeJson($result->stdout);
+            $codes = array_merge(...array_map(static fn (array $r): array => array_column($r['gaps'], 'code'), $doc['routes']));
+            $this->assertContains('MODEL_INFO_UNAVAILABLE', $codes, 'a model that could not be described is a gap, not a guess');
+            $this->assertStringNotContainsString('Connection refused', $result->stdout, 'standard output holds the report only');
+        } finally {
+            MiniAppWorkspace::remove($dir);
+        }
+    }
 }
