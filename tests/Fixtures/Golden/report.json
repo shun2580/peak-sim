@@ -8,22 +8,27 @@
     },
     "analysis_scope": {
         "not_covered": [
-            "authorization gates and policies",
+            "application middleware",
+            "authorization (gates and policies)",
+            "route model binding",
             "form request validation",
-            "route middleware"
-        ]
+            "global scopes",
+            "observers and event listeners",
+            "jobs"
+        ],
+        "note": "The cost of the processing listed here is not included in the results. This does not mean the route is safe."
     },
     "summary": {
-        "routes": 10,
+        "routes": 11,
         "by_confidence": {
             "high": 7,
             "medium": 1,
-            "none": 2
+            "none": 3
         },
         "by_growth": {
             "query": {
                 "O(1)": 2,
-                "O(N)": 4,
+                "O(N)": 5,
                 "O(N*M)": 2,
                 "unknown": 2
             },
@@ -31,12 +36,12 @@
                 "O(1)": 1,
                 "O(N)": 5,
                 "O(N*M)": 2,
-                "unknown": 2
+                "unknown": 3
             }
         },
         "gap_reasons": {
             "DYNAMIC_METHOD_NAME": 1,
-            "UNRESOLVED_CALL": 1,
+            "UNRESOLVED_CALL": 2,
             "VENDOR_CALL_NOT_MODELLED": 1
         },
         "skipped": 3
@@ -315,6 +320,59 @@
                 }
             ],
             "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/half-unknown",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\HalfUnknownController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": "O(N)"
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": null,
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [
+                {
+                    "code": "UNRESOLVED_CALL",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/HalfUnknownController.php",
+                        "line": 10,
+                        "note": ""
+                    },
+                    "message": "undefined function helper()",
+                    "affects": [
+                        "memory"
+                    ],
+                    "loop_depth": 1,
+                    "scenario": []
+                }
+            ],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 1,
             "truncated": false
         },
         {

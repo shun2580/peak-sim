@@ -2,10 +2,15 @@
     "input_mode": "export-dir",
     "scope": {
         "not_covered": [
-            "route middleware",
-            "authorization gates and policies",
-            "form request validation"
-        ]
+            "application middleware",
+            "authorization (gates and policies)",
+            "route model binding",
+            "form request validation",
+            "global scopes",
+            "observers and event listeners",
+            "jobs"
+        ],
+        "note": "The cost of the processing listed here is not included in the results. This does not mean the route is safe."
     },
     "skipped": [
         {
@@ -613,6 +618,59 @@
                 "extra_queries_per_request": null
             },
             "gaps": [],
+            "assumptions": [],
+            "evidence": [],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "uri": "/hidden/half-unknown",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\HalfUnknownController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "unknown",
+                "degree": 0,
+                "confidence": null,
+                "lower_bound": "O(N)"
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": null,
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [
+                {
+                    "code": "UNRESOLVED_CALL",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/HalfUnknownController.php",
+                        "line": 10,
+                        "note": ""
+                    },
+                    "message": "undefined function helper()",
+                    "affects": [
+                        "memory"
+                    ],
+                    "loop_depth": 1,
+                    "scenario": []
+                }
+            ],
             "assumptions": [],
             "evidence": [],
             "events_found": 1,

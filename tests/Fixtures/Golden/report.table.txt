@@ -1,16 +1,17 @@
-ROUTE                        QUERY                         MEMORY             N(M)                          確度    下限                         GAP
----------------------------  ----------------------------  -----------------  ----------------------------  ------  ---------------------------  -----------------------------------------
-/deep/triple                 O(N*M)×3                      O(N*M)×3           orders (M: items per orders)  high    —                            —
-/hidden/cache                O(N) miss / O(1) hit [cache]  O(N)               orders                        high    —                            —
-/hidden/conditional-binding  O(N) [worst-case of 2]        O(N)               orders                        medium  —                            —
-/hidden/lower-bound          unknown (≥O(N))               unknown (≥O(N*M))  orders                        —       query ≥O(N), memory ≥O(N*M)  UNRESOLVED_CALL, VENDOR_CALL_NOT_MODELLED
-/hidden/model-with           O(1)                          O(N)               orders                        high    —                            —
-/ng/n-plus-one               O(N)                          O(N)               orders                        high    —                            —
-/ng/nested                   O(N*M)                        O(N*M)             orders (M: items per orders)  high    —                            —
-POST /ok/bulk                O(1)                          O(N)               customers                     high    —                            —
-/ok/chunk                    O(N)                          O(1)               orders                        high    —                            —
-/unknown/dynamic             unknown                       unknown            —                             —       —                            DYNAMIC_METHOD_NAME
+ROUTE                        QUERY                         MEMORY             N(M)                          CONFIDENCE  LOWER BOUND                  GAPS
+---------------------------  ----------------------------  -----------------  ----------------------------  ----------  ---------------------------  -----------------------------------------
+/deep/triple                 O(N*M)×3                      O(N*M)×3           orders (M: items per orders)  high        —                            —
+/hidden/cache                O(N) miss / O(1) hit [cache]  O(N)               orders                        high        —                            —
+/hidden/conditional-binding  O(N) [worst-case of 2]        O(N)               orders                        medium      —                            —
+/hidden/half-unknown         O(N)                          unknown (≥O(N))    orders                        —           memory ≥O(N)                 UNRESOLVED_CALL
+/hidden/lower-bound          unknown (≥O(N))               unknown (≥O(N*M))  orders                        —           query ≥O(N), memory ≥O(N*M)  UNRESOLVED_CALL, VENDOR_CALL_NOT_MODELLED
+/hidden/model-with           O(1)                          O(N)               orders                        high        —                            —
+/ng/n-plus-one               O(N)                          O(N)               orders                        high        —                            —
+/ng/nested                   O(N*M)                        O(N*M)             orders (M: items per orders)  high        —                            —
+POST /ok/bulk                O(1)                          O(N)               customers                     high        —                            —
+/ok/chunk                    O(N)                          O(1)               orders                        high        —                            —
+/unknown/dynamic             unknown                       unknown            —                             —           —                            DYNAMIC_METHOD_NAME
 
-peak-sim: 10 routes analysed, 3 not analysed (framework / closure)
-confidence: high 7, medium 1, — 2
-gaps: DYNAMIC_METHOD_NAME in 1 route, UNRESOLVED_CALL in 1 route, VENDOR_CALL_NOT_MODELLED in 1 route
+peak-sim: 11 routes analysed, 3 not analysed (framework / closure)
+confidence: high 7, medium 1, — 3
+gaps: DYNAMIC_METHOD_NAME in 1 route, UNRESOLVED_CALL in 2 routes, VENDOR_CALL_NOT_MODELLED in 1 route

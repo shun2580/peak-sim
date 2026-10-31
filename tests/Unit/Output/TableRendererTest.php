@@ -44,7 +44,7 @@ final class TableRendererTest extends TestCase
     {
         $header = $this->lines($this->render(ReportBuilder::inputSpec()))[0];
 
-        $this->assertSame(['ROUTE', 'QUERY', 'MEMORY', 'N(M)', '確度', '下限', 'GAP'], preg_split('/\s{2,}/', $header));
+        $this->assertSame(['ROUTE', 'QUERY', 'MEMORY', 'N(M)', 'CONFIDENCE', 'LOWER BOUND', 'GAPS'], preg_split('/\s{2,}/', $header));
     }
 
     public function testEveryRowStartsEachColumnAtTheSameDisplayColumn(): void
@@ -55,7 +55,7 @@ final class TableRendererTest extends TestCase
         preg_match_all('/-+/', $separator, $m, PREG_OFFSET_CAPTURE);
         $starts = array_column($m[0], 1);
 
-        foreach (array_slice($lines, 2, 10) as $row) {
+        foreach (array_slice($lines, 2, 11) as $row) {
             $this->assertSame(self::width($row), self::width(rtrim($row)), 'trailing spaces');
             foreach (array_slice($starts, 1) as $start) {
                 $this->assertSame('  ', self::slice($row, $start - 2, 2), "a column does not start at {$start} in: {$row}");
@@ -65,10 +65,10 @@ final class TableRendererTest extends TestCase
 
     public function testRowsAreInUriOrderWithTheMethodShownOnlyWhenItIsNotAGet(): void
     {
-        $rows = array_map(static fn (string $l): string => preg_split('/\s{2,}/', $l)[0], array_slice($this->lines($this->render(ReportBuilder::inputSpec())), 2, 10));
+        $rows = array_map(static fn (string $l): string => preg_split('/\s{2,}/', $l)[0], array_slice($this->lines($this->render(ReportBuilder::inputSpec())), 2, 11));
 
         $this->assertSame([
-            '/deep/triple', '/hidden/cache', '/hidden/conditional-binding', '/hidden/lower-bound', '/hidden/model-with',
+            '/deep/triple', '/hidden/cache', '/hidden/conditional-binding', '/hidden/half-unknown', '/hidden/lower-bound', '/hidden/model-with',
             '/ng/n-plus-one', '/ng/nested', 'POST /ok/bulk', '/ok/chunk', '/unknown/dynamic',
         ], $rows);
     }
@@ -108,6 +108,19 @@ final class TableRendererTest extends TestCase
         $this->assertSame(['/unknown/dynamic', 'unknown', 'unknown', '—', '—', '—', 'DYNAMIC_METHOD_NAME'], $cells);
     }
 
+    public function testARouteWithOneUnknownAxisHasADashForConfidenceAndTheBoundOfThatAxisOnly(): void
+    {
+        $cells = preg_split('/\s{2,}/', $this->rowOf('/hidden/half-unknown'));
+
+        $this->assertSame(['/hidden/half-unknown', 'O(N)', 'unknown (≥O(N))', 'orders', '—', 'memory ≥O(N)', 'UNRESOLVED_CALL'], $cells);
+    }
+
+    public function testTheOutputHasNoJapanese(): void
+    {
+        $this->assertDoesNotMatchRegularExpression('/[\p{Han}\p{Hiragana}\p{Katakana}]/u', $this->render(ReportBuilder::inputSpec()));
+        $this->assertDoesNotMatchRegularExpression('/[\p{Han}\p{Hiragana}\p{Katakana}]/u', (new TableRenderer())->render(new AnalysisReport([], [], [])));
+    }
+
     public function testTheNestedTableIsNamedWithItsPer(): void
     {
         $this->assertStringContainsString('orders (M: items per orders)', $this->rowOf('/ng/nested'));
@@ -118,7 +131,7 @@ final class TableRendererTest extends TestCase
         $table = $this->render(ReportBuilder::inputSpec());
 
         $this->assertStringNotContainsString('/framework/health', $table);
-        $this->assertStringContainsString('10 routes analysed, 3 not analysed (framework / closure)', $table);
+        $this->assertStringContainsString('11 routes analysed, 3 not analysed (framework / closure)', $table);
     }
 
     public function testTheSummaryNamesTheToolFromTheOnePlaceAndCountsConfidenceAndGaps(): void
@@ -127,8 +140,8 @@ final class TableRendererTest extends TestCase
         $summary = array_slice($lines, -3);
 
         $this->assertStringStartsWith(Name::TOOL_NAME . ': ', $summary[0]);
-        $this->assertSame('confidence: high 7, medium 1, — 2', $summary[1]);
-        $this->assertSame('gaps: DYNAMIC_METHOD_NAME in 1 route, UNRESOLVED_CALL in 1 route, VENDOR_CALL_NOT_MODELLED in 1 route', $summary[2]);
+        $this->assertSame('confidence: high 7, medium 1, — 3', $summary[1]);
+        $this->assertSame('gaps: DYNAMIC_METHOD_NAME in 1 route, UNRESOLVED_CALL in 2 routes, VENDOR_CALL_NOT_MODELLED in 1 route', $summary[2]);
         $this->assertSame('', $lines[count($lines) - 4], 'a blank line before the summary');
     }
 

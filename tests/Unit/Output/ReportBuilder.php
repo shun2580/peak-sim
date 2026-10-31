@@ -150,7 +150,8 @@ final class ReportBuilder
 
     /**
      * The same spec with every list that has no meaning in its order reversed: routes, skipped entries, gaps,
-     * assumptions. Evidence, cache sites and worst-case candidates are discovery order and stay as they are.
+     * assumptions. Evidence, cache sites and worst-case candidates are discovery order, and the
+     * not_covered list is in the order the tool declares it; they stay as they are.
      *
      * @param array<string, mixed> $spec
      * @return array<string, mixed>
@@ -163,7 +164,6 @@ final class ReportBuilder
             $spec['routes'][$i]['gaps'] = array_reverse($route['gaps']);
             $spec['routes'][$i]['assumptions'] = array_reverse($route['assumptions']);
         }
-        $spec['scope']['not_covered'] = array_reverse($spec['scope']['not_covered']);
 
         return $spec;
     }

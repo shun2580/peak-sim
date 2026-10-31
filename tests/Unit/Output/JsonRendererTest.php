@@ -103,6 +103,29 @@ final class JsonRendererTest extends TestCase
         $this->assertSame('DYNAMIC_METHOD_NAME', $unknown['gaps'][0]['code']);
     }
 
+    public function testARouteWithOneUnknownAxisHasNullConfidenceWhileTheKnownAxisKeepsItsOwn(): void
+    {
+        $route = $this->routeNamed($this->decode($this->render(ReportBuilder::inputSpec())), '/hidden/half-unknown');
+
+        $this->assertSame('O(N)', $route['query']['growth']);
+        $this->assertSame('high', $route['query']['confidence']);
+        $this->assertSame('unknown', $route['memory']['growth']);
+        $this->assertNull($route['memory']['confidence']);
+        $this->assertNull($route['confidence'], 'one axis unknown: the route has no confidence (D21)');
+    }
+
+    public function testTheScopeDeclaresWhatIsNotCoveredInTheDeclaredOrderWithTheNote(): void
+    {
+        $scope = $this->decode($this->render(ReportBuilder::inputSpec()))['analysis_scope'];
+
+        $this->assertSame(['not_covered', 'note'], array_keys($scope));
+        $this->assertSame([
+            'application middleware', 'authorization (gates and policies)', 'route model binding', 'form request validation',
+            'global scopes', 'observers and event listeners', 'jobs',
+        ], $scope['not_covered']);
+        $this->assertSame('The cost of the processing listed here is not included in the results. This does not mean the route is safe.', $scope['note']);
+    }
+
     public function testALowerBoundIsShownNextToTheUnknown(): void
     {
         $doc = $this->decode($this->render(ReportBuilder::inputSpec()));
