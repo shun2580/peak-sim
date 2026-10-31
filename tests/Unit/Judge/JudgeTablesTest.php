@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Unit\Judge;
 
-use PeakSim\Judge\Judge;
 use PeakSim\Model\EventKind;
 use PeakSim\Model\MemoryCause;
 
@@ -132,7 +131,7 @@ final class JudgeTablesTest extends JudgeCase
         $summary = self::summary([$c, $b, $a]);
 
         self::assertSame('customers', self::judge($summary)->nTable);
-        self::assertSame(['products'], (new Judge())->tableAlternatives($summary));
+        self::assertSame(['products'], self::judge($summary)->nTableAlternatives);
     }
 
     public function testNoAlternativesWhenTheTiedEventsShareTheTable(): void
@@ -140,7 +139,7 @@ final class JudgeTablesTest extends JudgeCase
         $a = $this->event(['table' => 'orders', 'memory' => self::memory(1, 'orders')]);
         $b = $this->event(['table' => 'orders', 'memory' => self::memory(1, 'orders')]);
 
-        self::assertSame([], (new Judge())->tableAlternatives(self::summary([$a, $b])));
+        self::assertSame([], self::judge(self::summary([$a, $b]))->nTableAlternatives);
     }
 
     public function testLowerRankedEventsAreNotAlternatives(): void
@@ -148,7 +147,7 @@ final class JudgeTablesTest extends JudgeCase
         $select = $this->event(['kind' => EventKind::Select, 'table' => 'orders', 'memory' => self::memory(1, 'orders')]);
         $lazy = $this->event(['kind' => EventKind::LazyLoad, 'table' => 'customers', 'memory' => self::memory(1, 'customers', MemoryCause::LazyToMany)]);
 
-        self::assertSame([], (new Judge())->tableAlternatives(self::summary([$select, $lazy])));
+        self::assertSame([], self::judge(self::summary([$select, $lazy]))->nTableAlternatives);
     }
 
     public function testAnUnnamedTableIsNeverReportedAsN(): void
