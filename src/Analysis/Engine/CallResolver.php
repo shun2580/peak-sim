@@ -283,7 +283,7 @@ final class CallResolver
                 $site,
                 "{$abstract} has " . count($computed) . ' implementations that cost differently; the costliest is adopted',
                 $disagreement['axes'],
-                [...array_keys($computed), 'chosen' => $disagreement['chosen']],
+                [...array_keys($computed), 'abstract' => $abstract, 'chosen' => $disagreement['chosen']],
             );
         }
 
