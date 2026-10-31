@@ -6,7 +6,7 @@ return [
     'description' => 'find() with an argument that may be one id or an array of ids is taken as one row, and says so.',
     'routes' => [
         '/t' => [
-            'query' => ['growth' => 'O(1)', 'confidence' => 'high'],
+            'query' => ['growth' => 'O(1)', 'confidence' => 'medium'],
             'memory' => ['growth' => 'O(1)', 'confidence' => 'medium'],
             'confidence' => 'medium',
             'n_table' => 'orders',

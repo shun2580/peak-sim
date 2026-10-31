@@ -34,4 +34,4 @@ class TestController extends Controller
 
 ## What the tool must say (`expect.php`)
 
-`$request->query('id')` is a plain value the tool cannot classify: an id, or (`?id[]=1&id[]=2`) an array, in which case `find` would return many rows. The tool assumes one row and records `FIND_ARGUMENT_ASSUMED_SCALAR`. The statement count is one either way, so the query axis stays `high`; the number of rows loaded differs, so the memory axis is `medium`, and so is the route. No gap: this is an assumption, not "could not follow".
+`$request->query('id')` is a plain value the tool cannot classify: an id, or (`?id[]=1&id[]=2`) an array, in which case `find` would return many rows. The tool assumes one row and records `FIND_ARGUMENT_ASSUMED_SCALAR` on **both** axes (the gunshi ruling on the Query handlers: the verdict rests on a guess about what the argument is, so neither axis is `high`): `O(1)` and `O(1)` with confidence `medium`, route `medium`. No gap: this is an assumption, not "could not follow".
