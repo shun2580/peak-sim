@@ -95,9 +95,28 @@ final class AppModelCatalog implements ModelCatalog
             $appends,
             $this->accessors($chain),
             $unresolved,
-            array_values(array_filter($export->observers, 'is_string')),
-            array_values(array_filter($export->events, 'is_string')),
+            self::names($export->observers),
+            self::names($export->events),
         );
+    }
+
+    /**
+     * The export's observer or event entries as strings. A string stays as it is; any other entry (the
+     * export may give an array) is kept as JSON text, so that a model with observers never looks bare.
+     *
+     * @param list<mixed> $entries
+     * @return list<string>
+     */
+    private static function names(array $entries): array
+    {
+        $names = [];
+        foreach ($entries as $entry) {
+            $names[] = is_string($entry)
+                ? $entry
+                : (json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: serialize($entry));
+        }
+
+        return $names;
     }
 
     /** @return list<string> the class first, then its parents that live in the app */
