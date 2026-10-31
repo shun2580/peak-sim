@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Tests\Unit\Blade;
 
+use PeakSim\Analysis\Blade\ViewHandler;
 use PeakSim\Model\EventKind;
 use PeakSim\Model\GapCode;
 
@@ -237,12 +238,22 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
         $this->assertNoUnknownWithoutGap();
     }
 
-    public function testLoopAndErrorsAreBuiltInVariables(): void
+    public function testLoopIsABuiltInVariable(): void
     {
-        $blade = "@foreach (\$orders as \$order)\n    {{ \$loop->index }} {{ \$errors->first('x') }}\n@endforeach";
+        $blade = "@foreach (\$orders as \$order)\n    {{ \$loop->index }} {{ \$loop->first }}\n@endforeach";
         $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => $blade]);
 
         self::assertSame([], $s->gaps);
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testErrorsIsAViewErrorBagSoTheKnownCallsHandlerCanDecideWhatItMayDo(): void
+    {
+        $blade = "{{ \$errors->first('x') }}";
+        $s = $this->walk("return view('t');", ['t.blade.php' => $blade]);
+
+        self::assertSame(['VENDOR_CALL_NOT_MODELLED@' . self::VIEW . 't.blade.php:1'], $this->gapSites($s));
+        self::assertStringContainsString(ViewHandler::ERRORS_CLASS, $s->gaps[0]->message);
         $this->assertNoUnknownWithoutGap();
     }
 
