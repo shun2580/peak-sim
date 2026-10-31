@@ -4,6 +4,8 @@
 
 各群の詳細は付録として残してある(消していない)。
 
+> **改訂履歴(2026-11-01)**:この文書の表は、`/ok/bulk` を GET として測り、群ごとの判定規則で見た記録である。その後 S-32(1)で `/ok/bulk` は POST に改められ、増え方の判定規則は D26(`docs/decisions.md`)の log-log 傾きに一本化された。以下の表と数値は、その前の測定記録としてそのまま残してある。
+
 | 群 | 詳細(付録) | 実行ログ | 試験 |
 | --- | --- | --- | --- |
 | `/ok` 6本 + `/unknown/dynamic` | [ok.md](fixture-measurements/ok.md) | [ok.log](fixture-measurements/ok.log) | `tests/Feature/Ok/` |

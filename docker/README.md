@@ -47,4 +47,6 @@ docker compose -p peak-sim-export exec php-dev sh docker/export-artisan.sh
 docker compose -p peak-sim-export down -v
 ```
 
+It exports seven models in one run: `Customer`, `Order`, `Item`, `Product` and `ProductStat` (a bare name in the script's `MODELS` is an `App\Models` class), and `EagerOrder` and `AppendedOrder` of the hidden group, which live outside `App\Models` and are given as full class names (`App\Hidden\Models\EagerOrder`, `App\Hidden\Models\AppendedOrder`). Each file is named after the last segment of the class (`fixtures/artisan-export/model-show/EagerOrder.json`). To export another model, add it to `MODELS`: a bare name for `App\Models`, the full class name anywhere else.
+
 The script calls `php -d display_errors=stderr artisan ...`, keeps stdout and stderr apart, rejects anything that is not valid JSON, and replaces absolute paths with `<scrubbed>` (see `docs/research/artisan-compat.md` section 3.4).
