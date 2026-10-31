@@ -12,7 +12,19 @@
     },
     "autoload": {
         "psr-4": {
-            "PeakSim\\": "src/"
+            "PeakSim\\": "src/",
+            "PeakSim\\Input\\": [
+                "src/Input/",
+                "src/Input/Contracts/"
+            ],
+            "PeakSim\\Source\\": [
+                "src/Source/",
+                "src/Source/Contracts/"
+            ],
+            "PeakSim\\Binding\\": [
+                "src/Binding/",
+                "src/Binding/Contracts/"
+            ]
         }
     },
     "autoload-dev": {
