@@ -153,4 +153,19 @@ final class CacheEngineTest extends TestCase
         $this->assertTrue($r->cache?->restoresAllOnHit);
         $this->assertSame([], $this->gapCodes($r));
     }
+
+    public function testARowSetCachedWithItsToManyRelationRestoresNTimesM(): void
+    {
+        $r = $this->judge(<<<'PHP'
+                $orders = Cache::remember('orders', 60, fn () => Order::with('items')->get());
+
+                return response()->json(['n' => count($orders)]);
+        PHP, 'use Illuminate\Support\Facades\Cache;');
+
+        $this->assertView($r, 'miss', Growth::Constant, Growth::Linear);
+        $this->assertView($r, 'hit', Growth::Constant, Growth::Nested);
+        $this->assertSame(Growth::Nested, $r->memory->growth, 'the hit is the worse view, and it is the main verdict');
+        $this->assertTrue($r->cache?->restoresAllOnHit);
+        $this->assertSame([], $this->gapCodes($r));
+    }
 }

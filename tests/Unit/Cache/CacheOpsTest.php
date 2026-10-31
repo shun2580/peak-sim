@@ -19,6 +19,7 @@ use PeakSim\Model\CardinalityKind;
 use PeakSim\Model\EventKind;
 use PeakSim\Model\MemoryCause;
 use PeakSim\Model\ScenarioTag;
+use PeakSim\Tests\Unit\Engine\Support\FakeModelCatalog;
 use PeakSim\Tests\Unit\Known\KnownCase;
 use PeakSim\Tests\Unit\Known\KnownWalker;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -267,6 +268,48 @@ final class CacheOpsTest extends KnownCase
         $this->assertSame($degree > 0 ? ['CACHE_DRIVER_SERIALIZING'] : [], $this->assumptionCodes($w));
         $this->assertSame($value, $t, 'the type of the closure is the type of the call');
         $this->assertClean($w);
+    }
+
+    /** @return array<string, array{0: list<string>, 1: int, 2: bool}> eager names, degree, size unknown */
+    public static function loadedRelations(): array
+    {
+        return [
+            'no relation loaded' => [[], 1, false],
+            'a to-one relation' => [['customer'], 1, false],
+            'a to-many relation' => [['items'], 2, false],
+            'a to-one inside a to-many' => [['items', 'items.product'], 2, false],
+            'a to-many inside a to-many' => [['items', 'items.tags'], 3, false],
+            'a to-one next to a to-many' => [['customer', 'items'], 2, false],
+            'a relation the export does not know' => [['ghost'], 1, true],
+        ];
+    }
+
+    /** @param list<string> $eager */
+    #[DataProvider('loadedRelations')]
+    public function testToManyRelationsLoadedIntoTheRowsComeBackWithThem(array $eager, int $degree, bool $unknown): void
+    {
+        $catalog = new FakeModelCatalog([
+            'App\\Models\\Order' => ['table' => 'orders', 'relations' => [
+                'customer' => ['App\\Models\\Customer', false],
+                'items' => ['App\\Models\\Item', true],
+            ]],
+            'App\\Models\\Customer' => ['table' => 'customers'],
+            'App\\Models\\Item' => ['table' => 'items', 'relations' => [
+                'product' => ['App\\Models\\Product', false],
+                'tags' => ['App\\Models\\Tag', true],
+            ]],
+            'App\\Models\\Product' => ['table' => 'products'],
+            'App\\Models\\Tag' => ['table' => 'tags'],
+        ]);
+        $rows = new ListT(new ModelT('App\\Models\\Order', $eager), Cardinality::table('orders'));
+        $w = new KnownWalker([new CacheOps()], ['rows' => $rows], [], KnownWalker::FILE, $catalog);
+
+        $w->run("Cache::remember('k', 60, fn () => \$rows)");
+
+        $restore = $w->fake->events()[0];
+        $this->assertSame($degree, $restore->memory?->ownDegree);
+        $this->assertSame('orders', $restore->memory?->ownOrigin?->table);
+        $this->assertSame($unknown ? ['CACHE_VALUE_SIZE_UNKNOWN'] : [], $this->gapCodes($w));
     }
 
     public function testTheTypeStaysWithItsOriginSoALaterLoopSeesIt(): void

@@ -16,6 +16,7 @@ use PeakSim\Model\GapCode;
 use PeakSim\Model\Origin;
 use PeakSim\Model\Site;
 use PeakSim\Source\AppSourceIndex;
+use PeakSim\Source\ModelCatalog;
 use PeakSim\Tests\Support\FakeEvalContext;
 use PeakSim\Tests\Support\RecordingContext;
 use PeakSim\Tests\Unit\Engine\Support\FakeBindingTable;
@@ -75,12 +76,13 @@ final class KnownWalker
         public array $vars = [],
         array $bound = [],
         string $file = self::FILE,
+        ?ModelCatalog $models = null,
     ) {
         $this->fake = new FakeEvalContext(
             fn (Expr $e): Type => $this->eval($e),
             fn (ClosureT $c, array $args): Type => $this->invoke($c, $args),
             null,
-            null,
+            $models,
             new AppSourceIndex(__DIR__ . '/App'),
             new FakeBindingTable($bound),
             $file,

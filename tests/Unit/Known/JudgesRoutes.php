@@ -61,8 +61,12 @@ trait JudgesRoutes
         $this->engine = new Engine(
             new AppSourceIndex($app->root),
             new FakeModelCatalog([
-                'App\\Models\\Order' => ['table' => 'orders', 'relations' => ['customer' => ['App\\Models\\Customer', false]]],
+                'App\\Models\\Order' => ['table' => 'orders', 'relations' => [
+                    'customer' => ['App\\Models\\Customer', false],
+                    'items' => ['App\\Models\\Item', true],
+                ]],
                 'App\\Models\\Customer' => ['table' => 'customers'],
+                'App\\Models\\Item' => ['table' => 'items'],
             ]),
             new FakeBindingTable(),
             $registry,
