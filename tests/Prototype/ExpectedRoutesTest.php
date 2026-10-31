@@ -197,6 +197,11 @@ final class ExpectedRoutesTest extends TestCase
                 $item['line'],
                 "{$where}.line must be 1 or greater"
             );
+            $this->assertLessThanOrEqual(
+                count(file($appRoot . '/' . $item['file'])),
+                $item['line'],
+                "{$where}.line must not be beyond the last line of {$item['file']}"
+            );
         }
     }
 
@@ -224,15 +229,25 @@ final class ExpectedRoutesTest extends TestCase
     public function testLayeredRouteShowsBindingResolutionAndInnermostQuery(): void
     {
         $actual = self::analyzer()->analyzeRoute('/ng/layered');
-        $files = array_map(static fn (array $item): string => $item['file'], $actual->evidence);
 
+        $bindSites = self::evidenceIn($actual, 'app/Ng/Providers/LayeredServiceProvider.php');
         $this->assertNotEmpty(
-            self::filesContaining($files, 'app/Ng/Providers/'),
-            '/ng/layered: evidence must include the ServiceProvider binding that resolves the interface to its implementation (a file under app/Ng/Providers/)'
+            $bindSites,
+            '/ng/layered: evidence must name the ServiceProvider that binds the repository interface (LayeredServiceProvider.php)'
         );
         $this->assertNotEmpty(
-            self::filesContaining($files, 'app/Ng/Repositories/'),
-            '/ng/layered: evidence must include the innermost query site (a file under app/Ng/Repositories/)'
+            self::linesContaining($bindSites, 'bind('),
+            '/ng/layered: the evidence line in LayeredServiceProvider.php must be the bind( call that resolves the interface'
+        );
+
+        $querySites = self::evidenceIn($actual, 'app/Ng/Repositories/EloquentOrderRepository.php');
+        $this->assertNotEmpty(
+            $querySites,
+            '/ng/layered: evidence must name the implementation that issues the innermost query (EloquentOrderRepository.php)'
+        );
+        $this->assertNotEmpty(
+            self::linesContaining($querySites, 'customer'),
+            "/ng/layered: the evidence line in EloquentOrderRepository.php must be the lazy 'customer' read, not an unrelated line"
         );
     }
 
@@ -264,14 +279,32 @@ final class ExpectedRoutesTest extends TestCase
     }
 
     /**
-     * @param list<string> $files
-     * @return list<string>
+     * Evidence entries whose file is exactly $file (relative to the app root).
+     *
+     * @return list<array{file: string, line: int, note: string}>
      */
-    private static function filesContaining(array $files, string $needle): array
+    private static function evidenceIn(RouteAnalysis $analysis, string $file): array
     {
         return array_values(array_filter(
-            $files,
-            static fn (string $file): bool => str_contains($file, $needle)
+            $analysis->evidence,
+            static fn (array $item): bool => $item['file'] === $file
         ));
+    }
+
+    /**
+     * Entries whose cited line, read from the file itself, contains $needle.
+     *
+     * @param list<array{file: string, line: int, note: string}> $items
+     * @return list<array{file: string, line: int, note: string}>
+     */
+    private static function linesContaining(array $items, string $needle): array
+    {
+        return array_values(array_filter($items, static function (array $item) use ($needle): bool {
+            $lines = file(self::appRoot() . '/' . $item['file']);
+
+            return $lines !== false
+                && isset($lines[$item['line'] - 1])
+                && str_contains($lines[$item['line'] - 1], $needle);
+        }));
     }
 }
