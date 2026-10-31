@@ -1,0 +1,3 @@
+Deprecated: early_dep(): Implicitly marking parameter $a as nullable is deprecated, the explicit nullable type must be used instead in <scrubbed>/app/early.php on line 3
+Deprecated: strlen(): Passing null to parameter #1 ($string) of type string is deprecated in <scrubbed>/app/early.php on line 5
+Warning: Undefined variable $undefined_var_early in <scrubbed>/app/early.php on line 7

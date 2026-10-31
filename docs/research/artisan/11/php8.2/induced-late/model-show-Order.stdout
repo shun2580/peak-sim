@@ -1,0 +1,22 @@
+
+   ErrorException 
+
+  Undefined variable $undef_late
+
+  at app/Models/Order.php:8
+      4▕ use Illuminate\Database\Eloquent\Relations\BelongsTo;
+      5▕ use Illuminate\Database\Eloquent\Relations\HasMany;
+      6▕ class Order extends Model {
+      7▕     public $timestamps = false;
+  ➜   8▕     public function __construct(array $attributes = []) { strlen(null); echo $undef_late; parent::__construct($attributes); }
+      9▕     public function customer(): BelongsTo { return $this->belongsTo(Customer::class); }
+     10▕     public function items(): HasMany { return $this->hasMany(Item::class); }
+     11▕ }
+     12▕
+
+  1   app/Models/Order.php:8
+      Illuminate\Foundation\Bootstrap\HandleExceptions::Illuminate\Foundation\Bootstrap\{closure}("Undefined variable $undef_late", "<scrubbed>/app/Models/Order.php")
+
+  2   [internal]:0
+      App\Models\Order::__construct([])
+

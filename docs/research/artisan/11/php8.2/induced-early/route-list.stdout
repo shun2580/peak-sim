@@ -1,0 +1,5 @@
+
+Deprecated: strlen(): Passing null to parameter #1 ($string) of type string is deprecated in <scrubbed>/app/early.php on line 5
+
+Warning: Undefined variable $undefined_var_early in <scrubbed>/app/early.php on line 7
+[{"domain":null,"method":"GET|HEAD","uri":"\/","name":null,"action":"Closure","middleware":["web"]},{"domain":null,"method":"GET|HEAD","uri":"storage\/{path}","name":"storage.local","action":"Closure","middleware":[]},{"domain":null,"method":"GET|HEAD","uri":"up","name":null,"action":"Closure","middleware":[]}]
