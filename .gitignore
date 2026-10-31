@@ -18,6 +18,7 @@
 # Logs and caches
 *.log
 !docs/research/fixture-measurements/*.log
+!docs/research/*.log
 .phpunit.result.cache
 .phpunit.cache/
 .php-cs-fixer.cache
