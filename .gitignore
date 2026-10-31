@@ -1,0 +1,47 @@
+# Dependencies
+/vendor/
+/fixtures/laravel-app/vendor/
+/node_modules/
+/fixtures/laravel-app/node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local work area (scratch Laravel projects, etc.)
+.work/
+
+# Local shogun working files (never committed)
+.shogun/
+
+# Logs and caches
+*.log
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.cache/
+storage/*.key
+
+# Laravel generated files
+/bootstrap/cache/*.php
+/public/hot
+/public/storage
+/storage/*.key
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/framework/testing
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Build output
+/build/
+*.phar
