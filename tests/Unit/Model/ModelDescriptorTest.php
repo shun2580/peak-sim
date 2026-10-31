@@ -58,4 +58,30 @@ final class ModelDescriptorTest extends TestCase
 
         self::assertSame(['App\Observers\OrderObserver'], $descriptor->observers);
     }
+
+    public function testEventsDefaultsToNoneSoExistingCallsStillWork(): void
+    {
+        $descriptor = new ModelDescriptor('App\Models\Order', 'orders', 'mysql', [], ModelDescriptor::SOURCE_EXPORT, [], [], []);
+
+        self::assertSame([], $descriptor->events);
+    }
+
+    public function testEventsKeepsTheNamesItIsGiven(): void
+    {
+        $descriptor = new ModelDescriptor(
+            'App\Models\EventfulOrder',
+            'orders',
+            'mysql',
+            [],
+            ModelDescriptor::SOURCE_EXPORT,
+            [],
+            [],
+            [],
+            [],
+            [],
+            ['saving', 'created'],
+        );
+
+        self::assertSame(['saving', 'created'], $descriptor->events);
+    }
 }

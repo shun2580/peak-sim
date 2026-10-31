@@ -11,12 +11,18 @@ use PeakSim\Source\AppModelCatalog;
 
 final class ModelCatalogTest extends SourceCase
 {
-    /** @param list<string> $orderObservers the observers the export gives Order */
-    private function catalog(string $case = 'src-model-not-in-export-inherit', array $orderObservers = []): AppModelCatalog
+    /**
+     * @param list<string> $orderObservers the observers the export gives Order
+     * @param list<string> $orderEvents the model events the export gives Order
+     */
+    private function catalog(string $case = 'src-model-not-in-export-inherit', array $orderObservers = [], array $orderEvents = []): AppModelCatalog
     {
-        $source = new class ($orderObservers) implements ArtisanSource {
-            /** @param list<string> $orderObservers */
-            public function __construct(private readonly array $orderObservers)
+        $source = new class ($orderObservers, $orderEvents) implements ArtisanSource {
+            /**
+             * @param list<string> $orderObservers
+             * @param list<string> $orderEvents
+             */
+            public function __construct(private readonly array $orderObservers, private readonly array $orderEvents)
             {
             }
 
@@ -34,7 +40,7 @@ final class ModelCatalogTest extends SourceCase
                         'mysql',
                         ['customer' => new RelationInfo('customer', 'BelongsTo', 'App\Models\Customer', false)],
                         [],
-                        [],
+                        $this->orderEvents,
                         $this->orderObservers,
                     ),
                     'App\Models\Customer' => new ModelInfo('App\Models\Customer', 'customers', 'mysql', [], [], [], []),
@@ -96,6 +102,22 @@ final class ModelCatalogTest extends SourceCase
 
         self::assertNotNull($descriptor);
         self::assertSame(['App\Observers\OrderObserver'], $descriptor->observers, 'the ancestor\'s observers, as for relations');
+    }
+
+    public function testAnExportedModelCarriesItsEventsFromTheExport(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [], ['saving', 'created'])->describe('App\Models\Order');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(['saving', 'created'], $descriptor->events);
+    }
+
+    public function testAModelMissingFromTheExportInheritsItsAncestorsEvents(): void
+    {
+        $descriptor = $this->catalog('src-model-not-in-export-inherit', [], ['saving', 'created'])->describe('App\Models\EagerOrder');
+
+        self::assertNotNull($descriptor);
+        self::assertSame(['saving', 'created'], $descriptor->events, 'the ancestor\'s events, as for observers');
     }
 
     public function testWithAppendsAndAccessorsAreMergedAlongTheChain(): void
