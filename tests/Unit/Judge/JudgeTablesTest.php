@@ -6,6 +6,8 @@ namespace PeakSim\Tests\Unit\Judge;
 
 use PeakSim\Model\EventKind;
 use PeakSim\Model\MemoryCause;
+use PeakSim\Model\Origin;
+use PeakSim\Model\QueryPart;
 
 /** Row (d) m_table and row (i): which event names N and M, and how ties are settled (design 1.8). */
 final class JudgeTablesTest extends JudgeCase
@@ -157,5 +159,65 @@ final class JudgeTablesTest extends JudgeCase
 
         self::assertSame(['orders', null, null], self::tables(self::judge(self::summary([$event]))));
         self::assertNull(self::judge(self::summary([$unnamed]))->nTable);
+    }
+
+    public function testAFramelessOwnOriginThatIsPerATableNamesThatTableAsN(): void
+    {
+        // Order::with('items')->get(): the eager load has no frame, its own origin is items per orders
+        $event = $this->event([
+            'kind' => EventKind::EagerLoad,
+            'table' => 'items',
+            'query' => self::query(),
+            'memory' => self::memory(1, 'items', MemoryCause::EagerToMany, null, 'orders'),
+        ]);
+
+        self::assertSame(['orders', 'items', 'orders'], self::tables(self::judge(self::summary([$event]))));
+    }
+
+    public function testAFramelessOwnQueryOriginThatIsPerATableNamesThatTableAsN(): void
+    {
+        $event = $this->event([
+            'kind' => EventKind::EagerLoad,
+            'table' => 'items',
+            'query' => new QueryPart(true, new Origin('items', 'orders'), 1, false, null),
+        ]);
+
+        self::assertSame(['orders', 'items', 'orders'], self::tables(self::judge(self::summary([$event]))));
+    }
+
+    public function testAnOwnOriginWithoutAPerTableStillNamesItsOwnTable(): void
+    {
+        $event = $this->event(['table' => 'items', 'memory' => self::memory(1, 'items', MemoryCause::EagerToMany)]);
+
+        self::assertSame(['items', null, null], self::tables(self::judge(self::summary([$event]))));
+    }
+
+    public function testAFrameStillNamesNWhenTheOwnOriginIsPerATable(): void
+    {
+        // the frame is the outer level: its table is N, the own origin is M (unchanged by the per-table rule)
+        $event = $this->event([
+            'kind' => EventKind::LazyLoad,
+            'frames' => [self::frame('orders')],
+            'table' => 'items',
+            'memory' => self::memory(1, 'items', MemoryCause::LazyToMany, null, 'orders'),
+        ]);
+
+        self::assertSame(['orders', 'items', 'orders'], self::tables(self::judge(self::summary([$event]))));
+    }
+
+    public function testAlternativesUseTheSameNAsTheChosenTable(): void
+    {
+        $a = $this->event([
+            'kind' => EventKind::EagerLoad,
+            'table' => 'items',
+            'memory' => self::memory(1, 'items', MemoryCause::EagerToMany, null, 'orders'),
+            'seq' => 3,
+        ]);
+        $b = $this->event(['kind' => EventKind::EagerLoad, 'table' => 'products', 'memory' => self::memory(1, 'products'), 'seq' => 8]);
+
+        $r = self::judge(self::summary([$a, $b]));
+
+        self::assertSame('orders', $r->nTable);
+        self::assertSame(['products'], $r->nTableAlternatives);
     }
 }
