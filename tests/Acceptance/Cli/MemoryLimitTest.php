@@ -168,7 +168,7 @@ final class MemoryLimitTest extends CliTestCase
         $result = $this->runGuardedScript('$a = []; while (true) { $a[] = str_repeat("x", 1024); }', '4M');
 
         $this->assertSame(5, $result->exitCode, $result->stderr);
-        $this->assertStringContainsString('--memory-limit=1G', $result->stderr);
+        $this->assertStringContainsString('--memory-limit=2G', $result->stderr);
     }
 
     /** @param string ...$options after `analyze <fixture app> --export-dir=…` */
