@@ -23,6 +23,8 @@ use PeakSim\Source\MethodMiss;
 use PeakSim\Source\MethodRef;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt\Enum_;
+use PhpParser\Node\Stmt\EnumCase;
 
 /**
  * Gives a call its meaning. Handlers are asked first, in priority order; a call nobody takes is a method of an
@@ -270,7 +272,46 @@ final class CallResolver
             return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, 'the property name is not a literal');
         }
 
-        return $this->propertyOf($n, $recv, $n->name->toString(), $scope, $run);
+        $name = $n->name->toString();
+        if ($this->isCaseFetch($n->var, $name, $scope)) {
+            // `Foo::BAR->value`: the receiver is a case the enum declares (D45). Walker::constant types it as a plain value.
+            return new PlainT();
+        }
+
+        return $this->propertyOf($n, $recv, $name, $scope, $run);
+    }
+
+    /** D45: `Foo::BAR->name` / `->value` where `Foo` is an app enum and `BAR` is one of its declared cases. */
+    private function isCaseFetch(Expr $base, string $property, Scope $scope): bool
+    {
+        if (!$base instanceof Expr\ClassConstFetch || !$base->class instanceof Node\Name || !$base->name instanceof Node\Identifier) {
+            return false;
+        }
+        $class = $this->className($base->class, $scope);
+        $enum = $class === null ? null : $this->enumNode($class);
+        if ($enum === null || !$this->isEnumRead($enum, $property)) {
+            return false;
+        }
+        foreach ($enum->stmts as $stmt) {
+            if ($stmt instanceof EnumCase && $stmt->name->toString() === $base->name->toString()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function enumNode(string $class): ?Enum_
+    {
+        $info = $this->engine->source()->findClass($class);
+
+        return $info !== null && $info->kind === 'enum' && $info->node instanceof Enum_ ? $info->node : null;
+    }
+
+    /** Every case has `name`; only a backed enum has `value` (D45). */
+    private function isEnumRead(Enum_ $enum, string $property): bool
+    {
+        return $property === 'name' || ($property === 'value' && $enum->scalarType !== null);
     }
 
     // ----- calls into app code -----------------------------------------------------------------------------
@@ -497,6 +538,11 @@ final class CallResolver
             return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, "property {$name} is read on a value that is not an object: what it holds is not known");
         }
         if ($recv instanceof ObjectT) {
+            $enum = $this->enumNode($recv->class);
+            if ($enum !== null && $this->isEnumRead($enum, $name)) {
+                // D45: the receiver is declared as an app enum; the name or backing value of a case touches nothing.
+                return new PlainT();
+            }
             if ($this->engine->source()->findClass($recv->class) === null) {
                 return $this->gap($run, $scope, GapCode::VENDOR_CALL_NOT_MODELLED, $n, "property {$name} of vendor class {$recv->class} is not modelled");
             }
