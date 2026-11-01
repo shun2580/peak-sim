@@ -47,6 +47,12 @@ final class RouteTable
         $byName = [];
         $controller = $route->getControllerClass();
         $method = $route->getActionMethod();
+        // An invokable controller has no '@method' in its action, so Laravel's getActionMethod() answers with the class
+        // name. Only then is the method __invoke; a named method that does not exist (apiResource registers all seven)
+        // stays without parameter types and is not given __invoke's.
+        if (is_string($controller) && $method === $controller && !method_exists($controller, $method)) {
+            $method = '__invoke';
+        }
         if (is_string($controller) && method_exists($controller, $method)) {
             foreach ((new \ReflectionMethod($controller, $method))->getParameters() as $p) {
                 $byName[$p->getName()] = $p;
