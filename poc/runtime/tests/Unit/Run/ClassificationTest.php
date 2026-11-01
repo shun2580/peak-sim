@@ -124,6 +124,24 @@ final class ClassificationTest extends TestCase
         self::assertSame('LogicException: something broke', $result->detail);
     }
 
+    public function testTheNoteOfAFailedAnswerBecomesItsDetail(): void
+    {
+        $result = Classification::decide(422, null, null, [], null, false, 'The name field is required. | fields: name');
+        self::assertSame(Classification::VALIDATION_422, $result->class);
+        self::assertSame('The name field is required. | fields: name', $result->detail);
+    }
+
+    public function testTheNoteIsNotAddedToAnAnswerThatWasMeasured(): void
+    {
+        self::assertNull(Classification::decide(200, null, null, [], null, false, 'left over')->detail);
+    }
+
+    public function testAnExceptionDetailIsKeptOverTheNote(): void
+    {
+        $result = Classification::decide(500, 'LogicException', 'boom', [], null, false, 'a note');
+        self::assertSame('LogicException: boom', $result->detail);
+    }
+
     public function testExceptionDetailIsCutAt200Characters(): void
     {
         $result = Classification::decide(500, 'LogicException', str_repeat('x', 500), [], null);
