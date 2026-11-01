@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Docker;
 
 use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
+use PHPUnit\Framework\Attributes\Group;
 use PeakSim\Runtime\Tests\Docker\Support\ProbeApp;
 
 /**
  * The paths the fixture app has no route for, driven through a scratch copy with a few extra routes: what is
  * measured, what is recorded as a reason, and what stops the measurement because the database cannot be trusted.
  */
+#[Group('in-stack')]
 final class ProbeRoutesDockerTest extends DockerCase
 {
     private const SCALE = 1000;
@@ -20,6 +22,7 @@ final class ProbeRoutesDockerTest extends DockerCase
 
     public static function setUpBeforeClass(): void
     {
+        self::requireInsideStack();
         self::$probe = ProbeApp::create('/app', 'routes');
         self::prepare(self::SCALE, [20, 20, 20, 3]);
     }

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Docker;
 
 use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
+use PHPUnit\Framework\Attributes\Group;
 use PeakSim\Runtime\Tests\Docker\Support\ProbeApp;
 
 /**
  * W2 acceptance on the fixture app: it starts read-only, one request is counted, the fakes work, the cache is the
  * array store, every connection is the measurement database, and a write to the app fails.
  */
+#[Group('in-stack')]
 final class AppBootDockerTest extends DockerCase
 {
     private const SCALE = 100;
@@ -19,6 +21,7 @@ final class AppBootDockerTest extends DockerCase
 
     public static function setUpBeforeClass(): void
     {
+        self::requireInsideStack();
         self::prepare(self::SCALE, [20, 20, 20, 3]);
         self::prepare(self::SCALE_BIG, [20, 20, 200, 3]);
     }

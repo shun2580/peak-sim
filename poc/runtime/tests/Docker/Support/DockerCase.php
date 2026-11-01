@@ -9,13 +9,25 @@ use PeakSim\Runtime\Guard\MeasureDb;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Base of the tests that need the sealed container and the measurement database. Run them INSIDE the container:
- *   bin/stack exec /peak-sim/vendor/bin/phpunit -c /peak-sim/poc/runtime/phpunit.runtime.xml --testsuite RuntimeDocker
+ * Base of the tests that need the sealed container and the measurement database. They run INSIDE the container
+ * (group `in-stack`; a driver that starts stacks from outside, like tests/Docker/run.sh, should exclude it):
+ *   bin/stack exec /peak-sim/vendor/bin/phpunit -c /peak-sim/poc/runtime/phpunit.runtime.xml --group in-stack
  * A test that cannot reach its stack FAILS (it never skips): the answer is to bring the stack up.
  */
 abstract class DockerCase extends TestCase
 {
     protected const RUNTIME = '/peak-sim/poc/runtime';
+
+    /** These tests run INSIDE the sealed container; started anywhere else they fail with the way to run them. */
+    protected static function requireInsideStack(): void
+    {
+        self::assertNotSame(
+            false,
+            getenv('PEAK_MEASURE_DB_HOST'),
+            'These tests run inside the measurement container: bin/stack up, then ' .
+            'bin/stack exec /peak-sim/vendor/bin/phpunit -c /peak-sim/poc/runtime/phpunit.runtime.xml --group in-stack',
+        );
+    }
 
     protected static function config(): MeasureConfig
     {
