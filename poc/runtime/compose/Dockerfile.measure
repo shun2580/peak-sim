@@ -1,14 +1,37 @@
 # PHP image in which the target app's code runs during a measurement. Built on the ordinary network (the build
-# needs the internet); RUN time is on the internal network only. Extensions the apps need beyond these are added
-# per app by building with EXTRA_EXTENSIONS.
+# needs the internet); RUN time is on the internal network only.
+#
+# An app that needs PHP extensions beyond the default set gets its own image: build it with `bin/stack build-image`
+# (PEAK_PHP_EXTENSIONS=gd,xsl, a comma-separated list of extension names) and run the measurement with
+# PEAK_PHP_IMAGE=<that name>. The libraries an extension needs come from the Debian mirror of the base image's apt
+# source, nothing else is fetched.
 ARG PHP_VERSION=8.3
 FROM php:${PHP_VERSION}-cli
 
-ARG EXTRA_EXTENSIONS=""
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libzip-dev libicu-dev \
- && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl ${EXTRA_EXTENSIONS} \
+ && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl \
  && rm -rf /var/lib/apt/lists/*
+
+# Extra extensions, only when asked for (empty by default: this layer then does nothing). Extensions that need a
+# library or a configure flag are listed here; any other name is passed to docker-php-ext-install as it is.
+ARG PHP_EXTENSIONS=""
+RUN set -eu; \
+    packages=""; configure=""; \
+    for ext in $(echo "${PHP_EXTENSIONS}" | tr ',' ' '); do \
+      case "$ext" in \
+        gd)  packages="$packages libpng-dev libjpeg-dev libfreetype6-dev"; configure="docker-php-ext-configure gd --with-jpeg --with-freetype" ;; \
+        xsl) packages="$packages libxslt1-dev" ;; \
+        gmp) packages="$packages libgmp-dev" ;; \
+      esac; \
+    done; \
+    if [ -n "${PHP_EXTENSIONS}" ]; then \
+      apt-get update; \
+      [ -z "$packages" ] || apt-get install -y --no-install-recommends $packages; \
+      [ -z "$configure" ] || $configure; \
+      docker-php-ext-install $(echo "${PHP_EXTENSIONS}" | tr ',' ' '); \
+      rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # No memory cap and a short socket timeout, so a blocked outbound call fails fast instead of hanging.
 RUN printf 'memory_limit=-1\ndefault_socket_timeout=3\n' > /usr/local/etc/php/conf.d/zz-measure.ini

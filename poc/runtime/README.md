@@ -64,6 +64,30 @@ it. The tool sets `APP_ENV=local`, calls each route once without a query string,
 and does not run queued listeners, so a branch that depends on any of these is not measured. A flat count on a path that
 never read the scaled tables, or whose largest response equals the empty system's, is `no_info`, not O(1).
 
+## An app that needs more PHP extensions
+
+The default measurement image (`peak-measure-php:<PHP_VERSION>`) has `pdo_mysql zip bcmath intl exif pcntl`. An app whose
+code needs more (an image library, an XSLT library) fails when it starts, for instance at its migrations. Give it an image
+of its own instead of changing the default:
+
+```bash
+# 1. Build the image under a name of your own (needs the internet once; the libraries come from the Debian mirror that
+#    the official php image already uses). The name must start with `peak-measure-` and must not be `peak-measure-php`
+#    itself, so the shared default image cannot be overwritten.
+PEAK_PHP_EXTENSIONS=gd,xsl PHP_VERSION=8.3 bash poc/runtime/bin/stack build-image peak-measure-php-myapp:8.3
+
+# 2. Run the measurement in it.
+PEAK_PHP_IMAGE=peak-measure-php-myapp:8.3 bash poc/runtime/bin/measure --app=<dir> --static=<analysis.json>
+```
+
+`PEAK_PHP_EXTENSIONS` is a comma-separated list of plain extension names. `gd` (with JPEG and FreeType), `xsl` and `gmp`
+bring the libraries they need; any other name is handed to `docker-php-ext-install` as it is, so an extension that is
+not in the official image's source tree (a PECL one) is not covered. With `PEAK_PHP_IMAGE` set the stack is brought up
+without building and without pulling: if the image is not on this machine the start stops and says how to build it.
+Nothing else changes: the read-only root, dropped capabilities, internal network, no published port and the
+measurement-only DB credentials are settings of the compose, not of the image, and the sealed-network check
+(`bin/preflight`) runs on the stack as before.
+
 ## Layout (this part)
 
 | Path | Role |
@@ -77,7 +101,7 @@ never read the scaled tables, or whose largest response equals the empty system'
 | `src/Data/` | the data generator |
 | `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
-| `bin/stack` | `up` / `down` / `ps` / `exec` for the stack |
+| `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
 | `tests/Unit/` | no Docker, no database |
 | `tests/Docker/` | needs Docker; `run.sh` starts a driver container and runs them |

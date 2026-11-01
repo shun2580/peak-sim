@@ -24,7 +24,28 @@ export PEAK_MEASURE_DB_ROOT_PASSWORD PEAK_MEASURE_DB_PASSWORD PEAK_MEASURE_RUN_I
 
 mkdir -p "$PEAK_OUT_DIR" 2>/dev/null || true
 
-compose() { docker compose -p "$PEAK_COMPOSE_PROJECT" -f "$PEAK_COMPOSE_FILE" "$@"; }
+# PEAK_PHP_IMAGE runs the stack in another, already built PHP image. An `up` then never builds: a build would tag the
+# default Dockerfile's result with that name and overwrite the image. The image must already be on this machine
+# (made with `bin/stack build-image`); it is never pulled.
+compose() {
+  local args=() arg is_up=0
+  for arg in "$@"; do
+    [ "$arg" = "up" ] && is_up=1
+    args+=("$arg")
+  done
+  if [ -n "${PEAK_PHP_IMAGE:-}" ] && [ "$is_up" = 1 ]; then
+    if ! docker image inspect "$PEAK_PHP_IMAGE" >/dev/null 2>&1; then
+      echo "PEAK_PHP_IMAGE=$PEAK_PHP_IMAGE is not an image on this machine. Build it first: PEAK_PHP_EXTENSIONS=<a,b> bin/stack build-image $PEAK_PHP_IMAGE" >&2
+      return 1
+    fi
+    local rewritten=()
+    for arg in "${args[@]}"; do
+      [ "$arg" = "--build" ] || rewritten+=("$arg")
+    done
+    args=("${rewritten[@]}" --no-build)
+  fi
+  docker compose -p "$PEAK_COMPOSE_PROJECT" -f "$PEAK_COMPOSE_FILE" "${args[@]}"
+}
 
 # Run a PHP script of poc/runtime inside the sealed PHP container.
 in_php() { compose exec -T measure-php php "$@"; }

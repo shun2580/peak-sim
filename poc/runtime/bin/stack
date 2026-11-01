@@ -1,12 +1,33 @@
 #!/usr/bin/env bash
-# up | down | ps | exec <args...>   Brings the measurement stack up or tears it down (volumes included).
+# up | down | ps | exec <args...> | build-image <name>
+#   Brings the measurement stack up or tears it down (volumes included).
+#   PEAK_PHP_IMAGE=<name> up   runs the stack in that PHP image (it must exist; nothing is built or pulled).
+#   PEAK_PHP_EXTENSIONS=gd,xsl build-image peak-measure-php-<app>:8.3
+#                              builds the measurement PHP image with those extensions under that name (PHP_VERSION,
+#                              default 8.3, picks the PHP version). The name must start with peak-measure- and must not
+#                              be the shared peak-measure-php repository, so no other image can be overwritten.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+
+build_image() {
+  local name="${1:-}" exts="${PEAK_PHP_EXTENSIONS:-}"
+  if ! [[ "$name" =~ ^peak-measure-[a-z0-9][a-z0-9._-]*(:[A-Za-z0-9._-]+)?$ ]] || [[ "$name" =~ ^peak-measure-php(:|$) ]]; then
+    echo "bin/stack build-image: the name must look like peak-measure-php-<app>:<tag> (starts with peak-measure-, not the shared peak-measure-php): '$name'" >&2
+    return 2
+  fi
+  if [ -n "$exts" ] && ! [[ "$exts" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
+    echo "bin/stack build-image: PEAK_PHP_EXTENSIONS must be plain extension names separated by commas (e.g. gd,xsl)" >&2
+    return 2
+  fi
+  docker build -f "$RUNTIME_DIR/compose/Dockerfile.measure" -t "$name" \
+    --build-arg "PHP_VERSION=${PHP_VERSION:-8.3}" --build-arg "PHP_EXTENSIONS=$exts" "$RUNTIME_DIR/compose"
+}
 
 case "${1:-}" in
   up)   compose up -d --build --wait ;;
   down) compose down -v --remove-orphans ;;
   ps)   compose ps ;;
   exec) shift; in_php "$@" ;;
-  *)    echo "usage: bin/stack up|down|ps|exec <php args...>" >&2; exit 2 ;;
+  build-image) shift; build_image "${1:-}" ;;
+  *)    echo "usage: bin/stack up|down|ps|exec <php args...>|build-image <name>" >&2; exit 2 ;;
 esac

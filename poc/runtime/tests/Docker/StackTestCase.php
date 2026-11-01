@@ -134,7 +134,8 @@ abstract class StackTestCase extends TestCase
         self::assertNotSame('', (string) getenv('PEAK_OUT_DIR'), 'PEAK_OUT_DIR must be set; use tests/Docker/run.sh');
     }
 
-    protected static function bringUp(string $projectSuffix, string $composeFile): void
+    /** @param array<string, string> $extraEnv set for the stack's commands too, e.g. PEAK_PHP_IMAGE */
+    protected static function bringUp(string $projectSuffix, string $composeFile, array $extraEnv = []): void
     {
         self::requireDocker();
         static::$composeFile = $composeFile;
@@ -145,6 +146,7 @@ abstract class StackTestCase extends TestCase
             'PEAK_MEASURE_DB_ROOT_PASSWORD' => self::randomHex(12),
             'PEAK_MEASURE_DB_PASSWORD' => self::randomHex(12),
             'PEAK_MEASURE_RUN_ID' => self::randomHex(6),
+            ...$extraEnv,
         ];
         [$code, $out, $err] = self::bin('stack', ['up']);
         self::assertSame(0, $code, "stack up failed:\n" . $out . $err);

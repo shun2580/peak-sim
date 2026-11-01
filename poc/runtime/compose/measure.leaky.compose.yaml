@@ -29,7 +29,8 @@ services:
       dockerfile: Dockerfile.measure
       args:
         PHP_VERSION: ${PHP_VERSION:-8.3}
-    image: peak-measure-php:${PHP_VERSION:-8.3}
+    # PEAK_PHP_IMAGE: another, already built image (bin/stack build-image). With it set, nothing is built.
+    image: ${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}
     networks: [measure-leaky]
     read_only: true
     tmpfs:
