@@ -1321,4 +1321,5 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 
 - 実行は `--fail-on-skipped --fail-on-risky --fail-on-warning` 付きで、両方とも `OK` で終わった。
 - 各ログの先頭に、実行したコマンド・PHP のバージョン・リポジトリの状態(HEAD と clean)を書いた。絶対パス・ユーザー名・ホスト名・コンテナ ID は保存の前に除いてある。
+- `phase1-test-php83.log` のヘッダーの repository state は、保存スクリプトが 8.2 のログを書いた後で git の状態を取るため、一度 uncommitted と出た。実行開始時の作業木は clean だったので、この 1 行だけ手で clean に直した(他は無改変)。
 - 再現は `scripts/run-tests-logged.sh <compose プロジェクト名>` で行える(PHP 8.2 と 8.3 の順に実行し、ログを書き直す)。
