@@ -1,6 +1,6 @@
 # 実アプリ試運転(real-app-trial)
 
-調査日: 2026-11-01
+調査日: 2026-11-01(裁定 D36〜D40 と FIX2・schema 0.2 を入れた後の数字に更新)
 
 指示書#03「公開されている OSS の Laravel アプリでの試運転」(T1〜T4)の結果をまとめる文書である。節の構成は、目的と読み方(§0)・選んだアプリ(§1)・方法(§2)・結果(§3)・判定の抜き取り確認(§4)・直した不具合(§5)・提案(§6)・食い違いと質問(§7)・試験ログ(§8)である。試験ログ(§8)だけは、この文書の commit の後に別の commit で追加する。
 
@@ -20,7 +20,7 @@
 
 - **今回は測るだけである。** 上の 3 つは実装していない。例外表に足していない。`gap` にしていたものを `gap` にしなくする変更もしていない。
 - 判定の規則は緩めていない(D21「分からないを安全にしない」)。
-- ツールの不具合は、試験を足したうえで直した(§5)。ただし直したのは、判定を軽くする方向でないものだけである。判定を軽くする方向の案は、不具合の修正であっても実装せず、提案(§6)に回す。
+- ツールの不具合は、試験を足したうえで直した(§5)。ただし直したのは、判定を軽くする方向でないものだけである。判定を軽くする方向の案は、不具合の修正であっても実装せず、提案(§6)に回す。ビュー名の `/` の読み違い(FIX2)は、裁定(D36)で「誤読の修正であり、判定を軽くする変更に当たらない」と決まったので直した。出力の `degree` の罠(D38)も、同じ日の裁定で直した。
 - 対象は公開 OSS の Laravel アプリ 5 本である(§1)。勤務先のアプリは使っていない。
 
 ### 0.3 読み方の注意
@@ -135,7 +135,7 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 ### 2.5 集計の道具
 
-集計は、このツールの出力(`analyze --format=json`、スキーマ 0.1)だけから行った。出力の形は変えていない。道具はリポジトリの外に置いた。手順の要旨は次のとおり。
+集計は、このツールの出力(`analyze --format=json`。スキーマ 0.1 と、D38 後の 0.2)だけから行った。集計のために出力の形を変えてはいない。道具はリポジトリの外に置いた。手順の要旨は次のとおり。
 
 - Python 3 の標準ライブラリだけで動く。同じ入力からは同じバイト列が出る(乱数・時刻・絶対パスを使わない)。自己試験がある。
 - ルートの内訳、軸ごと(クエリ・メモリ)の判定の分布、確度の件数、`gap` コードごとの「そのコードを持つルートの数」(1 ルートに同じコードが複数あっても 1)を数える。下限つきの `unknown` は、`unknown` の別行として数える(D27)。
@@ -156,13 +156,14 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 ## 3. 結果(T3)
 
-この節の数字は、5 本すべてを FIX1〜FIX5 を入れた最終版(`f11b1ba`)で測った出力から集計した。DB は migrate 済みである(§2.4)。FIX の前(`a255d02`。以下 baseline)との比較は §3.2.1 に置く。割合の分母は、特記なき限り解析の対象(`kind` が `controller`)の 2,091 本である。
+この節の数字は、5 本すべてを FIX1〜FIX5 に FIX2(ビュー名の `/`)と degree の修正(D38。出力スキーマ 0.2)を加えた最終版(`9f60add`)で測った出力から集計した。DB は migrate 済みである(§2.4)。FIX の前(`a255d02`。以下 baseline)との比較は §3.2.1 に置く。FIX1〜FIX5 だけを入れた版(`f11b1ba`)の数字は、更新前の版の記録である。FIX2 と D38 の前後は、4 アプリで出力が変わらず、Snipe-IT だけが大きく動いた(§3.2.1・§3.5)。割合の分母は、特記なき限り解析の対象(`kind` が `controller`)の 2,091 本である。
 
-先に結論を 3 行で書く。
+先に結論を 4 行で書く。
 
-- 2,091 本のうち、判定が確定した(`unknown` でない)ルートは **5 本(0.2%)** である。5 本とも `O(1)`・確度 `high` で、Firefly III に 2 本、Koel に 3 本ある。`O(N)`・`O(N*M)` と確定したルートは 0 本である。
+- 2,091 本のうち、判定が確定した(`unknown` でない)ルートは **5 本(0.2%)** である。5 本とも `O(1)`・確度 `high` で、Firefly III に 2 本、Koel に 3 本ある。`O(N)`・`O(N*M)` と確定したルートは 0 本である。FIX2 と D38 の後も、この 5 本は変わらない。
 - 残りの 2,086 本(99.8%)は、少なくとも一方の軸が `unknown` である。**`unknown` は安全ではなく、ツールが追い切れなかったという意味である(D21)。** この割合の高さは、ツールが安全側(重いかもしれないと答える側)に倒れていることを示す。軽いという意味ではない。
-- baseline と最終版を、5 アプリ・2,091 ルートすべてで比べた。判定・確度・下限・次数が変わったルートは **0 本** である。変わったのは `gap` の中身と件数だけである。
+- baseline と最終版を、5 アプリ・2,091 ルートすべてで比べた。判定(`growth`)・確度が変わったルートは **0 本**、`unknown` から確定に動いたルートも **0 本** である。変わったのは `gap` の中身と件数、そして Snipe-IT の 19 本で下限が現れた(または上がった)ことだけで、19 本とも重い側への変化である(§3.2.1)。
+- **FIX2 で偽の `VIEW_NOT_FOUND` は消えたが、Snipe-IT の解析は重くなった。** 解析だけの時間は約 2.6 倍、ピークメモリは約 2.4 倍(約 1GiB)、出力 JSON は約 3.9 倍(186MB)である。「直したら重くなった」は事実としてここに書く(§3.5)。
 
 ### 3.1 ルートの内訳
 
@@ -190,8 +191,8 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | `O(1)` | 0(0.0%) | 2(0.3%) | 3(1.2%) | 0(0.0%) | 0(0.0%) | 5(0.2%) |
 | `O(N)` | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) |
 | `O(N*M)` | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) |
-| `unknown`(下限なし) | 298(87.4%) | 626(97.7%) | 255(98.1%) | 97(100.0%) | 673(89.5%) | 1,949(93.2%) |
-| `unknown` ≥`O(N)` | 41(12.0%) | 10(1.6%) | 2(0.8%) | 0(0.0%) | 72(9.6%) | 125(6.0%) |
+| `unknown`(下限なし) | 298(87.4%) | 626(97.7%) | 255(98.1%) | 97(100.0%) | 664(88.3%) | 1,940(92.8%) |
+| `unknown` ≥`O(N)` | 41(12.0%) | 10(1.6%) | 2(0.8%) | 0(0.0%) | 81(10.8%) | 134(6.4%) |
 | `unknown` ≥`O(N*M)` | 2(0.6%) | 3(0.5%) | 0(0.0%) | 0(0.0%) | 7(0.9%) | 12(0.6%) |
 | 合計 | 341 | 641 | 260 | 97 | 752 | 2,091 |
 
@@ -202,9 +203,9 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | `O(1)` | 0(0.0%) | 2(0.3%) | 3(1.2%) | 0(0.0%) | 0(0.0%) | 5(0.2%) |
 | `O(N)` | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) |
 | `O(N*M)` | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) | 0(0.0%) |
-| `unknown`(下限なし) | 232(68.0%) | 532(83.0%) | 243(93.5%) | 97(100.0%) | 472(62.8%) | 1,576(75.4%) |
-| `unknown` ≥`O(N)` | 91(26.7%) | 104(16.2%) | 8(3.1%) | 0(0.0%) | 249(33.1%) | 452(21.6%) |
-| `unknown` ≥`O(N*M)` | 18(5.3%) | 3(0.5%) | 6(2.3%) | 0(0.0%) | 31(4.1%) | 58(2.8%) |
+| `unknown`(下限なし) | 232(68.0%) | 532(83.0%) | 243(93.5%) | 97(100.0%) | 462(61.4%) | 1,566(74.9%) |
+| `unknown` ≥`O(N)` | 91(26.7%) | 104(16.2%) | 8(3.1%) | 0(0.0%) | 255(33.9%) | 458(21.9%) |
+| `unknown` ≥`O(N*M)` | 18(5.3%) | 3(0.5%) | 6(2.3%) | 0(0.0%) | 35(4.7%) | 62(3.0%) |
 | 合計 | 341 | 641 | 260 | 97 | 752 | 2,091 |
 
 **ルートの確度**(どちらかの軸が `unknown` なら `null`)
@@ -221,11 +222,11 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 - **確定は 5 本だけで、そのすべてが `O(1)`・`high` である。** クエリ軸もメモリ軸も、確定は同じ 5 本である。`medium`(仮定を置いた確定)は 0 本である。
 - 確定した 5 本は、Firefly III の `/api/v1/rules/validate-expression` と `/json/box/available`、Koel の Subsonic 互換 API の `/rest/ping`・`/rest/getMusicFolders`・`/rest/getOpenSubsonicExtensions` である。判定が正しいかの確認は §4 に書く。
 - `unknown` を含むルートは 2,086 本(99.8%)で、`gap` を 1 つ以上持つルートの数と同じである。確定しなかったルートには、必ず説明(`gap`)がある。
-- 下限つきの `unknown` は、クエリ軸で 137 本(≥`O(N)` 125 + ≥`O(N*M)` 12)、メモリ軸で 510 本(452 + 58)ある。下限は参考値であり、保証ではない(§0.3)。
-- 次数(`degree`)は、`unknown` でも下限があれば下限の次数が入る。下限のない `unknown` は 0 である(仕様書の説明との食い違いは §7)。
-- Laravel.io は 97 本すべてが、両軸とも下限のない `unknown` である。メモリ軸で下限つきが占める割合は、BookStack 32%・Snipe-IT 37%・Firefly III 17%・Koel 5% と開きがある。この集計だけから、アプリの書き方との関係は言えない。
+- 下限つきの `unknown` は、クエリ軸で 146 本(≥`O(N)` 134 + ≥`O(N*M)` 12)、メモリ軸で 520 本(458 + 62)ある。どちらかの軸に下限があるルートは 521 本で、FIX2 の前(511 本)より 10 本増えた(Snipe-IT。§3.2.1)。下限は参考値であり、保証ではない(§0.3)。
+- 次数(`degree`)は、`unknown` でも下限があれば下限の次数が入る。**下限のない `unknown` は `null` である(D38。出力スキーマ 0.2)。** 以前は 0 と出ており、「ほぼ `O(1)`」と読めてしまう罠だったので、0 でなく `null` にした(表では `unknown (no lower bound)`)。`null` になった軸は、クエリ軸 1,940・メモリ軸 1,566 で、上の表の「`unknown`(下限なし)」の行と一致する。アプリ別の `null` の軸の数は BookStack 530・Firefly III 1,158・Koel 498・Laravel.io 194・Snipe-IT 1,126 である。判定・確度・下限は変えていない。
+- Laravel.io は 97 本すべてが、両軸とも下限のない `unknown` である。メモリ軸で下限つきが占める割合は、BookStack 32%・Snipe-IT 39%・Firefly III 17%・Koel 5% と開きがある。この集計だけから、アプリの書き方との関係は言えない。
 
-#### 3.2.1 baseline から最終版への判定の差(FIX1〜FIX5)
+#### 3.2.1 baseline から最終版への判定の差(FIX1〜FIX5・FIX2・D38)
 
 | アプリ | ルート数(前→後) | 判定(growth)が変わったルート | 確度 | 下限 | 次数 | `unknown` から確定に動いたルート | `gap` 総数(前→後) | 差 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
@@ -233,13 +234,17 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | Firefly III | 641 → 641 | 0 | 0 | 0 | 0 | 0 | 36,893 → 41,923 | +5,030 |
 | Koel | 260 → 260 | 0 | 0 | 0 | 0 | 0 | 3,588 → 4,164 | +576 |
 | Laravel.io | 97 → 97 | 0 | 0 | 0 | 0 | 0 | 2,333 → 2,488 | +155 |
-| Snipe-IT | 752 → 752 | 0 | 0 | 0 | 0 | 0 | 38,098 → 42,417 | +4,319 |
-| **全体** | **2,091 → 2,091** | **0** | **0** | **0** | **0** | **0** | **113,963 → 131,423** | **+17,460** |
+| Snipe-IT | 752 → 752 | 0 | 0 | 19 | 19 | 0 | 38,098 → 180,384 | +142,286 |
+| **全体** | **2,091 → 2,091** | **0** | **0** | **19** | **19** | **0** | **113,963 → 269,390** | **+155,427** |
 
-- **判定が変わったルートは 0 本である。** 判定を軽くした変更は無く、`unknown` が確定に動いたルートも無い。D21 は緩んでいない。
-- `gap` の総数は 17,460 件増えた。増えた `gap` 18,183 件の内訳は、同じ行の別の原因 13,402 件(FIX4。これまで 1 件に潰れていたものが別々に出る)と、別の行 4,781 件(うち FIX3 の防壁が新しく検出した分が 1,983 件、読めなかった箇所が読めて現れた分などが 2,798 件)である。消えた `gap` は 723 件(`PARSE_FAILED` の 92 ルート分を含む)で、差し引き +17,460 件になる。
+「次数」の列は、下限が変わったために次数が変わったルートの数である。schema 0.2 による「下限のない `unknown` の次数が 0 から `null` に変わる」分(5 アプリで 3,506 軸)は、判定が動いたのではないので、この表の「次数」には数えていない。
+
+- **判定(growth)・確度が変わったルートは 0 本である。** 判定を軽くした変更は無く、`unknown` が確定に動いたルートも無い。D21 は緩んでいない。D36 の条件 3(確定に動いたルートが 1 本でもあれば全数を追う)は、該当するルートが無かった。
+- **下限が動いたのは Snipe-IT の 19 本だけで、すべて重い側である。** 内訳は、下限が新しく現れたもの(なし → `≥O(N)`)がクエリ軸 9・メモリ軸 10 の 19 軸、下限の次数が上がったもの(`≥O(N)` → `≥O(N*M)`)がメモリ軸 4 軸(`/admin`・`/hardware/{asset}/audit`・`/hardware/{asset}/checkin/{backto?}`・`/hardware/{asset}/checkout`)である。軽くなる方向の変化は無い。下限つきのルートは 511 本から 521 本に増えた。これは FIX2 で、これまで読まれなかった共通レイアウトや部分テンプレートの中の事象が、下限の根拠として現れたためである。この 19 本の読み方は §4.7 に書く。
+- `gap` の総数は 155,427 件増えた。内訳は 2 つに分かれる。FIX1〜FIX5 までの分が +17,460 件(`f11b1ba` の時点の数字で、更新前から変わらない)、FIX2 の分が +137,967 件で、FIX2 の分はすべて Snipe-IT である。増えた `gap` 156,354 件の内訳は、同じ行の別の原因 13,409 件(FIX4。これまで 1 件に潰れていたものが別々に出る)と、別の行 142,945 件(うち FIX3 の防壁が新しく検出した分が 2,094 件、読めなかった箇所が読めて現れた分などが 140,851 件。別の行 142,945 件のうち 138,665 件が Snipe-IT)である。消えた `gap` は 927 件(`PARSE_FAILED` の BookStack 92 ルート分と、Snipe-IT の偽の `VIEW_NOT_FOUND` 204 件を含む)で、差し引き +155,427 件になる。
 - `gap` が増えたのは、ツールの数え方が仕様どおりになり、読めなかった箇所が読めて、未解決の箇所が見えるようになった結果である。`gap` が増えるのは安全側(`unknown` 側)の変化であり、軽くなったことを意味しない。
-- BookStack の `PARSE_FAILED` は 92 ルートから 0 になった(FIX1)。このとき、これまで読まれなかったテンプレートの中にあった本来の `gap` が現れた。「`gap` が消えること」と「判定が確定すること」が別であることの実例である。
+- BookStack の `PARSE_FAILED` は 92 ルートから 0 になった(FIX1)。このとき、これまで読まれなかったテンプレートの中にあった本来の `gap` が現れた。「`gap` が消えること」と「判定が確定すること」が別であることの実例である。**FIX2 でも同じことが起きた。** Snipe-IT の偽の `VIEW_NOT_FOUND`(204 件・187 ルート)が消え、共通レイアウトが歩かれて、その中の `gap` が 187 ルートに現れた。
+- FIX2 の前後(`f11b1ba` の出力と `9f60add` の出力)を 5 アプリで比べると、BookStack・Firefly III・Koel・Laravel.io は、判定・確度・下限・`gap` の件数とも変化が無かった(`VIEW_NOT_FOUND` の「/」形が元々 0 件のため)。変わったのは Snipe-IT だけである。
 - FIX1〜FIX4 までの版(`e9003eb`)と baseline の比較では、Koel の `GET /api/duplicate-uploads` の 1 ルートだけ、クエリ軸の下限が `≥O(N)` に変わっていた。実コードを読むと、偽の下限だった。FIX5 で解消し、最終版では baseline と同じに戻った(§5)。
 
 ### 3.3 unknown の原因
@@ -248,106 +253,110 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 | gap コード | BookStack | Firefly III | Koel | Laravel.io | Snipe-IT | 全体 | 対 controller |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `VENDOR_CALL_NOT_MODELLED` | 338 | 591 | 211 | 56 | 651 | 1,847 | 88.3% |
+| `VENDOR_CALL_NOT_MODELLED` | 338 | 591 | 211 | 56 | 710 | 1,906 | 91.2% |
 | `VENDOR_PARENT` | 159 | 425 | 156 | 85 | 621 | 1,446 | 69.2% |
-| `UNRESOLVED_CALL` | 278 | 463 | 163 | 18 | 365 | 1,287 | 61.5% |
-| `UNRESOLVABLE_BINDING` | 0 | 603 | 3 | 0 | 487 | 1,093 | 52.3% |
-| `LOOP_SOURCE_UNKNOWN` | 200 | 325 | 30 | 5 | 160 | 720 | 34.4% |
-| `NEW_UNKNOWN_CLASS` | 148 | 309 | 25 | 2 | 221 | 705 | 33.7% |
-| `UNKNOWN_BUILDER_METHOD` | 180 | 0 | 18 | 2 | 307 | 507 | 24.2% |
-| `BLADE_UNSUPPORTED` | 122 | 148 | 0 | 13 | 60 | 343 | 16.4% |
+| `UNRESOLVED_CALL` | 278 | 463 | 163 | 18 | 485 | 1,407 | 67.3% |
+| `UNRESOLVABLE_BINDING` | 0 | 603 | 3 | 0 | 603 | 1,209 | 57.8% |
+| `LOOP_SOURCE_UNKNOWN` | 200 | 325 | 30 | 5 | 316 | 876 | 41.9% |
+| `NEW_UNKNOWN_CLASS` | 148 | 309 | 25 | 2 | 227 | 711 | 34.0% |
+| `UNKNOWN_BUILDER_METHOD` | 180 | 0 | 18 | 2 | 326 | 526 | 25.2% |
+| `BLADE_UNSUPPORTED` | 122 | 148 | 0 | 13 | 188 | 471 | 22.5% |
 | `MODEL_OBSERVER_NOT_ANALYZED` | 0 | 2 | 11 | 0 | 235 | 248 | 11.9% |
-| `VIEW_NOT_FOUND` | 11 | 2 | 0 | 13 | 189 | 215 | 10.3% |
-| `LOOP_BOUND_UNKNOWN` | 86 | 32 | 9 | 0 | 31 | 158 | 7.6% |
-| `DYNAMIC_CLASS_NAME` | 22 | 0 | 32 | 0 | 98 | 152 | 7.3% |
-| `RECURSION` | 70 | 0 | 3 | 0 | 22 | 95 | 4.5% |
+| `DYNAMIC_CLASS_NAME` | 22 | 0 | 32 | 0 | 120 | 174 | 8.3% |
+| `LOOP_BOUND_UNKNOWN` | 86 | 32 | 9 | 0 | 34 | 161 | 7.7% |
 | `METHOD_NOT_FOUND` | 18 | 14 | 3 | 0 | 60 | 95 | 4.5% |
+| `RECURSION` | 70 | 0 | 3 | 0 | 22 | 95 | 4.5% |
 | `DYNAMIC_METHOD_NAME` | 9 | 23 | 7 | 3 | 42 | 84 | 4.0% |
-| `MODEL_INFO_UNAVAILABLE` | 0 | 5 | 45 | 31 | 0 | 81 | 3.9% |
+| `MODEL_INFO_UNAVAILABLE` | 0 | 5 | 45 | 31 | 1 | 82 | 3.9% |
 | `RELATION_TARGET_UNKNOWN` | 25 | 0 | 0 | 0 | 18 | 43 | 2.1% |
 | `NO_BINDING` | 11 | 0 | 27 | 0 | 0 | 38 | 1.8% |
+| `VIEW_NOT_FOUND` | 11 | 2 | 0 | 13 | 2 | 28 | 1.3% |
 | `UNKNOWN_COLLECTION_METHOD` | 13 | 0 | 4 | 0 | 10 | 27 | 1.3% |
 | `RESOURCE_NOT_ANALYZED` | 0 | 0 | 24 | 0 | 0 | 24 | 1.1% |
 | `WITH_CYCLE` | 0 | 0 | 9 | 0 | 5 | 14 | 0.7% |
 | `CACHE_VALUE_SIZE_UNKNOWN` | 0 | 0 | 3 | 5 | 0 | 8 | 0.4% |
+| `PARSE_FAILED` | 0 | 0 | 0 | 0 | 2 | 2 | 0.1% |
 | `TRAIT_CONFLICT` | 0 | 2 | 0 | 0 | 0 | 2 | 0.1% |
 
-- 最も多いのは `VENDOR_CALL_NOT_MODELLED`(許可表に無いベンダーの呼び出し)で、2,091 本の 88.3% が持つ。次が `VENDOR_PARENT`(メソッドが見つからず、祖先がベンダーのクラス)の 69.2%、`UNRESOLVED_CALL` の 61.5%、`UNRESOLVABLE_BINDING`(束縛の実装を読み取れない)の 52.3% である。
+- 最も多いのは `VENDOR_CALL_NOT_MODELLED`(許可表に無いベンダーの呼び出し)で、2,091 本の 91.2% が持つ。次が `VENDOR_PARENT`(メソッドが見つからず、祖先がベンダーのクラス)の 69.2%、`UNRESOLVED_CALL` の 67.3%、`UNRESOLVABLE_BINDING`(束縛の実装を読み取れない)の 57.8% である。
 - 1 つのルートは複数のコードを持つので、列の合計はルート数を超える。1 つのコードだけを緩めても、他のコードが残るルートは確定しない(見積もりは §3.4)。
-- `UNRESOLVABLE_BINDING` は Firefly III(603 本)と Snipe-IT(487 本)に集中し、BookStack と Laravel.io では 0 本である。
+- `UNRESOLVABLE_BINDING` は Firefly III(603 本)と Snipe-IT(603 本)に集中し、Koel は 3 本、BookStack と Laravel.io では 0 本である。Snipe-IT は FIX2 の前は 487 本だった。
+- **`VIEW_NOT_FOUND` は 215 本から 28 本に減った(FIX2)。** Snipe-IT は 189 本から 2 本になった。残る 28 本は、BookStack 11 本・Laravel.io 13 本・Firefly III 2 本・Snipe-IT 2 本で、いずれも「`/` の読み違い」ではない(定数でないビュー名、名前空間つきの名前 `feed::links`、など)。Snipe-IT の 2 本は `app/Http/Controllers/ModalController.php:45` の、定数でないビュー名である。
+- **`PARSE_FAILED` は Snipe-IT の 2 ルートに新しく出た。** 内訳は §3.6 に書く。
 - `MODEL_INFO_UNAVAILABLE`(メッセージは「`model:show` の情報が無い」)は、Koel(45 本)と Laravel.io(31 本)に多い。**2 種類の別の原因があり、同じコードに入っている。**
   - **Koel(45 本): モデルと認識されなかった。** Koel の `App\Models\User` は、ベンダーの `Illuminate\Foundation\Auth\User` を継承している。ツールのモデル判定(`AppModelCatalog::isModel` → `AppSourceIndex::extendsVendor`)は、アプリ内の継承しかたどらない。そのため、ベンダーの `Auth\User` の先にある Eloquent の `Model` に届かず、`User` がモデルと認識されない。`model:show` 自体は `User` で成功している(Koel で `model:show` の失敗の記録が 0 件なのはこのため)。メッセージは「情報が無い」だが、実態は「モデルと認識されなかった」であり、食い違っている。Koel の 45 本の大半は `User` 由来で、T2 の調査では 40 本が `User` のみを原因としていた。この件は §6 の提案(ベンダーの既知の `Model` 派生を認める案、またはメッセージを実態に合わせる案)に紐づける。ツールは変更していない。
   - **Laravel.io(31 本): `model:show` が失敗した。** §3.6 の `model:show` の失敗(`Thread`・`Reply`・`Article`・`Tag`)に当たる。モデルの `id()` が、空のインスタンスで未定義のプロパティを読む形で、`model:show` が例外になる。Koel とは別の原因である。
+  - **Snipe-IT(1 本): FIX2 で歩かれるようになった部分に出た。** ベンダー(Laravel Passport)の `Token` モデルで、`model:show` の情報が得られなかった。ベンダー継承のモデルという点で Koel の `User` と同種と見ている(原因の切り分けまではしていない)。判定には影響しない。
 - `VENDOR_PARENT` の数は、ベンダーが提供するルートと、アプリ自身のコントローラー(親クラスがベンダー)の両方を含む。`gap` のコードが `VENDOR_PARENT` だけのルートは 126 本で、内訳はベンダー提供のルートが 66 本(うち composer の dev 依存が 20 本)、アプリのコントローラーが 60 本である。
 
 #### 3.3.1 `VENDOR_CALL_NOT_MODELLED` の原因の上位 20 件
 
-その呼び出しを 1 つでも持つルートの数である(2,091 本が分母)。呼び出しの名前は、出力の `message` から読んだ。`message` から取れず、ソースで補った件数は 0 である。
+その呼び出しを 1 つでも持つルートの数である(2,091 本が分母)。呼び出しの名前は、出力の `message` から読んだ。`message` から取れず、ソースで補った件数は 0 である(`gap` 155,475 件のすべてが `message` から取れた)。
 
 | 順位 | 呼び出し | ルート数 | 対 controller | 許可表の状態 |
 | ---: | --- | ---: | ---: | --- |
-| 1 | `trans()` | 1,122 | 53.7% | 載っていない |
-| 2 | `config()` | 843 | 40.3% | 載っていない |
-| 3 | `request()` | 603 | 28.8% | 載っていない |
-| 4 | `redirect()` | 557 | 26.6% | 載っていない |
-| 5 | `str_replace()` | 533 | 25.5% | 載っていない |
-| 6 | `app()` | 531 | 25.4% | 意図して外している |
-| 7 | `auth()` | 530 | 25.3% | 意図して外している |
-| 8 | `route()` | 515 | 24.6% | 載っていない |
-| 9 | `is_array()` | 510 | 24.4% | 載っていない |
-| 10 | `session()` | 496 | 23.7% | 載っていない |
-| 11 | `sprintf()` | 455 | 21.8% | 載っていない |
-| 12 | `trim()` | 406 | 19.4% | 載っていない |
-| 13 | `is_null()` | 373 | 17.8% | 載っていない |
-| 14 | `strtolower()` | 370 | 17.7% | 載っていない |
-| 15 | `csrf_token()` | 286 | 13.7% | 載っていない |
-| 16 | `array_key_exists()` | 285 | 13.6% | 載っていない |
-| 17 | `url()` | 272 | 13.0% | 載っていない |
-| 18 | `is_string()` | 271 | 13.0% | 載っていない |
-| 19 | `e()` | 269 | 12.9% | 載っていない |
-| 20 | `substr()` | 261 | 12.5% | 載っていない |
+| 1 | `trans()` | 1,197 | 57.2% | 載っていない |
+| 2 | `config()` | 976 | 46.7% | 載っていない |
+| 3 | `request()` | 753 | 36.0% | 載っていない |
+| 4 | `app()` | 690 | 33.0% | 意図して外している |
+| 4 | `auth()` | 690 | 33.0% | 意図して外している |
+| 6 | `str_replace()` | 678 | 32.4% | 載っていない |
+| 7 | `route()` | 638 | 30.5% | 載っていない |
+| 8 | `session()` | 637 | 30.5% | 載っていない |
+| 9 | `redirect()` | 557 | 26.6% | 載っていない |
+| 10 | `is_null()` | 533 | 25.5% | 載っていない |
+| 11 | `is_array()` | 512 | 24.5% | 載っていない |
+| 12 | `sprintf()` | 455 | 21.8% | 載っていない |
+| 13 | `csrf_token()` | 441 | 21.1% | 載っていない |
+| 14 | `e()` | 440 | 21.0% | 載っていない |
+| 15 | `url()` | 425 | 20.3% | 載っていない |
+| 16 | `strtolower()` | 423 | 20.2% | 載っていない |
+| 17 | `trim()` | 411 | 19.7% | 載っていない |
+| 18 | `array_key_exists()` | 296 | 14.2% | 載っていない |
+| 19 | `is_string()` | 278 | 13.3% | 載っていない |
+| 20 | `csrf_field()` | 271 | 13.0% | 載っていない |
 
-ほかに 721 種の呼び出しがある。
+ほかに 724 種の呼び出しがある。
 
-- 上位 20 の内訳は、Laravel のヘルパー関数が 11 個(`trans()`・`config()`・`request()`・`redirect()`・`app()`・`auth()`・`route()`・`session()`・`csrf_token()`・`url()`・`e()`)、PHP 組み込みの関数が 9 個(`str_replace()`・`is_array()`・`sprintf()`・`trim()`・`is_null()`・`strtolower()`・`array_key_exists()`・`is_string()`・`substr()`)である。
+- 上位 20 の内訳は、Laravel のヘルパー関数が 12 個(`trans()`・`config()`・`request()`・`app()`・`auth()`・`route()`・`session()`・`redirect()`・`csrf_token()`・`e()`・`url()`・`csrf_field()`)、PHP 組み込みの関数が 8 個(`str_replace()`・`is_null()`・`is_array()`・`sprintf()`・`strtolower()`・`trim()`・`array_key_exists()`・`is_string()`)である。FIX2 の前(11 個と 9 個)から、`csrf_field()` が入り `substr()` が外れた。
 - 「意図して外している」は、許可表の `refused` に載っているという意味である。`refused` は、ポリシー・リスナー・検証規則・クエリ・通信など、ツールから見えない処理を動かしうる入口を、載せ忘れでなく意図して外した一覧である(`resources/known-calls.php` の説明)。`app()` と `auth()` がこれに当たる。それ以外の上位の呼び出しは、許可表に載っていないだけである。
 - アプリごとの上位 3 は次のとおり。
   - BookStack: `trans()`(269 本)・`request()`(240)・`config()`(228)
   - Firefly III: `sprintf()`(410)・`config()`(343)・`route()`(338)
   - Koel: `Illuminate\Database\Eloquent\Model::query()`(106)・`Illuminate\Contracts\Auth\Guard->user()`(85)・`Illuminate\Contracts\Routing\ResponseFactory->noContent()`(46)
   - Laravel.io: `session()`(48)・`redirect()`(43)・`__()`(35)
-  - Snipe-IT: `trans()`(522)・`redirect()`(283)・`is_array()`(250)
-- `header() on a plaint` のように「受け手の型」だけの行がある(Firefly III の上位に出る)。受け手のクラス名が `message` に無く、どのクラスの呼び出しかを集計できないためである。
+  - Snipe-IT: `trans()`(597)・`auth()`(387)・`is_null()`(363)(FIX2 の前は `trans()` 522・`redirect()` 283・`is_array()` 250。共通レイアウトが歩かれ、レイアウトの中の呼び出しが多くのルートに載るようになった)
+- `header() on a plaint` のように「受け手の型」だけの行がある(Firefly III の上位に出る。138 本)。受け手のクラス名が `message` に無く、どのクラスの呼び出しかを集計できないためである。
 - この表は、緩めたときの効果を示すものではない。「何本を救えるか」は、その原因の `gap` しか持たないルートの数として、§3.4 で別に数える。
 
 #### 3.3.2 `BLADE_UNSUPPORTED` の構文
 
-対応外の Blade 構文を持つルートは 343 本(16.4%)である。アプリ別では BookStack 122・Firefly III 148・Laravel.io 13・Snipe-IT 60・Koel 0 である(Koel は Vue の SPA で、Blade の画面が出ない)。構文の種類別のルート数(1 つのルートが複数の種類を持ちうる)は、コンポーネント(`<x-...>`・`<livewire:...>`)218・ディレクティブ 301・その他 147 である。上位 20 を示す。同数のものは同順位にした。
+対応外の Blade 構文を持つルートは 471 本(22.5%)である(FIX2 の前は 343 本)。アプリ別では BookStack 122・Firefly III 148・Laravel.io 13・Snipe-IT 188・Koel 0 である(Koel は Vue の SPA で、Blade の画面が出ない)。Snipe-IT は 60 本から 188 本に増えた。FIX2 で共通レイアウトや部分テンプレートが歩かれるようになり、その中の対応外の構文が、多くのルートに現れたためである。構文の種類別のルート数(1 つのルートが複数の種類を持ちうる)は、コンポーネント(`<x-...>`・`<livewire:...>`)344・ディレクティブ 445・その他 201 である。上位 20 を示す。同数のものは同順位にした。
 
 | 順位 | 構文 | ルート数 | 対 controller | アプリ別 |
 | ---: | --- | ---: | ---: | --- |
-| 1 | `component <x-layout.fav-icons>` | 145 | 6.9% | Firefly III |
-| 2 | `@includeFirst` | 126 | 6.0% | Firefly III |
-| 2 | `@sectionMissing` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.create-menu>` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.flash>` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.range>` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.sidebar>` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.tracking>` | 126 | 6.0% | Firefly III |
-| 2 | `component <x-layout.user-menu>` | 126 | 6.0% | Firefly III |
-| 2 | `syntax: unbalanced @endif` | 126 | 6.0% | Firefly III |
-| 11 | `@icon` | 114 | 5.5% | BookStack |
-| 12 | `@inject` | 104 | 5.0% | BookStack |
-| 13 | `component <x-icon>` | 39 | 1.9% | Snipe-IT |
-| 14 | `@can` | 37 | 1.8% | Snipe-IT 24・Laravel.io 13 |
-| 14 | `@endcan` | 37 | 1.8% | Snipe-IT 24・Laravel.io 13 |
-| 16 | `component <x-container>` | 33 | 1.6% | Snipe-IT |
-| 17 | `component <x-box>` | 30 | 1.4% | Snipe-IT |
-| 18 | `@click` | 21 | 1.0% | Firefly III 8・Laravel.io 13 |
-| 18 | `syntax: unbalanced @else` | 21 | 1.0% | Snipe-IT 20 ほか |
-| 20 | `@component` | 18 | 0.9% | BookStack |
+| 1 | `@can` | 186 | 8.9% | Snipe-IT 173・Laravel.io 13 |
+| 1 | `@endcan` | 186 | 8.9% | Snipe-IT 173・Laravel.io 13 |
+| 3 | `@auth` | 180 | 8.6% | Snipe-IT 178 ほか |
+| 3 | `@endauth` | 180 | 8.6% | Snipe-IT 178 ほか |
+| 3 | `component <x-icon>` | 180 | 8.6% | Snipe-IT |
+| 6 | `component <x-notifications>` | 179 | 8.6% | Snipe-IT |
+| 7 | `@grokability` | 172 | 8.2% | Snipe-IT |
+| 8 | `component <livewire:alert-menu>` | 171 | 8.2% | Snipe-IT |
+| 8 | `component <x-callout>` | 171 | 8.2% | Snipe-IT |
+| 10 | `component <x-layout.fav-icons>` | 145 | 6.9% | Firefly III |
+| 11 | `component <x-container>` | 131 | 6.3% | Snipe-IT |
+| 12 | `@includeFirst` | 126 | 6.0% | Firefly III |
+| 12 | `@sectionMissing` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.create-menu>` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.flash>` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.range>` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.sidebar>` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.tracking>` | 126 | 6.0% | Firefly III |
+| 12 | `component <x-layout.user-menu>` | 126 | 6.0% | Firefly III |
+| 12 | `syntax: unbalanced @endif` | 126 | 6.0% | Firefly III |
 
-ほかに 243 種の構文がある。
+ほかに 314 種の構文がある。「アプリ別」は、各アプリの上位 20 に出た値で、全体の数に足りない分は、そのアプリの上位 20 の外にある。
 
 - 同じ数(126、13 など)が並ぶのは、共通のレイアウトを使うルートが、その中の構文をまとめて持つためと読める(推測。レイアウトの中身を 1 つずつは確かめていない)。1 つの構文の効果が、構文の数でなくルートの数で効くのはこのためである。
 - **`@click`・`@keydown`・`@keyup`・`@input` などは、Alpine や Vue の属性であり、Blade のディレクティブではない。** ツールは両者を見分けず、「対応外の Blade ディレクティブ」にする(既知の振る舞い)。上位に出ても、Blade への対応が足りないことの証拠とは読まない。
@@ -357,13 +366,13 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 ここでいう「救われる」は、そのルートの `gap` がゼロになることである。確定(O(1) など)の保証ではない。緩めた先で別の `gap` が現れうる。BookStack の `PARSE_FAILED` を直したとき(FIX1。92 → 0)、読まれていなかったテンプレートの中の本来の `gap` が現れた前例がある。
 
-入力は、FIX1〜FIX5 後の出力(migrate 済みの DB)である。解析の対象は controller ルート 2,091 本で、そのうち `gap` を持つのは 2,086 本、`gap` を持たず確定したのは 5 本である。「原因」は `gap` 1 つから取る(呼び出しの名前・Blade の構文・`クラス::メソッド()`・ビュー名・`gap` コードの型)。ルートの原因の集合が**ちょうど 1 つ**のとき、そのルートを「その原因だけを持つ」と呼ぶ。
+入力は、FIX1〜FIX5 と FIX2・D38 を入れた後の出力(`9f60add`。migrate 済みの DB)である。解析の対象は controller ルート 2,091 本で、そのうち `gap` を持つのは 2,086 本、`gap` を持たず確定したのは 5 本である。**FIX2 の前(`f11b1ba`)の数字からの変化は、ほぼ Snipe-IT で起きている。** 共通レイアウトが歩かれて、これまで読まれなかった `gap` が各ルートに現れたためで、「全カテゴリを緩めたときに救われる本数」は 415 本から 322 本に減った(§3.4.3)。「原因」は `gap` 1 つから取る(呼び出しの名前・Blade の構文・`クラス::メソッド()`・ビュー名・`gap` コードの型)。ルートの原因の集合が**ちょうど 1 つ**のとき、そのルートを「その原因だけを持つ」と呼ぶ。
 
 #### 3.4.1 原因の呼び出しごと×アプリごとの本数
 
 次の表は、「その原因だけを持つルート」の本数である(単独で救える本数)。複数の原因を持つルートは数えないので、実態より小さく出る。実態に近いのは 3.4.3 の累積である。
 
-単独で救える原因は全部で 125 種、合計 147 本である。上位 30 を示す。
+単独で救える原因は全部で 122 種、合計 144 本である(FIX2 の前は 125 種・147 本)。上位 30 を示す。
 
 | 原因 | カテゴリ | BookStack | Firefly III | Koel | Laravel.io | Snipe-IT | 単独で救える合計 | 含むルート合計 |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -372,13 +381,13 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | `action Spatie\LaravelIgnition\Http\Controllers\ExecuteSolutionController::__invoke()` (VENDOR_PARENT) | vendor_parent | 0 | 1 | 0 | 1 | 1 | 3 | 3 |
 | `action Spatie\LaravelIgnition\Http\Controllers\HealthCheckController::__invoke()` (VENDOR_PARENT) | vendor_parent | 0 | 1 | 0 | 1 | 1 | 3 | 3 |
 | `action Spatie\LaravelIgnition\Http\Controllers\UpdateConfigController::__invoke()` (VENDOR_PARENT) | vendor_parent | 0 | 1 | 0 | 1 | 1 | 3 | 3 |
-| `singleton()` (UNRESOLVABLE_BINDING) | binding | 0 | 0 | 0 | 0 | 2 | 2 | 487 |
+| `singleton()` (UNRESOLVABLE_BINDING) | binding | 0 | 0 | 0 | 0 | 2 | 2 | 603 |
 | `action App\Http\Controllers\Auth\ForgotPasswordController::showLinkRequestForm()` (VENDOR_PARENT) | vendor_parent | 0 | 0 | 0 | 1 | 1 | 2 | 2 |
 | `action App\Livewire\CustomFieldEditor::__invoke()` (VENDOR_PARENT) | vendor_parent | 0 | 0 | 0 | 0 | 2 | 2 | 2 |
 | `action ArieTimmerman\Laravel\SCIMServer\Http\Controllers\ResourceController::notImplemented()` (VENDOR_PARENT) | vendor_parent | 0 | 0 | 0 | 0 | 2 | 2 | 2 |
 | `action ArieTimmerman\Laravel\SCIMServer\Http\Controllers\ResourceController::wrongVersion()` (VENDOR_PARENT) | vendor_parent | 0 | 0 | 0 | 0 | 2 | 2 | 2 |
 | `action Spatie\Feed\Http\FeedController::__invoke()` (VENDOR_PARENT) | vendor_parent | 0 | 0 | 0 | 2 | 0 | 2 | 2 |
-| `class stdClass` (NEW_UNKNOWN_CLASS) | (辞書外) | 0 | 0 | 1 | 0 | 0 | 1 | 35 |
+| `class stdClass` (NEW_UNKNOWN_CLASS) | (辞書外) | 0 | 0 | 1 | 0 | 0 | 1 | 36 |
 | `Illuminate\Contracts\Auth\Authenticatable::$email` | vendor_class_method | 0 | 0 | 1 | 0 | 0 | 1 | 8 |
 | `App\Http\Controllers\Api\StatuslabelsController::authorize()` (VENDOR_PARENT) | authorization | 0 | 0 | 0 | 0 | 1 | 1 | 8 |
 | `Laravel\Socialite\Facades\Socialite::driver()` | vendor_class_method | 0 | 0 | 0 | 1 | 0 | 1 | 4 |
@@ -400,19 +409,19 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 読み方:
 
-- 単独で救えるのは 147 本(2,091 本の 7.0%)にとどまる。大半のルートは、複数の原因を同時に持つためである。
+- 単独で救えるのは 144 本(2,091 本の 6.9%)にとどまる。大半のルートは、複数の原因を同時に持つためである。
 - 単独の原因で多いのは、`VENDOR_PARENT`(親クラスがベンダーのメソッド)のルートごとの原因である。ただしこの中身は、パッケージが提供するルートとアプリのコントローラーの混在である(3.4.2)。
-- 逆に、含むルートが多い原因(`trans()` 1,122、`config()` 843、`property type not declared` 788、`LOOP_SOURCE_UNKNOWN` 720、`request()` 603、`redirect()` 557、`str_replace()` 533)は、単独で救える本数が 0 か数本である。多くのルートに載っているが、必ず別の原因と一緒に載っているためである。1 つだけ緩めても、ルートは救われない。
+- 逆に、含むルートが多い原因(`trans()` 1,197、`config()` 976、`LOOP_SOURCE_UNKNOWN` 876、`property type not declared` 788、`request()` 753、`str_replace()` 678、`redirect()` 557)は、単独で救える本数が 0 か数本である。多くのルートに載っているが、必ず別の原因と一緒に載っているためである。1 つだけ緩めても、ルートは救われない。
 
 `gap` コードで束ねると(ルートの `gap` コードが 1 種類だけのルート)、次のとおりである。ラベルごとに割ると上の表のように細かくなる `VENDOR_PARENT` は、ここでは 1 行にまとまる。
 
 | gap コード | BookStack | Firefly III | Koel | Laravel.io | Snipe-IT | そのコードだけを持つ合計 | 含むルート合計 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `VENDOR_PARENT` | 1 | 8 | 41 | 41 | 35 | 126 | 1,446 |
-| `VENDOR_CALL_NOT_MODELLED` | 19 | 2 | 21 | 4 | 7 | 53 | 1,847 |
-| `UNRESOLVABLE_BINDING` | 0 | 7 | 0 | 0 | 2 | 9 | 1,093 |
-| `VIEW_NOT_FOUND` | 0 | 1 | 0 | 0 | 3 | 4 | 215 |
-| `NEW_UNKNOWN_CLASS` | 0 | 0 | 1 | 0 | 0 | 1 | 705 |
+| `VENDOR_CALL_NOT_MODELLED` | 19 | 2 | 21 | 4 | 7 | 53 | 1,906 |
+| `UNRESOLVABLE_BINDING` | 0 | 7 | 0 | 0 | 2 | 9 | 1,209 |
+| `VIEW_NOT_FOUND` | 0 | 1 | 0 | 0 | 0 | 1 | 28 |
+| `NEW_UNKNOWN_CLASS` | 0 | 0 | 1 | 0 | 0 | 1 | 711 |
 
 #### 3.4.2 ベンダー提供ルートとアプリのコントローラーの内訳
 
@@ -476,22 +485,22 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 | カテゴリ | 含むルート | BookStack | Firefly III | Koel | Laravel.io | Snipe-IT | 単独で救える合計 | 対 controller | 許可表の状態(`gap` 単位) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| `auth_user`(`Auth::user()`・`auth()`・`$request->user()`・`@auth`) | 618 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | refused ×1,401、not on allow-list ×52 |
-| `authorization`(Gate・Policy・`authorize()`・`@can`) | 676 | 0 | 0 | 1 | 0 | 1 | 2 | 0.1% | refused ×1 |
+| `auth_user`(`Auth::user()`・`auth()`・`$request->user()`・`@auth`) | 781 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | refused ×1,634、not on allow-list ×52 |
+| `authorization`(Gate・Policy・`authorize()`・`@can`) | 707 | 0 | 0 | 1 | 0 | 1 | 2 | 0.1% | refused ×1 |
 | `validation`(`validate()`・FormRequest・Validator) | 107 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | refused ×8 |
-| `blade_component_include`(コンポーネント・`@include` 系) | 236 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | — |
-| `view_slash`(ビュー名の「/」の読み。`VIEW_NOT_FOUND`。裁定待ち、6.4) | 187 | 0 | 0 | 0 | 0 | 3 | 3 | 0.1% | — |
-| `binding`(`bind()`・`singleton()` の抽象が定数でない) | 1,093 | 0 | 7 | 0 | 0 | 2 | 9 | 0.4% | — |
-| `builtin_pure`(許可表外の純 PHP 関数: `strtolower()` 等) | 1,469 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | not on allow-list ×18,315、callback argument ×3 |
-| `container`(`app()`・`resolve()`) | 533 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | refused ×1,165 |
-| `laravel_helper`(`trans()`・`config()`・`request()`・`route()`・`redirect()`・`session()`・`url()` 等) | 1,701 | 3 | 1 | 0 | 1 | 6 | 11 | 0.5% | not on allow-list ×39,144、arity mismatch ×130、refused ×115 |
+| `blade_component_include`(コンポーネント・`@include` 系) | 362 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | — |
+| `view_slash`(ビュー名の「/」の読み。FIX2 で修正済みのため 0 本。6.4) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | — |
+| `binding`(`bind()`・`singleton()` の抽象が定数でない) | 1,209 | 0 | 7 | 0 | 0 | 2 | 9 | 0.4% | — |
+| `builtin_pure`(許可表外の純 PHP 関数: `strtolower()` 等) | 1,581 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | not on allow-list ×19,390、callback argument ×3 |
+| `container`(`app()`・`resolve()`) | 692 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | refused ×2,091 |
+| `laravel_helper`(`trans()`・`config()`・`request()`・`route()`・`redirect()`・`session()`・`url()` 等) | 1,763 | 3 | 1 | 0 | 1 | 6 | 11 | 0.5% | not on allow-list ×118,268、arity mismatch ×130、refused ×115 |
 | `app_global_function`(アプリ自前のグローバル関数: `setting()`・`userCan()` 等) | 464 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | not on allow-list ×6,290 |
-| `other_function`(ファイル・通信・状態を持つ PHP 組み込み関数: `file_exists()`・`mkdir()`・`ini_set()` 等) | 400 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | not on allow-list ×1,583 |
+| `other_function`(ファイル・通信・状態を持つ PHP 組み込み関数: `file_exists()`・`mkdir()`・`ini_set()` 等) | 425 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | not on allow-list ×1,613 |
 | `vendor_parent`(親クラス(ベンダー)のメソッド) | 893 | 1 | 8 | 40 | 41 | 34 | 124 | 5.9% | — |
-| `blade_other`(`@icon`・`@inject`・`@sectionMissing`・`@click` 等) | 301 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | — |
+| `blade_other`(`@icon`・`@inject`・`@sectionMissing`・`@click` 等) | 445 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0% | — |
 | `vendor_class_method`(ベンダークラスのメソッド: `Request->input()` 等) | 524 | 1 | 0 | 6 | 1 | 0 | 8 | 0.4% | not on allow-list ×3,338、property not modelled ×231、refused ×37 |
 
-(`auth_user` の「含むルート」618 には、`auth()` を持つ 530 本などが重なって入っている。`laravel_helper` の `arity mismatch` は、引数の数が許可表の想定と合わないもの。)
+(`auth_user` の「含むルート」781 には、`auth()` を持つ 690 本などが重なって入っている。`laravel_helper` の `arity mismatch` は、引数の数が許可表の想定と合わないもの。)
 
 次に、カテゴリを段階的に足したときの累積を示す。累積は、それまでのカテゴリを**すべて**緩めたとき、`gap` がゼロになるルートの数(ルートの持つカテゴリがすべて緩めた集合に含まれる件数)である。足す順序は表のとおり。
 
@@ -502,61 +511,61 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | 3 | +`authorization` | 0 | 0 | 1 | 0 | 3 | 4 | +4 | 0.2% |
 | 4 | +`validation` | 0 | 0 | 1 | 0 | 3 | 4 | +0 | 0.2% |
 | 5 | +`blade_component_include` | 0 | 0 | 1 | 0 | 3 | 4 | +0 | 0.2% |
-| 6 | +`view_slash` | 0 | 0 | 1 | 0 | 52 | 53 | +49 | 2.5% |
-| 7 | +`binding` | 0 | 10 | 1 | 0 | 56 | 67 | +14 | 3.2% |
-| 8 | +`laravel_helper` | 5 | 20 | 1 | 3 | 140 | 169 | +102 | 8.1% |
-| 9 | +`container` | 5 | 23 | 1 | 3 | 140 | 172 | +3 | 8.2% |
-| 10 | +`app_global_function` | 9 | 27 | 1 | 3 | 140 | 180 | +8 | 8.6% |
-| 11 | +`other_function` | 9 | 27 | 1 | 3 | 143 | 183 | +3 | 8.8% |
-| 12 | +`vendor_parent` | 17 | 84 | 41 | 51 | 179 | 372 | +189 | 17.8% |
-| 13 | +`blade_other` | 17 | 84 | 41 | 51 | 183 | 376 | +4 | 18.0% |
-| 14 | +`vendor_class_method` | 30 | 85 | 60 | 56 | 184 | 415 | +39 | 19.8% |
+| 6 | +`view_slash` | 0 | 0 | 1 | 0 | 3 | 4 | +0 | 0.2% |
+| 7 | +`binding` | 0 | 10 | 1 | 0 | 5 | 16 | +12 | 0.8% |
+| 8 | +`laravel_helper` | 5 | 20 | 1 | 3 | 50 | 79 | +63 | 3.8% |
+| 9 | +`container` | 5 | 23 | 1 | 3 | 51 | 83 | +4 | 4.0% |
+| 10 | +`app_global_function` | 9 | 27 | 1 | 3 | 51 | 91 | +8 | 4.4% |
+| 11 | +`other_function` | 9 | 27 | 1 | 3 | 54 | 94 | +3 | 4.5% |
+| 12 | +`vendor_parent` | 17 | 84 | 41 | 51 | 89 | 282 | +188 | 13.5% |
+| 13 | +`blade_other` | 17 | 84 | 41 | 51 | 90 | 283 | +1 | 13.5% |
+| 14 | +`vendor_class_method` | 30 | 85 | 60 | 56 | 91 | 322 | +39 | 15.4% |
 
-**14 カテゴリをすべて緩めると、2,091 本のうち 415 本(19.8%)で `gap` がゼロになる。** 残りの 1,671 本(`gap` を持つ 2,086 本のうち)は、14 カテゴリの外の原因が残る(3.4.4)。
+**14 カテゴリをすべて緩めると、2,091 本のうち 322 本(15.4%)で `gap` がゼロになる。** 残りの 1,764 本(`gap` を持つ 2,086 本のうち)は、14 カテゴリの外の原因が残る(3.4.4)。FIX2 の前は 415 本(19.8%)だった。**減ったのは、緩めにくくなったのではなく、FIX2 で共通レイアウトが歩かれ、これまで読まれなかった `gap`(主にレイアウトの中の追えない呼び出し)が Snipe-IT の各ルートに現れたためと見ている**(Snipe-IT は 184 本から 91 本)。他の 4 アプリの数字(30・85・60・56 本)は変わっていない。`view_slash`(ビュー名の「/」)は FIX2 で修正済みなので、段 6 の増分は 0 である。
 
-累積は集合の和なので、最終の数は足す順序に依らない。順序をランダムに入れ替えた 200 通り(乱数種固定)で、最終の救われるルート数がすべて 415 本で一致することを確かめた(200/200)。一方、**途中の増分は順序で変わる**。たとえば逆順で足すと、先頭の `vendor_class_method` は +8、`vendor_parent` は +124、`builtin_pure` は最後に +104 になる。そこで、順序に依らない指標として、**最終の 415 本から、そのカテゴリだけを緩めない場合に失う本数**(そのカテゴリが最後の関門になっているルート数)を示す。
+累積は集合の和なので、最終の数は足す順序に依らない。順序をランダムに入れ替えた 200 通り(乱数種固定)で、最終の救われるルート数がすべて 322 本で一致することを確かめた(200/200)。一方、**途中の増分は順序で変わる**。たとえば逆順で足すと、先頭の `vendor_class_method` は +8、`vendor_parent` は +124、`builtin_pure` は最後に +88 になる。そこで、順序に依らない指標として、**最終の 322 本から、そのカテゴリだけを緩めない場合に失う本数**(そのカテゴリが最後の関門になっているルート数)を示す。
 
 | カテゴリ | BookStack | Firefly III | Koel | Laravel.io | Snipe-IT | 全体 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `builtin_pure` | 13 | 34 | 2 | 2 | 53 | 104 |
-| `auth_user` | 2 | 13 | 3 | 4 | 14 | 36 |
-| `authorization` | 0 | 0 | 5 | 5 | 118 | 128 |
+| `builtin_pure` | 13 | 34 | 2 | 2 | 37 | 88 |
+| `auth_user` | 2 | 13 | 3 | 4 | 9 | 31 |
+| `authorization` | 0 | 0 | 5 | 5 | 36 | 46 |
 | `validation` | 5 | 0 | 0 | 1 | 0 | 6 |
-| `blade_component_include` | 0 | 0 | 0 | 0 | 10 | 10 |
-| `view_slash` | 0 | 0 | 0 | 0 | 96 | 96 |
-| `binding` | 0 | 74 | 0 | 0 | 47 | 121 |
-| `laravel_helper` | 28 | 44 | 6 | 13 | 94 | 185 |
-| `container` | 2 | 10 | 0 | 0 | 0 | 12 |
+| `blade_component_include` | 0 | 0 | 0 | 0 | 3 | 3 |
+| `view_slash` | 0 | 0 | 0 | 0 | 0 | 0 |
+| `binding` | 0 | 74 | 0 | 0 | 35 | 109 |
+| `laravel_helper` | 28 | 44 | 6 | 13 | 52 | 143 |
+| `container` | 2 | 10 | 0 | 0 | 3 | 15 |
 | `app_global_function` | 17 | 4 | 1 | 0 | 0 | 22 |
 | `other_function` | 1 | 1 | 0 | 0 | 4 | 6 |
-| `vendor_parent` | 12 | 57 | 42 | 52 | 36 | 199 |
-| `blade_other` | 0 | 0 | 0 | 0 | 4 | 4 |
+| `vendor_parent` | 12 | 57 | 42 | 52 | 35 | 198 |
+| `blade_other` | 0 | 0 | 0 | 0 | 1 | 1 |
 | `vendor_class_method` | 13 | 1 | 19 | 5 | 1 | 39 |
 
 読み方:
 
-- 最後の関門の本数が大きいのは、`vendor_parent` 199、`laravel_helper` 185、`authorization` 128、`binding` 121、`builtin_pure` 104、`view_slash` 96 である。
-- 全体の 415 本のうち Snipe-IT が 184 本(44%)を占める。Snipe-IT の `authorization` 118 と `view_slash` 96 は、他の 4 本に無い偏りである。
-- `view_slash` を除く 13 カテゴリを緩めて救われるのは 319 本(15.3%)で、96 本は `view_slash` が最後の関門である。`view_slash` は、ツールの読み違いの疑い(有効な名前を無効と読む。6.4)であり、「直す」と裁定されれば、緩和でなく修正済みの数として別に数える。裁定が出るまでは、この 2 つの数を併記する。
+- 最後の関門の本数が大きいのは、`vendor_parent` 198、`laravel_helper` 143、`binding` 109、`builtin_pure` 88、`authorization` 46、`auth_user` 31 である。
+- 全体の 322 本のうち Snipe-IT が 91 本(28%)を占める。FIX2 の前は 415 本のうち 184 本(44%)で、Snipe-IT の `authorization` 118 と `view_slash` 96 が目立っていた。FIX2 の後は、`view_slash` が 0 になり、`authorization` も 36 に下がった。
+- `view_slash` は、ツールの読み違い(有効な名前を無効と読む)だったので、D36 に従い FIX2 で直した。緩和でなく修正済みの数として別に数えていた分は、0 本になった。
 
 #### 3.4.4 全カテゴリを緩めても残る `gap`
 
-14 カテゴリをすべて緩めても `gap` が残るルートは 1,671 本である。残る原因は、辞書の外の原因(下表)である。「あと 1 原因で救える」は、残る原因がその 1 つだけのルートの数である。
+14 カテゴリをすべて緩めても `gap` が残るルートは 1,764 本である(FIX2 の前は 1,671 本)。残る原因は、辞書の外の原因(下表)である。「あと 1 原因で救える」は、残る原因がその 1 つだけのルートの数である。
 
 | 残る原因 | 含むルート | あと 1 原因で救える |
 | --- | ---: | ---: |
-| `property type not declared` (UNRESOLVED_CALL) | 788 | 95 |
-| `LOOP_SOURCE_UNKNOWN` | 720 | 14 |
-| `other` (UNRESOLVED_CALL) | 471 | 13 |
-| `static property read` (UNRESOLVED_CALL) | 455 | 29 |
-| `variable has no known type` (UNRESOLVED_CALL) | 389 | 64 |
+| `LOOP_SOURCE_UNKNOWN` | 876 | 12 |
+| `property type not declared` (UNRESOLVED_CALL) | 788 | 94 |
+| `variable has no known type` (UNRESOLVED_CALL) | 548 | 55 |
+| `other` (UNRESOLVED_CALL) | 492 | 11 |
+| `static property read` (UNRESOLVED_CALL) | 470 | 15 |
 | `MODEL_OBSERVER_NOT_ANALYZED` | 248 | 48 |
+| `class Carbon\Carbon` (NEW_UNKNOWN_CLASS) | 197 | 1 |
 | `getMessage() on a plaint` | 193 | 4 |
-| `class Carbon\Carbon` (NEW_UNKNOWN_CLASS) | 192 | 1 |
-| `class Illuminate\Support\Collection` (NEW_UNKNOWN_CLASS) | 187 | 6 |
-| `LOOP_BOUND_UNKNOWN` | 158 | 2 |
-| `DYNAMIC_CLASS_NAME` | 152 | 0 |
-| `property name not literal` (UNRESOLVED_CALL) | 152 | 0 |
+| `class Illuminate\Support\Collection` (NEW_UNKNOWN_CLASS) | 187 | 4 |
+| `DYNAMIC_CLASS_NAME` | 174 | 0 |
+| `property name not literal` (UNRESOLVED_CALL) | 165 | 0 |
+| `LOOP_BOUND_UNKNOWN` | 161 | 2 |
 | `class League\Fractal\Manager` (NEW_UNKNOWN_CLASS) | 148 | 0 |
 | `class League\Fractal\Serializer\JsonApiSerializer` (NEW_UNKNOWN_CLASS) | 146 | 0 |
 | `header() on a plaint` | 140 | 0 |
@@ -564,35 +573,35 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | `DYNAMIC_METHOD_NAME` | 84 | 5 |
 | `class HTMLPurifier` (NEW_UNKNOWN_CLASS) | 83 | 0 |
 | `Safe\json_encode()` | 83 | 0 |
-| `MODEL_INFO_UNAVAILABLE` | 81 | 22 |
+| `MODEL_INFO_UNAVAILABLE` | 82 | 22 |
 
-残るルートが持つ `gap` コードは、`UNRESOLVED_CALL` 1,287、`LOOP_SOURCE_UNKNOWN` 720、`VENDOR_CALL_NOT_MODELLED` 717、`NEW_UNKNOWN_CLASS` 705、`UNKNOWN_BUILDER_METHOD` 507、`MODEL_OBSERVER_NOT_ANALYZED` 248、`LOOP_BOUND_UNKNOWN` 158、`DYNAMIC_CLASS_NAME` 152、`METHOD_NOT_FOUND` 95、`RECURSION` 95、`DYNAMIC_METHOD_NAME` 84、`MODEL_INFO_UNAVAILABLE` 81 などである(本数は、そのコードを持つ残りルート数)。
+残るルートが持つ `gap` コードは、`UNRESOLVED_CALL` 1,407、`LOOP_SOURCE_UNKNOWN` 876、`VENDOR_CALL_NOT_MODELLED` 728、`NEW_UNKNOWN_CLASS` 711、`UNKNOWN_BUILDER_METHOD` 526、`MODEL_OBSERVER_NOT_ANALYZED` 248、`DYNAMIC_CLASS_NAME` 174、`LOOP_BOUND_UNKNOWN` 161、`METHOD_NOT_FOUND` 95、`RECURSION` 95、`DYNAMIC_METHOD_NAME` 84、`MODEL_INFO_UNAVAILABLE` 82 などである(本数は、そのコードを持つ残りルート数)。
 
-- `other` (UNRESOLVED_CALL) の 471 本には、FIX3 で足した防壁(型の取れない値へのプロパティ読みを `gap` にする)の `gap` を持つ 450 本が含まれる(集計の分類の規則上、防壁は `other` に入る)。防壁の `gap` の中身は 6.1 に書く。
+- `other` (UNRESOLVED_CALL) の 492 本には、FIX3 で足した防壁(型の取れない値へのプロパティ読みを `gap` にする)の `gap` を持つ 471 本が含まれる(集計の分類の規則上、防壁は `other` に入る)。防壁の `gap` の中身は 6.1 に書く。
 - `getMessage() on a plaint` や `header() on a plaint` の `plaint` は、ツールが受け手の種類(型の取れない値)として出す語である。受け手のクラス名が `message` に無いので、どのクラスの呼び出しかは集計できない。
 
 残りの原因を、「増える救われるルート数」が最大のものから 1 つずつ足していくと(貪欲法。最適とは限らない)、次のように増える。
 
 | 段 | 足す原因 | 増分 | 累積(全体) |
 | ---: | --- | ---: | ---: |
-| 1 | `property type not declared` (UNRESOLVED_CALL) | 95 | 510 |
-| 2 | `variable has no known type` (UNRESOLVED_CALL) | 82 | 592 |
-| 3 | `LOOP_SOURCE_UNKNOWN` | 71 | 663 |
-| 4 | `MODEL_OBSERVER_NOT_ANALYZED` | 63 | 726 |
-| 5 | `static property read` (UNRESOLVED_CALL) | 46 | 772 |
-| 6 | `other` (UNRESOLVED_CALL) | 40 | 812 |
-| 7 | `MODEL_INFO_UNAVAILABLE` | 25 | 837 |
-| 8 | `getMessage() on a plaint` | 24 | 861 |
-| 9 | `class Illuminate\Support\Collection` (NEW_UNKNOWN_CLASS) | 19 | 880 |
-| 10 | `class Carbon\Carbon` (NEW_UNKNOWN_CLASS) | 48 | 928 |
+| 1 | `property type not declared` (UNRESOLVED_CALL) | 94 | 416 |
+| 2 | `variable has no known type` (UNRESOLVED_CALL) | 74 | 490 |
+| 3 | `LOOP_SOURCE_UNKNOWN` | 147 | 637 |
+| 4 | `MODEL_OBSERVER_NOT_ANALYZED` | 63 | 700 |
+| 5 | `static property read` (UNRESOLVED_CALL) | 45 | 745 |
+| 6 | `other` (UNRESOLVED_CALL) | 40 | 785 |
+| 7 | `MODEL_INFO_UNAVAILABLE` | 25 | 810 |
+| 8 | `getMessage() on a plaint` | 24 | 834 |
+| 9 | `Safe\preg_replace()` | 19 | 853 |
+| 10 | `class Carbon\Carbon` (NEW_UNKNOWN_CLASS) | 32 | 885 |
 
-(貪欲法を 30 段目まで進めると、累積は 1,123 本になる。)
+(貪欲法を 30 段目まで進めると、累積は 1,099 本になる。)
 
-これらは、例外表や Blade では解けない `gap` である。中身は、型の取れない値(プロパティ・変数・静的プロパティ)、ループの対象、オブザーバ、モデル情報、ベンダーのクラスの `new` などで、フェーズ1の仕組みを広げる話になる(見立て)。14 カテゴリをすべて緩めても、2,091 本の約 8 割(1,671 本)は `gap` が残る。
+これらは、例外表や Blade では解けない `gap` である。中身は、型の取れない値(プロパティ・変数・静的プロパティ)、ループの対象、オブザーバ、モデル情報、ベンダーのクラスの `new` などで、フェーズ1の仕組みを広げる話になる(見立て)。14 カテゴリをすべて緩めても、2,091 本の約 84%(1,764 本)は `gap` が残る。
 
 #### 3.4.5 救われたルートの見込みの判定
 
-14 カテゴリをすべて緩めて救われる 415 本を、**現在の出力**の下限(`lower_bound`)・`events_found`・`gap` のループ位置で分類した。緩めた後の判定の**見込み**であって、実測ではない。
+14 カテゴリをすべて緩めて救われる 322 本を、**現在の出力**の下限(`lower_bound`)・`events_found`・`gap` のループ位置で分類した。緩めた後の判定の**見込み**であって、実測ではない。
 
 - (i) 下限が付いておらず、`gap` がループの外にある。緩めると O(1) になりうる。ただし「下限が付かなかった」だけで、O(1) の根拠ではない(D21)。`events_found` が 0 のものと、あるものに分ける。
 - (ii) 下限 ≥O(N) または ≥O(N*M) がある。緩めて確定しても、その次数以上である。
@@ -604,17 +613,16 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | Firefly III | 85 | 80 | 1 | 4 | 0 | 0 |
 | Koel | 60 | 58 | 2 | 0 | 0 | 0 |
 | Laravel.io | 56 | 56 | 0 | 0 | 0 | 0 |
-| Snipe-IT | 184 | 106 | 51 | 27 | 0 | 0 |
-| 全体 | 415 | 318 | 66 | 31 | 0 | 0 |
+| Snipe-IT | 91 | 51 | 32 | 8 | 0 | 0 |
+| 全体 | 322 | 263 | 47 | 12 | 0 | 0 |
 
-軸ごとの下限(救われる 415 本)は次のとおり。**両軸とも下限なしが 384 本**で、残る **31 本が下限つき**である(384 + 31 = 415)。下限つきの 31 本はすべて memory 軸に ≥O(N) を持ち、そのうち query 軸にも ≥O(N) を持つものが 7 本である。≥O(N*M) を持つものは、どちらの軸にも 0 本である。
+軸ごとの下限(救われる 322 本)は次のとおり。**両軸とも下限なしが 310 本**で、残る **12 本が下限つき**である(310 + 12 = 322)。下限つきの 12 本はすべて memory 軸に ≥O(N) を持ち、そのうち query 軸にも ≥O(N) を持つものが 6 本である。≥O(N*M) を持つものは、どちらの軸にも 0 本である。
 
 カテゴリ単独で救われるルートの見込み(全体)は次のとおり。
 
 | カテゴリ | 単独で救われる | (i) events 0 | (i) events あり | (ii) ≥O(N) | (ii) ≥O(N*M) | (iii) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `authorization` | 2 | 0 | 2 | 0 | 0 | 0 |
-| `view_slash` | 3 | 3 | 0 | 0 | 0 | 0 |
 | `binding` | 9 | 9 | 0 | 0 | 0 | 0 |
 | `laravel_helper` | 11 | 8 | 3 | 0 | 0 | 0 |
 | `vendor_parent` | 124 | 124 | 0 | 0 | 0 | 0 |
@@ -622,9 +630,10 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 
 読み方:
 
-- 見込みで最も多い (i)(384 本、92.5%)は、「下限が付かなかった」ルートである。**これは、緩めれば O(1) になるという意味ではない。** 緩めた後に追える範囲が広がり、そこに N 倍の費用が現れれば、O(N) や O(N*M) になりうる。`gap` ゼロは確定の保証ではない(冒頭の注)。
-- (ii)(31 本)は、緩めて確定しても、少なくとも下限の次数にはなる、という見込みである。ただし下限そのものが過大になる型がある(抜き取りの結果、§4 と 6.5)ので、この読みも保証ではない。
+- 見込みで最も多い (i)(310 本、96.3%)は、「下限が付かなかった」ルートである。**これは、緩めれば O(1) になるという意味ではない。** 緩めた後に追える範囲が広がり、そこに N 倍の費用が現れれば、O(N) や O(N*M) になりうる。`gap` ゼロは確定の保証ではない(冒頭の注)。
+- (ii)(12 本)は、緩めて確定しても、少なくとも下限の次数にはなる、という見込みである。ただし下限そのものが過大になる型がある(抜き取りの結果、§4 と 6.5)ので、この読みも保証ではない。
 - (iii) は 0 本だった。`gap` がループの中にあって下限が無いルートは、14 カテゴリを緩めても救われなかった(下限があるものは (ii) に数えている)。
+- FIX2 の前は、救われる 415 本が (i) 384 本・(ii) 31 本だった。FIX2 の後に (ii) が 12 本に減ったのは、下限を持つ Snipe-IT のルートの多くが、共通レイアウトの中の `gap` を新たに持ち、14 カテゴリを緩めても `gap` が残る側に移ったためと見ている(切り分けまではしていない)。
 - 緩めて「確定」に動くルートが実際に何本かは、緩めて測らなければ分からない。判定を緩める変更を入れる段では、新たに確定したルートの抜き取り確認を必ず入れる(D33)。
 
 #### 3.4.6 測定条件の注記
@@ -639,13 +648,12 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
    | Firefly III | 641 | 641 | 638 | 638 | 85 (13.3%) | 85 (13.3%) | 82 (12.9%) | 82 (12.9%) |
    | Koel | 260 | 245 | 245 | 245 | 60 (23.1%) | 45 (18.4%) | 45 (18.4%) | 45 (18.4%) |
    | Laravel.io | 97 | 92 | 89 | 71 | 56 (57.7%) | 51 (55.4%) | 48 (53.9%) | 30 (42.3%) |
-   | Snipe-IT | 752 | 752 | 749 | 730 | 184 (24.5%) | 184 (24.5%) | 181 (24.2%) | 162 (22.2%) |
-   | 全体 | 2,091 | 2,071 | 2,062 | 2,025 | 415 (19.8%) | 395 (19.1%) | 386 (18.7%) | 349 (17.2%) |
+   | Snipe-IT | 752 | 752 | 749 | 730 | 91 (12.1%) | 91 (12.1%) | 88 (11.7%) | 69 (9.5%) |
+   | 全体 | 2,091 | 2,071 | 2,062 | 2,025 | 322 (15.4%) | 302 (14.6%) | 293 (14.2%) | 256 (12.6%) |
 
    「アプリのコントローラーだけ」は、ベンダー提供のルート(66 本)を分母から除いた数である。
 
-2. **FIX4 後の数え方。** FIX4 で、同じ行の別の原因が別の `gap` として数えられるようになった。このため、`gap` の総数は修正前に比べて増えた(5 本の合計で 113,963 → 131,423、+17,460)。増加は、同じ行の別原因(13,402)、FIX3 の防壁が新しく検出した行(1,983)、読めるようになったテンプレートやリソースの中の行(2,798)、消えた `gap`(723)の差し引きである。**判定(growth・確度・下限・degree)が動いたルートは、修正前の出力に対して 0 本**である。つまり、`gap` が正確になっただけで、救われる本数の見積もりが軽くなる方向にも重くなる方向にも動いていない。「ルート数」で数える本節の表は、`gap` 件数の増加の影響を受けにくい(例: `VENDOR_CALL_NOT_MODELLED` を持つルートは 1,847 本のまま。`UNRESOLVED_CALL` は 1,222 → 1,287 本)。
-
+2. **`gap` の数え方の変化。** FIX4 で、同じ行の別の原因が別の `gap` として数えられるようになった。FIX2 では、これまで読まれなかった共通レイアウトが Snipe-IT の 187 ルートで歩かれ、その中の `gap` が各ルートに現れた。このため、`gap` の総数は baseline に比べて増えた(5 本の合計で 113,963 → 269,390、+155,427。うち FIX1〜FIX5 の分が +17,460、FIX2 の分が +137,967)。内訳は §3.2.1 に書く。**判定(growth・確度)が動いたルートは、baseline に対して 0 本**である。下限が動いたのは Snipe-IT の 19 本だけで、すべて重い側である(§3.2.1)。つまり、`gap` が正確になった結果、救われる本数の見積もりは FIX2 の後に 415 → 322 本へと減った(重い側に動いた)。軽くなる方向には動いていない。「ルート数」で数える本節の表は、`gap` 件数の増加の影響を受けにくいが、FIX2 の分は Snipe-IT のルートごとの `gap` の組み合わせを変えたので、影響を受けた(例: `VENDOR_CALL_NOT_MODELLED` を持つルートは、FIX1〜FIX5 の段階では 1,847 本のままだったが、FIX2 の後は 1,906 本。`UNRESOLVED_CALL` は 1,222 → 1,407 本)。
 3. **集計の道具の限界。**
    - 原因の名前は、出力の `message` の文言から取っている。文言が変わると集計が黙って崩れる(6.9)。
    - `X() on a <型>` の形は、受け手のクラス名が `message` に無いので、どのクラスの呼び出しかが分からない。名前の同じ別クラスのメソッドが 1 つの原因に束ねられる。
@@ -653,45 +661,66 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
    - `syntax: unbalanced @else` / `@endif` は、開きのディレクティブ(`@can`・`@sectionMissing` など)が未対応で読み飛ばされた結果、対応先を失って出る二次の `gap` であることが多い。同じ原因が二重に数えられる。
    - カテゴリの辞書と、純 PHP 関数・Laravel ヘルパーの一覧は、見立てである。辞書の外の原因は「全カテゴリを緩めた」に含まれない。
    - 緩和の見積もりは、キャッシュの `scenario`(miss と hit)を区別しない。
-   - 順序に依らない最終の本数は 415 だが、途中の増分は順序で変わる(3.4.3)。
+   - 順序に依らない最終の本数は 322 だが、途中の増分は順序で変わる(3.4.3)。
 4. **migrate 済みの DB が前提**である(§2.4)。未 migrate の DB では、`model:show` が失敗して下限が弱まる。
-5. **「救われる」は見積もりである。** 冒頭の注のとおり、`gap` ゼロは確定の保証ではない。5 アプリの合計であり、アプリごとの偏りが大きい(Snipe-IT が 415 本の 44%)。
+5. **「救われる」は見積もりである。** 冒頭の注のとおり、`gap` ゼロは確定の保証ではない。5 アプリの合計であり、アプリごとの偏りが大きい(Snipe-IT が 322 本の 28%)。
 
 ### 3.5 性能(解析時間・ピークメモリ)
 
-測り方は §2.6 のとおりである。5 回測り、中央値と最小〜最大を示す。測定は FIX5 を入れた最終版で、5 本とも migrate 済みの DB で行った。数字は、最終版で測った値である。
+測り方は §2.6 のとおりである。5 回測り、中央値と最小〜最大を示す。測定は FIX2 と D38 を入れた最終版(`9f60add`)で、5 本とも migrate 済みの DB で行った。数字は、最終版で測った値である。比較のため、FIX2 の前(`f11b1ba`)の値を併記した。**Snipe-IT だけが大きく重くなった(3.5.1)。**
 
 **解析時間(秒)**
 
-| アプリ | ルート数 | 入口 | 解析だけ(中央値 / 最小〜最大) | artisan 込み(中央値 / 最小〜最大) | FIX 前の artisan 込み(中央値) |
-| --- | ---: | --- | --- | --- | ---: |
-| BookStack | 341 | artisan | 分離できず | 8.448 / 8.176〜8.685 | 7.813 |
-| Firefly III | 641 | artisan | 3.822 / 3.727〜3.938 | 13.469 / 13.306〜13.666 | 14.712 |
-| Koel | 260 | artisan(主)・事前書き出し(補助) | 0.791 / 0.779〜0.821 | 8.112 / 8.094〜8.133 | 8.373 |
-| Laravel.io | 97 | artisan | 分離できず | 2.040 / 1.720〜2.292 | 1.818 |
-| Snipe-IT | 752 | artisan(主)・事前書き出し(補助) | 4.171 / 4.056〜4.372 | 15.605 / 14.780〜15.642 | 16.703 |
+| アプリ | ルート数 | 入口 | 解析だけ(中央値 / 最小〜最大) | artisan 込み(中央値 / 最小〜最大) | FIX2 の前の artisan 込み(中央値) | FIX 前の artisan 込み(中央値) |
+| --- | ---: | --- | --- | --- | ---: | ---: |
+| BookStack | 341 | artisan | 分離できず | 壁時計 9.15 / 8.79〜9.53(`--stats` の elapsed は 8.71〜9.06) | 8.448(`--stats`) | 7.813 |
+| Firefly III | 641 | artisan | 3.985 / 3.806〜4.085 | 13.973 / 13.401〜14.083 | 13.469 | 14.712 |
+| Koel | 260 | artisan(主)・事前書き出し(補助) | 0.801 / 0.765〜0.816 | 8.337 / 8.135〜8.739 | 8.112 | 8.373 |
+| Laravel.io | 97 | artisan | 分離できず | 2.161 / 2.077〜2.271 | 2.040 | 1.818 |
+| **Snipe-IT** | 752 | artisan(主)・事前書き出し(補助) | **10.748 / 10.592〜11.150** | **22.720 / 21.300〜24.559** | 15.605 | 16.703 |
 
 - 「解析だけ」の測り方はアプリごとに違う。Firefly III は artisan 込みの時間から artisan の呼び出し 42 回の合計を引いた値、Koel と Snipe-IT は事前書き出し方式(`--export-dir`)の時間、BookStack と Laravel.io は artisan の呼び出しが解析と一体で分離できなかった。**アプリ間で「解析だけ」の列を比べないこと。** 規模も違う(`app/` の PHP ファイルは BookStack 522・Firefly III 1,218・Koel 1,063・Laravel.io 206・Snipe-IT 745)。
-- artisan の書き出しの時間は、解析と別に記録した。Firefly III は 42 回(`route:list` 1 回と `model:show` 41 回)の合計が 9.647 秒(9.564〜9.728)、Koel は 24 回の合計が 6.781 秒(6.742〜6.837。事前書き出し 1 回は 6.616 秒)、Snipe-IT は 41 回の合計が 10.12〜10.76 秒である。この 3 本では、artisan の書き出しが「artisan 込み」の時間の大半を占める(Firefly III 約 72%・Koel 約 84%・Snipe-IT 約 65〜69%)。
-- BookStack は、無印の壁時計でも測った(中央値 8.76 秒、8.68〜8.89)。
+- artisan の書き出しの時間は、解析と別に記録した。Firefly III は 42 回(`route:list` 1 回と `model:show` 41 回)の合計が 9.998 秒(9.496〜10.105)、Koel は 24 回の合計が 7.011 秒(6.789〜7.311。事前書き出し 1 回は 7.102 秒)、Snipe-IT は 41 回の合計が 10.05〜11.36 秒である。Firefly III と Koel では、artisan の書き出しが「artisan 込み」の時間の大半を占める(Firefly III 約 72%・Koel 約 84%)。Snipe-IT は、解析が重くなったので、書き出しの占める割合が約 47% に下がった(10.05〜11.36 秒を、artisan 込みの中央値 22.720 秒で割った概算)。
+- BookStack は、FIX2 の後は壁時計で測った(中央値 9.15 秒、8.79〜9.53)。FIX2 の前は無印の壁時計で 8.76 秒(8.68〜8.89)だった。
 
 **ピークメモリ**
 
 `analyze` の `--stats` はピークメモリを出さないので、外から測った。アプリごとに測り方が違い、**列の意味が揃っていない。** いずれも peak-sim の PHP プロセスの値で、artisan が起こす子プロセスのメモリは含まない。
 
-| アプリ | 値(最終版、5 回) | 測り方 | FIX 前 |
-| --- | --- | --- | --- |
-| BookStack | 常駐メモリの最大 306,068 kB(約 299 MiB。305,788〜306,532 kB) | `/usr/bin/time -v` の Maximum resident set size | 約 265,000 kB |
-| Firefly III | `memory_get_peak_usage(true)` 373,968,896 B(約 356.6 MiB)、`(false)` 369,114,088 B(約 352.0 MiB)、`VmHWM` 393,556〜393,784 kB(約 385 MiB) | `auto_prepend_file` で、終了時に自分の値を標準エラーへ出す | `(true)` 358,617,088 B |
-| Koel | `memory_get_peak_usage(false)` 86,008,496 B(約 82.0 MiB)、`(true)` 90,181,632 B(約 86.0 MiB)、`VmHWM` 116,460〜116,876 kB(約 114 MiB) | `auto_prepend_file` で、終了時に自分の値を標準エラーへ出す | `(false)` 83,175,832 B |
-| Laravel.io | `memory_get_peak_usage(true)` 31,457,280 B(30.0 MiB) | peak-sim を同じプロセスに読み込み、終了時に出す | 同じ値 |
-| Snipe-IT | 常駐メモリの最大 420,804 kB(artisan 方式)、421,448 kB(事前書き出し方式。約 411 MiB) | `/usr/bin/time -v` の Maximum resident set size | 406,692 kB(artisan 方式) |
+| アプリ | 値(最終版、5 回) | 測り方 | FIX2 の前 | FIX 前 |
+| --- | --- | --- | --- | --- |
+| BookStack | 常駐メモリの最大 306,076 kB(約 299 MiB。305,692〜306,120 kB) | `/usr/bin/time -v` の Maximum resident set size | 306,068 kB | 約 265,000 kB |
+| Firefly III | `memory_get_peak_usage(true)` 373,968,896 B(約 356.6 MiB)、`(false)` 369,117,480 B(約 352.0 MiB)、`VmHWM` 393,248〜393,524 kB(約 384 MiB) | `auto_prepend_file` で、終了時に自分の値を標準エラーへ出す | `(true)` 373,968,896 B(同値) | `(true)` 358,617,088 B |
+| Koel | `memory_get_peak_usage(false)` 86,011,624 B(約 82.0 MiB)、`(true)` 90,181,632 B(約 86.0 MiB)、`VmHWM` 116,348〜116,952 kB(約 114 MiB) | `auto_prepend_file` で、終了時に自分の値を標準エラーへ出す | `(false)` 86,008,496 B | `(false)` 83,175,832 B |
+| Laravel.io | `memory_get_peak_usage(true)` 31,457,280 B(30.0 MiB) | peak-sim を同じプロセスに読み込み、終了時に出す | 同じ値 | 同じ値 |
+| **Snipe-IT** | **常駐メモリの最大 999,696 kB(事前書き出し方式。約 976 MiB)**、999,036 kB(artisan 方式) | `/usr/bin/time -v` の Maximum resident set size | 421,448 kB(事前書き出し方式。約 411 MiB)、420,804 kB(artisan 方式) | 406,692 kB(artisan 方式) |
 
-- `memory_get_peak_usage` は PHP が確保したメモリの最大、Maximum resident set size と `VmHWM` は OS が数える常駐メモリの最大で、後者のほうが大きく出る(Firefly III と Koel で両方を並べた)。**アプリ間でそのまま比べない。** 値の桁は、約 30〜420 MiB である。
-- **BookStack の増加は、FIX1 の影響と読む。因果は確かめていない。** FIX 前に比べて、時間は 7.813 秒から 8.448 秒(約 +8%)、メモリは約 265,000 kB から 306,068 kB(約 +15%)に増えた。揺れの範囲(±10% 前後)を超える増加である。FIX1 で、これまで `PARSE_FAILED` で読まれなかったテンプレートが読まれるようになり、解析する量が増えたためと読む。`gap` の件数が BookStack でもっとも増えたこと(33,051 件から 40,431 件、+22%)と整合する。ただし、同じ条件(同じ DB・同じ環境)で修正の前後の時間を比べる実験はしていない。FIX1 だけを入れた版との直接の比較(切り分けの測定)もしていないので、環境の違いや揺れの可能性は除けていない。ほかの 4 本は、FIX 前との差がメモリで 0〜+4.3%、時間は向きが揃わない(Firefly III −1.24 秒、Koel −0.26 秒、Laravel.io +0.22 秒、Snipe-IT −1.10 秒)。
-- **Laravel.io の外れ値は、比較に使わない。** 最終版の 2.040 秒(1.720〜2.292)は、直前の測定の 1.689 秒より遅い。測定中に、ほかの Docker が同時に動いていた(`load average` 4.6 の記録がある)ためである。Laravel.io の時間は参考値として載せるだけで、FIX 前後の比較には使わない。
-- FIX5 の前後(FIX1〜FIX4 の版と最終版)では、時間もメモリも差が無い(メモリは全アプリで ±0.1% 以内。時間は Laravel.io の外れ値を除いて、向きが揃わず揺れの範囲)。
-- 1 つのアプリにつき 5 回の測定であり、修正の性能への影響を示すものではない。測定は WSL2 上の 1 台の開発機の Docker で行った(§0.3)。
+- `memory_get_peak_usage` は PHP が確保したメモリの最大、Maximum resident set size と `VmHWM` は OS が数える常駐メモリの最大で、後者のほうが大きく出る(Firefly III と Koel で両方を並べた)。**アプリ間でそのまま比べない。** 値の桁は、約 30〜980 MiB である(FIX2 の前は約 30〜420 MiB)。
+- **BookStack の増加は、FIX1 の影響と読む。因果は確かめていない。** FIX 前に比べて、時間は 7.813 秒から 8.448 秒(約 +8%)、メモリは約 265,000 kB から 306,068 kB(約 +15%)に増えた。揺れの範囲(±10% 前後)を超える増加である。FIX1 で、これまで `PARSE_FAILED` で読まれなかったテンプレートが読まれるようになり、解析する量が増えたためと読む。`gap` の件数が BookStack でもっとも増えたこと(33,051 件から 40,431 件、+22%)と整合する。ただし、同じ条件(同じ DB・同じ環境)で修正の前後の時間を比べる実験はしていない。FIX1 だけを入れた版との直接の比較(切り分けの測定)もしていないので、環境の違いや揺れの可能性は除けていない。ほかの 4 本は、FIX 前との差がメモリで 0〜+4.3%、時間は向きが揃わない(Firefly III −1.24 秒、Koel −0.26 秒、Laravel.io +0.22 秒、Snipe-IT −1.10 秒。これは FIX2 の前の測定での比較で、Snipe-IT は FIX2 の後に大きく変わった。3.5.1)。FIX2 の後の BookStack は、FIX2 の前から時間が約 +3〜7%、メモリはほぼ同じ(306,076 kB)で、揺れの範囲(±10% 前後)と読む。BookStack には「/」を含むビュー名が無く、FIX2 の影響を受けない。
+- **Laravel.io の時間は、比較に使わない。** FIX2 の前の測定では 2.040 秒(1.720〜2.292)で、直前の測定の 1.689 秒より遅かった。測定中に、ほかの Docker が同時に動いていた(`load average` 4.6 の記録がある)ためである。FIX2 の後の測定は 2.161 秒(2.077〜2.271)で、揺れの原因は区別していない。Laravel.io の時間は参考値として載せるだけで、FIX 前後の比較には使わない。
+- FIX5 の前後(FIX1〜FIX4 の版と FIX5 の版)では、時間もメモリも差が無い(メモリは全アプリで ±0.1% 以内。時間は Laravel.io の外れ値を除いて、向きが揃わず揺れの範囲)。
+- FIX2・D38 の前後(`f11b1ba` と `9f60add`)では、Snipe-IT 以外の 4 本は、メモリが ±0.1〜0.3% 以内(Firefly III と Koel は事実上同値)、時間は揺れの範囲(Firefly III +4%、Koel +1%、BookStack は上記、Laravel.io は参考値)である。degree を `null` にする D38 の変更が速度に効くとは言えない。
+- 1 つのアプリにつき 5 回の測定であり、修正の性能への影響を示すものではない(ただし Snipe-IT の FIX2 の影響は、揺れを大きく超える。3.5.1)。測定は WSL2 上の 1 台の開発機の Docker で行った(§0.3)。
+
+#### 3.5.1 FIX2 の後の Snipe-IT:直したら重くなった
+
+FIX2 は偽の `VIEW_NOT_FOUND` を消した。その代わり、Snipe-IT の解析は大きく重くなった。これは事実として書く。
+
+| 項目 | FIX2 の前(`f11b1ba`) | FIX2 の後(`9f60add`) | 倍率 |
+| --- | ---: | ---: | ---: |
+| 解析だけの時間(事前書き出し方式・中央値) | 4.171 秒 | 10.748 秒(10.592〜11.150) | 約 2.6 倍 |
+| artisan 込みの時間(中央値) | 15.605 秒 | 22.720 秒(21.300〜24.559) | 約 1.5 倍 |
+| ピークメモリ(常駐の最大。事前書き出し方式) | 421,448 kB(約 411 MiB) | 999,696 kB(約 976 MiB) | 約 2.4 倍 |
+| 出力 JSON のサイズ | 47.9 MB | 186.1 MB | 約 3.9 倍 |
+| `gap` の総数 | 42,417 | 180,384 | 約 4.3 倍 |
+
+(出力 JSON のサイズは、バイト数を 10 の 6 乗で割った値である。時間とメモリは 5 回の測定で、揺れの範囲を大きく超えた差である。5 回の出力は byte 単位で一致した。)
+
+- **原因。** Snipe-IT の 187 ルートで、共通レイアウト(`layouts/default` など)が歩かれるようになった。FIX2 の前は、「/」を含むビュー名が `VIEW_NOT_FOUND` になって、レイアウトの先へ進まなかった。FIX2 の後は、レイアウトの中の追えない呼び出しが、ルートごとの `gap` として積み上がる。`gap` の総数が 42,417 から 180,384 に増えたことと、時間・メモリ・出力サイズが増えたことは、方向と規模が合う。ただし、原因の切り分け(どの処理が時間とメモリを食うか)はしていない。
+- **効いているもの。** 要約(summary)の再利用は効いている(3,556 回を計算し、5,022 回を再利用)。それでも、`gap` をルートごとに持つ出力の大きさと、ルートごとの歩きの量が増える。
+- **他の 4 本は影響が無い。** BookStack・Firefly III・Koel・Laravel.io は、「/」を含むビュー名が無いため、FIX2 の前後で出力が変わらず、時間とメモリも揺れの範囲である(上記)。
+- **読み方。** 大きなアプリでは、解析に約 1GiB のメモリが要り、出力 JSON は 100MB 級になりうる。この試運転は `memory_limit=-1` で測った(§2.1)。PHP の既定の `memory_limit` のままで Snipe-IT が動くかは、確かめていない。確かめて、足りないときの出力を親切にするかは、提案に回す(6.10)。
+- 判定を軽くする方向の変化ではなく、誤読の修正の代償である。FIX2 を戻すと、偽の `VIEW_NOT_FOUND` が 25% のルートに戻り、Snipe-IT の判定が歪む。FIX2 は戻さない。軽くする案は 6.10 に置く。
 
 ### 3.6 ツールの不具合の件数と内容
 
@@ -700,17 +729,17 @@ artisan の呼び出し時間を測るため、Firefly III・Koel・Snipe-IT で
 | 区分 | 件数 | 内容 |
 | --- | ---: | --- |
 | ツールが例外で止まった | 0 | 最終版の測定で、異常終了した実行は記録に無い。終了コード 0 を記録したのは、Koel の全実行、Snipe-IT の 10 回すべて、BookStack と Firefly III の表形式の実行である。なお、Firefly III の最初の実行では、ツールが終了コード 3 で終わった。これは、artisan の `route:list` がアプリ側の例外(コンストラクターでの throw)で失敗したことを、ツールが原因つきで報告したものであり、ツールの例外ではない(§2.4) |
-| 構文解析の失敗(`PARSE_FAILED`) | baseline 92 ルート → 最終版 0 | BookStack だけで出た。ほかの 4 本は baseline でも 0。Blade の `@php ... @endphp` が `}` で終わるとき `;` を補わなかったため(FIX1) |
+| 構文解析の失敗(`PARSE_FAILED`) | BookStack: baseline 92 ルート → 最終版 0。Snipe-IT: baseline 0 → 最終版 2 ルート | BookStack: Blade の `@php ... @endphp` が `}` で終わるとき `;` を補わなかったため(FIX1)。ほかの 3 本は baseline でも 0。Snipe-IT: FIX2 で初めて歩かれるようになった 2 本のテンプレート(`resources/views/kits/accessory-edit.blade.php`・`consumable-edit.blade.php`)で出た。ディレクティブの引数の PHP の配列の中に Blade の echo 記法 `{{ … }}` が入っており、そのままでは PHP として読めない。`PARSE_FAILED` は正しい報告である。FIX2 でテンプレートが読まれて、これまで見えなかったものが見えるようになった(FIX1 と同型) |
 | `model:show` の失敗 | 9 モデル(BookStack 3・Snipe-IT 2・Laravel.io 4。Firefly III・Koel は 0) | ツールは止まらず、標準エラーに note を出し、該当するモデルを持つルートを `unknown` にする(設計どおり)。原因はアプリまたは Laravel 側の例外である。BookStack は、モーフマップが未定義(`User`)と、抽象クラスを生成できない(`JointPermission`・`Entity`)。Laravel.io は `Thread`・`Reply`・`Article`・`Tag`。Snipe-IT は `License`・`LicenseSeat` |
 | 見逃し(判定が実際より軽い) | 1 件(原因は 1 つ) | リソースが自分のプロパティで持つモデルのリレーションを読むと、遅延読込が事象にも `gap` にも出ず、`O(1)`・`high` と出る形(FIX3)。検証用アプリの試験で再現して直した。実アプリの確定 5 本については §4 に書く |
 | 偽の下限(判定が実際より重い) | 1 ルート | Koel の `GET /api/duplicate-uploads` で、読み込み済みのリレーションを失い、存在しない遅延読込から `≥O(N)` が出た(FIX3 の副作用。FIX5 で解消) |
 | 報告の欠け | 1 件(原因は 1 つ) | 同じ行・同じコードで原因の違う `gap` が 1 件に潰れ、片方が出力に残らなかった(FIX4) |
-| 読み違い(裁定待ち) | 1 件(原因は 1 つ) | ビュー名に `/` を含むものが `VIEW_NOT_FOUND` になる(FIX2)。`VIEW_NOT_FOUND` の 233 件のうち名前に `/` を含むものが 204 件で、すべて Snipe-IT。これを原因に含むルートは 187 本。ほかのアプリでは 0 件 |
+| 読み違い(直した) | 1 件(原因は 1 つ) | ビュー名に `/` を含むものが `VIEW_NOT_FOUND` になる(FIX2。D36 で修正と裁定)。`VIEW_NOT_FOUND` の 233 件のうち名前に `/` を含むものが 204 件で、すべて Snipe-IT。これを原因に含むルートは 187 本。ほかのアプリでは 0 件。FIX2 の後は、`VIEW_NOT_FOUND` が 29 件・28 ルート(「/」を含む名前は 0 件)になった |
 | 過検知(正当な読みを `gap` にする) | 下記 | FIX3 の防壁が、DB に触れない enum の `->value`・`->name` の読みも `gap` にする |
 
-FIX3 の防壁の `gap` は、全体で 2,855 件(787 箇所、450 ルート)である。このうち `->value`・`->name` の読みは 680 件(`->value` 612 件・`->name` 68 件、326 箇所)で、ソースの 1 行で `Class::CASE->value` の形と確かめられた(enum と確実な)読みは 568 件(271 箇所)ある。内訳は Firefly III 423 件(246 箇所)・Snipe-IT 136 件(16 箇所)・Koel 7 件(7 箇所)・Laravel.io 2 件(2 箇所)・BookStack 0 件である。変数に入った enum は形から区別できないので、680 件には enum でない読みも混じる。判定・確度・下限はこの過検知で動かない。例外にするかどうかは提案(§6)に回す。
+FIX3 の防壁の `gap` は、全体で 2,966 件(838 箇所、471 ルート)である(FIX2 の前は 2,855 件・787 箇所・450 ルート。増えた分は Snipe-IT で、763 件から 874 件になった。共通レイアウトが歩かれたため)。このうち `->value`・`->name` の読みは 683 件(`->value` 612 件・`->name` 71 件、329 箇所)で、ソースの 1 行で `Class::CASE->value` の形と確かめられた(enum と確実な)読みは 568 件(271 箇所)ある。内訳は Firefly III 423 件(246 箇所)・Snipe-IT 136 件(16 箇所)・Koel 7 件(7 箇所)・Laravel.io 2 件(2 箇所)・BookStack 0 件である。変数に入った enum は形から区別できないので、683 件には enum でない読みも混じる。判定・確度・下限はこの過検知で動かない。例外にするかどうかは、D39 で「今回は入れない。次の判定を緩める段の第 1 候補」と裁定された(提案は §6)。
 
-「明らかにおかしい出力」の数え方について。ここでは、実アプリの測定と検証用アプリの試験で、仕様に照らして誤りと判断し、原因を特定できたものを 1 原因 1 件と数えた。誤りの出たルートの数でなく、原因の数である。`gap` の増減(§3.2.1)は、この件数に含めない。
+「明らかにおかしい出力」の数え方について。ここでは、実アプリの測定と検証用アプリの試験で、仕様に照らして誤りと判断し、原因を特定できたものを 1 原因 1 件と数えた(FIX2 の後も、この表の件数は増えていない。`PARSE_FAILED` の Snipe-IT 2 ルートは、ツールの誤りでなく正しい報告なので数えない)。誤りの出たルートの数でなく、原因の数である。`gap` の増減(§3.2.1)は、この件数に含めない。
 
 ## 4. 判定の抜き取り確認(T4)
 
@@ -779,7 +808,7 @@ FIX3 の防壁の `gap` は、全体で 2,855 件(787 箇所、450 ルート)で
 
 #### 4.3.1 抜き取り方
 
-- **母集団:** `controller` ルートのうち、`query` 軸か `memory` 軸が `unknown` で、下限が付いているもの。511 本ある(BookStack 109・Firefly III 107・Koel 14・Snipe-IT 281・Laravel.io 0)。`query` 軸だけで数えると 137 本(`≥O(N)` 125・`≥O(N*M)` 12)で、`memory` 軸は 510 本、どちらかの軸では 511 本になる。
+- **母集団:** `controller` ルートのうち、`query` 軸か `memory` 軸が `unknown` で、下限が付いているもの。511 本ある(抜き取りの時点の出力、つまり FIX2 の前の集計。BookStack 109・Firefly III 107・Koel 14・Snipe-IT 281・Laravel.io 0)。`query` 軸だけで数えると 137 本(`≥O(N)` 125・`≥O(N*M)` 12)で、`memory` 軸は 510 本、どちらかの軸では 511 本になる。
 - **抜き取り:** 乱数を使わない。ルートを (アプリ, パス, メソッド, アクション) のバイト順に並べ、アプリごとに「どちらかの軸が `≥O(N*M)`」の層(NM 層)と「`≥O(N)` のみ」の層(N 層)に分けて、層の中から等間隔に取る(層内の n 本から k 本を、位置 `(2i+1)*n//(2k)` で取る)。同じ入力からは同じ標本が出る。
 - **本数:** 母数のある 4 アプリで計 18 本。NM 層は各 2 本、N 層は BookStack 3・Firefly III 3・Koel 2・Snipe-IT 2 本である。層の大きさ(NM 層 / N 層)は BookStack 18 / 91、Firefly III 3 / 104、Koel 6 / 8、Snipe-IT 31 / 250 である。Laravel.io は母数が 0 なので標本が無い。
 - **判定の語:** **正しい**(下限の根拠が実コードにあり、実際もその下限以上に重い)、**過大**(根拠となる増え方が実際は起きない、または N の意味が違う)、**低すぎ**(実際はさらに重い、または下限が付かなかった軸に重い経路がある)、**判定不能**(追えなかった。推測で埋めない)。
@@ -870,7 +899,7 @@ BookStack の標本 04 は、根拠の N が違う(過大)が、結論の `≥O(
 
 判定不能の 3 件はいずれも Snipe-IT の `query` 軸である。
 
-- **標本 16:** `VIEW_NOT_FOUND` は偽である(`resources/views/locations/print.blade.php` は実在する)。ビュー名に `/` を含むと見つからないと扱う不具合が原因で(FIX2、§5)、実際は少なくとも O(N) と読める(`print.blade.php:92-100,176-190` のループ内の遅延読込)。ツール側の誤りが下限を出せない原因になっている。
+- **標本 16:** 抜き取りの時点では、`VIEW_NOT_FOUND` は偽だった(`resources/views/locations/print.blade.php` は実在する)。ビュー名に `/` を含むと見つからないと扱う不具合(FIX2)が原因で、実際は少なくとも O(N) と読める(`print.blade.php:92-100,176-190` のループ内の遅延読込)。ツール側の誤りが下限を出せない原因になっていた。**FIX2 で直した後の結果は次のとおり。** この `VIEW_NOT_FOUND` は消え、テンプレートが読まれるようになった(このルートの `gap` は 12 件から 106 件、`events_found` は 10 から 22 に増えた)。しかし `query` 軸は、FIX2 の後も `unknown`・下限なし(次数は `null`)のままである。コードで読んだ O(N) の遅延読込は、出力の下限に現れていない。つまり、偽の `VIEW_NOT_FOUND` という原因は取り除かれたが、下限の取りこぼしが残る。`memory` 軸の `≥O(N*M)` は FIX2 の前から変わらない。
 - **標本 17:** ループの回数の上限(`checkout_qty`)が、直前の残数の判定で抑えられる。上限は在庫数で、テーブルの行数の N とは別の軸である。peak-sim は `LOOP_BOUND_UNKNOWN` のままで、この抑え込みを追えない。
 - **標本 18:** クエリは `pluck` の 1 回だけで、定数と読める。出力が `unknown` なのは、`trans()` などの追えない呼び出しによる。
 
@@ -879,7 +908,7 @@ BookStack の標本 04 は、根拠の N が違う(過大)が、結論の `≥O(
 - 下限を「このルートは少なくともこの重さである」と読んでよいのは、その事象が必ず起き、回数が N 以上と分かっている場合に限る。上の過大の 3 つの型は、この条件を満たさない事象を下限に数えたものである。
 - 18 本の標本では、見逃し(低い次数と言い切って、実際は重い)は 0 件だった。これは、標本がすべて `unknown` で、O(1) と言い切ったルートが無いためである。見逃しの有無について、この標本は何も言っていない。
 - 下限が過大になる型は複数ある。上の 8 軸の割合を、下限つき `unknown` 全体(511 本)に当てはめることはできない。
-- 下限の定義の見直し(上の条件を満たす事象だけを下限に数える、など)は、出力スキーマ 0.1 の仕様(D27・D30)に触れる。今回は変えていない。提案は §6 に書く。
+- 下限の定義の見直し(上の条件を満たす事象だけを下限に数える、など)は、出力スキーマの仕様(D27・D30)に触れる。今回は変えていない。提案は §6 に書く。
 
 ### 4.4 見つかった見逃し
 
@@ -952,7 +981,7 @@ BookStack の標本 04 は、根拠の N が違う(過大)が、結論の `≥O(
   - 標本 15:**追い直しで判定を直した。** 初稿は「フィールドのループ内にクエリは無いので `query` 軸は過大(O(N) までは確認、O(N*M) は確認できず)」だった。追い直しで、コンポーネントのループにクエリが実在し、パラメーターを付けたときに限ることが分かり、「過大(条件つき)」とした。
 - 追い直していない標本がある。標本 06〜10 の大半、11・13・14・17・18、標本 02 の更新ループの数え方である。標本 15 で下限の根拠の取り違えが見つかったので、他の「正しい」にも同種の取り違えが無いとは言い切れない。
 
-**修正の確認。** 適用した修正の全体(FIX1・FIX3・FIX4・FIX5。FIX2 は裁定待ちで未適用)について、別の者が全スイートを独立に再実行し、PHP 8.2 と 8.3 の両方で通ること(SKIP 0)を確かめた(§8)。検証用アプリの 24 ルートの期待値は変わっていない。FIX5 については、再測定で Koel の当該ルートの偽の下限が消えたことも確かめた(§4.4.1)。
+**修正の確認。** 適用した修正(FIX1・FIX3・FIX4・FIX5。FIX2 と D38 は、その後に直した。§5)について、別の者が全スイートを独立に再実行し、PHP 8.2 と 8.3 の両方で通ること(SKIP 0)を確かめた(§8)。検証用アプリの 24 ルートの期待値は変わっていない。FIX5 については、再測定で Koel の当該ルートの偽の下限が消えたことも確かめた(§4.4.1)。
 
 ### 4.6 この節から言えること・言えないこと
 
@@ -961,6 +990,7 @@ BookStack の標本 04 は、根拠の N が違う(過大)が、結論の `≥O(
 - 確定した 5 本の範囲では、見逃しも過検知も 0 件である。独立の追い直しとコンテナ内の実測が、これを支える。
 - 確定の外で、見逃しの型がひとつ(リソースの自前プロパティ経由の遅延読込)見つかり、最小の再現で確かめて、判定を軽くしない方向で直した。ただし実アプリの当該ルート(Koel `GET /api/playlists`)は `unknown` のままで、下限の取りこぼしが残る。見逃しの危険は `gap` で `unknown` が守られて塞がれたが、下限が付くようになったわけではない。
 - 下限は、過大になる型が少なくとも 3 つある。標本の範囲では、下限を主張した 24 軸の 3 分の 1 が過大だった。
+- FIX2 と D38 の後も、確定したルートは同じ 5 本で、`unknown` から確定に動いたルートは 0 本である(§4.7)。FIX2 で下限が新しく現れた 19 本のうち、コードで確かめたのは 2 本である。
 
 言えないこと:
 
@@ -970,40 +1000,55 @@ BookStack の標本 04 は、根拠の N が違う(過大)が、結論の `≥O(
 
 `unknown` の多さは、ツールが「分からない」と答えていることの表れで、見逃しではなく、過検知の側(重いかもしれないと答える側)に倒れていることを示す。それが役に立つことと同じではない点は、§0.3 のとおりである。
 
+### 4.7 FIX2 の後に新しく現れた下限 19 本(Snipe-IT)
+
+FIX2 と D38 を入れた版(`9f60add`)で 5 アプリを測り直し、FIX2 の前(`f11b1ba`)と baseline の両方と比べた。D36 の条件 2・3 に従い、`VIEW_NOT_FOUND` の増減・新たに出た `gap`・確定に動いたルートを確かめた。
+
+- **確定に動いたルートは 0 本である。** 5 アプリ・2,091 ルートで、`unknown` から確定に動いた軸は 0 だった。D36 の条件 3(確定に動いたルートが 1 本でもあれば全数をコードで追う)は、該当するルートが無い。D33 の抜き取りも発動しない。
+- **`VIEW_NOT_FOUND` は 215 本から 28 本になった**(Snipe-IT は 189 本から 2 本、`gap` の件数は 206 件から 2 件)。D36 が見積もった「`/` 形 204 件・187 ルート」と一致した。ほかの 4 アプリでは、判定・確度・下限・`gap` の件数とも変化が無かった。
+- **新たに出た `gap` は、大半が Snipe-IT の共通レイアウトの中の呼び出しである**(`gap` の総数 +137,967。内訳は §3.2.1)。新しいコードは 2 つ、`PARSE_FAILED` が 2 ルート、`MODEL_INFO_UNAVAILABLE` が 1 ルートである(§3.3・§3.6)。
+- **下限が現れた(または上がった)ルートが 19 本ある。** 内訳は、クエリ軸の下限が新しく現れたもの 9 軸(`/account`・`/account/view-assets`・`/admin`・`POST /hardware/bulkedit`・`/hardware/{asset}/audit`・同 `checkin/{backto?}`・同 `checkout`・`/reports/licenses`・`POST /users/bulkedit`)、メモリ軸の下限が新しく現れたもの 10 軸(`/account/requestable`・`/account/requested`・`/departments/create`・`/departments/{department}`・同 `edit`・`/depreciations/{depreciation}`・`/hardware/audit/due`・`/hardware/checkins/due`・`/manufacturers/{manufacturer}`・`/suppliers/{supplier}`)、メモリ軸の下限の次数が `≥O(N)` から `≥O(N*M)` に上がったもの 4 軸(`/admin`・`/hardware/{asset}/audit`・同 `checkin/{backto?}`・同 `checkout`)である。**19 本とも重い側への変化で、軽くなったものは無い。** 判定(growth)は `unknown` のままである。
+- **2 本を、コードを追って確かめた。** `/account`(クエリ軸の下限)は `app/Models/Traits/HasOrders.php:136` の `order_items` の select などが、`/departments/create`(メモリ軸の下限)は共通ビューの中の `Company.php` の `company_user` などの遅延読込が、実在する事象だった。どちらも、新しく歩かれるようになった共通レイアウトや部分テンプレートの中の事象である。2 本の範囲では、過大の型(条件つきの事象・回数が未知のループ。§4.3.3)ではなかった。
+- **残りの 17 本は追っていない。** 下限は参考値であり、保証ではない(§0.3)。新しい下限にも、§4.3.3 の過大の型が混じる可能性は除けない。
+
 ## 5. 直した不具合
 
-試運転の中で見つけ、試験を足して直した不具合は 4 件ある(FIX1・FIX3・FIX4・FIX5)。いずれも、判定を軽くする方向の変更ではない。試験を足し、直した後に判定が重く(`unknown` が増える側)なるか、変わらないかのどちらかになることを確かめる方針で直した。最終版の実アプリ 5 本(2,091 ルート)では、baseline と判定・確度・下限・次数の違うルートが 0 本である(§3.2.1)。検証用アプリでは `/service-map-new` が `unknown` から `O(N)`(確度 medium)になったが、これは読み違いを正して N+1 が見えるようになった結果であり、軽くなったのではない。
+試運転の中で見つけ、試験を足して直した不具合は 5 件ある(FIX1〜FIX5)。あわせて、出力の読み違いの罠を、裁定(D38)で 1 件直した(出力スキーマを 0.2 にした)。いずれも、判定を軽くする方向の変更ではない。試験を足し、直した後に判定が重く(`unknown` が増える側)なるか、変わらないかのどちらかになることを確かめる方針で直した。最終版の実アプリ 5 本(2,091 ルート)では、baseline と判定(growth)・確度の違うルートが 0 本で、`unknown` から確定に動いたルートも 0 本である。下限が動いたのは Snipe-IT の 19 本だけで、すべて重い側である(§3.2.1)。検証用アプリでは `/service-map-new` が `unknown` から `O(N)`(確度 medium)になったが、これは読み違いを正して N+1 が見えるようになった結果であり、軽くなったのではない。
 
 FIX1〜FIX4 を入れた版では、実アプリで Koel の 1 ルートの下限が重く変わっていた。これは FIX3 の副作用の偽の下限で、FIX5 で解消した(下記 FIX3 の既知の限界も参照)。
 
-もう 1 件(FIX2)は、直すかどうかの裁定を待っている(下の表の末尾)。
+FIX2(ビュー名の `/`)は、更新前の版では直すかどうかの裁定を待っていた。D36 で「誤読の修正である」として直すと裁定したので、赤の試験を先に足して直した(下の表)。FIX5 の位置づけは D37、`degree` の出力は D38 で裁定された。
 
-一覧(FIX2 は裁定待ちのため末尾に置く。FIX5 の `def1607` は、赤の試験を足した後に期待値の確度を明記した commit である):
+一覧(FIX5 の `def1607` は、赤の試験を足した後に期待値の確度を明記した commit である。D38 の `9f60add` は、出力スキーマの説明を直した commit である):
 
 | 番号 | 種類 | 試験の commit | 直しの commit | 状態 |
 | --- | --- | --- | --- | --- |
 | FIX1 | 読めないはずのテンプレートが読めない(構文解析の失敗) | `a2be19a` | `bd9e228` | 直した |
+| FIX2 | 読み違い(ビュー名の `/`) | `7275a97` | `e48a085` | 直した(D36) |
 | FIX3 | 見逃し(判定が実際より軽い) | `f08329d` | `536eeed`・`e9003eb` | 直した |
 | FIX4 | 報告の欠け(`gap` が潰れる) | `c156b19` | `18427f0` | 直した |
-| FIX5 | 偽の下限(FIX3 の副作用。判定が実際より重い) | `b06fd4b`・`e7e1c17`・`def1607` | `f11b1ba` | 直した |
-| FIX2 | 読み違い(ビュー名の `/`) | — | — | 裁定待ち |
+| FIX5 | 偽の下限(FIX3 の副作用。判定が実際より重い) | `b06fd4b`・`e7e1c17`・`def1607` | `f11b1ba` | 直した(D37) |
+| D38 | 出力の読み違いの罠(下限のない `unknown` の次数が 0 と出る) | `bd66635` | `dfdbe07`・`9f60add` | 直した(D38。schema 0.2) |
 
 | 番号 | 症状 | 原因 | 直し | 試験 | 判定を軽くしていない理由 |
 | --- | --- | --- | --- | --- | --- |
 | FIX1 | BookStack のテンプレートで `PARSE_FAILED` が出て、そのテンプレートの中が一切読まれなかった。Blade では正しい書き方なのに、構文エラーとして扱われた | Blade の `@php ... @endphp` は、本体の末尾を `;` として読む(PHP が閉じタグを `;` と読むのと同じ)。ツールの変換(`src/Analysis/Blade/BladeToPhp.php`)は、本体が `}` で終わるとき文として完結していると見なして `;` を足さなかった。しかし `$x = match (...) { ... }` のように、式が `}` で終わる場合は `;` が要る | 本体が `}` で終わるとき、構文解析器で「そのままで読めるか」「`;` を足せば読めるか」を試し、足せば読めるときだけ `;` を足す。どちらでも読めないものは、そのままにする(`bd9e228`) | 赤の試験を先に足した(`a2be19a`): `match` 式・複数行の `match`・クロージャ・配列・アロー関数で終わるブロック、`foreach` の後に `match` が続くブロック、行番号がずれないこと。直した後も構文エラーのままであるべきもの(`$a = ;`、閉じていない `{`)が `PARSE_FAILED` のままであること、および別ブロックで開いた波括弧や読めない `}` は直さず従来と同じ出力のままであることも縛っている(`tests/Unit/Blade/BladeToPhpTest.php`、`tests/Unit/Blade/ViewHandlerEdgesTest.php`) | 本物の構文エラーは直らず `PARSE_FAILED` のまま、読めない `}` も直さず従来と同じ出力のままである。直った後は、テンプレートの中が読まれるので、中にある追えない呼び出し(例: `match` の条件の `config()`、腕の中のベンダーの静的呼び出し)は `gap` として現れる。試験で、これらの `gap` が残ることを縛っている。数字への影響は §3 で比べる |
+| FIX2 | Blade のビュー名に `/` を含むもの(例: `locations/print`)が `VIEW_NOT_FOUND` になる。Laravel では有効な名前である。影響は Snipe-IT だけで、`VIEW_NOT_FOUND` の 233 件のうち 204 件(これを原因に含むルートは 187 本)が偽だった | `src/Analysis/Blade/ViewHandlerTemplates.php` の `locate` が、ビュー名を「英数字・`_`・`-` を `.` で区切った形」に限る正規表現で検査し、`/` を含む名前を最初に除外していた | `/` を `.` と同じ「ディレクトリの一段」として許す(名前に使える文字は英数字・`_`・`-` と、区切りの `.` と `/`)。次のものは従来どおり拒否する: `..` の段を含む名前、先頭が `/` の名前(絶対パス)、名前空間つきの名前(`pkg::x`)、NUL を含む名前、ほかの文字を含む名前。**あわせて、ファイルが見つかった階層(ビューのディレクトリ)の下にあるかを、リンクを解決したうえで確かめ、外へ出るもの(ファイルのシンボリックリンクも、ディレクトリのシンボリックリンクも)は読まない**(`e48a085`。`liesUnder()`) | 赤の試験を先に足した(`7275a97`、`tests/Unit/Blade/ViewNameResolutionTest.php` の 25 本): `/` 形とドット形が同じテンプレートに解決される、複数段の `/`、`/` と `.` の混在、設定された全ビューパスの探索、`/` 形でファイルが無ければ見つからない、ドット形と単純な名前が従来どおり動く、見つからない `/` 形は呼び出し位置の `gap` のまま。**拒否の縛り(D36 の条件 1)**: `..` の段・ファイルがあっても拒否、ドット形の中の `..`、絶対パス(実在のビューの絶対パスも)、`pkg::x`、NUL、ほかの文字、歩いたときの `gap`(`..`・絶対・パッケージ名前空間)、ファイルのリンクとディレクトリのリンクがビューのディレクトリの外へ出るものは読まない、内に収まるリンクとリンク先のビューのディレクトリそのものは読む | `/` を許すのは、有効な名前を無効と読んでいた誤読の修正であり、規則・例外表・知識の追加による緩和ではない(D36)。拒否は従来どおりで、パスを抜ける指定(`..`・絶対パス)と、リンクで外へ出るファイルは読まない。見つからない名前は `VIEW_NOT_FOUND` のまま。直した後に、判定を軽くしたルートは 0 本、`unknown` から確定に動いたルートも 0 本である(§4.7)。読めるようになった共通レイアウトの中の `gap` が現れ、下限が現れた(または上がった)Snipe-IT の 19 本は、すべて重い側である |
 | FIX3 | リソースが自分のプロパティに包んだモデルを持ち(コンストラクターで受けて保持する書き方、または宣言したプロパティ)、`$this->order->customer` のように読むと、ルートごとのクエリの遅延読込が事象にも `gap` にも出なかった。N+1 になるはずのルートが `O(1)`・確度 high・`gap` なしと出た(**見逃し**) | リソースの `$this->xxx` は、`resource` 以外のプロパティでも、包んだモデルへの転送として読まれた。そのため `$this->order` はモデルの列を読んだと解釈され、型は値(PlainT)になった。値へのプロパティ読みは、`gap` を出さずに値のまま通された(メソッド呼び出しだけが `gap` になる非対称)。`src/Analysis/Serialization/ResourceHandler.php`、`src/Analysis/Engine/CallResolver.php` | 2 つの直しである。(1) リソースが宣言した(または promoted の)クラス型のプロパティは、宣言された型で読む(`536eeed`)。型のないプロパティは従来の転送のまま。(2) 値へのプロパティ読みは `gap` にする。通さない(`e9003eb`)。ただし Blade の `$loop->index` など `$loop` の 1 段目の読みだけは、値のまま通す(D35) | 赤の試験を先に足した(`f08329d`): 検証用アプリ `r-resource-declared-property`(宣言済み・promoted・ローカル変数経由・`unless`・アクセサの各形と、変わってはならない対照 4 本)。`ViewHandlerEdgesTest` に、`$loop` の例外が 1 段目に限られることと、他の組み込みへの読みが `gap` のままであることを足した。24 ルートの期待値は変えていない | (1) は事象を見つけて重く出す方向、(2) は黙って通していたものを `gap`(`unknown`)にする方向であり、どちらも判定を軽くしない。D21 の直接違反を直したものである。`$loop` の例外は、(2) の副作用を抑えるためで、DB に触れない値に限る(D35 に記録) |
 | FIX4 | 1 行に別々の原因の `gap` が 2 つあると、片方しか出力に残らなかった | `Gap` の同一性(`fingerprint`)が、コード・場所・軸などで決まり、`message`(原因の名前)を含まなかった。同じ行・同じコードの別原因が 1 件に潰れた(`src/Model/Gap.php`) | 同一性に `message` を足した。同じ原因が同じ行で 2 回出る場合は、これまでどおり 1 件にまとまる(`18427f0`) | 赤の試験を先に足した(`c156b19`): 同一性の単体試験・判定の出力の試験・要約の試験。入力の順序に依らないことも縛っている | 出力の `gap` が増える(落とさない)方向の直しである。軸の判定は変わらない(どちらの原因も `unknown`)。集計が同じ行の複数の原因を数え落とすのを防ぐ |
 | FIX5 | Koel の `GET /api/duplicate-uploads` で、クエリ軸に偽の下限 `≥O(N)`(次数 1)が出た(**過検知**。判定は `unknown` のまま)。リソースが、eager load 済みのモデルを自分の宣言したプロパティに持つ形で、存在しない遅延読込が事象として数えられた | FIX3 の直し (1) の副作用である。宣言したクラス型のプロパティを宣言型で読むため、包んだモデルと同じクラスの「新しいモデル」ができ、`with()` で読み込み済みのリレーションを失った。そのため `$this->prop->rel` が遅延読込として数えられた(`src/Analysis/Serialization/ResourceHandler.php`) | 宣言型が包んだモデルと同じクラスで、かつコンストラクターが **そのクラス自身で、第 1 引数を `parent::__construct()` にそのまま 1 回だけ渡し**、そのプロパティが第 1 引数から promoted されている(または 1 回だけ代入されている)と示せるときに限り、新しいモデルでなく**包んだモデルそのもの**(読み込み済みのリレーションつき)を返す。第 2 引数・別クラス・引数を変える・別の場所でも代入する・親クラスやトレイトのコンストラクター・条件つきの呼び出しは、示せないものとして従来の宣言型のまま(`f11b1ba`。`holdsWrapped()`) | 赤の試験を先に足した(`b06fd4b`): 検証用アプリ `r-resource-eager-declared`(eager load 済みの promoted・宣言プロパティ・ネストの各形は遅延読込が出ず `O(1)`。`Order::get()` のままの対照は `O(N)`、別のリレーションを読み込んだだけの対照は遅延読込が残る、読み込みが浅いネストは `O(N*M)`、包んだモデルと別クラスのプロパティは従来どおり)。第 2 引数を包む形のガード(`e7e1c17`)と、両軸の確度 `medium` の明記(`def1607`)も足した。24 ルートの期待値は変えていない | 同一の実体と示せるときだけ、読み込み済みの状態を引き継ぐ。示せなければ従来どおり、遅延読込を数える重い側に倒れる(D21)。最終版は、baseline と同じ判定に**戻った**のであり、baseline より軽くなったルートは 0 本である。引き継ぐ条件が厳しいので、偽の下限が残る形はありうるが、それは安全側(重い側)である |
-| FIX2 | Blade のビュー名に `/` を含むもの(例: `locations/print`)が `VIEW_NOT_FOUND` になる。Laravel では有効な名前である | `src/Analysis/Blade/ViewHandlerTemplates.php` の `locate` が、`/` を含む名前を最初に除外している | (裁定待ち。直すかどうかを決めていない) | (裁定後に書く) | (裁定後に書く) |
+| D38 | 下限のない `unknown` の軸(`lower_bound` が `null`)で、`degree` が 0 と出た。「`unknown`・`degree` 0」が `O(1)` に読める罠だった(Koel の `GET /api/playlists` が実例。§4.4.1) | 出力の `degree` は軸の内部の次数をそのまま出していた。下限が無いときの内部の次数は 0 で、「何も追えなかった」と「事象がすべて定数だった」を区別しなかった(`src/Output/JsonRenderer.php`、`src/Output/TableRenderer.php`) | `growth` が `unknown` で `lower_bound` が `null` のとき、`degree` を `null` にする。表では `unknown (no lower bound)` と出し、`degree` の列に 0 を出さない。`schema_version` を `0.1` から `0.2` に上げる(`dfdbe07`)。`docs/output-schema.md` の説明と例を実際の出力に合わせて直した(`9f60add`) | 赤の試験を先に足した(`bd66635`): 下限のない `unknown` は `degree` が `null`(`testAnUnknownAxisWithNoLowerBoundHasANullDegreeNotZero`)、下限つきの `unknown` は下限の次数を保つ、`O(1)` は `degree` 0 を保つ、`null` の次数は下限のない `unknown` にだけ出る、`schema_version` が `0.2`、表が `unknown (no lower bound)` と出す、説明文書が `null` を述べ、例に「`unknown` で `degree` 0」が残らない(`tests/Unit/Output/JsonRendererTest.php`・`TableRendererTest.php`・`SchemaDocTest.php`。期待値の golden も更新) | 出力の表し方を変えただけで、判定・確度・下限は変えていない。5 アプリ・2,091 ルートで、`null` になった軸は 3,506(クエリ軸 1,940・メモリ軸 1,566)で、すべて下限のない `unknown` の軸だった(異常 0)。確定軸や下限つきの軸に `null` は出ていない |
 
 各行の補足:
 
-- **全スイートの結果(最終版 `f11b1ba`)**: PHP 8.2.35 と 8.3.36 のどちらでも、2,336 件・7,768 アサーションで通り、失敗 0・SKIP 0 だった。`--fail-on-skipped`・`--fail-on-risky`・`--fail-on-warning` を付けても同じである(SKIP が 1 件でもあれば「未完了」と扱う)。実行ログは別の commit で追加する(§8)。
+- **全スイートの結果(最終版 `9f60add`。FIX1〜FIX5 と FIX2・D38 を入れた版)**: PHP 8.2 と 8.3 のどちらでも、2,373 件・7,887 アサーションで通り、失敗 0・SKIP 0 だった。`--fail-on-skipped`・`--fail-on-risky`・`--fail-on-warning` を付けても同じである(SKIP が 1 件でもあれば「未完了」と扱う)。FIX5 の版(`f11b1ba`)では 2,336 件・7,768 アサーションだったので、FIX2 と D38 の試験で 37 件・119 アサーションが増えた。実行ログは、この版の分を別の commit で更新する(§8)。
 - FIX1 は、見逃しではなく「読めないはずのテンプレートが読めなかった」不具合である。直す前の `PARSE_FAILED` は、`gap` なので安全側に倒れていた。直す価値は、テンプレートの中が読まれ、中の他の `gap` が見えるようになることにある。
 - FIX3 が、今回見つけた**判定の見逃しの原因**である。実アプリの確定ルートの範囲には出なかった(確定が少なかったため)。判定を緩めた後に `O(1)`・high として現れうる形なので、D33 の抜き取り確認の対象に含める。
 - FIX4 は、見逃しではなく報告の欠けである。
 - FIX5 は、見逃しではなく過検知(偽の下限)である。FIX3 の直しが作った副作用を、直した直しである。
-- FIX2 は、裁定が出るまで直していない。影響は Snipe-IT だけで、`VIEW_NOT_FOUND` の `gap` 233 件のうち、名前に `/` を含むものが 204 件(これを原因に含むルートは 187 本)である。ほかの 4 本では 0 件である。直すと決まれば、この分は「緩和」でなく「修正」として別に数える。
+- FIX2 は、見逃しではなく読み違い(有効な入力を無効と読む)の修正である。影響は Snipe-IT だけで、`VIEW_NOT_FOUND` の `gap` 233 件のうち、名前に `/` を含むものが 204 件(これを原因に含むルートは 187 本)だった。ほかの 4 本では 0 件で、FIX2 の前後で出力が変わらなかった。「緩和」でなく「修正」として別に数え、直した後の数字は §3 と §4.7 に書いた。**直したら重くなった**(Snipe-IT の解析時間・メモリ・出力サイズ。§3.5.1)。
+- D38 は、不具合の修正ではなく、出力の読み違いの罠を除く変更である。判定の規則は変えていない。
+- **D37(FIX5 の位置づけ)。** FIX5 は「判定を軽くする変更」に当たらず、比べる基準は baseline である、と裁定された。FIX3 の最小再現(リソースが自分のプロパティ経由で読む遅延読込が `O(N)` と出る 6 形)が、FIX5 の後も通ることは、次の試験が縛っている。`tests/Acceptance/MiniAppTest.php` の `testCaseMatchesItsExpectation` の、データセット `r-resource-declared-property`(12 ルート。宣言済みプロパティ `/prop`・promoted の `::collection` `/promoted-collection`・`map` で 1 件ずつ包む `/promoted-map-new`・ローカル変数経由 `/local-var`・`unless` の中 `/unless-flag`・アクセサ `/accessor` の 6 形が `O(N)` で、遅延読込が事象として出ること。1 件だけ包む `/promoted-make`・`/promoted-new` は `O(1)` で、遅延読込の事象は出ること。変わってはならない対照 4 本)。FIX5 の側は、同じ試験のデータセット `r-resource-eager-declared`(読み込み済みのモデルは遅延読込が出ず、`Order::get()` のままの対照や別のリレーションを読み込んだだけの対照は遅延読込が残る)が縛っている。この 2 つは、FIX2・D38 の後の全スイート(上記)でも通っている。
 
 FIX3 の既知の限界(副作用を隠さず書く):
 
@@ -1012,38 +1057,39 @@ FIX3 の既知の限界(副作用を隠さず書く):
 
 ## 6. 例外表・Blade・定数コストについての提案
 
-この節の提案は、**どれも実装していない**。判定を軽くする方向の変更は、不具合の修正であっても今回は入れなかった(§0.2)。各提案には、件数の根拠と、優先度の見立てを添える。優先度は見立てで、決まったものではない。
+この節の提案は、**判定を軽くする方向のものは実装していない**(§0.2)。実装したのは、裁定で決まった FIX2(6.4)と D38(6.6)だけである。各提案には、件数の根拠と、優先度の見立てを添える。優先度は見立てで、決まったものではない。件数は、特記なき限り FIX2・D38 を入れた後(`9f60add`)の出力に合わせた。FIX2 の前の集計でしか数えていないものは、「(FIX2 の前の集計)」と書いた。
 
 | 番号 | 提案 | 件数の根拠(要点) | 優先度の見立て | 判断が要るか |
 | --- | --- | --- | --- | --- |
-| 6.1 | 例外表の緩め方(純 PHP 関数・ヘルパー・enum の読み) | 純 PHP 関数が最後の関門 104 本、ヘルパーが 185 本。enum の読みは確実なもので 568 件 | 高(純関数・ヘルパー)/中(enum) | D28 の作法で 1 件ずつ |
-| 6.2 | Blade の緩和案 B1・B2 | B1 を含む 25 本、B2 を含む 147 本。ただし両案を足しても救われる本数の増分は 0 | 低〜中 | 要(判定を軽くする方向) |
-| 6.3 | 定数コストの呼び出しの数え方 | `auth_user` を含む 618 本、最後の関門 36 本。定数は実測で 2〜14 本 | 高(フェーズ3の前提) | 要(D29・D31) |
-| 6.4 | ビュー名の「/」の読み | 204 件・187 本(Snipe-IT。752 本の約 25%) | 高(誤りの修正) | 要(裁定待ち) |
+| 6.1 | 例外表の緩め方(純 PHP 関数・ヘルパー・enum の読み) | 純 PHP 関数が最後の関門 88 本、ヘルパーが 143 本。enum の読みは確実なもので 568 件 | 高(純関数・ヘルパー)/中(enum) | D28 の作法で 1 件ずつ。enum は D39 で「次の判定を緩める段の第 1 候補」 |
+| 6.2 | Blade の緩和案 B1・B2 | Blade の `gap` を持つルートは 471 本。B1 を含む 25 本、B2 を含む 147 本。ただし両案を足しても救われる本数の増分は 0(FIX2 の前の集計) | 低〜中 | 要(判定を軽くする方向) |
+| 6.3 | 定数コストの呼び出しの数え方 | `auth_user` を含む 781 本、最後の関門 31 本。定数は実測で 2〜14 本 | 高(フェーズ3の前提) | 要(D29・D31) |
+| 6.4 | ビュー名の「/」の読み | 204 件・187 本(Snipe-IT) | — | **解決済み**(D36・FIX2) |
 | 6.5 | 下限の質(過大の 3 型) | 標本 18 本のうち、過大を含むのが 8 本 | 高 | 要(D27 に関わる) |
-| 6.6 | 出力の degree の読み方 | `unknown` かつ下限なしの query 1,949 本・memory 1,576 本 | 中 | 要(D30 に関わる) |
-| 6.7 | 入口の脆さ | `route:list` が止まる 2 アプリ、`model:show` が失敗する 3 アプリ(`MODEL_INFO_UNAVAILABLE` を持つルート 81 本) | 中〜低 | 不要(親切の問題) |
-| 6.8 | `newQuery` の既知化・`skipped` の可視化・`model:show` 失敗の扱い | `newQuery()` 由来 33 本 | 中 | 要(出力の形に触れる案を含む) |
+| 6.6 | 出力の degree の読み方 | `unknown` かつ下限なしの query 1,940 本・memory 1,566 本 | — | **解決済み**(D38・schema 0.2) |
+| 6.7 | 入口の脆さ | `route:list` が止まる 2 アプリ、`model:show` が失敗する 3 アプリ(`MODEL_INFO_UNAVAILABLE` を持つルート 82 本) | 中〜低 | 不要(親切の問題) |
+| 6.8 | `newQuery` の既知化・`skipped` の可視化・`model:show` 失敗の扱い | `newQuery()` 由来 33 本(FIX2 の前の集計) | 中 | 要(出力の形に触れる案を含む) |
 | 6.9 | 集計の道具で見えた出力の限界 | `message` の文言に依存する集計 | 中 | 要(schema に触れる) |
+| 6.10 | 出力サイズとメモリの削減(FIX2 で重くなった Snipe-IT) | 出力 JSON 186.1 MB、ピークメモリ約 976 MiB、`gap` 180,384 件(Snipe-IT) | 中〜高 | 要(出力の形に触れる案を含む) |
 
 ### 6.1 例外表の緩め方
 
 **前提。** 例外表(`resources/known-calls.php`)に載せるのは、「DB に触れず、アプリのコードを呼び返さない」と根拠(basis・why)つきで確かめた呼び出しだけである(D28)。載せることは「この呼び出しは増え方に影響しない」という主張になるので、通すためだけに載せない。1 件ずつ、根拠・理由・試験を添える。
 
-**件数の根拠(カテゴリ別の「最後の関門」)。** 3.4.3 の順序に依らない指標のうち、例外表の領分に近いものを示す。数は、そのカテゴリだけを緩めなかった場合に失う本数である。
+**件数の根拠(カテゴリ別の「最後の関門」)。** 3.4.3 の順序に依らない指標のうち、例外表の領分に近いものを示す。数は、そのカテゴリだけを緩めなかった場合に失う本数である(FIX2・D38 の後の値。FIX2 の前は `laravel_helper` 185・`builtin_pure` 104・`container` 12・`authorization` 128)。
 
 | カテゴリ | 最後の関門のルート数 | 例外表で扱えるか |
 | --- | ---: | --- |
-| `laravel_helper` | 185 | 1 件ずつ根拠を確かめれば可 |
-| `builtin_pure` | 104 | 可(純 PHP 関数のみ。コールバックを取る関数は不可) |
+| `laravel_helper` | 143 | 1 件ずつ根拠を確かめれば可 |
+| `builtin_pure` | 88 | 可(純 PHP 関数のみ。コールバックを取る関数は不可) |
 | `vendor_class_method` | 39 | 一部(`Request->input()` など) |
 | `app_global_function` | 22 | アプリごとの個別判断(アプリ自前の関数の中身を読む必要がある) |
-| `container` | 12 | 不可(`app()` は何でも解決できる。D28) |
+| `container` | 15 | 不可(`app()` は何でも解決できる。D28) |
 | `other_function` | 6 | 個別(ファイル・通信・状態を持つ) |
-| `authorization` | 128 | 載せない(D28) |
+| `authorization` | 46 | 載せない(D28) |
 | `validation` | 6 | 載せない(D28) |
 
-**緩め方の見立て(段階的に)。** 1 件ずつ緩める効果の見当をつけるために、「他の 13 カテゴリがすべて緩んだ」と仮定して、そのカテゴリの原因を使用ルート数の多い順に k 個緩めたときの、救われるルート数を数えた。他のカテゴリが緩むとは限らないので、**上限の見立て**である。
+**緩め方の見立て(段階的に)。** 1 件ずつ緩める効果の見当をつけるために、「他の 13 カテゴリがすべて緩んだ」と仮定して、そのカテゴリの原因を使用ルート数の多い順に k 個緩めたときの、救われるルート数を数えた。他のカテゴリが緩むとは限らないので、**上限の見立て**である。**この表と下の読み方は、FIX2 の前の出力(救われる 415 本が基準)で数えた。FIX2 の後の再集計はしていない**(FIX2 の後は全カテゴリを緩めて救われるのが 322 本で、最終行の値が変わる)。
 
 | k | `builtin_pure`(異なる関数 136 種)を k 個緩めたとき | `laravel_helper`(異なる関数 51 種)を k 個緩めたとき |
 | ---: | ---: | ---: |
@@ -1057,7 +1103,7 @@ FIX3 の既知の限界(副作用を隠さず書く):
 | 100 | 409 | 415 |
 | 全部 | 415 | 415 |
 
-- `builtin_pure`: 上位 3 個(`str_replace()`・`is_array()`・`sprintf()`)で 311 → 353(+42)、上位 5 個(+`trim()`・`is_null()`)で 368 になる。10 個で 372、その先は緩やかで、50 個で 405。**上位 10 個の純関数を 1 件ずつ根拠つきで載せると、最後の関門 104 本のうち 61 本(311 → 372)が救われる見込みで、残りは長い裾野になる。**
+- `builtin_pure`: 上位 3 個(`str_replace()`・`is_array()`・`sprintf()`)で 311 → 353(+42)、上位 5 個(+`trim()`・`is_null()`)で 368 になる。10 個で 372、その先は緩やかで、50 個で 405。**上位 10 個の純関数を 1 件ずつ根拠つきで載せると、最後の関門 104 本(FIX2 の前)のうち 61 本(311 → 372)が救われる見込みで、残りは長い裾野になる。**
 - `laravel_helper`: `trans()` 1 個で 230 → 259(+29)、上位 5 個(+`config()`・`request()`・`redirect()`・`route()`)で 319、10 個(+`session()`・`csrf_token()`・`url()`・`e()`・`__()`)で 370、20 個で 391。
 - 含むルート数の上位は、`trans()` 1,122、`config()` 843、`request()` 603、`redirect()` 557、`str_replace()` 533、`route()` 515、`is_array()` 510、`session()` 496、`sprintf()` 455、`trim()` 406 である。
 - 根拠の書き方に注意が要るもの(見立て): `session()` は、セッションのドライバがデータベースのとき DB に触れうる(アプリの設定次第)。`trans()`・`__()` は、翻訳の読み込み方を差し替えるパッケージがあれば、ファイル以外に触れうる。`config()` は設定ファイルを読むだけだが、設定の値が実行時に書き換えられる場合がある。これらは「条件つきで DB に触れない」という書き方になり、D28 の「根拠つきで確かめた」に足りるかは、1 件ずつ見る必要がある。コールバックを取る純関数(`array_map()` など)は、アプリのコードを呼び返すので載せられない(許可表の状態にも `callback argument ×3` が出ている)。
@@ -1070,12 +1116,12 @@ FIX3 の既知の限界(副作用を隠さず書く):
 | Firefly III | 1,415 | 177 | 426 | 17 | 423 | 246 |
 | Koel | 61 | 11 | 8 | 4 | 7 | 7 |
 | Laravel.io | 4 | 1 | 4 | 0 | 2 | 2 |
-| Snipe-IT | 763 | 160 | 160 | 17 | 136 | 16 |
-| 全体 | 2,855 | 450 | 612 | 68 | 568 | 271 |
+| Snipe-IT | 874 | 181 | 160 | 20 | 136 | 16 |
+| 全体 | 2,966 | 471 | 612 | 71 | 568 | 271 |
 
 - 「確実」な形(`Class::CASE->value/name`)は 568 件・271 箇所で、これが過検知の下限である。変数に入った enum(Blade の `$type->value` など)や、モデルの `->name` と見分けのつかない形は、確実な数に入れていない(`->value/->name` の件数には非 enum の読みも混じる)。
-- **効果は小さい。** 防壁の `gap` を持つ 450 本のうち、防壁の `gap` が enum の確実な形**だけ**のルートは 84 本(Firefly III 63、Snipe-IT 21)である。これを緩めて 14 カテゴリに足しても、救われるのは 415 → 416 本(+1)にとどまる。多くのルートは、foreach の要素へのプロパティ読み(733 件)、コールバック引数のプロパティ読み(275 件)、プロパティの連鎖(491 件)など、正当な `gap` も同時に持っているためである。
-- 提案: 受け手が enum と分かる形(`Class::CASE`、宣言された enum 型)に限って、`->value`・`->name` を `gap` にしない。根拠は「backed enum の `value`・`name` は、列挙の定義から決まる定数で、DB にもアプリのコードにも触れない」。変数に入った enum は、型が enum と取れる場合に限る。優先度(見立て): 中。`gap` の中身を正確にする効果はあるが、救われる本数への効果は小さい。
+- **効果は小さい(FIX2 の前の集計)。** 防壁の `gap` を持つ 450 本のうち、防壁の `gap` が enum の確実な形**だけ**のルートは 84 本(Firefly III 63、Snipe-IT 21)である。これを緩めて 14 カテゴリに足しても、救われるのは 415 → 416 本(+1)にとどまる。多くのルートは、foreach の要素へのプロパティ読み(733 件)、コールバック引数のプロパティ読み(275 件)、プロパティの連鎖(491 件)など、正当な `gap` も同時に持っているためである。
+- 提案: 受け手が enum と分かる形(`Class::CASE`、宣言された enum 型)に限って、`->value`・`->name` を `gap` にしない。根拠は「backed enum の `value`・`name` は、列挙の定義から決まる定数で、DB にもアプリのコードにも触れない」。変数に入った enum は、型が enum と取れる場合に限る。優先度(見立て): 中。`gap` の中身を正確にする効果はあるが、救われる本数への効果は小さい。**D39 の裁定: 今回は入れない。次の「判定を緩める段」の第 1 候補とし、その段で D28 の根拠と D33 の抜き取りを付けて入れる。**
 
 **`$loop` 以外の例外。** `$loop` の 1 段目の読みだけは、DB に触れない値として通している(D35)。2 段目以降(`$loop->parent->first`)は `gap` のままである。これを緩めるかどうかの件数は、今回は数えていない。
 
@@ -1083,7 +1129,7 @@ FIX3 の既知の限界(副作用を隠さず書く):
 
 1. 純 PHP 関数: 使用ルート数の多い順に、1 件ずつ根拠と試験を添えて載せる。まず上位 5〜10 個。コールバックを取る関数は除く。優先度(見立て): 高。
 2. Laravel のヘルパー: `trans()`・`__()`・`route()`・`url()`・`e()`・`csrf_token()` など、DB に触れない根拠が書けるものから。`session()`・`config()` は、条件つきの根拠が要る。優先度(見立て): 高。
-3. enum の `->value`・`->name`: 上記。優先度(見立て): 中。
+3. enum の `->value`・`->name`: 上記。優先度(見立て): 中。D39 により、次の判定を緩める段の第 1 候補である。
 4. 載せないもの(Gate・Policy・Validator・`app()`・`Auth::user()`)は、D28 のとおり載せない。`Auth::user()` は 6.3 に回す。
 
 ### 6.2 Blade の緩和案 B1・B2 への材料
@@ -1093,7 +1139,7 @@ FIX3 の既知の限界(副作用を隠さず書く):
 - **B1**: `<style>` の内側の `@語`、HTML タグ内属性の `@click=`・`@語.修飾=` を地の文とする。`@語(` は、独自ディレクティブ(`Blade::directive`)の見逃しを避けるため対象外。いまは `@media`・`@keyframes`・`@tailwind`・`@click` も `BLADE_UNSUPPORTED` になり、そのルートは `unknown` になる。
 - **B2**: `@class`・`@checked`・`@selected`・`@disabled` を、`@lang` と同様に「引数を残して許可」する(遅延ロードを見逃さない)。`@includeIf`・`@includeWhen`・`@includeFirst` を、`@include` 系の読み(`__peak_include`)に寄せる。許可表を広げる判断は別に要る。
 
-**`BLADE_UNSUPPORTED` の現状。** 5 アプリ中、`BLADE_UNSUPPORTED` を持つのは 343 本(controller の 16.4%)である。アプリ別では BookStack 122 本、Firefly III 148 本、Laravel.io 13 本、Snipe-IT 60 本、Koel 0 本。構文の種別ごとのルート数は、コンポーネント 218、ディレクティブ 301、その他(構文の不一致)147 である(重なる)。異なる構文は 263 種ある。上位は次のとおり(全体。同じルート数のものは、同じ共通レイアウトに由来すると見られる)。
+**`BLADE_UNSUPPORTED` の現状。** 5 アプリ中、`BLADE_UNSUPPORTED` を持つのは 471 本(controller の 22.5%)である(FIX2 の前は 343 本)。アプリ別では BookStack 122 本、Firefly III 148 本、Laravel.io 13 本、Snipe-IT 188 本、Koel 0 本。構文の種別ごとのルート数は、コンポーネント 344、ディレクティブ 445、その他(構文の不一致)201 である(重なる)。異なる構文は 334 種ある。FIX2 の後の上位は 3.3.2 に示した。**次の表は FIX2 の前の集計で、緩和案との対応を示すために残した**(同じルート数のものは、同じ共通レイアウトに由来すると見られる)。
 
 | 構文 | ルート数 | 主なアプリ | 緩和案 |
 | --- | ---: | --- | --- |
@@ -1118,7 +1164,7 @@ FIX3 の既知の限界(副作用を隠さず書く):
 
 Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` のコンポーネント・`@includeFirst`・`@sectionMissing` を使っているために、すべてのルートが同じ `gap` を持つ形である。BookStack の 122 本も、`@icon` 114 と `@inject` 104 が大半を占める。
 
-**各案を採った場合に救われる本数。** Blade の 2 カテゴリ(`blade_component_include`・`blade_other`)を除く 12 カテゴリ(`view_slash` を含む)がすべて緩んだと仮定して、そのうえで案を足したときの救われるルート数を数えた(上限の見立て)。B1 と B2 の構文の一覧は、道具の側で名前から決めたもの(下記)である。
+**各案を採った場合に救われる本数(FIX2 の前の集計。FIX2 の後の再集計はしていない。B1・B2 の増分が 0 だった傾向が FIX2 の後も同じかは、確かめていない)。** Blade の 2 カテゴリ(`blade_component_include`・`blade_other`)を除く 12 カテゴリ(`view_slash` を含む)がすべて緩んだと仮定して、そのうえで案を足したときの救われるルート数を数えた(上限の見立て)。B1 と B2 の構文の一覧は、道具の側で名前から決めたもの(下記)である。
 
 - B1 に当たる構文(`@click`・`@keyup`・`@keydown`・`@input`・`@submit`・`@change`・`@media`・`@page`): これを含むルートは 25 本(Laravel.io 13、Firefly III 9、Snipe-IT 3)。`@keyframes`・`@tailwind` は、今回の 5 アプリには出なかった。
 - B2 に当たる構文(`@class`・`@checked`・`@selected`・`@disabled`・`@includeIf`・`@includeWhen`・`@includeFirst`): これを含むルートは 147 本(Firefly III 126(すべて `@includeFirst`)、Snipe-IT 21)。
@@ -1135,7 +1181,7 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 
 - **B1・B2 を足しても、救われる本数は増えない(+0)。** B1・B2 の構文を持つルートは、必ず他の原因(他の Blade の構文や、14 カテゴリ外の原因)も持つためである。B1・B2 の構文だけが原因のルートは 0 本。
 - コンポーネント・`@include` 系をすべて対応しても、救われるのは +6 本、そのほかのディレクティブを足して合計 +10 本である。**Blade の緩和は、「救われるルートの本数」への効きが小さい。**
-- 一方で、Blade の `gap` は 343 本のルートに載っている。緩和の価値は、救われる本数でなく、`gap` の中身が見えること(テンプレートの中の本物の `gap` が見える)にある。FIX1 のように、読めるようになって初めて見える `gap` もある。
+- 一方で、Blade の `gap` は 471 本のルート(FIX2 の前は 343 本)に載っている。緩和の価値は、救われる本数でなく、`gap` の中身が見えること(テンプレートの中の本物の `gap` が見える)にある。FIX1 のように、読めるようになって初めて見える `gap` もある。
 - 注意: `@click` などは、Blade のディレクティブでなく Alpine / Vue の属性であることが多い。ツールは見分けず `BLADE_UNSUPPORTED` にする(既知)。B1 は、これを地の文と読む案である。ただし「`@語(` は独自ディレクティブの見逃しを避けるため対象外」とするため、`@click="open()"` のように括弧を含む属性値の扱いは、案の詳細を詰める必要がある。
 
 提案: 今は B1・B2 を入れない(従来どおり)。入れるなら、判定を軽くする方向の変更なので、新たに確定したルートの抜き取り確認を工程に入れる(D33)。優先度(見立て): 低〜中。救われる本数への効きが小さく(Blade 全体を緩めても +10 本)、緩和の主な価値は `gap` の可視化にある。
@@ -1144,11 +1190,11 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 
 **方針の確認。** `Auth::user()` のように、DB に触れるが 1 リクエストあたりの本数が一定の呼び出しは、例外表に足さず、将来「定数コストの呼び出し」として数える(D29)。増え方には効かないが、フェーズ3の負荷計算には効く(D31)。
 
-**件数の根拠。** `auth_user`(認証の取得)を原因に持つルートは 618 本である。アプリ別では Firefly III 251、Snipe-IT 227、Koel 91、Laravel.io 28、BookStack 21。原因の内訳(その原因を持つルート数)は、`auth()` 530、`Guard->user()` 85、`Request->user()` 15、`Auth::guest()` 13、`Auth::user()` 13(ファサードの完全名で 4)、`@auth` 2、`@guest` 1 である。
+**件数の根拠。** `auth_user`(認証の取得)を原因に持つルートは 781 本である(FIX2 の前は 618 本)。原因の内訳(その原因を持つルート数)は、`auth()` 690 などである。アプリ別と、`auth()` 以外の原因の内訳は、FIX2 の前の集計で、アプリ別が Firefly III 251、Snipe-IT 227、Koel 91、Laravel.io 28、BookStack 21、原因が `Guard->user()` 85、`Request->user()` 15、`Auth::guest()` 13、`Auth::user()` 13(ファサードの完全名で 4)、`@auth` 2、`@guest` 1 だった。
 
 - `auth_user` だけが原因のルートは 0 本である(`auth_user` は常に他の原因と一緒に載る)。単独では救えない。
-- 他の 13 カテゴリがすべて緩んだとき、`auth_user` が最後の関門になるルートは 36 本(BookStack 2、Firefly III 13、Koel 3、Laravel.io 4、Snipe-IT 14)。`auth_user` を除く 13 カテゴリで救われるのは 379 本、`auth_user` を足して 415 本。
-- つまり、`Auth::user()` 等を定数コストとして数えると、`gap` の観点で最大 36 本のルートが追加で救われる見込みである。大きな数ではない。**定数コストの扱いの価値は、救われる本数でなく、フェーズ3で本数を負荷に積めること**にある。
+- 他の 13 カテゴリがすべて緩んだとき、`auth_user` が最後の関門になるルートは 31 本(BookStack 2、Firefly III 13、Koel 3、Laravel.io 4、Snipe-IT 9)。`auth_user` を除く 13 カテゴリで救われるのは 291 本、`auth_user` を足して 322 本。
+- つまり、`Auth::user()` 等を定数コストとして数えると、`gap` の観点で最大 31 本のルートが追加で救われる見込みである。大きな数ではない。**定数コストの扱いの価値は、救われる本数でなく、フェーズ3で本数を負荷に積めること**にある。
 
 **定数の大きさ(抜き取り確認での実測)。** 確定した 5 本の追跡で、判定の外にある定数分のクエリ数を測った。
 
@@ -1165,31 +1211,25 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 
 優先度(見立て): 高。フェーズ3の前提だが、フェーズ1の判定には効かない。
 
-### 6.4 ビュー名の「/」の読み(`VIEW_NOT_FOUND`)
+### 6.4 ビュー名の「/」の読み(`VIEW_NOT_FOUND`)—解決済み(D36・FIX2)
 
-**症状。** `view('locations/print')` のように、ビュー名に「/」を含むものが `VIEW_NOT_FOUND` になる。Laravel では有効な名前で、`locations/print.blade.php` は実在する(Snipe-IT の `resources/views/locations/print.blade.php`、444 行)。
+**症状。** `view('locations/print')` のように、ビュー名に「/」を含むものが `VIEW_NOT_FOUND` になった。Laravel では有効な名前で、`locations/print.blade.php` は実在する(Snipe-IT の `resources/views/locations/print.blade.php`)。有効な入力を無効と読む誤りで、BookStack の `PARSE_FAILED`(FIX1)と同じ型である。
 
-**原因。** `src/Analysis/Blade/ViewHandlerTemplates.php` の `locate` が、ビュー名を正規表現で検査し、「/」を含む名前を最初に除外している(名前に使える文字を英数字・`_`・`-` とし、`.` で区切る形に限っている)。Laravel のビューの探索は、名前の `.` を `/` に置き換えてファイルを探すだけで、「/」を含む名前もそのまま有効である。有効な入力を無効と読む誤りで、BookStack の `PARSE_FAILED`(FIX1)と同じ型である。
+**原因。** `src/Analysis/Blade/ViewHandlerTemplates.php` の `locate` が、ビュー名を「英数字・`_`・`-` を `.` で区切った形」に限る正規表現で検査し、「/」を含む名前を最初に除外していた。
 
-**件数。**
+**裁定と直し。** D36 で「誤読の修正であり、判定を軽くする変更に当たらない」として、直すと裁定した。条件は 3 つで、すべて満たした。(1) `..`・先頭 `/`・`pkg::x` を従来どおり拒否することを、赤の試験で先に縛る(`7275a97`。25 本。リンクでビューのディレクトリの外へ出るファイルを読まない防壁も含む)。(2) 修正前の出力を基準に 5 アプリを再測定し、`VIEW_NOT_FOUND` の増減・新たに出た `gap`・確定に動いたルートを書く(§3・§4.7)。(3) 確定に動いたルートが 1 本でもあれば全数をコードで追う(該当するルートは 0 本)。直しは `e48a085` である(§5)。
 
-- `VIEW_NOT_FOUND` は 5 アプリで 233 件・215 本のルートに出ている。そのうち、名前に「/」を含むのは 204 件で、**すべて Snipe-IT**(187 本のルート。752 本の約 25%)。ほかのアプリには「/」を含む名前は無い(BookStack は定数でない名前 12 件、Laravel.io は名前空間つきの `feed::links` 13 件、Firefly III は 2 件)。
-- 共通レイアウト(`layouts/default`・`layouts/basic` など)にも当たるので、影響が大きい。Snipe-IT は `app/` と `routes/` に、「/」を含むビュー名を 141 か所(正規表現による概数、43 ファイル)で使っている。
-- 全カテゴリを緩めたときの救われる本数に与える影響は、415 本のうち 96 本(`view_slash` が最後の関門)。「/」を含む名前だけが原因のルートは 3 本。
-- 直した後は、追うテンプレートが急増し、`trans()` などの本来の `gap` が現れる。`unknown` が変わらない見込みだが、確定に動くルートが出るかは測るまで分からない(FIX1 の前例)。
+**結果。**
 
-**仕様案。**
-
-- 「/」を許す。名前に使える文字は、英数字・`_`・`-` と、区切りの `.` と `/`。
-- 次のものは従来どおり拒否する: `..` を含む名前(パスを抜ける)、絶対パス(先頭が `/`)、名前空間つきの名前(`pkg::view`。別途扱う)。パスを抜ける指定の拒否が最も重要な安全条件で、試験で縛る。
-- 試験: 「/」を含む名前が実在のテンプレートに解決される。`../x`・`/etc/x`・`pkg::x` は従来どおり見つからない。ドット形と「/」形が同じテンプレートに解決される。見つからない名前は `VIEW_NOT_FOUND` のまま。
-- 直した後は、修正前の出力(基準)と比べ、`VIEW_NOT_FOUND` の変化、新たに現れる `gap`、確定に動くルートの有無を測る(§5 の他の修正と同じ手順)。
-
-優先度(見立て): 高。分析の誤りの修正で、Snipe-IT の数字を直接動かす。ただし「`gap` にしていたものを `gap` にしなくする」変更に当たるので、直すかどうかは判断を仰ぐ。裁定が出るまでは、本体の数字は `view_slash` を込みにした数と除いた数(15.3%)を併記する。
+- `VIEW_NOT_FOUND` は 5 アプリで 215 ルートから 28 ルートに減った(`gap` の件数は 233 件から 29 件)。Snipe-IT は 189 ルートから 2 ルートになり、D36 の見積もり(204 件・187 ルート)と一致した。残る 2 ルートは、定数でないビュー名である。
+- 確定に動いたルートは 0 本。判定(growth)・確度が動いたルートも 0 本である。
+- 共通レイアウトが歩かれ、その中の `gap` が現れた。Snipe-IT の `gap` は 42,417 件から 180,384 件に増えた。下限が現れた(または上がった)ルートが 19 本ある。すべて重い側である(§4.7)。
+- **代償として、Snipe-IT の解析が重くなった**(解析時間 約 2.6 倍・ピークメモリ 約 2.4 倍・出力 JSON 約 3.9 倍。§3.5.1)。軽くする案は 6.10 に置いた。
+- 「全カテゴリを緩めたときに救われる本数」では、`view_slash` は最後の関門ではなくなった(0 本)。
 
 ### 6.5 下限の質(過大の 3 型)
 
-**位置づけ。** 判定が `unknown` で下限(`lower_bound`)が付いたルートは、いずれかの軸で 511 本ある(query 軸で 137 本: ≥O(N) 125・≥O(N*M) 12。memory 軸は ≥O(N) 452・≥O(N*M) 58)。確定したルートが 5 本しか無かったため、この 511 本から決定的な抜き取り(各アプリ、≥O(N*M) 層と ≥O(N) 層に分け、等間隔)で 18 本を選び、下限が過大でないかをコードを追って確かめた(§4)。ここでは、その結果から見えた下限の質を示す。
+**位置づけ。** 判定が `unknown` で下限(`lower_bound`)が付いたルートは、いずれかの軸で 511 本ある(抜き取りの時点の出力、つまり FIX2 の前の集計。FIX2 の後は 521 本。query 軸で 137 本: ≥O(N) 125・≥O(N*M) 12。memory 軸は ≥O(N) 452・≥O(N*M) 58)。確定したルートが 5 本しか無かったため、この 511 本から決定的な抜き取り(各アプリ、≥O(N*M) 層と ≥O(N) 層に分け、等間隔)で 18 本を選び、下限が過大でないかをコードを追って確かめた(§4)。ここでは、その結果から見えた下限の質を示す。
 
 **結果(標本 18 本の集計)。** 各記録から数えた。標本は 18 本(BookStack 5、Firefly III 5、Koel 4、Snipe-IT 4。Laravel.io は母数が 0 本)で、**全体の過大率は言えない**。
 
@@ -1207,7 +1247,7 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 
 - BookStack の `PUT /api/content-permissions/...`: 抽象型の引数に対する `rebuildPermissions()` の先(子 × 全ロールの行を組む O(子×ロール))が、事象にも `gap` にも出ていない。受け手が型不明(`UnknownT`)のとき、下流の呼び出しは素通しされる設計の帰結で、起点の `gap` は出力にある。
 - Firefly III の `GET /api/v1/budgets` と `POST /piggy-banks/remove/{piggyBank}` の query: リポジトリのインターフェースの束縛が不明(`UNRESOLVABLE_BINDING`)で、先の呼び出しが見えず、下限が付かない。
-- 判定不能の例: Snipe-IT の `GET /locations/{locationId}/printassigned` の query は、偽の `VIEW_NOT_FOUND`(6.4)で下限が出ない。実際は少なくとも O(N) と読めるが、ツール側の誤りが原因なので、「低すぎ」には数えず判定不能とした(§4.3.4)。
+- 判定不能の例: Snipe-IT の `GET /locations/{locationId}/printassigned` の query は、抜き取りの時点では偽の `VIEW_NOT_FOUND`(6.4)で下限が出なかった。実際は少なくとも O(N) と読めるが、ツール側の誤りが原因なので、「低すぎ」には数えず判定不能とした(§4.3.4)。FIX2 で `VIEW_NOT_FOUND` は消えたが、このルートの query 軸は下限なしのままである。
 
 **提案。**
 
@@ -1217,7 +1257,9 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 
 件数の根拠は、標本 18 本のみである。511 本のうち、条件つきの事象を下限にしているルートが何本かは、未集計である。優先度(見立て): 高。下限は「参考値であり、保証ではない」(§0.3)と書いたが、過大になる型が複数あるので、保証の強さを下げるか、下限の定義を直すか、判断が要る。D27 に関わる。
 
-### 6.6 出力の degree の読み方(D30)
+### 6.6 出力の degree の読み方(D30)—解決済み(D38・schema 0.2)
+
+**この節は、直す前の症状の記録である。** D38 で「`lower_bound` が `null` のとき `degree` も `null` にする。表では `unknown (no lower bound)` と出し、`degree` の列に 0 を出さない。`docs/output-schema.md` も直し、`schema_version` を `0.2` とする」と裁定し、直した(§5)。提案 1 と、提案 2 の表示の部分を採った。説明だけを実態に合わせる案は採っていない。直した後の出力では、下限のない `unknown` の軸の `degree` が `null` で、クエリ軸 1,940 本・メモリ軸 1,566 本である(§3.2)。以下の数字は、直す前(スキーマ 0.1)のものである。
 
 **症状。** `growth` が `unknown` のとき、`degree` は「見つかった最大の次数」を持つ。下限が付くと、`degree` は下限の次数(1 や 2)になる。下限が付かないときは `degree` が 0 になる。output-schema の説明は「`unknown` のときは意味を持たず 0」だが、実際の出力はそうなっていない。
 
@@ -1231,19 +1273,19 @@ Firefly III の 126 本は、1 つの共通レイアウトで `x-layout.*` の�
 - `degree` が 0 の `unknown` は、「何も追えなかった(下限なし)」と、「追えた範囲では事象がすべて定数だった」を区別しない。下限なしの query 1,949 本のうち、`events_found` が 0 のものが 1,008 本、1 以上のものが 941 本ある。後者は、事象が見つかっているのに `degree 0` で、`lower_bound` も `null` である。
 - 読み手には、`unknown` かつ `degree 0` が「ほぼ O(1)」に見えうる。実際、Koel の `GET /api/playlists` では、`query` が `degree 0`・下限なしと出ていたが、実コードではプレイリストごとに遅延読込(owner・folders・collaborators)が走り、N に比例していた。このルートが `unknown` だったのは、別の `gap` があったためで、遅延読込の取りこぼし(FIX3 で直した見逃し)が `unknown` に救われていた。FIX3 の後も、このルートの `query` は `unknown`・下限なしのままである(§4.4.1)。
 
-**提案(どちらも判断を仰ぐ。output-schema 0.1 の確定(D30)に触れる)。**
+**提案(直す前に出したもの。output-schema 0.1 の確定(D30)に触れるので判断を仰いだ)。**
 
 1. `lower_bound` が `null` のとき、`degree` も `null` にする(0 と書かない)。
 2. または、output-schema の説明を実態に合わせて直す(「`unknown` のとき `degree` は下限の次数。下限が無ければ 0 で、O(1) を意味しない」)。表示でも、下限なしの `unknown` を `—` や `unknown (no lower bound)` と出して、`degree` の列に 0 を出さない。
 
-優先度(見立て): 中。判定の規則は変わらず、出力の読み違いを防ぐ直しである。
+優先度(見立て): 中。判定の規則は変わらず、出力の読み違いを防ぐ直しである。(→ D38 で直した。)
 
 ### 6.7 入口の脆さ
 
 artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定行・`APP_KEY`・`APP_URL`・DB のマイグレーション)を要求する。コンストラクターの例外 1 つで、全ルートが取れなくなる場合があった。
 
 - **コントローラーのコンストラクターの例外。** Firefly III の `app/Http/Controllers/ExchangeRates/IndexController.php:50` は、アプリ設定 `enable_exchange_rates` が false のときコンストラクターで例外を投げる。`route:list` はコントローラーを生成するので、このままだと入口が全滅する(ツールは、終了コード 3 と原因つきで正しく報告した)。回避は、設定表の更新(§2.4)。Snipe-IT は、`settings` 表が空だと全 artisan コマンドが例外で止まる。
-- **`model:show` の失敗。** 空のインスタンスを作るので、モデルの前提や副作用で失敗しうる。5 アプリ中 3 アプリで起きた。Laravel.io 4 モデル(`id()` メソッドが空インスタンスの `$this->id` を読む `ErrorException`)、BookStack 3 モデル(`User` で morph map 未定義の `ClassMorphViolationException`)、Snipe-IT 2 モデル(`guarded` が文字列の `TypeError`)。ツールは止まらず `note` を出して継続し、そのモデルに頼る呼び出しは `gap`(`MODEL_INFO_UNAVAILABLE`・`UNKNOWN_BUILDER_METHOD`・`LOOP_SOURCE_UNKNOWN` など)になった(設計どおり)。`MODEL_INFO_UNAVAILABLE` を持つルートは 81 本(Koel 45、Laravel.io 31、Firefly III 5)である。Koel は別の事象で、`User` が `model:show` では成功するのに、ツールがモデルと認識しない。Koel の 45 本は、この事象の影響と見られる。
+- **`model:show` の失敗。** 空のインスタンスを作るので、モデルの前提や副作用で失敗しうる。5 アプリ中 3 アプリで起きた。Laravel.io 4 モデル(`id()` メソッドが空インスタンスの `$this->id` を読む `ErrorException`)、BookStack 3 モデル(`User` で morph map 未定義の `ClassMorphViolationException`)、Snipe-IT 2 モデル(`guarded` が文字列の `TypeError`)。ツールは止まらず `note` を出して継続し、そのモデルに頼る呼び出しは `gap`(`MODEL_INFO_UNAVAILABLE`・`UNKNOWN_BUILDER_METHOD`・`LOOP_SOURCE_UNKNOWN` など)になった(設計どおり)。`MODEL_INFO_UNAVAILABLE` を持つルートは 82 本(Koel 45、Laravel.io 31、Firefly III 5、Snipe-IT 1)である。Koel は別の事象で、`User` が `model:show` では成功するのに、ツールがモデルと認識しない。Koel の 45 本は、この事象の影響と見られる。
 - **未 migrate の DB。** `model:show` が `SQLSTATE[42S02]`(テーブルが無い)で失敗し、下限が弱まる。BookStack で空の DB で測ると、下限が後退することを実際に確かめた。
 
 提案(判定の規則は変えない):
@@ -1258,7 +1300,7 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 
 **`newQuery()` の既知化。** モデルのインスタンスの `newQuery()` が、`UNKNOWN_BUILDER_METHOD`(「…is not declared in the model and is not a known builder method」)になる。ビルダーの既知メソッドの一覧には `newQuery` があるが、受け手がモデルのインスタンスのとき、この一覧を引かない経路がある(`src/Analysis/Engine/CallResolver.php` の、モデルのメソッドが見つからない場合の分岐。コードを読んで確認した範囲)。
 
-- 件数: `newQuery()` 由来の `UNKNOWN_BUILDER_METHOD` を持つルートは 33 本(BookStack 24、Snipe-IT 9)。異なる呼び出しは 8 種(BookStack の `Book`・`Chapter`・`Bookshelf`・`Page`・`User`、Snipe-IT の `Accessory`・`Component`・`Consumable` の `::newQuery()`)。`UNKNOWN_BUILDER_METHOD` を持つルート 507 本の 6.5% である。
+- 件数(FIX2 の前の集計。FIX2 の後の再集計はしていない): `newQuery()` 由来の `UNKNOWN_BUILDER_METHOD` を持つルートは 33 本(BookStack 24、Snipe-IT 9)。異なる呼び出しは 8 種(BookStack の `Book`・`Chapter`・`Bookshelf`・`Page`・`User`、Snipe-IT の `Accessory`・`Component`・`Consumable` の `::newQuery()`)。`UNKNOWN_BUILDER_METHOD` を持つルート 507 本(FIX2 の後は 526 本)の 6.5% である。
 - 効果: 偽の `gap` の起点を減らす。受け手が型不明になると下流の呼び出しが素通しされるので、起点の偽の `gap` を減らす効果が大きい。ただし Eloquent の振る舞いを「知っている」とする変更なので、D28 の作法(根拠つき)に従う。
 - 優先度(見立て): 中。
 
@@ -1271,9 +1313,9 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 
 ### 6.9 集計の道具で見えた出力の限界
 
-集計は、出力(`analyze --format=json`、スキーマ 0.1)だけから行った。そのとき見えた、出力に足したい項目を挙げる。いずれも schema の追加に当たるので、判断を仰ぐ。
+集計は、出力(`analyze --format=json`。スキーマ 0.1 と 0.2)だけから行った。そのとき見えた、出力に足したい項目を挙げる。いずれも schema の追加に当たるので、判断を仰ぐ。
 
-1. **`gap` に機械可読の原因欄**(例: `gaps[].subject`)。いまは `message` の文言を正規表現で読んでいる。文言が変わると集計が黙って崩れる。呼び出し名は、`VENDOR_CALL_NOT_MODELLED` の 74,056 件すべてが `message` から取れた(取得不能 0)が、`X() on a <型>` の形は受け手のクラス名が無い。
+1. **`gap` に機械可読の原因欄**(例: `gaps[].subject`)。いまは `message` の文言を正規表現で読んでいる。文言が変わると集計が黙って崩れる。呼び出し名は、`VENDOR_CALL_NOT_MODELLED` の 155,475 件すべてが `message` から取れた(取得不能 0。FIX2 の前は 74,056 件)が、`X() on a <型>` の形は受け手のクラス名が無い。
 2. **`VENDOR_CALL_NOT_MODELLED` の理由の `reason` コード化**(許可表に無い / 拒否 / 引数の数 / コールバック引数)。「許可表に足せば救える」のか、「拒否が意図」なのかを、機械で分けられる。
 3. **ルートにベンダー提供・dev 依存の印**。いまは `composer.json` と `installed.json` から集計側が推定した(3.4.2)。出力にあれば、開発用ルートを分母から除いた数字を、ツール自身が出せる。
 4. **`n_table`・`m_table` を軸ごとに**(6.5)。
@@ -1281,34 +1323,54 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 6. **`evidence` は、次数 1 以上の成長する事象だけを載せる。** 定数の事象は載らないので、「事象も `gap` も出ていない」ように見える行が出る。読み方を文書に注記するか、定数の事象の件数を出す。
 7. **`summary` に、軸ごとの下限つき `unknown` の数。** 検算が書ける。
 8. **Blade の `gap` の `site` に、呼び出し元の controller の行。** いまは、同じテンプレートが複数のルートを `unknown` にしている重複を、ルートごとに数えるので、多重に数えられる(Firefly III の 126 本は 1 つの共通レイアウト)。
-9. **`degree` の読み方**(6.6)。
+9. **`degree` の読み方**(6.6。D38 で解決済み)。
 
 優先度(見立て): 1・4・5 が中〜高(下限の質と原因の集計に効く)。ほかは中〜低。
 
+### 6.10 出力サイズとメモリの削減(FIX2 で重くなった Snipe-IT)
+
+**(b) 提案。判断を仰ぐ。実装はしていない。**
+
+**事実。** FIX2 の後、Snipe-IT の解析は、時間が約 2.6 倍(4.171 → 10.748 秒)、ピークメモリが約 2.4 倍(421,448 → 999,696 kB。約 976 MiB)、出力 JSON が約 3.9 倍(47.9 → 186.1 MB)になった(§3.5.1)。原因は、187 ルートで共通レイアウトが歩かれ、レイアウトの中の追えない呼び出しが、ルートごとの `gap` として積み上がること(`gap` 42,417 → 180,384 件)である。要約の再利用(3,556 回を計算し、5,022 回を再利用)は効いている。他の 4 アプリには影響が無い。
+
+**案。**
+
+1. **同じ共通レイアウトの同じ `gap` を、ルートごとに持たず参照にする。** 出力で、`gap` をルートの中に重複して書くのをやめ、テンプレート(ファイルと行)単位の表に 1 回だけ書いて、ルートからは参照する。出力サイズが大きく減る見込みである。**出力の形(スキーマ)に触れる**(新しい欄が要る。0.x の間の変更の扱いは `docs/output-schema.md` 章 2)ので、判断が要る。判定は変わらない。
+2. **要約の再利用を広げる。** 共通レイアウトの中の `gap` を、テンプレート単位の要約として再利用し、ルートごとに歩き直さない。時間とメモリを減らす見込みである。実装の重さは見積もっていない。判定が変わらないことを、試験で縛る必要がある。
+3. **メモリの上限への備えを文書に書く。** 「大きなアプリは約 1 GiB のメモリが要り、JSON は 100 MB 級になりうる。この試運転は `memory_limit=-1` で測った」を、README などの使い方に注記するか。PHP の既定の `memory_limit` のままで Snipe-IT が動くかは、確かめていない。確かめて、足りないときに PHP の致命的エラーだけでなく、`memory_limit` を案内する説明つきの停止にするかも、あわせて判断が要る。
+
+優先度(見立て): 中〜高。FIX2 は戻さない(戻すと偽の `VIEW_NOT_FOUND` が戻り、Snipe-IT の判定が歪む)ので、読み違いを直した代償を軽くする案である。
+
 ## 7. 仕様書・判断記録との食い違い、作業中に出た質問
 
-### 7.1 判断記録(D33〜D35)と指示書
+### 7.1 判断記録(D33〜D40)と指示書
 
 - **D33(判定を緩める変更の段では、新たに確定したルートの抜き取りを必ず入れる)**: 今回は判定を緩める変更を入れていない。baseline から最終版へ `unknown` が確定に動いたルートは 0 本なので(§3.2.1)、D33 の対象になる「新たに確定したルート」は無い。食い違いは無い。
 - **D34(T4 は確定 5 本の全数確認と、下限つき `unknown` の追加確認とする)**: 指示書は、確定したルートを 15 本以上抜き取り、その半分以上を `O(1)`・`high` にすることを求めていた。確定は 5 本しか無く、基準に届かなかった。D34 で、アプリを足さず母数の全数を確かめる形に改めた。指示書とは食い違うが、裁定済みである。結果は §4 に書く。
 - **D35(`$loop` の 1 段目の読みだけを、プロパティ読みの `gap` 化の例外とする)**: FIX3 の防壁の副作用を抑えるための例外で、baseline より判定を軽くするものではない(例外にしなければ、`$loop->index` を読むだけのテンプレートまで `unknown` になる)。例外表(`resources/known-calls.php`)には載せず、`ViewHandler` の個別処理にしてある。「ベンダーの振る舞いを知っている」という主張の追加にあたるので、D28 と同じ性質として記録した。
-- **まだ判断記録に無いもの**: 確認した時点で、`decisions.md` は D35 までである。FIX2(ビュー名の `/`)の裁定と、FIX5 の位置づけ(§7.3 の Q2)は、記録されていない。
+- **D36(FIX2 を直す)**: 裁定で直した(§5・6.4)。誤読の修正であり、判定を軽くする変更に当たらない。条件の 3 つ(拒否の縛り・再測定の追記・確定に動いたルートの全数確認)は、すべて満たした。確定に動いたルートは 0 本だった(§4.7)。
+- **D37(FIX5 は「判定を軽くする変更」に当たらない。比べる基準は baseline)**: 食い違いは無い。条件の「FIX3 の最小再現が FIX5 の後も通ること」は、試験の名前つきで §5 に示した。
+- **D38(`lower_bound` が `null` のとき `degree` も `null`。schema 0.2)**: 直した(§5・6.6)。出力の形を変える裁定で、D30 が確定した 0.1 に触れるため、スキーマの版を 0.2 に上げた。
+- **D39(enum の `->value`・`->name` の例外化は今回は入れない)**: 入れていない。次の「判定を緩める段」の第 1 候補である(6.1)。
+- **D40(Laravel 11 のアプリは足さない)**: 足していない。`docs/spec.md` に「実アプリでの試運転は Laravel 12/13 のみで、11 は未確認」と 1 行足した。
 
 ### 7.2 仕様書・出力スキーマの説明と、実際の出力の食い違い
 
-1. **`degree` の説明**: `output-schema.md` は、`degree` を「`unknown` のときは意味を持たず 0」と説明する。実際の出力では、`unknown` でも下限(`lower_bound`)があれば、下限の次数が入る。最終版 5 本では、メモリ軸で下限つきの `unknown` 510 本が次数 1(452 本)・2(54 本)・3(4 本)、クエリ軸で 137 本が次数 1(125 本)・2(12 本)を持つ。下限のない `unknown` は、すべて 0 である。説明と出力のどちらを直すかが決まっていない(§7.3 の Q3)。集計では、実際の出力(下限があれば次数が入る)を前提にした。
-2. **`VIEW_NOT_FOUND` の説明**: `output-schema.md` は「ビュー名が定数でない、またはファイルが無い」と説明する。実際には、ビュー名が定数でファイルもあるのに、名前に `/` を含むだけで出る場合がある(FIX2。Snipe-IT で 204 件)。説明どおりでない出力が出ている。
+1. **`degree` の説明**: 解消済みである(D38)。以前の `output-schema.md` は、`degree` を「`unknown` のときは意味を持たず 0」と説明していたが、実際の出力は、`unknown` でも下限があれば下限の次数を持っていた。D38 で、出力を直した(下限のない `unknown` は `degree` が `null`。下限があれば下限の次数)。`output-schema.md` の説明と例も、これに合わせて直した(schema 0.2)。
+2. **`VIEW_NOT_FOUND` の説明**: 解消済みである(FIX2)。`output-schema.md` は「ビュー名が定数でない、またはファイルが無い」と説明する。以前は、ビュー名が定数でファイルもあるのに、名前に `/` を含むだけで出る場合があり(Snipe-IT で 204 件)、説明どおりでない出力が出ていた。FIX2 で出力を説明に合わせた。
 3. **`BLADE_UNSUPPORTED` の説明**: 「対応外の Blade 構文(独自ディレクティブ・コンポーネント・`@can` など)」とある。実際には、Alpine や Vue の属性(`@click`・`@keydown` など)も、Blade のディレクティブとして対応外に数えられる(§3.3.2)。説明に、この場合の記述が無い。
 4. **`summary.routes` と「全ルート数」**: `summary.routes` は対象のルートだけの数で、対象外(`summary.skipped`)を含まない。集計で「全ルート数」を言うときは、2 つを足す必要がある(§3.1)。スキーマの記述自体は正しいが、読み違えやすい。
-5. **対象のバージョン**: `spec.md` は「Laravel 11 以降(11 はベストエフォート。動作は確認済み)」とする。今回選んだ 5 本は Laravel 12(1 本)と 13(4 本)で、Laravel 11 のアプリでは確かめていない(§1.2)。
+5. **対象のバージョン**: `spec.md` は「Laravel 11 以降(11 はベストエフォート。動作は確認済み)」とする。今回選んだ 5 本は Laravel 12(1 本)と 13(4 本)で、Laravel 11 のアプリでは確かめていない(§1.2)。(D40 で、実アプリでの試運転は Laravel 12/13 のみで 11 は未確認、と `spec.md` に 1 行足した。)
 
-### 7.3 作業中に出た質問(裁定を待つもの)
+### 7.3 作業中に出た質問と裁定
 
-1. **Q1: FIX2(ビュー名の `/`)を直すか。** 影響は Snipe-IT の 187 ルートに及ぶ。直せば、`VIEW_NOT_FOUND` の読み違いがなくなる。この `gap` を直すと、`gap` がゼロになるルートが出うる(`gap` がゼロになることは、確定の保証ではない)ので、判定を軽くする方向の変更になりうる。指示書の「判定を軽くする方向の変更は、不具合の修正であってもしない」に当たるかどうかを含めて、裁定を要する。
-2. **Q2: FIX5 は、指示書の「判定を軽くする方向の変更はしない」に当たるか。** FIX5 は、FIX3 の直しが作った偽の下限を取り除く変更である。baseline から見れば、判定は 1 本も軽くなっていない(出力が baseline に戻っただけ)。しかし、FIX1〜FIX4 の版から見れば、下限が消える(軽い側に動く)変更である。引き継ぐ条件は、同一の実体と示せるときに限る厳しいものにして、見逃しが増えない側に倒した。範囲の読み方について、裁定を要する。
-3. **Q3: `degree` の説明(§7.2 の 1)を直すのか、出力を直すのか。** 出力は、下限の次数を持たせているほうが情報として多い。仕様書の説明を「下限があれば下限の次数」に改めるのが最小の変更と考えるが、出力の契約(スキーマ 0.1 は確定済み。D30)に関わるので、裁定を要する。
-4. **Q4: enum の `->value`・`->name` の過検知(§3.6)を例外にするか。** 防壁の `gap` のうち 680 件(326 箇所)が該当する。例外にすれば `gap` は減るが、「DB に触れず、アプリのコードを呼び返さない」という主張の追加にあたる(D28・D35 と同じ性質)。判定を軽くする方向なので、今回は実装せず、提案(§6)に回した。
-5. **Q5: Laravel 11 のアプリを対象に足すか。** 今回は 5 本とも 12 以降だった。仕様書は 11 をベストエフォートとしている。足すなら、別の試運転になる。
+Q1〜Q5 は、2026-11-01 に D36〜D40 で裁定された(`docs/decisions.md`)。
+
+1. **Q1: FIX2(ビュー名の `/`)を直すか。 → D36: 直す。** 誤読の修正であり、判定を軽くする変更に当たらない。条件は、拒否(`..`・先頭 `/`・`pkg::x`)の試験を先に足すこと、再測定の結果を追記すること、確定に動いたルートがあれば全数をコードで追うこと。いずれも満たした(§5・§4.7)。
+2. **Q2: FIX5 は、指示書の「判定を軽くする方向の変更はしない」に当たるか。 → D37: 当たらない。** 比べる基準は baseline とする。条件は、FIX3 の最小再現が FIX5 の後も通ることを、試験の名前つきで示すこと(§5)。
+3. **Q3: `degree` の説明を直すのか、出力を直すのか。 → D38: 出力を直す。** `lower_bound` が `null` のとき `degree` も `null` にし、表では `unknown (no lower bound)` と出す。`output-schema.md` も直し、`schema_version` を `0.2` にした(§5・6.6)。
+4. **Q4: enum の `->value`・`->name` の過検知を例外にするか。 → D39: 今回は入れない。** 次の「判定を緩める段」の第 1 候補とし、その段で D28 の根拠と D33 の抜き取りを付けて入れる(6.1)。
+5. **Q5: Laravel 11 のアプリを対象に足すか。 → D40: 足さない。** `docs/spec.md` に「実アプリでの試運転は Laravel 12/13 のみで、11 は未確認」と 1 行足した。
 
 ## 8. 試験ログ・再現
 
@@ -1318,6 +1380,8 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 | --- | --- | --- | --- | --- | --- |
 | `docs/research/phase1-test-php82.log` | 8.2 | 2,336 | 7,768 | 0 | Unit・Acceptance の全スイート |
 | `docs/research/phase1-test-php83.log` | 8.3 | 2,336 | 7,768 | 0 | Unit・Acceptance の全スイート |
+
+**この表のログは、FIX1〜FIX5 を入れた版(`f11b1ba`)の結果である。** FIX2 と D38 を入れた版(`9f60add`)は、PHP 8.2・8.3 のどちらでも 2,373 件・7,887 アサーション・SKIP 0 で通った(§5)。この版のログは、別の commit で更新する。
 
 - 実行は `--fail-on-skipped --fail-on-risky --fail-on-warning` 付きで、両方とも `OK` で終わった。
 - 各ログの先頭に、実行したコマンド・PHP のバージョン・リポジトリの状態(HEAD と clean)を書いた。絶対パス・ユーザー名・ホスト名・コンテナ ID は保存の前に除いてある。
