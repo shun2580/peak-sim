@@ -303,3 +303,14 @@ Claudeの提案をもとに、2026-10-29に合意した実装方針。
 - (補足)理由:基準を満たすためにアプリを足すより、母数の全数を確かめるほうが、確かめた範囲が明確になる(推測)
 - 付記:5アプリ・2091ルートのうち、確定は5本。下限つき `unknown` は、query 軸で137本(≥O(N) 125・≥O(N*M) 12)、いずれかの軸では511本
 - 退けた案:(b) `unknown` の少ないアプリを加えて、15本の基準を満たす
+
+### D35. Blade の `$loop` の1段目の読みだけを、プロパティ読みの gap 化の例外とする(2026-11-01 軍師 QC が記録を求めた事項)
+
+- 内容:Blade の `$loop->index`・`$loop->first`・`$loop->last` など、`$loop` が組み込みの値(PlainT)のままのときの、1段目のプロパティ読みは gap にせず、値(PlainT)として通す。実装は `ViewHandler`(`isLoopRead`)。範囲は 1 段目に限る。`$loop->parent->first` のように 2 段目以降を読むものは、gap のまま
+- 内容:`$loop` を再代入した場合や、別の変数名で持ち回した場合には、この例外は効かない(受け手が PlainT かつ変数名が `loop` のときだけ)
+- 理由:FIX3 で、PlainT へのプロパティ読みを gap にする防壁を入れた(e9003eb。D21 に従い、値のプロパティを黙って通さない)。そのままだと、Blade の `$loop->index` などが一斉に gap になり、ループのカウンタを読むだけのテンプレートまで `unknown` になる。その副作用を抑えるために設けた
+- 理由:`$loop` は Laravel が与えるループのカウンタで、DB に触れず、アプリのコードを呼び返さないと確かめた。D28 の基準に合う
+- 付記:試験は `ViewHandlerEdgesTest`。`testThePropertyOfALoopCounterIsAGapNotSilence` が `$loop->parent->first` を gap にして、例外が 1 段目に限られることを縛る。`testAPropertyOfAnotherBuiltInIsAGapNotSilence` が、他の組み込み(`$attributes->class`)は gap のままであることを縛る
+- 付記:これは将軍裁定でなく、軍師 QC(gunshi_qc_248FIX3_T3b の①)が記録を求めた事項。例外表(`resources/known-calls.php`)には載せていない。`ViewHandler` の個別処理であるため、記録が無いと、後で「なぜ `$loop` だけ許すか」が追えなくなる
+- 付記:これは「ベンダーの振る舞いを知っている」という主張の追加にあたるため記録する(D28 と同じ性質)
+- (補足)外した場合は、Blade の `$loop` を使うテンプレートで gap が増えるだけで、判定は重くなる側に動く。見逃しは増えない(推測)
