@@ -37,7 +37,7 @@ final class KoelProfileTest extends TestCase
     }
 
     /** Every key the profile may have. The first five are read by the driver today; the rest are described in the file. */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'login_as', 'admin', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'after_generation'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'login_as', 'admin', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation'];
 
     /** Why a route cannot be hit: the fixed vocabulary of the design. */
     private const REASONS = ['unfilled_param', 'unauthenticated', 'forbidden', 'not_found', 'signature_required', 'external_call_blocked', 'file_dependency', 'validation_422', 'rate_limited'];
