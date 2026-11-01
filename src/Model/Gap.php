@@ -30,6 +30,8 @@ final readonly class Gap
             implode(',', array_map(static fn (Axis $a): string => $a->value, $this->affects)),
             (string) $this->loopDepth,
             implode(',', array_map(static fn (ScenarioTag $t): string => $t->fingerprint(), $this->scenario)),
+            // The message names the cause (the call that could not be followed); two causes on one line stay two gaps.
+            $this->message,
         ]);
     }
 }
