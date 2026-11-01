@@ -493,7 +493,8 @@ final class CallResolver
             return $handled;
         }
         if ($recv instanceof PlainT) {
-            return $recv;
+            // A value (a column, a scalar) has no properties the tool knows: reading one is not followed, never passed through (D21).
+            return $this->gap($run, $scope, GapCode::UNRESOLVED_CALL, $n, "property {$name} is read on a value that is not an object: what it holds is not known");
         }
         if ($recv instanceof ObjectT) {
             if ($this->engine->source()->findClass($recv->class) === null) {

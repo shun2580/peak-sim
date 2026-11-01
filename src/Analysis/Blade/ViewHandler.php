@@ -66,6 +66,9 @@ final class ViewHandler implements CallHandler
     {
         $name = strtolower($c->name);
         $node = $c->node;
+        if ($node instanceof Expr\PropertyFetch) {
+            return $this->isLoopRead($node, $c->receiver);
+        }
         if ($node instanceof Expr\FuncCall) {
             return in_array($name, ['view', '__peak_include', '__peak_extends', ViewHandlerTemplates::GAP_MARKER], true);
         }
@@ -90,6 +93,10 @@ final class ViewHandler implements CallHandler
         $name = strtolower($c->name);
         $node = $c->node;
 
+        if ($node instanceof Expr\PropertyFetch) {
+            // `$loop->index`, `$loop->first`...: the loop counters, plain values that touch nothing.
+            return new PlainT();
+        }
         if ($name === ViewHandlerTemplates::GAP_MARKER) {
             return $this->gapMarker($c, $ctx);
         }
@@ -108,6 +115,15 @@ final class ViewHandler implements CallHandler
 
         // Response::view() and response()->view(): name, data, status, headers. The response is built at once.
         return $this->make($c, $ctx, 0, false, self::RESPONSE_CLASS);
+    }
+
+    /**
+     * `$loop->...` while `$loop` is still the built-in (a plain value). Reading a property on any other plain value is a
+     * gap (CallResolver); the loop counters are the one read a template makes on a built-in that nothing can hide behind.
+     */
+    private function isLoopRead(Expr\PropertyFetch $node, ?Type $receiver): bool
+    {
+        return $receiver instanceof PlainT && $node->var instanceof Expr\Variable && $node->var->name === 'loop';
     }
 
     // ----- view(), View::make(), response()->view() -------------------------------------------------------

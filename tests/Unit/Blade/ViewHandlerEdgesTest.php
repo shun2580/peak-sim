@@ -247,6 +247,24 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
         $this->assertNoUnknownWithoutGap();
     }
 
+    public function testAPropertyOfAnotherBuiltInIsAGapNotSilence(): void
+    {
+        $blade = "{{ \$attributes->class }}";
+        $s = $this->walk("return view('t');", ['t.blade.php' => $blade]);
+
+        self::assertContains(GapCode::UNRESOLVED_CALL, $this->gapCodes($s));
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testThePropertyOfALoopCounterIsAGapNotSilence(): void
+    {
+        $blade = "@foreach (\$orders as \$order)\n    {{ \$loop->parent->first }}\n@endforeach";
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => $blade]);
+
+        self::assertContains(GapCode::UNRESOLVED_CALL, $this->gapCodes($s));
+        $this->assertNoUnknownWithoutGap();
+    }
+
     public function testErrorsIsAViewErrorBagSoTheKnownCallsHandlerCanDecideWhatItMayDo(): void
     {
         $blade = "{{ \$errors->first('x') }}";
