@@ -96,7 +96,8 @@ return [
         ],
         // The property is of the wrapped class but is not the model the resource wraps: it says nothing about what was loaded.
         '/other-order' => [
-            'query' => 'O(N)',
+            'query' => ['growth' => 'O(N)', 'confidence' => 'medium'],
+            'memory' => ['growth' => 'O(N)', 'confidence' => 'medium'],
             'confidence' => 'medium',
             'n_table' => 'orders',
             'gaps' => [],
@@ -105,7 +106,8 @@ return [
         ],
         // The resource wraps its second constructor argument: the first argument (loaded with its relation) is not what the property holds.
         '/wrapped-second' => [
-            'query' => 'O(N)',
+            'query' => ['growth' => 'O(N)', 'confidence' => 'medium'],
+            'memory' => ['growth' => 'O(N)', 'confidence' => 'medium'],
             'confidence' => 'medium',
             'n_table' => 'orders',
             'gaps' => [],
