@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Drops every peak_sim_measure_* database of the stack (after an abnormal exit). Same guard as MeasureDb.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+in_php /peak-sim/poc/runtime/bin/inner/cleanup.php

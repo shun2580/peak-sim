@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Makes real outbound attempts from inside the sealed container and records that each one fails.
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+in_php /peak-sim/poc/runtime/bin/inner/canary-egress.php

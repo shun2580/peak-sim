@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Preflight: refuse to measure unless the PHP container is sealed (exit 11 otherwise).
+#  1. host side: the compose network must be `internal`
+#  2. container side: nothing outside is reachable, the DB service is (bin/inner/preflight.php)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+
+net_ids="$(docker network ls --filter "label=com.docker.compose.project=$PEAK_COMPOSE_PROJECT" --format '{{.ID}}')"
+if [ -z "$net_ids" ]; then
+  echo "PREFLIGHT FAIL network: no network found for project $PEAK_COMPOSE_PROJECT" >&2
+  exit 11
+fi
+internal_ok=1
+for id in $net_ids; do
+  name="$(docker network inspect "$id" --format '{{.Name}}')"
+  internal="$(docker network inspect "$id" --format '{{.Internal}}')"
+  echo "network $name internal=$internal"
+  [ "$internal" = "true" ] || internal_ok=0
+done
+if [ "$internal_ok" != 1 ]; then
+  echo "PREFLIGHT FAIL network: a compose network is not internal" >&2
+  exit 11
+fi
+
+in_php /peak-sim/poc/runtime/bin/inner/preflight.php
+exit $?

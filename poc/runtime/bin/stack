@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# up | down | ps | exec <args...>   Brings the measurement stack up or tears it down (volumes included).
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+
+case "${1:-}" in
+  up)   compose up -d --build --wait ;;
+  down) compose down -v --remove-orphans ;;
+  ps)   compose ps ;;
+  exec) shift; in_php "$@" ;;
+  *)    echo "usage: bin/stack up|down|ps|exec <php args...>" >&2; exit 2 ;;
+esac
