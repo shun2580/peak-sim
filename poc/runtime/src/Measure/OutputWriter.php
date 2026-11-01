@@ -76,7 +76,7 @@ final class OutputWriter
      */
     private static function buildSummary(array $build): array
     {
-        return array_intersect_key($build, array_flip(['point', 'database', 'mode', 'scale', 'laravel', 'migrate_seconds', 'fill_seconds', 'total_seconds', 'rows', 'generation']));
+        return array_intersect_key($build, array_flip(['point', 'rebuilt_after', 'database', 'mode', 'scale', 'laravel', 'migrate_seconds', 'fill_seconds', 'total_seconds', 'rows', 'generation']));
     }
 
     private function put(string $name, string $content): string

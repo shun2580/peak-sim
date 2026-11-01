@@ -62,6 +62,17 @@ final class OutputWriterTest extends PlannerTestCase
         $this->assertSame(['orders' => 100], $summary['builds'][0]['rows']);
     }
 
+    public function test_a_rebuild_after_a_request_changed_the_database_stays_in_the_record(): void
+    {
+        $base = self::sample();
+        $result = new DriverResult(0, null, $base->report, $base->attempts, $base->timings, [['point' => 'ord:100', 'rebuilt_after' => '/probe/ddl', 'database' => 'peak_sim_measure_x', 'rows' => []]]);
+
+        (new OutputWriter($this->dir))->write($result, [], [], null);
+
+        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
+        $this->assertSame('/probe/ddl', $summary['builds'][0]['rebuilt_after']);
+    }
+
     public function test_with_expectations_it_puts_them_beside_the_static_analysis_and_the_measurement(): void
     {
         (new OutputWriter($this->dir))->write(self::sample(), [], [], [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']]);

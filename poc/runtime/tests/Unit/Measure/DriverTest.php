@@ -258,6 +258,9 @@ final class DriverTest extends PlannerTestCase
 
         $this->assertSame(MeasureExit::OK, $result->exit);
         $this->assertSame(['build ord:100', 'drop ord:100', 'build ord:100', 'drop ord:100'], array_values(array_filter($builder->log, static fn (string $l): bool => str_ends_with($l, ' ord:100'))));
+        $rebuilt = array_filter($result->builds, static fn (array $b): bool => isset($b['rebuilt_after']));
+        $this->assertCount(4, $rebuilt, 'the route changes the database on every scale, and every one is rebuilt');
+        $this->assertSame(['/bad'], array_values(array_unique(array_column($rebuilt, 'rebuilt_after'))));
         $goodAt100 = array_filter($runner->requests, static fn (MeasureRequest $r): bool => $r->route === '/good' && $r->scale === 100);
         $this->assertCount(1, $goodAt100, 'the route after the contaminating one is measured on the rebuilt database');
         $rows = array_column($result->report->rows(), null, 'route');

@@ -24,6 +24,9 @@ use PeakSim\Runtime\Run\Attempt;
  */
 final class Driver
 {
+    /** @var list<array<string, mixed>> what the builder said about each database it built, rebuilds included */
+    private array $builds = [];
+
     public function __construct(
         private readonly DataPlanner $planner,
         private readonly DatabaseBuilder $builder,
@@ -43,7 +46,7 @@ final class Driver
         $byTask = array_fill_keys(array_keys($tasks), []);
         $all = [];
         $timings = [];
-        $builds = [];
+        $this->builds = [];
         $exit = MeasureExit::OK;
         $message = null;
 
@@ -56,7 +59,7 @@ final class Driver
             $routes = 0;
             try {
                 try {
-                    $builds[] = ['point' => $point->key()] + $this->builder->build($point);
+                    $this->builds[] = ['point' => $point->key()] + $this->builder->build($point);
                     $built = true;
                 } catch (BuildFailure $e) {
                     $exit = MeasureExit::DATA;
@@ -87,7 +90,7 @@ final class Driver
             }
         }
 
-        return new DriverResult($exit, $message, $this->report($tasks, $byTask, $exit === MeasureExit::OK ? null : (string) $message), $all, $timings, $builds);
+        return new DriverResult($exit, $message, $this->report($tasks, $byTask, $exit === MeasureExit::OK ? null : (string) $message), $all, $timings, $this->builds);
     }
 
     /**
@@ -185,7 +188,7 @@ final class Driver
                 $this->keep($result->attempts, $mine, $all);
                 try {
                     $this->builder->drop($point);
-                    $this->builder->build($point);
+                    $this->builds[] = ['point' => $point->key(), 'rebuilt_after' => $request->route] + $this->builder->build($point);
                 } catch (\Throwable $e) {
                     return [MeasureExit::CONTAMINATED, $label . ': the database could not be rebuilt after the request changed it: ' . $e->getMessage()];
                 }
