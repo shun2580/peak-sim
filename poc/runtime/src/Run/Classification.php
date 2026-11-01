@@ -105,6 +105,7 @@ final class Classification
      *
      * @param list<string> $externalHosts  hosts the app tried to reach (host names only)
      * @param ?string      $rollbackProblem e.g. "ddl: ALTER TABLE ..." (see QueryCounter::rollbackProblem())
+     * @param bool         $redirectedToLogin a 3xx whose target is the login page: the route wanted a user
      */
     public static function decide(
         ?int $status,
@@ -112,6 +113,7 @@ final class Classification
         ?string $exceptionMessage,
         array $externalHosts,
         ?string $rollbackProblem,
+        bool $redirectedToLogin = false,
     ): ClassificationResult {
         if ($rollbackProblem !== null) {
             return new ClassificationResult(self::NOT_ROLLBACKABLE, $rollbackProblem);
@@ -132,6 +134,10 @@ final class Classification
 
         if ($status === null) {
             return new ClassificationResult(self::UNEXPECTED_STATUS, 'no response');
+        }
+
+        if ($redirectedToLogin && $status >= 300 && $status < 400) {
+            return new ClassificationResult(self::UNAUTHENTICATED, 'redirected to the login page');
         }
 
         $class = self::fromStatus($status);

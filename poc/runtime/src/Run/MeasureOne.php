@@ -162,6 +162,7 @@ final class MeasureOne
                 $exception?->getMessage(),
                 $booted->externalCalls->hosts(),
                 $problem,
+                $result->redirectPath !== null && $result->redirectPath === $this->loginPath($app),
             );
 
             $measured = $decision->isMeasured();
@@ -186,6 +187,20 @@ final class MeasureOne
         }
 
         return self::EXIT_OK;
+    }
+
+    /** The path of the app's login page (route "login" when it exists, else /login). */
+    private function loginPath(object $app): string
+    {
+        $router = $app['router'];
+        if ($router->has('login')) {
+            $path = parse_url($app['url']->route('login'), PHP_URL_PATH);
+            if (is_string($path) && $path !== '') {
+                return $path;
+            }
+        }
+
+        return '/login';
     }
 
     /** @param array<string, mixed> $args */

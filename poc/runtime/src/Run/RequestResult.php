@@ -11,6 +11,7 @@ final class RequestResult
         public readonly int $bytes,
         public readonly int $peakMem,
         public readonly ?\Throwable $exception,
+        public readonly ?string $redirectPath = null,
     ) {
     }
 }

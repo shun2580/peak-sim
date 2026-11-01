@@ -114,6 +114,18 @@ final class ProbeRoutesDockerTest extends DockerCase
         self::assertSame('ok', $user[1]['class']);
     }
 
+    public function testARedirectToTheLoginPageMeansTheRouteWantedAUser(): void
+    {
+        [, $guarded] = $this->run1(['--uri=/probe/guarded', '--phases=warmup']);
+        self::assertSame(302, $guarded[0]['status']);
+        self::assertSame('unauthenticated', $guarded[0]['class']);
+        self::assertSame('redirected to the login page', $guarded[0]['detail']);
+
+        [, $elsewhere] = $this->run1(['--uri=/probe/elsewhere', '--phases=warmup']);
+        self::assertSame(302, $elsewhere[0]['status']);
+        self::assertSame('ok', $elsewhere[0]['class'], 'a redirect that is not to the login page is measured as it is');
+    }
+
     public function testActingAsAUserThatDoesNotExistIsAnUnfilledParameter(): void
     {
         [$exit, $attempts] = $this->run1(['--uri=/probe/auth-only', '--act-as=PeakProbe\\ProbeUser:99999:web']);

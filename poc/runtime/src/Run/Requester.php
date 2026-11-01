@@ -79,12 +79,15 @@ final class Requester
         $peak = max(0, memory_get_peak_usage() - $base);
 
         $reported = $this->booted->exceptions->take();
+        $location = $response === null ? null : $response->headers->get('Location');
+        $redirectPath = is_string($location) ? parse_url($location, PHP_URL_PATH) : null;
 
         return new RequestResult(
             $response === null ? null : $response->getStatusCode(),
             $bytes,
             $peak,
             $thrown ?? $reported,
+            is_string($redirectPath) ? $redirectPath : null,
         );
     }
 

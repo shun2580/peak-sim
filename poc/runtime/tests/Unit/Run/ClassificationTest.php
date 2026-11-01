@@ -92,6 +92,24 @@ final class ClassificationTest extends TestCase
         self::assertTrue($result->isMeasured());
     }
 
+    public function testARedirectToTheLoginPageIsUnauthenticatedNotOk(): void
+    {
+        $result = Classification::decide(302, null, null, [], null, true);
+        self::assertSame(Classification::UNAUTHENTICATED, $result->class);
+        self::assertSame('redirected to the login page', $result->detail);
+        self::assertFalse($result->isMeasured());
+    }
+
+    public function testAnyOtherRedirectStaysMeasured(): void
+    {
+        self::assertSame(Classification::OK, Classification::decide(302, null, null, [], null, false)->class);
+    }
+
+    public function testTheLoginRedirectFlagDoesNotTurnA200IntoUnauthenticated(): void
+    {
+        self::assertSame(Classification::OK, Classification::decide(200, null, null, [], null, true)->class);
+    }
+
     public function testDecideUsesStatusWhenThereIsNoException(): void
     {
         $result = Classification::decide(404, null, null, [], null);

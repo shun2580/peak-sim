@@ -133,6 +133,9 @@ final class ProbeApp
                 return 'ok';
             });
             Route::get('auth-only', fn () => auth()->check() ? 'ok' : abort(401));
+            Route::get('login-page', fn () => 'login')->name('login');
+            Route::get('guarded', fn () => redirect()->route('login'));
+            Route::get('elsewhere', fn () => redirect('/probe/auth-only'));
             Route::get('forbidden', fn () => abort(403));
             Route::get('missing', fn () => abort(404));
             PHP;
