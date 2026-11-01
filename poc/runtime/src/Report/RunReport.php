@@ -16,10 +16,23 @@ use PeakSim\Runtime\Run\Attempt;
  * Which attempts decide a verdict: the COLD attempt (empty cache, fresh login) of each scale, with class `ok`.
  * Attempts on the axis `N` (or `global`) form the main sweep; attempts on the axis `M` form the second sweep over
  * the children per parent row. Warm-up and warm attempts are kept in the attempt log and are not used here.
+ *
+ * Scale 0 on the axis `N` (the scaled tables empty, everything else at the base size) is not a point of the sweep.
+ * It is the response of an empty system, and is used for one thing: a flat count whose largest-scale response is
+ * the same as that empty response means the data never reached the response (`suspect_empty`). A page that fills
+ * to the same size at every scale is larger than the empty response, so it can still be O(1). When scale 0 was
+ * not measured (or did not return `ok`), `suspect_empty` is limited to a body that never changes in size and has
+ * the size of a canonical empty body.
  */
 final class RunReport
 {
     private const VERDICTS = [Verdict::MEASURED_O1, Verdict::MEASURED_ON, Verdict::MEASURED_ONM, Verdict::INCONCLUSIVE, Verdict::NO_INFO, Verdict::NOT_MEASURED];
+
+    /**
+     * Sizes in bytes of the canonical empty bodies: "" (0), "[]" and "{}" (2), `{"data":[]}` (11). Only used when
+     * there is no scale 0 to compare with.
+     */
+    private const EMPTY_BODY_BYTES = [0, 2, 11];
 
     private const RELATIONS = ['agree', 'runtime_only', 'static_stronger', 'conflict', 'not_comparable'];
 
@@ -38,6 +51,7 @@ final class RunReport
         $second = [];
         $bytes = [];
         $touched = [];
+        $emptyBytes = null;
         $bypass = false;
         $scope = self::scopeOf($spec);
         $scaled = $scope === 'global' ? null : self::scaledTables($spec);
@@ -49,6 +63,11 @@ final class RunReport
             $axis = strtolower($a->axis);
             if ($axis === 'm') {
                 $second[$a->scale] = $a->queries;
+
+                continue;
+            }
+            if ($a->scale === 0) {
+                $emptyBytes = $a->bytes;
 
                 continue;
             }
@@ -66,8 +85,7 @@ final class RunReport
             $verdict = Verdict::notMeasured($failClass ?? 'no_attempts', null, array_reduce($attempts, static fn (bool $c, Attempt $a): bool => $c || $a->gateBypass, false));
         } else {
             $untouched = $scaled === null ? $touched === [] : array_intersect($scaled, $touched) === [];
-            $distinct = array_unique($bytes, SORT_REGULAR);
-            $suspectEmpty = count($bytes) >= 2 && ! in_array(null, $bytes, true) && count($distinct) === 1;
+            $suspectEmpty = self::suspectEmpty($bytes, $emptyBytes);
             $scales = array_keys($main);
             $values = array_values($main);
 
@@ -232,6 +250,21 @@ final class RunReport
         }
 
         return $md;
+    }
+
+    /**
+     * @param array<int, int|null> $bytes response size per scale (scale 0 excluded), ascending by scale
+     */
+    private static function suspectEmpty(array $bytes, ?int $emptyBytes): bool
+    {
+        if ($bytes === [] || in_array(null, $bytes, true)) {
+            return false;
+        }
+        if ($emptyBytes !== null) {
+            return $bytes[array_key_last($bytes)] === $emptyBytes;
+        }
+
+        return count($bytes) >= 2 && count(array_unique($bytes)) === 1 && in_array($bytes[array_key_first($bytes)], self::EMPTY_BODY_BYTES, true);
     }
 
     private static function scopeOf(RouteSpec $spec): string
