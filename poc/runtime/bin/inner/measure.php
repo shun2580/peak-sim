@@ -24,6 +24,7 @@ use PeakSim\Runtime\Measure\ProcessOneRunner;
 use PeakSim\Runtime\Measure\RouteTask;
 use PeakSim\Runtime\Measure\SeederPlanner;
 use PeakSim\Runtime\Report\Comparison;
+use PeakSim\Runtime\Run\Requester;
 
 require dirname(__DIR__, 2) . '/bootstrap.php';
 
@@ -85,7 +86,10 @@ $tasks = array_map(RouteTask::fromArray(...), $inspected['tasks']);
 fwrite(STDERR, sprintf("inspected: %d routes (%d not controllers), Laravel %s\n", count($tasks), $inspected['skipped'], $inspected['laravel']));
 
 // 2. Measure.
-$driver = new Driver($planner, $builder, new ProcessOneRunner($bin . '/measure-one', $env));
+$requestLimit = Requester::timeLimit($env[Requester::TIME_LIMIT_ENV] ?? '');
+// A measurement is a warm-up, a cold and a warm request, each within the limit, plus the start of the app.
+$runner = new ProcessOneRunner($bin . '/measure-one', $env, max(ProcessOneRunner::TIMEOUT, 3 * $requestLimit + 60));
+$driver = new Driver($planner, $builder, $runner);
 $result = $driver->run($tasks, $scales);
 
 // 3. Record.
@@ -96,6 +100,7 @@ $meta = [
     'run_id' => $config->runId,
     'laravel' => $inspected['laravel'],
     'php' => $inspected['php'],
+    'request_time_limit_seconds' => $requestLimit,
     'seconds' => round(microtime(true) - $started, 1),
 ];
 $files = (new OutputWriter($config->outDir))->write($result, $meta, $tasks, $expected);

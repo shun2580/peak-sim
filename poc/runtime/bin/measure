@@ -22,6 +22,8 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
   --scales=100,1000,10000   the sizes of the main sweep: at least 3, strictly ascending (default 100,1000,10000)
   --only=<a>,<b>         measure only the routes whose uri contains one of these
   --base=N               generator only: rows of every table that is not scaled (default 5)
+  --request-timeout=N    seconds one request may run, 1 to 60 (default 20; a route that runs tens of thousands of queries
+                         at the largest scale can need more; the one used is written in summary.json)
   --keep-stack           leave the stack up afterwards (for looking around; tear it down with bin/stack down)
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-measure), PHP_VERSION (default 8.3, the image the app runs in)
@@ -42,7 +44,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" keep=0
+app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" timeout="" keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -54,6 +56,7 @@ for arg in "$@"; do
     --scales=*) scales="${arg#--scales=}" ;;
     --only=*) only="${arg#--only=}" ;;
     --base=*) base="${arg#--base=}" ;;
+    --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
     --keep-stack) keep=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
   esac
@@ -72,6 +75,7 @@ for s in "${scale_list[@]}"; do
   prev="$s"
 done
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,2}$ ]] && [ "$timeout" -ge 1 ] && [ "$timeout" -le 60 ] || fail_usage "--request-timeout must be 1 to 60 seconds"; fi
 if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
 [ -d "$app" ] || fail_usage "--app is not a directory: $app"
 [ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
@@ -109,9 +113,9 @@ if ! bash "$here/preflight"; then
   exit 11
 fi
 
-compose exec -T \
-  -e PEAK_MEASURE_STATIC_JSON=/out/static.json \
-  -e PEAK_MEASURE_SCALES="$scales" \
+exec_env=(-e PEAK_MEASURE_STATIC_JSON=/out/static.json -e PEAK_MEASURE_SCALES="$scales")
+[ -n "$timeout" ] && exec_env+=(-e PEAK_MEASURE_REQUEST_TIMEOUT="$timeout")
+compose exec -T "${exec_env[@]}" \
   measure-php php /peak-sim/poc/runtime/bin/inner/measure.php "${inner[@]}"
 code=$?
 

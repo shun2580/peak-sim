@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Measure;
 
+use PeakSim\Runtime\Judge\Verdict;
 use PeakSim\Runtime\Report\RunReport;
 use PeakSim\Runtime\Route\UserProvider;
 use PeakSim\Runtime\Run\Attempt;
@@ -241,7 +242,19 @@ final class Driver
                 $failClass = $last->class;
                 $failDetail = $last->detail;
             }
-            $report->add(RunReport::rowFor($task->spec, $attempts, $failClass, $failDetail));
+            $row = RunReport::rowFor($task->spec, $attempts, $failClass, $failDetail);
+            if ($row['verdict'] === Verdict::NOT_MEASURED && $row['class'] === 'ok') {
+                // Too few points were left to judge: say which scale failed and why, not that all went well.
+                foreach ($attempts as $a) {
+                    if ($a->class !== 'ok') {
+                        $row['class'] = $a->class;
+                        $row['reason_detail'] = sprintf('scale %d (axis %s): %s', $a->scale, $a->axis, $a->detail ?? $a->class);
+
+                        break;
+                    }
+                }
+            }
+            $report->add($row);
         }
 
         return $report;
