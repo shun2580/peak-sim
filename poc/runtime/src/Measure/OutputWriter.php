@@ -36,20 +36,22 @@ final class OutputWriter
             throw new \RuntimeException('cannot create ' . $this->dir);
         }
         $files = [];
+        $profile = isset($meta['profile']) && is_string($meta['profile']) ? $meta['profile'] : null;
+        $report = $result->report->withProfile($profile);
 
         $lines = '';
         foreach ($result->attempts as $attempt) {
             $lines .= $attempt->toJson() . "\n";
         }
         $files[] = $this->put('attempts.jsonl', $lines);
-        $files[] = $this->put('routes.jsonl', $result->report->toJsonLines());
-        $files[] = $this->put('report.md', $result->report->toMarkdown());
+        $files[] = $this->put('routes.jsonl', $report->toJsonLines());
+        $files[] = $this->put('report.md', $report->toMarkdown());
         $files[] = $this->put('tasks.json', self::json(array_map(static fn (RouteTask $t): array => $t->toArray(), $tasks)));
         $files[] = $this->put('summary.json', self::json([
             'meta' => $meta,
             'exit' => $result->exit,
             'message' => $result->message,
-            'summary' => $result->report->summary(),
+            'summary' => $report->summary(),
             'timings' => $result->timings,
             'builds' => array_map(self::buildSummary(...), $result->builds),
         ]));
@@ -57,13 +59,13 @@ final class OutputWriter
         if ($expected !== null) {
             $staticByRoute = [];
             $verdicts = [];
-            foreach ($result->report->rows() as $row) {
+            foreach ($report->rows() as $row) {
                 $staticByRoute[$row['route']] = $row['static'];
                 $verdicts[$row['route']] = Verdict::fromArray($row);
             }
             $table = Comparison::table($expected, $staticByRoute, $verdicts);
             $files[] = $this->put('comparison.json', self::json($table));
-            $files[] = $this->put('comparison.md', Comparison::toMarkdown($table));
+            $files[] = $this->put('comparison.md', Comparison::toMarkdown($table, $profile));
         }
 
         return $files;

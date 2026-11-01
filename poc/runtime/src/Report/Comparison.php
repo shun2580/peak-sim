@@ -144,12 +144,14 @@ final class Comparison
 
     /**
      * @param list<array<string, mixed>> $rows from table()
+     * @param string|null $profile the app profile the run used, or null for none
      */
-    public static function toMarkdown(array $rows): string
+    public static function toMarkdown(array $rows, ?string $profile = null): string
     {
         $disagree = array_values(array_filter($rows, static fn (array $r): bool => $r['relation'] === 'conflict' || $r['vs_expected'] === 'mismatch'));
 
         $md = "# Static analysis, runtime measurement and the fixture expectations\n\n";
+        $md .= sprintf("profile: %s\n\n", $profile ?? 'none');
         $md .= "A runtime result is what was measured on this input, along the path that was taken (its scope is in the table). ";
         $md .= "Nothing below is adjusted to the expectation or to the measurement: a difference is not fitted, it is a finding.\n\n";
         $md .= "## Disagreements\n\n";

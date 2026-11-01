@@ -39,6 +39,21 @@ final class RunReport
     /** @var list<array<string, mixed>> */
     private array $rows = [];
 
+    /** The app profile the run used, or null for none. Set at the end, when the record is written. */
+    private ?string $profile = null;
+
+    /**
+     * The same rows with the profile the run used (null: none). A verdict reached with a profile is reported as such,
+     * so a reader of the record on paper sees it without opening summary.json.
+     */
+    public function withProfile(?string $profile): self
+    {
+        $copy = clone $this;
+        $copy->profile = $profile;
+
+        return $copy;
+    }
+
     /**
      * @param list<Attempt> $attempts every attempt of this route, any scale and axis
      * @param string|null $failClass why the route could not be (fully) measured, from the fixed vocabulary
@@ -137,6 +152,12 @@ final class RunReport
     {
         $rows = $this->rows;
         usort($rows, static fn (array $a, array $b): int => [$a['route'], $a['method']] <=> [$b['route'], $b['method']]);
+        if ($this->profile !== null) {
+            foreach ($rows as &$row) {
+                $row['statement'] .= sprintf(' (with profile: %s)', $this->profile);
+            }
+            unset($row);
+        }
 
         return $rows;
     }
@@ -190,6 +211,7 @@ final class RunReport
     {
         $s = $this->summary();
         $md = "# Runtime measurement run\n\n";
+        $md .= sprintf("profile: %s\n\n", $this->profile ?? 'none');
         $md .= "Every verdict here was measured on this input, along the path that was taken, in the scope named beside it. ";
         $md .= "A flat count on a path that never read the scaled tables, or that returned an empty response, is `no_info`, not O(1). ";
         $md .= "Where the static analysis and the measurement disagree, both are shown as they are, and a difference is not fitted to either side.\n\n";
