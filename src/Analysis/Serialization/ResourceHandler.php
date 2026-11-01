@@ -20,6 +20,7 @@ use PeakSim\Analysis\Type\UnknownT;
 use PeakSim\Model\GapCode;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\NodeFinder;
 
 /**
  * JsonResource and ResourceCollection.
@@ -167,12 +168,110 @@ final class ResourceHandler implements CallHandler
      * `$this->order` where the resource class declares (or promotes) a property `order` of a class type: PHP reads that
      * property, it does not forward to the wrapped model, so the value is what the declaration says (a model, an object).
      * A property with no class type (untyped, scalar, union) says nothing here and is left to the forwarding path.
+     *
+     * When the property is the wrapped model itself (see holdsWrapped()), the value is that model, with the relations it
+     * was loaded with: a new model of the declared class would forget them and report lazy loads that do not happen.
      */
     private function declared(ResourceT $r, CallSite $c, EvalContext $ctx): ?Type
     {
         $text = $ctx->source()->propertyType($r->resourceClass, $c->name);
+        $type = $text === null ? null : (new TypeResolver($ctx->models()))->fromTypeString($text, $r->resourceClass);
+        if ($type instanceof ModelT && $r->inner instanceof ModelT && $type->class === $r->inner->class && $this->holdsWrapped($r->resourceClass, $c->name, $ctx)) {
+            return $r->inner;
+        }
 
-        return $text === null ? null : (new TypeResolver($ctx->models()))->fromTypeString($text, $r->resourceClass);
+        return $type;
+    }
+
+    /**
+     * True only when the constructor of the resource class itself shows that property $property is the very value it hands
+     * to `parent::__construct()` and that value is its first argument (the one a call site's `new X($model)` and
+     * `X::collection($models)` supply): the property is promoted from that parameter, or assigned from it once. Anything
+     * else (a second argument, a parameter changed in the constructor, a property assigned elsewhere, a constructor of a
+     * parent class or a trait, a conditional call) is not shown, and the property keeps its declared type (D21).
+     */
+    private function holdsWrapped(string $class, string $property, EvalContext $ctx): bool
+    {
+        $info = $ctx->source()->findClass($class);
+        $ctor = $ctx->source()->resolveMethod($class, '__construct')->method;
+        if ($info === null || $info->traits !== [] || $ctor === null || $ctor->owner !== $info->fqcn || $ctor->node->stmts === null) {
+            return false;
+        }
+        $first = $ctor->node->params[0] ?? null;
+        if ($first === null || !$first->var instanceof Node\Expr\Variable || !is_string($first->var->name) || $first->byRef || $first->variadic) {
+            return false;
+        }
+        $param = $first->var->name;
+        $finder = new NodeFinder();
+
+        // `parent::__construct($param)` exactly once, as a statement of its own, with the parameter as it is.
+        $isParentCtor = static fn (Node $n): bool => $n instanceof Expr\StaticCall && $n->class instanceof Node\Name && strtolower($n->class->toString()) === 'parent'
+            && $n->name instanceof Node\Identifier && strtolower($n->name->toString()) === '__construct';
+        $calls = $finder->find($ctor->node->stmts, $isParentCtor);
+        $given = false;
+        foreach ($ctor->node->stmts as $stmt) {
+            $call = $stmt instanceof Node\Stmt\Expression ? $stmt->expr : null;
+            $arg = $call !== null && $isParentCtor($call) ? ($call->args[0] ?? null) : null;
+            $given = $given || ($arg instanceof Node\Arg && $arg->name === null && !$arg->unpack && $arg->value instanceof Expr\Variable && $arg->value->name === $param);
+        }
+        if (count($calls) !== 1 || !$given) {
+            return false;
+        }
+
+        // The parameter is never changed in the constructor (assigned, assigned by reference, or by an operator).
+        $changesParam = static fn (Node $n): bool => ($n instanceof Expr\Assign || $n instanceof Expr\AssignRef || $n instanceof Expr\AssignOp)
+            && $n->var instanceof Expr\Variable && $n->var->name === $param;
+        if ($finder->findFirst($ctor->node->stmts, $changesParam) !== null) {
+            return false;
+        }
+
+        // How many times the class writes `$this->property`, and whether the constructor's own write is `= $param`.
+        $writes = $finder->find($info->node->stmts, static fn (Node $n): bool => $n instanceof Expr\Assign || $n instanceof Expr\AssignRef || $n instanceof Expr\AssignOp);
+        $own = 0;
+        $fromParam = 0;
+        foreach ($writes as $write) {
+            if (!$write->var instanceof Expr\PropertyFetch || !$write->var->var instanceof Expr\Variable || $write->var->var->name !== 'this'
+                || !$write->var->name instanceof Node\Identifier || $write->var->name->toString() !== $property) {
+                continue;
+            }
+            $own++;
+            if ($write instanceof Expr\Assign && $write->expr instanceof Expr\Variable && $write->expr->name === $param && in_array($write, $this->topLevel($ctor->node->stmts), true)) {
+                $fromParam++;
+            }
+        }
+        if ($first->isPromoted() && $first->var->name === $property) {
+            return $own === 0;
+        }
+
+        return $own === 1 && $fromParam === 1 && $this->declaresProperty($info->node, $property);
+    }
+
+    /** The expressions of the statements written directly in $stmts. @return list<Expr> */
+    private function topLevel(array $stmts): array
+    {
+        $out = [];
+        foreach ($stmts as $stmt) {
+            if ($stmt instanceof Node\Stmt\Expression) {
+                $out[] = $stmt->expr;
+            }
+        }
+
+        return $out;
+    }
+
+    private function declaresProperty(Node\Stmt\ClassLike $class, string $property): bool
+    {
+        foreach ($class->stmts as $stmt) {
+            if ($stmt instanceof Node\Stmt\Property) {
+                foreach ($stmt->props as $item) {
+                    if ($item->name->toString() === $property) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /** A property read or a call that a resource forwards to the model it wraps. */
