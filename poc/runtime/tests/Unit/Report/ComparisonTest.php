@@ -207,4 +207,22 @@ final class ComparisonTest extends TestCase
 
         $this->assertStringContainsString('No disagreements', Comparison::toMarkdown($rows));
     }
+
+    public function test_the_markdown_names_the_profile_or_says_none(): void
+    {
+        $rows = Comparison::table(
+            [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']],
+            ['/ok/eager' => self::st('O(1)', null, 'high')],
+            ['/ok/eager' => self::o1()],
+        );
+
+        $with = Comparison::toMarkdown($rows, 'fixtures');
+        $without = Comparison::toMarkdown($rows);
+
+        $this->assertStringContainsString("\nprofile: fixtures\n", $with);
+        $this->assertLessThan(strpos($with, '## Disagreements'), strpos($with, 'profile: fixtures'));
+        $this->assertStringContainsString("\nprofile: none\n", $without);
+        $this->assertSame($without, Comparison::toMarkdown($rows, null));
+        $this->assertSame(str_replace("profile: none\n", "profile: fixtures\n", $without), $with);
+    }
 }

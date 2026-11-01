@@ -157,6 +157,25 @@ final class MeasureDriverDockerTest extends DockerCase
         self::assertSame([], self::leftovers());
     }
 
+    public function testAProfileMakesTheFilterRouteSeeItsDataAndIsNamedInTheRecord(): void
+    {
+        // /ng/collection-filter keeps the orders with status 'paid'; the generator alone writes a placeholder there.
+        [$exit, $stdout, $stderr, $plain] = self::drive(['--data=generator', '--only=/ng/collection-filter']);
+        self::assertSame(0, $exit, $stdout . $stderr);
+        self::assertSame('no_info', self::routes($plain)['/ng/collection-filter']['verdict'], 'without the profile the filter sees no data');
+        self::assertStringContainsString("\nprofile: none\n", (string) file_get_contents($plain . '/report.md'));
+
+        [$exit, $stdout, $stderr, $dir] = self::drive(['--data=generator', '--profile=fixtures', '--only=/ng/collection-filter']);
+        self::assertSame(0, $exit, $stdout . $stderr);
+        $row = self::routes($dir)['/ng/collection-filter'];
+        self::assertSame('measured_O1', $row['verdict']);
+        self::assertStringEndsWith(' (with profile: fixtures)', $row['statement']);
+        self::assertStringContainsString("\nprofile: fixtures\n", (string) file_get_contents($dir . '/report.md'));
+        $summary = json_decode((string) file_get_contents($dir . '/summary.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('fixtures', $summary['meta']['profile']);
+        self::assertSame([], self::leftovers());
+    }
+
     public function testARouteThatChangesTheDatabaseIsRecordedAndTheDatabaseRebuilt(): void
     {
         $probe = ProbeApp::create('/app', 'driver');

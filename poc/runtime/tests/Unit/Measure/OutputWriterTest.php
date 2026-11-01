@@ -86,4 +86,28 @@ final class OutputWriterTest extends PlannerTestCase
         $this->assertSame('match', $table[0]['vs_expected']);
         $this->assertFileExists($this->dir . '/comparison.md');
     }
+
+    public function test_the_profile_in_the_meta_reaches_the_human_readable_files_and_the_statements(): void
+    {
+        $expected = [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']];
+        (new OutputWriter($this->dir))->write(self::sample(), ['data' => 'generator', 'profile' => 'fixtures'], [], $expected);
+
+        $this->assertStringContainsString("\nprofile: fixtures\n", (string) file_get_contents($this->dir . '/report.md'));
+        $this->assertStringContainsString("\nprofile: fixtures\n", (string) file_get_contents($this->dir . '/comparison.md'));
+        $row = json_decode(trim((string) file_get_contents($this->dir . '/routes.jsonl')), true);
+        $this->assertStringEndsWith(' (with profile: fixtures)', $row['statement']);
+        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
+        $this->assertSame('fixtures', $summary['meta']['profile']);
+    }
+
+    public function test_without_a_profile_the_files_say_none_and_the_statement_is_as_before(): void
+    {
+        $expected = [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']];
+        (new OutputWriter($this->dir))->write(self::sample(), ['data' => 'generator', 'profile' => null], [], $expected);
+
+        $this->assertStringContainsString("\nprofile: none\n", (string) file_get_contents($this->dir . '/report.md'));
+        $this->assertStringContainsString("\nprofile: none\n", (string) file_get_contents($this->dir . '/comparison.md'));
+        $row = json_decode(trim((string) file_get_contents($this->dir . '/routes.jsonl')), true);
+        $this->assertStringNotContainsString('profile', $row['statement']);
+    }
 }

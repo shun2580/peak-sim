@@ -320,6 +320,63 @@ final class RunReportTest extends TestCase
         $this->assertStringContainsString('No conflicts', $report->toMarkdown());
     }
 
+    public function test_the_markdown_header_names_the_profile_that_was_used(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec('/a'), self::sweep([11, 101, 1001])));
+
+        $md = $report->withProfile('fixtures')->toMarkdown();
+
+        $this->assertStringContainsString("\nprofile: fixtures\n", $md);
+        $this->assertLessThan(strpos($md, '## Conflicts'), strpos($md, 'profile: fixtures'));
+    }
+
+    public function test_the_markdown_says_profile_none_when_no_profile_was_used(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec('/a'), self::sweep([11, 101, 1001])));
+
+        foreach ([$report->toMarkdown(), $report->withProfile(null)->toMarkdown()] as $md) {
+            $this->assertStringContainsString("\nprofile: none\n", $md);
+            $this->assertStringNotContainsString('with profile', $md);
+        }
+    }
+
+    public function test_each_statement_says_it_was_reached_with_the_profile_only_when_one_was_used(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec('/a'), self::sweep([11, 101, 1001])));
+        $report->add(RunReport::rowFor(self::spec('/b'), self::sweep([4, 4, 4])));
+
+        foreach ($report->withProfile('fixtures')->rows() as $row) {
+            $this->assertStringEndsWith(' (with profile: fixtures)', $row['statement']);
+        }
+        foreach ($report->rows() as $row) {
+            $this->assertStringNotContainsString('profile', $row['statement']);
+        }
+        $this->assertStringContainsString('(with profile: fixtures)', $report->withProfile('fixtures')->toJsonLines());
+        $this->assertStringNotContainsString('profile', $report->toJsonLines());
+    }
+
+    public function test_naming_a_profile_changes_nothing_but_the_statement_and_the_header(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec('/a'), self::sweep([11, 101, 1001])));
+        $with = $report->withProfile('fixtures');
+
+        $strip = static fn (array $rows): array => array_map(static function (array $r): array {
+            unset($r['statement']);
+
+            return $r;
+        }, $rows);
+        $this->assertSame($strip($report->rows()), $strip($with->rows()));
+        $this->assertSame($report->summary(), $with->summary());
+        $this->assertSame(
+            str_replace("profile: none\n", "profile: fixtures\n", $report->toMarkdown()),
+            $with->toMarkdown(),
+        );
+    }
+
     public function test_the_json_lines_are_one_row_per_line_sorted_by_route_and_stable(): void
     {
         $report = new RunReport();
