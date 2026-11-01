@@ -16,6 +16,7 @@ final class Options
         public readonly ?string $expected,
         public readonly int $base,
         public readonly ?string $profile = null,
+        public readonly bool $gateBypass = true,
     ) {
     }
 
@@ -32,7 +33,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -69,7 +70,12 @@ final class Options
             throw new \InvalidArgumentException('--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)');
         }
 
-        return new self($data, $only, $expected, $base, $profile);
+        $gate = $values['gate-bypass'] ?? 'on';
+        if (!in_array($gate, ['on', 'off'], true)) {
+            throw new \InvalidArgumentException('--gate-bypass takes on or off');
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on');
     }
 
     /**

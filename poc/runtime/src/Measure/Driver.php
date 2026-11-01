@@ -32,6 +32,7 @@ final class Driver
         private readonly DataPlanner $planner,
         private readonly DatabaseBuilder $builder,
         private readonly OneRunner $runner,
+        private readonly bool $gateBypass = true,
     ) {
     }
 
@@ -156,9 +157,10 @@ final class Driver
             return $stop;
         }
 
-        // A 403 gets exactly one more try with every Gate check let through; the value is marked and only a reference.
+        // A 403 gets exactly one more try with every Gate check let through (unless the run switched that off); the
+        // value is marked and only a reference.
         $first = $result->attempts[0] ?? null;
-        if ($result->exit === 0 && $first !== null && $first->class === 'forbidden' && UserProvider::shouldRetryWithGateBypass(403, false)) {
+        if ($this->gateBypass && $result->exit === 0 && $first !== null && $first->class === 'forbidden' && UserProvider::shouldRetryWithGateBypass(403, false)) {
             $retry = $request->withGateBypass();
             $again = $this->runner->run($retry);
 
