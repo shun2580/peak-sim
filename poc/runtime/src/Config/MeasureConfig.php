@@ -18,8 +18,12 @@ use PeakSim\Runtime\Guard\DbGuard;
  *   PEAK_MEASURE_STATIC_JSON   optional absolute path of the static analysis output
  *   PEAK_MEASURE_SCALES        optional, default "100,1000,10000"; at least 3 ascending points
  *   PEAK_MEASURE_OUT_DIR       optional, default /out
+ *   PEAK_MEASURE_DB_TAG        optional, 1-8 chars [a-z][a-z0-9]*; names the data plan a database belongs to
  *
- * There is no way to pass a database name in: the tool builds `peak_sim_measure_<run id>_<scale>` itself.
+ * There is no way to pass a database name in: the tool builds `peak_sim_measure_<run id>[_<tag>]_<scale>` itself.
+ * Without a tag only the configured scales are valid (the first form). With a tag, any scale from 0 to MAX_SCALE is
+ * valid: the driver measures an empty system (scale 0) and a second sweep (the children per parent) in databases of
+ * their own, and the tag keeps those names apart from the main sweep's.
  */
 final class MeasureConfig
 {
@@ -40,6 +44,7 @@ final class MeasureConfig
         public readonly ?string $staticJson,
         public readonly array $scales,
         public readonly string $outDir,
+        public readonly string $dbTag = '',
     ) {
     }
 
@@ -78,7 +83,12 @@ final class MeasureConfig
         $scales = self::scales(self::optional($env, 'PEAK_MEASURE_SCALES'));
         $outDir = self::absolutePath(self::optional($env, 'PEAK_MEASURE_OUT_DIR') ?? '/out', 'PEAK_MEASURE_OUT_DIR');
 
-        return new self($host, (int) $portText, $user, $password, $runId, $appRoot, $staticJson, $scales, $outDir);
+        $tag = self::optional($env, 'PEAK_MEASURE_DB_TAG') ?? '';
+        if ($tag !== '' && preg_match('/^[a-z][a-z0-9]{0,7}$/D', $tag) !== 1) {
+            throw new MeasureRefused('refused: PEAK_MEASURE_DB_TAG must be 1-8 characters of [a-z0-9], starting with a letter');
+        }
+
+        return new self($host, (int) $portText, $user, $password, $runId, $appRoot, $staticJson, $scales, $outDir, $tag);
     }
 
     /** A fresh run id for the parent process; children receive it through PEAK_MEASURE_RUN_ID. */
@@ -94,10 +104,17 @@ final class MeasureConfig
      */
     public function dbNameForScale(int $scale): string
     {
-        if (!in_array($scale, $this->scales, true)) {
-            throw new MeasureRefused(sprintf('refused: scale %d is not one of the configured scales', $scale));
+        if ($this->dbTag === '') {
+            if (!in_array($scale, $this->scales, true)) {
+                throw new MeasureRefused(sprintf('refused: scale %d is not one of the configured scales', $scale));
+            }
+            $name = DbGuard::NAME_PREFIX . $this->runId . '_' . $scale;
+        } else {
+            if ($scale < 0 || $scale > self::MAX_SCALE) {
+                throw new MeasureRefused(sprintf('refused: scale %d is outside 0..%d', $scale, self::MAX_SCALE));
+            }
+            $name = DbGuard::NAME_PREFIX . $this->runId . '_' . $this->dbTag . '_' . $scale;
         }
-        $name = DbGuard::NAME_PREFIX . $this->runId . '_' . $scale;
         DbGuard::assertDbName($name);
 
         return $name;
