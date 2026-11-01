@@ -98,6 +98,108 @@ final class RunReportTest extends TestCase
         $this->assertSame('suspect_empty', $row['reason']);
     }
 
+    public function test_a_page_of_the_same_size_at_every_scale_is_still_o1_when_it_is_larger_than_the_empty_response(): void
+    {
+        $attempts = [self::attempt(0, 2, Attempt::COLD, 'N', ['orders'], 40)];
+        foreach ([10, 100, 1000] as $scale) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], 900);
+        }
+
+        $row = RunReport::rowFor(self::spec(), $attempts);
+
+        $this->assertSame('measured_O1', $row['verdict']);
+        $this->assertNull($row['reason']);
+        $this->assertSame([10, 100, 1000], $row['scales'], 'scale 0 is a baseline for the response, not a point of the sweep');
+        $this->assertSame([3, 3, 3], $row['values']);
+    }
+
+    public function test_a_response_equal_to_the_response_at_scale_zero_at_the_largest_scale_is_suspect_empty(): void
+    {
+        $attempts = [self::attempt(0, 2, Attempt::COLD, 'N', ['orders'], 40)];
+        foreach ([10, 100, 1000] as $scale) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], 40);
+        }
+
+        $row = RunReport::rowFor(self::spec(), $attempts);
+
+        $this->assertSame('no_info', $row['verdict']);
+        $this->assertSame('suspect_empty', $row['reason']);
+    }
+
+    public function test_only_the_largest_scale_is_compared_with_scale_zero(): void
+    {
+        $attempts = [self::attempt(0, 2, Attempt::COLD, 'N', ['orders'], 40)];
+        foreach ([10 => 40, 100 => 40, 1000 => 700] as $scale => $bytes) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], $bytes);
+        }
+
+        $this->assertSame('measured_O1', RunReport::rowFor(self::spec(), $attempts)['verdict']);
+    }
+
+    public function test_scale_zero_is_not_a_point_of_the_growth_sweep(): void
+    {
+        $attempts = [self::attempt(0, 2, Attempt::COLD, 'N', ['orders'], 40)];
+        foreach ([10 => 11, 100 => 101, 1000 => 1001] as $scale => $queries) {
+            $attempts[] = self::attempt($scale, $queries);
+        }
+
+        $row = RunReport::rowFor(self::spec(), $attempts);
+
+        $this->assertSame('measured_ON', $row['verdict']);
+        $this->assertSame([10, 100, 1000], $row['scales']);
+    }
+
+    public function test_a_failed_scale_zero_leaves_the_fallback_in_force(): void
+    {
+        $attempts = [self::attempt(0, null, Attempt::COLD, 'N', [], null, 'http_error')];
+        foreach ([10, 100, 1000] as $scale) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], 900);
+        }
+
+        $row = RunReport::rowFor(self::spec(), $attempts);
+
+        $this->assertSame('measured_O1', $row['verdict'], 'without a usable scale 0 only a canonical empty body is suspect');
+    }
+
+    /** @return array<string, array{int, string}> */
+    public static function emptyBodies(): array
+    {
+        return [
+            'empty string' => [0, 'no_info'],
+            'empty array []' => [2, 'no_info'],
+            'empty object {}' => [2, 'no_info'],
+            'data envelope {"data":[]}' => [11, 'no_info'],
+            'an ordinary short body' => [12, 'measured_O1'],
+            'a page' => [900, 'measured_O1'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('emptyBodies')]
+    public function test_without_scale_zero_only_a_canonical_empty_body_that_never_changes_is_suspect_empty(int $bytes, string $expected): void
+    {
+        $attempts = [];
+        foreach ([10, 100, 1000] as $scale) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], $bytes);
+        }
+
+        $row = RunReport::rowFor(self::spec(), $attempts);
+
+        $this->assertSame($expected, $row['verdict']);
+        if ($expected === 'no_info') {
+            $this->assertSame('suspect_empty', $row['reason']);
+        }
+    }
+
+    public function test_a_body_of_the_empty_size_that_does_change_in_size_is_not_suspect_empty(): void
+    {
+        $attempts = [];
+        foreach ([10 => 2, 100 => 2, 1000 => 3] as $scale => $bytes) {
+            $attempts[] = self::attempt($scale, 3, Attempt::COLD, 'N', ['orders'], $bytes);
+        }
+
+        $this->assertSame('measured_O1', RunReport::rowFor(self::spec(), $attempts)['verdict']);
+    }
+
     public function test_a_route_with_no_candidate_table_is_measured_in_the_global_scope(): void
     {
         $spec = self::spec('/x', ['n_table' => null, 'query' => ['growth' => 'unknown', 'lower_bound' => null, 'confidence' => null]]);
