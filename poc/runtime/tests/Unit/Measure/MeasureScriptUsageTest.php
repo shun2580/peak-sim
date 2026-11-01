@@ -45,6 +45,9 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'bad scales' => [['--app=/x', '--static=/y', '--scales=1,2']];
         yield 'timeout of zero' => [['--app=/x', '--static=/y', '--request-timeout=0']];
         yield 'timeout over a minute' => [['--app=/x', '--static=/y', '--request-timeout=61']];
+        yield 'profile with a path' => [['--app=/x', '--static=/y', '--profile=../x']];
+        yield 'profile with a dot' => [['--app=/x', '--static=/y', '--profile=a.php']];
+        yield 'empty profile' => [['--app=/x', '--static=/y', '--profile=']];
         yield 'timeout not a number' => [['--app=/x', '--static=/y', '--request-timeout=soon']];
     }
 

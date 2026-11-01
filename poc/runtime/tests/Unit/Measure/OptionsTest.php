@@ -18,6 +18,13 @@ final class OptionsTest extends TestCase
         $this->assertSame([], $o->only);
         $this->assertNull($o->expected);
         $this->assertSame(Options::DEFAULT_BASE, $o->base);
+        $this->assertNull($o->profile);
+    }
+
+    public function test_a_profile_is_named_not_pathed(): void
+    {
+        $this->assertSame('fixtures', Options::parse(['--profile=fixtures'])->profile);
+        $this->assertSame('my-app_2', Options::parse(['--profile=my-app_2'])->profile);
     }
 
     public function test_everything_given(): void
@@ -39,6 +46,11 @@ final class OptionsTest extends TestCase
         yield 'relative expected' => [['--expected=x.json']];
         yield 'dotdot expected' => [['--expected=/out/../x.json']];
         yield 'option without value' => [['--data']];
+        yield 'empty profile' => [['--profile=']];
+        yield 'profile with a path' => [['--profile=../x']];
+        yield 'profile with a slash' => [['--profile=a/b']];
+        yield 'profile with a dot' => [['--profile=a.php']];
+        yield 'profile in capitals' => [['--profile=Fixtures']];
     }
 
     /** @param list<string> $argv */
