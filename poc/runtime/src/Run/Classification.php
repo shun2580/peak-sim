@@ -14,6 +14,8 @@ final class Classification
 {
     public const OK = 'ok';
     public const UNFILLED_PARAM = 'unfilled_param';
+    /** The controller has no such operation (apiResource registers routes for operations it does not define). Never hit. */
+    public const ACTION_NOT_DEFINED = 'action_not_defined';
     public const UNAUTHENTICATED = 'unauthenticated';
     public const FORBIDDEN = 'forbidden';
     public const NOT_FOUND = 'not_found';
@@ -33,6 +35,7 @@ final class Classification
     public const ALL = [
         self::OK,
         self::UNFILLED_PARAM,
+        self::ACTION_NOT_DEFINED,
         self::UNAUTHENTICATED,
         self::FORBIDDEN,
         self::NOT_FOUND,

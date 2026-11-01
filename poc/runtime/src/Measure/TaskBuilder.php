@@ -8,6 +8,8 @@ use PeakSim\Runtime\Route\ArgumentResolver;
 use PeakSim\Runtime\Route\BodyBuilder;
 use PeakSim\Runtime\Route\RouteSpec;
 use PeakSim\Runtime\Route\UserProvider;
+use PeakSim\Runtime\Run\ActionDefinition;
+use PeakSim\Runtime\Run\Classification;
 
 /** Turns a route of the catalogue into a task: fills the parameters, picks the login, builds the body. */
 final class TaskBuilder
@@ -23,6 +25,13 @@ final class TaskBuilder
     {
         if (!$spec->inRuntime) {
             return self::failed($spec, 'not_in_runtime', 'the static analysis lists this route and the booted app does not have it');
+        }
+
+        // Before the parameters: a route to an operation the controller does not have is not hit, and its parameters
+        // (which only the missing method would have typed) are not what stops it.
+        $undefined = ActionDefinition::undefined($spec->action);
+        if ($undefined !== null) {
+            return self::failed($spec, Classification::ACTION_NOT_DEFINED, $undefined);
         }
 
         $resolution = $this->arguments->resolve($spec);
