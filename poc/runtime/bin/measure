@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# Measures a Laravel app's routes for real, at several data sizes, inside the sealed measurement stack, and prints
+# how the query count grows. The entry point of the runtime proof of concept. Needs Docker; PHP is not needed here.
+#
+#   bin/measure --app=<dir> --static=<analysis.json> [options]
+#
+# 1. brings the sealed stack up (bin/stack up)         2. bin/preflight must pass                 (exit 11 otherwise)
+# 3. runs the driver inside the container (bin/inner/measure.php)                                4. tears the stack down
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'TXT'
+usage: bin/measure --app=<dir> --static=<analysis.json> [options]
+  --app=<dir>            the target app (absolute path; mounted read-only, never modified; its vendor/ must exist)
+  --static=<file>        the static analysis output of the app (peak-sim analyze --format=json), the map of routes
+  --out=<dir>            where the run record is written (default: $PEAK_OUT_DIR, else ~/.cache/peak-measure/<project>)
+  --expected=<file>      a fixtures/expected.json to put beside the static analysis and the measurement
+  --data=generator       how the databases are filled: the tool's generator (default; any app)
+  --data=seeder          the verification app's own seeder (only for fixtures/laravel-app)
+  --scales=100,1000,10000   the sizes of the main sweep: at least 3, strictly ascending (default 100,1000,10000)
+  --only=<a>,<b>         measure only the routes whose uri contains one of these
+  --base=N               generator only: rows of every table that is not scaled (default 5)
+  --keep-stack           leave the stack up afterwards (for looking around; tear it down with bin/stack down)
+  --help                 this text
+environment: PEAK_COMPOSE_PROJECT (default peak-measure), PHP_VERSION (default 8.3, the image the app runs in)
+exit codes:
+   0  done
+   2  wrong usage
+  10  refused: a host, user, database name or statement outside the measurement database
+  11  preflight failed, or the stack could not be brought up: the container may not be sealed
+  12  the app could not be started
+  13  a measurement database could not be built (migration, seeder, generator)
+  14  a request changed the database and it could not be rebuilt clean
+TXT
+}
+
+fail_usage() {
+  echo "bin/measure: $1" >&2
+  usage >&2
+  exit 2
+}
+
+app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h) usage; exit 0 ;;
+    --app=*) app="${arg#--app=}" ;;
+    --static=*) static="${arg#--static=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --expected=*) expected="${arg#--expected=}" ;;
+    --data=*) data="${arg#--data=}" ;;
+    --scales=*) scales="${arg#--scales=}" ;;
+    --only=*) only="${arg#--only=}" ;;
+    --base=*) base="${arg#--base=}" ;;
+    --keep-stack) keep=1 ;;
+    *) fail_usage "unknown argument: $arg" ;;
+  esac
+done
+
+[ -n "$app" ] || fail_usage "--app is required"
+[ -n "$static" ] || fail_usage "--static is required"
+case "$app" in /*) ;; *) fail_usage "--app must be an absolute path" ;; esac
+case "$static" in /*) ;; *) fail_usage "--static must be an absolute path" ;; esac
+case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac
+[[ "$scales" =~ ^[0-9]+(,[0-9]+){2,}$ ]] || fail_usage "--scales needs at least 3 comma-separated integers"
+prev=0
+IFS=',' read -r -a scale_list <<< "$scales"
+for s in "${scale_list[@]}"; do
+  [ "$s" -gt "$prev" ] 2>/dev/null || fail_usage "--scales must be positive and strictly ascending"
+  prev="$s"
+done
+if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
+[ -d "$app" ] || fail_usage "--app is not a directory: $app"
+[ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
+[ -f "$static" ] || fail_usage "--static is not a file: $static"
+if [ -n "$expected" ]; then
+  case "$expected" in /*) ;; *) fail_usage "--expected must be an absolute path" ;; esac
+  [ -f "$expected" ] || fail_usage "--expected is not a file: $expected"
+fi
+
+export PEAK_APP_ROOT="$app"
+[ -n "$out" ] && export PEAK_OUT_DIR="$out"
+# shellcheck source=_stack.sh
+source "$here/_stack.sh"
+set +e   # _stack.sh turns -e on; the exit codes below are read, not fatal
+
+cp "$static" "$PEAK_OUT_DIR/static.json" || { echo "bin/measure: cannot write to $PEAK_OUT_DIR" >&2; exit 2; }
+inner=(--data="$data")
+[ -n "$only" ] && inner+=(--only="$only")
+[ -n "$base" ] && inner+=(--base="$base")
+if [ -n "$expected" ]; then
+  cp "$expected" "$PEAK_OUT_DIR/expected.json" || exit 2
+  inner+=(--expected=/out/expected.json)
+fi
+
+teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+trap teardown EXIT
+trap 'exit 130' INT TERM
+
+if ! compose up -d --build --wait; then
+  echo "bin/measure: the measurement stack could not be brought up" >&2
+  exit 11
+fi
+if ! bash "$here/preflight"; then
+  echo "bin/measure: preflight failed; nothing was measured" >&2
+  exit 11
+fi
+
+compose exec -T \
+  -e PEAK_MEASURE_STATIC_JSON=/out/static.json \
+  -e PEAK_MEASURE_SCALES="$scales" \
+  measure-php php /peak-sim/poc/runtime/bin/inner/measure.php "${inner[@]}"
+code=$?
+
+# Whatever the driver left behind (it drops its own databases; this covers a crash) is removed before the stack goes.
+compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+exit "$code"
