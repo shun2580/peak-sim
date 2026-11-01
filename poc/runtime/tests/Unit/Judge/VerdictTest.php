@@ -157,4 +157,29 @@ final class VerdictTest extends TestCase
         $this->assertStringNotContainsString('O(1)', $text);
         $this->assertStringContainsString('no information', $text);
     }
+
+    public function test_a_verdict_survives_its_array_form(): void
+    {
+        $original = Verdict::fromSweeps('targeted:orders', [100, 1000, 10000], [301, 3001, 30001], [3, 30, 300], [61, 621, 6021], false, false, true);
+
+        $copy = Verdict::fromArray($original->toArray());
+
+        $this->assertSame($original->toArray(), $copy->toArray());
+        $this->assertSame('measured_ONM', $copy->kind);
+        $this->assertTrue($copy->gateBypass);
+    }
+
+    public function test_a_no_info_verdict_keeps_its_reason_through_the_array_form(): void
+    {
+        $original = Verdict::fromSweep('global', [100, 1000, 10000], [1, 1, 1], true, true);
+
+        $this->assertSame($original->toArray(), Verdict::fromArray($original->toArray())->toArray());
+        $this->assertSame('untouched_data,suspect_empty', Verdict::fromArray($original->toArray())->reason);
+    }
+
+    public function test_a_row_that_is_not_a_verdict_is_refused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Verdict::fromArray(['verdict' => 'fast']);
+    }
 }

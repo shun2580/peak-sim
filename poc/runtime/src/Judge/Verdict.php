@@ -100,6 +100,38 @@ final class Verdict
         return self::decide($raw, $scope, $slopeN, $slopeM, $nScales, $nValues, $mScales, $mValues, $untouchedData, $suspectEmpty, $gateBypass);
     }
 
+    /**
+     * A verdict rebuilt from its array form (`toArray()`, or the same keys in a run report row), to put a stored
+     * result beside other data without measuring again.
+     *
+     * @param array<string, mixed> $row
+     */
+    public static function fromArray(array $row): self
+    {
+        $kind = (string) ($row['verdict'] ?? '');
+        $known = [self::MEASURED_O1, self::MEASURED_ON, self::MEASURED_ONM, self::INCONCLUSIVE, self::NO_INFO, self::NOT_MEASURED];
+        if (!in_array($kind, $known, true)) {
+            throw new \InvalidArgumentException('not a verdict: ' . $kind);
+        }
+        $scope = isset($row['scope']) ? (string) $row['scope'] : null;
+        if ($scope !== null) {
+            self::assertScope($scope);
+        }
+
+        return new self(
+            $kind,
+            $scope,
+            isset($row['reason']) ? (string) $row['reason'] : null,
+            isset($row['slope']) ? (float) $row['slope'] : null,
+            isset($row['slope_m']) ? (float) $row['slope_m'] : null,
+            array_map('intval', (array) ($row['scales'] ?? [])),
+            array_values((array) ($row['values'] ?? [])),
+            array_map('intval', (array) ($row['m_scales'] ?? [])),
+            array_values((array) ($row['m_values'] ?? [])),
+            (bool) ($row['gate_bypass'] ?? false),
+        );
+    }
+
     public static function notMeasured(string $reason, ?string $scope = null, bool $gateBypass = false): self
     {
         if ($scope !== null) {
