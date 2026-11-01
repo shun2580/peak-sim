@@ -84,6 +84,8 @@ $profile = [
         // A playlist belongs to a user as its owner or as a collaborator; the generator writes a plain word, and the
         // app lists a user's own playlists by the value 'owner'.
         'playlist_user' => ['role' => 'owner'],
+        // The app casts this column to an enum whose local case is the empty string; a generated word is not a case.
+        'duplicate_uploads' => ['storage' => ''],
     ],
 
     'user' => ['id' => 1, 'name' => 'Measure User', 'email' => 'user@measure.invalid', 'password' => 'measure-pass', 'role' => 'user'],
