@@ -15,6 +15,7 @@ final class RouteTask
     /**
      * @param array<string, mixed>|null $body
      * @param array<string, string>     $headers
+     * @param list<string>              $guessed arguments whose value was made up, not read from a row (see ArgumentResolver)
      */
     public function __construct(
         public readonly RouteSpec $spec,
@@ -26,6 +27,7 @@ final class RouteTask
         public readonly bool $form = false,
         public readonly bool $csrf = false,
         public readonly array $headers = [],
+        public readonly array $guessed = [],
     ) {
     }
 
@@ -47,6 +49,7 @@ final class RouteTask
             'form' => $this->form,
             'csrf' => $this->csrf,
             'headers' => $this->headers,
+            'guessed' => $this->guessed,
         ];
     }
 
@@ -65,6 +68,7 @@ final class RouteTask
             (bool) $data['form'],
             (bool) $data['csrf'],
             $data['headers'],
+            array_values($data['guessed'] ?? []),
         );
     }
 }

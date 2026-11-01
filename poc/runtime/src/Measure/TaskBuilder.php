@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Measure;
 
 use PeakSim\Runtime\Route\ArgumentResolver;
 use PeakSim\Runtime\Route\BodyBuilder;
+use PeakSim\Runtime\Route\ProfileRoutes;
 use PeakSim\Runtime\Route\RouteSpec;
 use PeakSim\Runtime\Route\UserProvider;
 use PeakSim\Runtime\Run\ActionDefinition;
@@ -34,6 +35,12 @@ final class TaskBuilder
         $undefined = ActionDefinition::undefined($spec->action);
         if ($undefined !== null) {
             return self::failed($spec, Classification::ACTION_NOT_DEFINED, $undefined);
+        }
+
+        // A route the profile says cannot be prepared (and why) is recorded with that reason, before anything is asked of the app.
+        $explained = ProfileRoutes::explaining($this->profile, $spec->uri, $spec->middleware, $spec->action);
+        if ($explained !== null) {
+            return self::failed($spec, $explained['reason'], 'profile:' . $explained['label'] . ($explained['why'] === '' ? '' : ': ' . $explained['why']));
         }
 
         $resolution = $this->arguments->resolve($spec);
@@ -88,7 +95,7 @@ final class TaskBuilder
             }
         }
 
-        return new RouteTask($spec, $uri, null, null, $actAs, $body, false, $csrf);
+        return new RouteTask($spec, $uri, null, null, $actAs, $body, false, $csrf, [], $resolution->guessed);
     }
 
     private static function failed(RouteSpec $spec, string $class, string $detail): RouteTask

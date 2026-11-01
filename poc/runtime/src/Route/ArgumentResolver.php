@@ -19,8 +19,12 @@ namespace PeakSim\Runtime\Route;
  *    `column`) or a literal (`value`). It is tried after the implicit model binding (the app's own declaration, which
  *    a profile does not override) and before the guesses from a name, a constraint or a type.
  *  - `unfillable`: what could not be prepared, with a reason from the fixed vocabulary. It only explains: a
- *    parameter nothing could fill, whose name an entry lists in `params`, is recorded with that entry's reason as its
- *    class. It never stops a parameter the rules did fill, and an entry with no `params` names no parameter.
+ *    parameter nothing could fill, whose name an entry lists in `params` (in the routes the entry names, when it names
+ *    any: see `ProfileRoutes`), is recorded with that entry's reason as its class. It never stops a parameter the
+ *    rules did fill. (An entry about a whole route is applied before this, by the task builder.)
+ *
+ * A value made up rather than read from a row (a declared `int` becomes 1, a `where` pattern gives a sample that
+ * matches it; the first of a list of literals is the app's own value and does not count) is listed in `Resolution::$guessed`: the app may not have such a thing.
  *
  * A value that breaks the `where` constraint is not used. The row picked is the first one whatever the scale, so the
  * number of children of that row is the same at every N and only M can move it. An optional parameter that cannot be
@@ -28,6 +32,9 @@ namespace PeakSim\Runtime\Route;
  */
 final class ArgumentResolver
 {
+    /** The "reason" of a value that was made up, not read from a row (the second element of `one()` for a value). */
+    private const GUESS = 'guess';
+
     private const WHERE_SAMPLES = ['1', 'a', 'abc', 'x1', '0', '1a', '00000000-0000-4000-8000-000000000000', '01ARZ3NDEKTSV4RRFFQ69G5FAV', '2026-01-01'];
 
     /** @param array<string, mixed> $profile the app's profile (empty when none was asked for) */
@@ -40,6 +47,7 @@ final class ArgumentResolver
         $values = [];
         $unfilled = [];
         $omitted = [];
+        $guessed = [];
 
         foreach ($spec->parameters as $name => $p) {
             [$value, $reason] = $this->one($name, $p, $values);
@@ -49,14 +57,17 @@ final class ArgumentResolver
             }
             if ($value !== null) {
                 $values[$name] = $value;
+                if ($reason === self::GUESS) {
+                    $guessed[] = $name;
+                }
             } elseif ($p['optional']) {
                 $omitted[] = $name;
             } else {
-                $unfilled[] = $this->explained($name, $reason);
+                $unfilled[] = $this->explained($name, $reason, $spec);
             }
         }
 
-        return new Resolution($values, $unfilled, $omitted);
+        return new Resolution($values, $unfilled, $omitted, $guessed);
     }
 
     /**
@@ -100,11 +111,14 @@ final class ArgumentResolver
         if ($p['where'] !== null) {
             $picked = self::pickFromWhere($p['where']);
 
-            return $picked === null ? [null, 'where_unsatisfiable'] : [$picked, ''];
+            // A list of literals (`daily|weekly`) is the app's own list of values; a sample of a pattern is a guess.
+            $isList = preg_match('/[\[\](){}\\\\^$.*+?]/', $p['where']) !== 1;
+
+            return $picked === null ? [null, 'where_unsatisfiable'] : [$picked, $isList ? '' : self::GUESS];
         }
 
         if ($p['type'] === 'int') {
-            return [1, ''];
+            return [1, self::GUESS];
         }
 
         return [null, 'no_rule_to_fill'];
@@ -138,10 +152,11 @@ final class ArgumentResolver
      *
      * @return array{param: string, reason: string, class?: string}
      */
-    private function explained(string $name, string $reason): array
+    private function explained(string $name, string $reason, RouteSpec $spec): array
     {
         foreach ((array) ($this->profile['unfillable'] ?? []) as $label => $entry) {
-            if (is_array($entry) && in_array($name, (array) ($entry['params'] ?? []), true) && is_string($entry['reason'] ?? null)) {
+            if (is_array($entry) && in_array($name, (array) ($entry['params'] ?? []), true) && is_string($entry['reason'] ?? null)
+                && ProfileRoutes::covers($entry, $spec->uri, $spec->middleware, $spec->action)) {
                 return ['param' => $name, 'reason' => 'profile:' . $label, 'class' => $entry['reason']];
             }
         }

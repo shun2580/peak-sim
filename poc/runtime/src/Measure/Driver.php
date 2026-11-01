@@ -241,6 +241,13 @@ final class Driver
                 $last = $attempts[array_key_last($attempts)];
                 $failClass = $last->class;
                 $failDetail = $last->detail;
+                if ($last->class === 'not_found' && $task->guessed !== []) {
+                    // The app did not find a value the tool made up (a number, a sample of a pattern). That says nothing
+                    // about the route: it is not a route that was hit. The attempts stay in the record of attempts.
+                    $failClass = 'unfilled_param';
+                    $failDetail = sprintf('the value of %s was a guess, not a row, and the app did not find it (not_found%s)', implode(', ', $task->guessed), $last->detail === null ? '' : ': ' . $last->detail);
+                    $attempts = [];
+                }
             }
             $row = RunReport::rowFor($task->spec, $attempts, $failClass, $failDetail);
             if ($row['verdict'] === Verdict::NOT_MEASURED && $row['class'] === 'ok') {

@@ -11,11 +11,13 @@ final class Resolution
      * @param array<string, string|int> $values
      * @param list<array{param: string, reason: string, class?: string}> $unfilled `class` is set when an app profile explains why
      * @param list<string> $omitted optional parameters left out
+     * @param list<string> $guessed parameters whose value was made up (a number, a constraint's sample), not read from a row
      */
     public function __construct(
         public readonly array $values,
         public readonly array $unfilled,
         public readonly array $omitted = [],
+        public readonly array $guessed = [],
     ) {
     }
 

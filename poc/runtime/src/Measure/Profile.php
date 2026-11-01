@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Measure;
 
+use PeakSim\Runtime\Route\ProfileRoutes;
+use PeakSim\Runtime\Run\Classification;
+
 /**
  * An app profile: what a person knows about one app that the schema cannot say (a column value a filter reads, a table
  * to leave empty, a row count). It is a file `profiles/<name>.php` that returns an array for the generator. It is
@@ -54,6 +57,9 @@ final class Profile
         if (array_key_exists('after_generation', $profile) && !is_callable($profile['after_generation'])) {
             throw new BuildFailure(sprintf('profile "%s": after_generation must be a function', $name));
         }
+        foreach ((array) ($profile['unfillable'] ?? []) as $label => $entry) {
+            self::checkUnfillable($name, (string) $label, $entry);
+        }
         $loginAs = $profile['login_as'] ?? 'user';
         if ($loginAs !== 'user' && $loginAs !== 'admin') {
             throw new BuildFailure(sprintf('profile "%s": login_as must be "user" or "admin"', $name));
@@ -63,5 +69,34 @@ final class Profile
         }
 
         return $profile;
+    }
+
+    /**
+     * An `unfillable` entry names a reason from the fixed vocabulary (the classification of an attempt, and
+     * `file_dependency`, which a task is recorded with when its body needs an uploaded file) and, if it names routes, only the keys
+     * `ProfileRoutes` reads, each a non-empty list of strings.
+     *
+     * @throws BuildFailure
+     */
+    private static function checkUnfillable(string $profile, string $label, mixed $entry): void
+    {
+        $fail = static fn (string $why): BuildFailure => new BuildFailure(sprintf('profile "%s": unfillable "%s" %s', $profile, $label, $why));
+        if (!is_array($entry) || !is_string($entry['reason'] ?? null) || !in_array($entry['reason'], [...Classification::ALL, 'file_dependency'], true)) {
+            throw $fail('needs a reason from the fixed vocabulary');
+        }
+        if (!isset($entry['routes'])) {
+            return;
+        }
+        if (!is_array($entry['routes']) || $entry['routes'] === []) {
+            throw $fail('has routes that are not a list of keys');
+        }
+        foreach ($entry['routes'] as $key => $values) {
+            if (!in_array($key, ProfileRoutes::ROUTE_KEYS, true)) {
+                throw $fail(sprintf('names a route key nothing reads: %s', (string) $key));
+            }
+            if (!is_array($values) || $values === [] || array_filter($values, 'is_string') !== $values) {
+                throw $fail(sprintf('needs a non-empty list of strings for %s', (string) $key));
+            }
+        }
     }
 }
