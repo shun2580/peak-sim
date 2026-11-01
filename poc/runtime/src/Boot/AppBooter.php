@@ -21,6 +21,13 @@ use PeakSim\Runtime\Guard\DbGuard;
  */
 final class AppBooter
 {
+    /**
+     * The one APP_KEY of a run, made by bin/measure and handed to every process of the run, so a value one process
+     * encrypts (a column the app stores encrypted) can be read by the next. Without it each process makes its own
+     * key. Its value is never written to a report, a summary or a log, nor quoted in a message.
+     */
+    public const APP_KEY_ENV = 'PEAK_MEASURE_APP_KEY';
+
     /** Drivers whose connection is rewritten to point at the measurement database (the rest are replaced). */
     private const MYSQL_DRIVERS = ['mysql', 'mariadb'];
 
@@ -37,7 +44,7 @@ final class AppBooter
         $scratch = ScratchDir::create($config->runId);
         register_shutdown_function(static fn () => $scratch->remove());
 
-        self::export(self::environment($config, $dbName, $scratch, self::newAppKey()));
+        self::export(self::environment($config, $dbName, $scratch, self::appKeyFrom(getenv())));
         ini_set('display_errors', 'stderr');
         ini_set('default_socket_timeout', '3');
         chdir($appRoot);
@@ -126,6 +133,27 @@ final class AppBooter
     public static function newAppKey(): string
     {
         return 'base64:' . base64_encode(random_bytes(32));
+    }
+
+    /**
+     * The key this process uses: the run's (APP_KEY_ENV) when it is set and non-empty, otherwise a fresh one as before.
+     * A set key must be what the app's cipher (AES-256) takes: `base64:` and 32 bytes. Pure.
+     *
+     * @param array<string, string|false> $env
+     *
+     * @throws MeasureRefused when the key is malformed (the message does not quote it)
+     */
+    public static function appKeyFrom(array $env): string
+    {
+        $given = $env[self::APP_KEY_ENV] ?? '';
+        if ($given === '' || $given === false) {
+            return self::newAppKey();
+        }
+        if (preg_match('/^base64:[A-Za-z0-9+\/]+={0,2}$/D', $given) !== 1 || strlen((string) base64_decode(substr($given, 7), true)) !== 32) {
+            throw new MeasureRefused(sprintf('refused: %s is not "base64:" followed by 32 bytes in base64', self::APP_KEY_ENV));
+        }
+
+        return $given;
     }
 
     /** @param array<string, string> $env */
