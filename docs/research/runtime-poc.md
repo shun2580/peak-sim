@@ -165,7 +165,7 @@
 | (b) プロファイル有り | `--data=generator --profile=fixtures` | `1af9767` | 339 秒 | 0 |
 
 - **プロファイル**は、アプリ固有の知識を人が足すための小さなファイルである。生成器は文字列の列に `orders_status_<i>` のような値を入れるので、`status = 'paid'` で絞るコードには一致する行が届かない。プロファイルはそうした列の値を与える。使ったもの(`profiles/fixtures.php`)は **`values` の 1 項目だけ、`orders.status = 'paid'`** である。**`skip`(表を作らない指定)も `rows`(行数の指定)も与えていない。** データを期待に寄せるための調整はしていない。
-- (a) と (b) は commit が違う。`1af9767` が足したのは `--profile` の配線(と `profiles/fixtures.php`)だけで、`--profile` を付けない経路は変えていない。使ったプロファイルの名前は、`summary.json` の `meta.profile` に残る((b) は `fixtures`、(a) は `profile` のキー自体が無い)。
+- (a) と (b) は commit が違う。`1af9767` が足したのは `--profile` の配線(と `profiles/fixtures.php`)だけで、`--profile` を付けない経路は変えていない。使ったプロファイルの名前は、`summary.json` の `meta.profile` に残る((b) は `fixtures`、(a) は `profile` のキー自体が無い)。読む人が `summary.json` を開かなくても分かるように、`report.md`・`comparison.md` の見出し行にも `profile: fixtures` または `profile: none` が出て、`routes.jsonl` の各 `statement` の末尾には、プロファイルがあるときだけ `(with profile: fixtures)` が付く(プロファイルが判定に関わらないルートにも付く。安全側の表示である)。
 - 静的解析の出力と期待値(`fixtures/expected.json`)は、§2 と同じものをそのまま使った。判定規則・ルート・`fixtures/` は変えていない。
 - 2 つの走とも、起動前の検査(preflight)を通り、終了後に残った計測用 DB 0・コンテナ 0 だった。生成に失敗した表は、どちらの走でも 0 件だった。
 
@@ -241,7 +241,7 @@
 - **言えること:** 検証用アプリの 24 ルートについて、生成器方式の判定は、(プロファイル有りで)シーダー方式と 24 本すべて一致した。プロファイル無しでは、アプリ固有の値に依存する 1 本が `no_info` になり、偽の O(1) は出なかった。生成器が O(1) を偽って言った例は無い。`conflict`・`mismatch`・`static_stronger` は 3 系統とも 0 件で、見逃しも過検知も無かった。
 - **言えないこと:** 生成器が、実アプリのデータの形(値の分布・外部キーの偏り・NULL の割合)を再現するとは言えない。24 本は、生成器に有利な単純な表の形である。
 - **§2.5 の限界はそのまま当てはまる。** 24 本は GET のみ・認証なし・パラメーターなしで、引数の埋め・ログイン利用者の用意・本体の生成・巻き戻しの汚染からの再構築は、この 3 系統の実測でも通っていない。実アプリで初めて通る(§4)。
-- **`--profile` の試験:** 配線は、(b) と `--base=1` の 2 回の実走で確かめた。Docker の中で `--profile` だけを確かめる専用の試験は、まだ無い(試験は追記予定)。
+- **`--profile` の試験:** 配線は、(b) と `--base=1` の 2 回の実走で確かめた。加えて、Docker の中の試験(`poc/runtime/tests/Docker/MeasureDriverDockerTest.php` の `testAProfileMakesTheFilterRouteSeeItsDataAndIsNamedInTheRecord`)が、`/ng/collection-filter` をプロファイル無しと有りで走らせ、無しは `no_info`・有りは `measured_O1` になること、`report.md` の `profile:` の行と `statement` の末尾の表示、`summary.json` の `meta.profile`、終了後に計測用 DB とコンテナが残らないことを確かめる。
 
 ## 4. B3: 実アプリ(後で追記)
 
