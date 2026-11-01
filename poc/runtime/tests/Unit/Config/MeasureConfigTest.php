@@ -162,4 +162,66 @@ final class MeasureConfigTest extends TestCase
         $config = MeasureConfig::fromEnv(['PEAK_MEASURE_RUN_ID' => $a] + self::validEnv());
         $this->assertSame($a, $config->runId);
     }
+
+    public function testNoTagKeepsTheConfiguredScalesOnly(): void
+    {
+        $config = MeasureConfig::fromEnv(self::validEnv());
+
+        $this->assertSame('', $config->dbTag);
+        $this->expectException(MeasureRefused::class);
+        $config->dbNameForScale(0);
+    }
+
+    public function testATagNamesTheDatabaseOfAPlanAndAllowsScaleZeroAndSweepScales(): void
+    {
+        $config = MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_DB_TAG' => 'orders']);
+
+        $this->assertSame('orders', $config->dbTag);
+        $this->assertSame('peak_sim_measure_a1b2c3d4e5f6_orders_0', $config->dbNameForScale(0));
+        $this->assertSame('peak_sim_measure_a1b2c3d4e5f6_orders_300', $config->dbNameForScale(300));
+        $this->assertSame('peak_sim_measure_a1b2c3d4e5f6_orders_10000', $config->dbNameForScale(10000));
+    }
+
+    public function testATaggedNameStaysWithinTheNameLimit(): void
+    {
+        $config = MeasureConfig::fromEnv(['PEAK_MEASURE_RUN_ID' => str_repeat('a', 24)] + self::validEnv() + ['PEAK_MEASURE_DB_TAG' => 'abcdefgh']);
+
+        $name = $config->dbNameForScale(9_999_999);
+        $this->assertLessThanOrEqual(64, strlen($name));
+        $this->assertSame(1, preg_match(\PeakSim\Runtime\Guard\DbGuard::NAME_PATTERN, $name));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badTags(): iterable
+    {
+        yield 'upper case' => ['Orders'];
+        yield 'dash' => ['a-b'];
+        yield 'quote' => ["o'rders"];
+        yield 'space' => ['o rders'];
+        yield 'too long' => ['abcdefghi'];
+        yield 'leading digit' => ['1orders'];
+        yield 'sql' => ['x`;drop'];
+        yield 'dots' => ['..'];
+    }
+
+    #[DataProvider('badTags')]
+    public function testRefusesABadTag(string $tag): void
+    {
+        $this->expectException(MeasureRefused::class);
+        MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_DB_TAG' => $tag]);
+    }
+
+    public function testATaggedScaleBeyondTheLimitIsRefused(): void
+    {
+        $config = MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_DB_TAG' => 'orders']);
+        $this->expectException(MeasureRefused::class);
+        $config->dbNameForScale(10_000_000);
+    }
+
+    public function testANegativeScaleIsRefused(): void
+    {
+        $config = MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_DB_TAG' => 'orders']);
+        $this->expectException(MeasureRefused::class);
+        $config->dbNameForScale(-1);
+    }
 }
