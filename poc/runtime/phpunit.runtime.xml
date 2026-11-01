@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Runtime proof of concept only. A separate configuration, so the Unit and Acceptance suites of the official
+     tool (phpunit.xml) never see these tests and never skip anything to avoid them.
+       RuntimeUnit   - no Docker, no database. PHP 8.2 and 8.3.
+       RuntimeDocker - needs Docker and the measurement compose. It fails (never skips) when they are missing.
+     Run from the repository root:
+       vendor/bin/phpunit -c poc/runtime/phpunit.runtime.xml, choosing the suite by name. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         failOnSkipped="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         failOnIncomplete="true"
+         cacheResult="false">
+    <testsuites>
+        <testsuite name="RuntimeUnit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="RuntimeDocker">
+            <directory>tests/Docker</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
