@@ -47,6 +47,12 @@ final class AppBooter
             $app = require $appRoot . '/bootstrap/app.php';
             $app->useStoragePath($scratch->storagePath());
             $kernel = $app->make('Illuminate\\Contracts\\Http\\Kernel');
+            // Like Kernel::handle(), bind a request before the providers boot: many of them (the URL generator,
+            // route model binding, auth guards) need one. Laravel 12 apps fail to start without it.
+            $request = 'Illuminate\\Http\\Request';
+            $facade = 'Illuminate\\Support\\Facades\\Facade';
+            $app->instance('request', $request::create('http://measure.invalid/'));
+            $facade::clearResolvedInstance('request');
             $kernel->bootstrap();
         } catch (\Throwable $e) {
             throw new BootFailure('the app did not start: ' . get_class($e) . ': ' . mb_substr($e->getMessage(), 0, 200), 0, $e);
