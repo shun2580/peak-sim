@@ -429,4 +429,68 @@ final class KoelProfileTest extends TestCase
             $this->assertArrayHasKey($kept, $arguments, $kept);
         }
     }
+
+    // ---- unfillable entries that name routes (the shape the argument resolver matches) -------------------------------
+
+    /** The keys of an entry's `routes`: each all-must-match, a key's own list any-of. */
+    private const ROUTE_KEYS = ['uri_prefix', 'middleware', 'action_prefix'];
+
+    public function test_an_entry_without_params_names_the_routes_it_stops_so_that_it_is_not_dead_weight(): void
+    {
+        foreach (self::profile()['unfillable'] as $what => $entry) {
+            if (($entry['params'] ?? []) !== []) {
+                continue;
+            }
+            $this->assertArrayNotHasKey('params', $entry, "$what: an empty params list would make the entry about no parameter at all; a whole-route entry has none");
+            $this->assertArrayHasKey('routes', $entry, "$what: an entry about a whole route says which routes");
+        }
+    }
+
+    public function test_the_routes_of_an_entry_use_only_the_agreed_keys_and_plain_values(): void
+    {
+        $seen = 0;
+        foreach (self::profile()['unfillable'] as $what => $entry) {
+            foreach ($entry['routes'] ?? [] as $key => $values) {
+                ++$seen;
+                $this->assertContains($key, self::ROUTE_KEYS, "$what: $key");
+                $this->assertIsList($values, "$what.$key");
+                $this->assertNotSame([], $values, "$what.$key");
+                foreach ($values as $value) {
+                    $this->assertIsString($value);
+                    $this->assertNotSame('', $value);
+                }
+            }
+            if (isset($entry['routes']['uri_prefix'])) {
+                foreach ($entry['routes']['uri_prefix'] as $prefix) {
+                    $this->assertStringStartsNotWith('/', $prefix, "$what: a prefix of the route's uri without its leading slash");
+                }
+            }
+            if (isset($entry['routes']['middleware'])) {
+                foreach ($entry['routes']['middleware'] as $name) {
+                    $this->assertStringNotContainsString(':', $name, "$what: a middleware by its name, without arguments");
+                }
+            }
+        }
+        $this->assertGreaterThan(0, $seen);
+    }
+
+    public function test_subsonic_the_signed_email_confirmation_and_the_licence_name_their_routes_with_the_reason_that_fits(): void
+    {
+        $u = self::profile()['unfillable'];
+
+        $this->assertSame(['uri_prefix' => ['rest/']], $u['subsonic']['routes']);
+        $this->assertSame('unauthenticated', $u['subsonic']['reason']);
+
+        $this->assertSame(['uri_prefix' => ['api/email-change/confirm/'], 'middleware' => ['signed']], $u['email_change_confirm']['routes']);
+        $this->assertSame('signature_required', $u['email_change_confirm']['reason']);
+
+        $this->assertSame(['uri_prefix' => ['api/licenses/']], $u['license']['routes']);
+        $this->assertSame('external_call_blocked', $u['license']['reason']);
+    }
+
+    public function test_the_subsonic_entry_says_when_it_can_be_lifted(): void
+    {
+        $this->assertMatchesRegularExpression('/(until|once|when)\b.*\b(carry|send|query)/i', self::profile()['unfillable']['subsonic']['why'], 'the entry stands only while a request cannot carry the credentials');
+    }
 }
+

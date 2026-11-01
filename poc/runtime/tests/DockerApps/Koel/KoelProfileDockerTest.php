@@ -285,5 +285,26 @@ final class KoelProfileDockerTest extends GenerationCase
         $this->assertNotSame('ok', $r['by_wrong_api_key']['status']);
         $this->assertNotSame('ok', $r['without_credentials']['status'], 'a request that carries no credentials is not authenticated: the tool\'s requests must carry them');
     }
+
+    public function testEveryUnfillableEntryThatNamesRoutesMatchesRealRoutes(): void
+    {
+        [$exit, $out, $err] = self::php(self::SUPPORT . '/routes_matched.php', [(string) self::SCALE]);
+        $this->assertSame(0, $exit, mb_substr($err, -500));
+        $result = json_decode(trim(strstr($out, '{') ?: ''), true);
+        $this->assertIsArray($result);
+
+        $named = array_keys(array_filter(self::$profile['unfillable'], static fn (array $e): bool => isset($e['routes'])));
+        sort($named);
+        $matched = array_keys($result['entries']);
+        sort($matched);
+        $this->assertSame($named, $matched);
+        foreach ($result['entries'] as $name => $count) {
+            $this->assertGreaterThan(0, $count, "$name matches no route of the app: it would explain nothing");
+        }
+        // Koel's Subsonic API is one route per endpoint and method pair: tens of routes
+        $this->assertGreaterThanOrEqual(40, $result['entries']['subsonic'], 'the Subsonic routes');
+        $this->assertSame(1, $result['entries']['email_change_confirm'], 'one signed confirmation route');
+        $this->assertSame(1, $result['entries']['license'], 'one licence route');
+    }
 }
 
