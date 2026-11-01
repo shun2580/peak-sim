@@ -81,6 +81,9 @@ final class Classification
         if (preg_match(self::DATABASE_CLASS, $exceptionClass) === 1) {
             return self::EXCEPTION;
         }
+        if (str_ends_with($exceptionClass, 'RequestTimeout')) {
+            return self::TIMEOUT;
+        }
         if (str_ends_with($exceptionClass, 'InvalidSignatureException')) {
             return self::SIGNATURE_REQUIRED;
         }

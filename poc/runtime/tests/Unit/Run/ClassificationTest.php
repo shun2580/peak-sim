@@ -70,6 +70,9 @@ final class ClassificationTest extends TestCase
         yield 'invalid signature' => [
             'Illuminate\\Routing\\Exceptions\\InvalidSignatureException', 'Invalid signature.', Classification::SIGNATURE_REQUIRED,
         ];
+        yield 'request timeout' => [
+            'PeakSim\\Runtime\\Run\\RequestTimeout', 'the request ran longer than 20 seconds', Classification::TIMEOUT,
+        ];
         yield 'plain exception' => [
             'LogicException', 'something broke', Classification::EXCEPTION,
         ];

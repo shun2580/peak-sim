@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Run;
 
+use PeakSim\Runtime\Guard\RollbackGuard;
+
 /**
  * Counts the SQL statements of one attempt, on every connection, and notes what the statements say about
  * rollback and schema. It does not know Laravel: an adapter feeds it (see listenTo()).
@@ -13,11 +15,6 @@ namespace PeakSim\Runtime\Run;
  */
 final class QueryCounter
 {
-    /** The statements that end a transaction by themselves in MySQL, so a rollback afterwards undoes nothing. */
-    private const IMPLICIT_COMMIT = '/^\s*(?:ALTER|CREATE|DROP|TRUNCATE|RENAME|LOCK\s+TABLES|UNLOCK\s+TABLES|SET\s+autocommit|START\s+TRANSACTION|BEGIN|COMMIT|GRANT|REVOKE|FLUSH|ANALYZE|OPTIMIZE|REPAIR|LOAD\s+DATA|CALL)\b/i';
-
-    private const WRITE = '/^\s*(?:INSERT|UPDATE|DELETE|REPLACE)\b/i';
-
     /** schema.table or table after a keyword that introduces a table. `for update` and `on duplicate key update` are not tables. */
     private const TABLE_REF = '/(?<!for )(?<!key )\b(?:from|join|into|update)\s+(?:`?([A-Za-z0-9_$]+)`?\s*\.\s*)?`?([A-Za-z0-9_$]+)`?/i';
 
@@ -37,7 +34,7 @@ final class QueryCounter
     /** @var array<string, true> */
     private array $tables = [];
 
-    /** @var list<string> */
+    /** @var list<array{string, string}> [reason, statement] as classified by RollbackGuard */
     private array $implicitCommits = [];
 
     /** @var array<string, true> */
@@ -96,10 +93,11 @@ final class QueryCounter
         if (preg_match(self::USE, $sql, $m) === 1 && !$this->isAllowedSchema($m[1])) {
             $this->foreignSchemas[$m[1]] = true;
         }
-        if (self::isImplicitCommit($sql)) {
-            $this->implicitCommits[] = mb_substr($sql, 0, self::STATEMENT_KEEP);
+        $reason = RollbackGuard::implicitCommitReason($sql);
+        if ($reason !== null) {
+            $this->implicitCommits[] = [$reason, mb_substr($sql, 0, self::STATEMENT_KEEP)];
         }
-        if ($connection !== $this->defaultConnection && self::isWrite($sql)) {
+        if (RollbackGuard::otherConnectionWrite($connection, $this->defaultConnection, $sql)) {
             $this->otherConnectionWrites[$connection] = true;
         }
     }
@@ -124,10 +122,10 @@ final class QueryCounter
         return $names;
     }
 
-    /** @return list<string> */
+    /** @return list<string> the statements (cut), in order */
     public function implicitCommits(): array
     {
-        return $this->implicitCommits;
+        return array_map(static fn (array $entry): string => $entry[1], $this->implicitCommits);
     }
 
     /** @return list<string> sorted */
@@ -139,11 +137,12 @@ final class QueryCounter
         return $names;
     }
 
-    /** The reason this attempt cannot be rolled back, or null. Feeds Classification::decide(). */
+    /** The reason this attempt cannot be rolled back ("<reason>: <statement>", reasons from RollbackGuard), or null.
+     * Feeds Classification::decide(). */
     public function rollbackProblem(): ?string
     {
         if ($this->implicitCommits !== []) {
-            return 'ddl: ' . $this->implicitCommits[0];
+            return $this->implicitCommits[0][0] . ': ' . $this->implicitCommits[0][1];
         }
         if ($this->otherConnectionWrites !== []) {
             return 'other_connection: ' . array_key_first($this->otherConnectionWrites);
@@ -167,12 +166,7 @@ final class QueryCounter
 
     public static function isImplicitCommit(string $sql): bool
     {
-        return preg_match(self::IMPLICIT_COMMIT, $sql) === 1;
-    }
-
-    public static function isWrite(string $sql): bool
-    {
-        return preg_match(self::WRITE, $sql) === 1;
+        return RollbackGuard::implicitCommitReason($sql) !== null;
     }
 
     /** @return list<array{?string, string}> [schema or null, table] */
