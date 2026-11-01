@@ -10,6 +10,7 @@ use PeakSim\Model\Axis;
 use PeakSim\Model\AxisVerdict;
 use PeakSim\Model\CacheView;
 use PeakSim\Model\Gap;
+use PeakSim\Model\Growth;
 use PeakSim\Model\RouteResult;
 use PeakSim\Model\ScenarioTag;
 use PeakSim\Model\Site;
@@ -24,7 +25,7 @@ use PeakSim\Name;
  */
 final class JsonRenderer
 {
-    public const SCHEMA_VERSION = '0.1';
+    public const SCHEMA_VERSION = '0.2';
 
     public const MODE_EXPORT_DIR = 'export-dir';
 
@@ -136,7 +137,8 @@ final class JsonRenderer
     {
         return [
             'growth' => $a->growth->value,
-            'degree' => $a->degree,
+            // D38: an unknown axis with no lower bound has no degree; a 0 there would read as O(1).
+            'degree' => $a->growth === Growth::Unknown && $a->lowerBound === null ? null : $a->degree,
             'confidence' => $a->confidence?->value,
             'lower_bound' => $a->lowerBound?->value,
         ];

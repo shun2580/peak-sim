@@ -101,11 +101,11 @@ final class TableRenderer
         ];
     }
 
-    /** O(N), O(N*M), O(N*M)×3 for three levels or more; unknown (≥O(N)) with the lower bound the facts give. */
+    /** O(N), O(N*M), O(N*M)×3 for three levels or more; unknown (≥O(N)) with the lower bound the facts give, unknown (no lower bound) when there is none. */
     private static function label(AxisVerdict $a): string
     {
         if ($a->growth === Growth::Unknown) {
-            return 'unknown' . ($a->lowerBound === null ? '' : ' (≥' . $a->lowerBound->value . ')');
+            return 'unknown' . ($a->lowerBound === null ? ' (no lower bound)' : ' (≥' . $a->lowerBound->value . ')');
         }
 
         return $a->growth->value . ($a->degree >= 3 ? '×' . $a->degree : '');
