@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Tests\Unit\Profiles;
 
 use PDO;
 use PeakSim\Runtime\Run\Classification;
+use PeakSim\Runtime\Route\RequestCredentials;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -397,13 +398,31 @@ final class KoelProfileTest extends TestCase
         $this->assertSame(0, preg_match('/base64:[A-Za-z0-9+\/]{20,}/', $source), 'no key value in the file');
     }
 
-    public function test_the_subsonic_note_says_what_is_prepared_and_what_the_request_still_has_to_carry(): void
+    public function test_the_api_key_of_each_login_is_the_one_the_run_derives_from_its_app_key_so_the_sender_can_make_it_too(): void
     {
-        $note = self::profile()['unfillable']['subsonic'];
+        putenv('PEAK_MEASURE_APP_KEY=' . self::APP_KEY);
+        $pdo = self::standIn();
+        $p = self::profile();
 
-        $this->assertContains($note['reason'], self::REASONS);
-        $this->assertStringNotContainsString('anew for each process', $note['why'], 'the key is shared across the processes of a run now');
-        $this->assertMatchesRegularExpression('/apiKey|credential/i', $note['why'], 'the Subsonic routes read their credentials from the request');
+        self::apply($pdo);
+
+        foreach (['user', 'admin'] as $who) {
+            $id = $p[$who]['id'];
+            $this->assertSame(
+                RequestCredentials::derive(self::APP_KEY, 'subsonic', $id),
+                self::decrypt((string) self::scalar($pdo, "SELECT subsonic_api_key FROM users WHERE id = $id"), self::APP_KEY),
+                "$who: what is stored is what the sender derives, not a random value",
+            );
+        }
+    }
+
+    public function test_the_subsonic_routes_carry_the_login_and_its_derived_key_in_their_query_and_are_not_declared_unfillable(): void
+    {
+        $p = self::profile();
+
+        $this->assertArrayNotHasKey('subsonic', $p['unfillable']);
+        $this->assertSame(['uri_prefix' => ['rest/']], $p['request_query']['subsonic']['routes']);
+        $this->assertSame(['u' => '{email}', 'apiKey' => '{key:subsonic}'], $p['request_query']['subsonic']['query']);
     }
 
     // ---- the routes the controller does not define -------------------------------------------------------------------
@@ -474,12 +493,9 @@ final class KoelProfileTest extends TestCase
         $this->assertGreaterThan(0, $seen);
     }
 
-    public function test_subsonic_the_signed_email_confirmation_and_the_licence_name_their_routes_with_the_reason_that_fits(): void
+    public function test_the_signed_email_confirmation_and_the_licence_name_their_routes_with_the_reason_that_fits(): void
     {
         $u = self::profile()['unfillable'];
-
-        $this->assertSame(['uri_prefix' => ['rest/']], $u['subsonic']['routes']);
-        $this->assertSame('unauthenticated', $u['subsonic']['reason']);
 
         $this->assertSame(['uri_prefix' => ['api/email-change/confirm/'], 'middleware' => ['signed']], $u['email_change_confirm']['routes']);
         $this->assertSame('signature_required', $u['email_change_confirm']['reason']);
@@ -487,10 +503,4 @@ final class KoelProfileTest extends TestCase
         $this->assertSame(['uri_prefix' => ['api/licenses/']], $u['license']['routes']);
         $this->assertSame('external_call_blocked', $u['license']['reason']);
     }
-
-    public function test_the_subsonic_entry_says_when_it_can_be_lifted(): void
-    {
-        $this->assertMatchesRegularExpression('/(until|once|when)\b.*\b(carry|send|query)/i', self::profile()['unfillable']['subsonic']['why'], 'the entry stands only while a request cannot carry the credentials');
-    }
 }
-
