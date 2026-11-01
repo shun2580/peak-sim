@@ -4,9 +4,14 @@
 declare(strict_types=1);
 
 use PeakSim\Cli\Application;
+use PeakSim\Cli\MemoryGuard;
 
 // Warnings must never end up in the report on standard output.
 ini_set('display_errors', 'stderr');
+
+// Before the autoloader, so that running out of memory at any later point is explained (exit code 5, D41).
+require_once __DIR__ . '/../src/Cli/MemoryGuard.php';
+MemoryGuard::register();
 
 foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
     if (is_file($autoload)) {

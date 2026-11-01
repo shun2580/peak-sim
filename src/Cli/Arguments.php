@@ -6,7 +6,7 @@ namespace PeakSim\Cli;
 
 /**
  * Reads the command line: `analyze <app-root> [--artisan-command=…|--export-dir=…] [--format=table|json]
- * [--route=<uri>] [--max-depth=20] [--stats]`. Options take their value after `=`; `--export-dir` and
+ * [--route=<uri>] [--max-depth=20] [--memory-limit=<size>] [--stats]`. Options take their value after `=`; `--export-dir` and
  * `--artisan-command` may also take it as the next argument. Anything not understood is a UsageError: a mistyped option must not be ignored, or the user reads an answer to a question they did not ask.
  */
 final class Arguments
@@ -76,6 +76,7 @@ final class Arguments
             $options['route'] ?? null,
             self::maxDepth($options['max-depth'] ?? null),
             ($options['stats'] ?? false) === true,
+            self::memoryLimit($options['memory-limit'] ?? null),
         );
     }
 
@@ -87,7 +88,7 @@ final class Arguments
     {
         $parts = explode('=', substr($arg, 2), 2);
         $name = $parts[0];
-        if (!in_array($name, ['artisan-command', 'export-dir', 'format', 'route', 'max-depth'], true)) {
+        if (!in_array($name, ['artisan-command', 'export-dir', 'format', 'route', 'max-depth', 'memory-limit'], true)) {
             throw new UsageError("unknown option: {$arg}");
         }
         if (!isset($parts[1])) {
@@ -111,5 +112,18 @@ final class Arguments
         }
 
         return (int) $value;
+    }
+
+    /** PHP's own notation: bytes, or a number with K, M or G; -1 (no limit) only when the user asks for it. */
+    private static function memoryLimit(string|bool|null $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        if (!is_string($value) || preg_match('/^(-1|[1-9][0-9]*[KMG]?)$/i', $value) !== 1) {
+            throw new UsageError('--memory-limit must be a size such as 512M or 1G (a whole number of bytes, K, M or G), or -1 for no limit');
+        }
+
+        return $value;
     }
 }

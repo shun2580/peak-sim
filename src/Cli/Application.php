@@ -14,7 +14,7 @@ use PeakSim\Output\JsonRenderer;
 use PeakSim\Output\TableRenderer;
 
 /**
- * The command line. Exit codes: 0 done, 2 usage, 3 input (artisan or its JSON), 4 internal error. The report goes
+ * The command line. Exit codes: 0 done, 2 usage, 3 input (artisan or its JSON), 4 internal error, 5 out of memory (MemoryGuard). The report goes
  * to standard output and nothing else does; messages and --stats go to standard error, so that the output can be
  * piped or compared byte by byte.
  */
@@ -24,13 +24,21 @@ final class Application
     public const EXIT_USAGE = 2;
     public const EXIT_INPUT = 3;
     public const EXIT_INTERNAL = 4;
+    public const EXIT_MEMORY = MemoryGuard::EXIT_CODE;
 
     /** @var \Closure(AnalysisConfig): AnalysisRunner */
     private readonly \Closure $runnerFactory;
 
-    /** @param (\Closure(AnalysisConfig): AnalysisRunner)|null $runnerFactory replaces AnalysisRunner::create (tests) */
-    public function __construct(?\Closure $runnerFactory = null)
+    /** @var \Closure(string): bool */
+    private readonly \Closure $memoryLimitSetter;
+
+    /**
+     * @param (\Closure(AnalysisConfig): AnalysisRunner)|null $runnerFactory replaces AnalysisRunner::create (tests)
+     * @param (\Closure(string): bool)|null $memoryLimitSetter replaces ini_set('memory_limit', …) (tests)
+     */
+    public function __construct(?\Closure $runnerFactory = null, ?\Closure $memoryLimitSetter = null)
     {
+        $this->memoryLimitSetter = $memoryLimitSetter ?? static fn (string $value): bool => ini_set('memory_limit', $value) !== false;
         $this->runnerFactory = $runnerFactory ?? static fn (AnalysisConfig $c): AnalysisRunner => AnalysisRunner::create($c);
     }
 
@@ -50,6 +58,10 @@ final class Application
 
         try {
             $command = Arguments::parse($args);
+            // Only when asked: without the option php.ini decides, and the tool never lifts the limit by itself (D41).
+            if ($command->memoryLimit !== null && !($this->memoryLimitSetter)($command->memoryLimit)) {
+                throw new UsageError("--memory-limit={$command->memoryLimit} could not be applied (PHP refused it; is more memory already in use?)");
+            }
             if (!is_dir($command->appRoot)) {
                 throw new UsageError("<app-root> is not a directory: {$command->appRoot}");
             }
@@ -148,9 +160,11 @@ final class Application
           --format=table|json       output format (default: table)
           --route=<uri>             analyse this one route only
           --max-depth=<n>           deepest call chain to follow (default: 20)
+          --memory-limit=<size>     set PHP's memory_limit for this run, e.g. 1G (bytes, or K, M, G; -1 for no limit);
+                                    without it php.ini decides. Out of memory ends with exit code 5 and a hint to use this
           --stats                   print timing and counts to standard error
 
-        exit codes: 0 done, 2 usage, 3 input (artisan or its JSON), 4 internal error
+        exit codes: 0 done, 2 usage, 3 input (artisan or its JSON), 4 internal error, 5 out of memory
 
         TEXT;
     }

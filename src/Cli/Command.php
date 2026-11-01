@@ -18,6 +18,7 @@ final readonly class Command
         public ?string $route,
         public int $maxDepth,
         public bool $stats,
+        public ?string $memoryLimit = null,
     ) {
     }
 }
