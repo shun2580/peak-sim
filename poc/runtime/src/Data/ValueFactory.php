@@ -197,6 +197,9 @@ final class ValueFactory
         if (in_array($column->dataType, ['char', 'varchar'], true) && $limit === 36) {
             return sprintf('%08x-0000-4000-8000-%012x', crc32($table->name . '.' . $column->name), $i);
         }
+        if (in_array($column->dataType, ['char', 'varchar'], true) && $limit === 26) {
+            return self::ulid(crc32($table->name . '.' . $column->name), $i);
+        }
         if (preg_match('/(^|_)e?mail($|_)/i', $column->name) === 1 && !str_ends_with(strtolower($column->name), '_at')) {
             $address = strtolower($tableName) . $i . '@example.test';
             if ($limit === null || strlen($address) <= $limit) {
@@ -205,6 +208,27 @@ final class ValueFactory
         }
 
         return $this->fitted($tableName . '_' . $columnName, $i, $limit);
+    }
+
+    /**
+     * A ULID the framework accepts (a model with HasUlids refuses any other shape of key before it looks the row up):
+     * 26 characters of Crockford's base32, the first of them 0 to 7. "01J" then the table and column in 7 characters,
+     * then the row number in 16, so it is the same for the same row and different for every row.
+     */
+    private static function ulid(int $seed, int $i): string
+    {
+        $alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+        $encode = static function (int $n, int $width) use ($alphabet): string {
+            $out = '';
+            for ($k = 0; $k < $width; $k++) {
+                $out = $alphabet[$n % 32] . $out;
+                $n = intdiv($n, 32);
+            }
+
+            return $out;
+        };
+
+        return '01J' . $encode($seed, 7) . $encode($i, 16);
     }
 
     /**
