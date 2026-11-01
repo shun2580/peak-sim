@@ -105,6 +105,15 @@ final class KoelProfileTest extends TestCase
         }
     }
 
+    public function test_the_columns_the_app_reads_as_data_hold_data_and_membership_means_ownership(): void
+    {
+        $values = self::profile()['values'];
+
+        $this->assertSame('[]', $values['queue_states']['song_ids'], 'the app reads the queue as a JSON list; a generated word breaks the first page load');
+        $this->assertSame('owner', $values['playlist_user']['role'], 'a playlist listed for its user needs the user to be its owner');
+        $this->assertSame(26, strlen(self::profile()['reference_rows'][0]['row']['id']), 'an organization key is 26 characters');
+    }
+
     public function test_two_logins_are_declared_a_general_user_and_an_admin(): void
     {
         $p = self::profile();
