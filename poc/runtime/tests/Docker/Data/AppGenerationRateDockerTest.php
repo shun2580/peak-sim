@@ -9,6 +9,7 @@ use PeakSim\Runtime\Data\Reason;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Data\TableOutcome;
 use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * The generation success rate (per table) for whatever app is mounted at /app: migrate its schema into a
@@ -21,7 +22,7 @@ use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
  */
 final class AppGenerationRateDockerTest extends GenerationCase
 {
-    private const SCALE = 100;
+    private const SCALES = [100, 1000];
 
     private const REASONS = [
         Reason::FK_CYCLE, Reason::UNSUPPORTED_TYPE, Reason::CHECK_CONSTRAINT, Reason::UNIQUE_VIOLATION,
@@ -32,16 +33,25 @@ final class AppGenerationRateDockerTest extends GenerationCase
 
     public static function tearDownAfterClass(): void
     {
-        self::drop(self::SCALE);
+        foreach (self::SCALES as $scale) {
+            self::drop($scale);
+        }
     }
 
-    public function testTheReportAccountsForEveryTableHonestly(): void
+    /** @return array<string, array{0: int}> */
+    public static function scales(): array
     {
-        $migration = self::fresh(self::SCALE);
-        $pdo = self::pdo(self::SCALE);
+        return ['n=100' => [100], 'n=1000' => [1000]];
+    }
+
+    #[DataProvider('scales')]
+    public function testTheReportAccountsForEveryTableHonestly(int $scale): void
+    {
+        $migration = self::fresh($scale);
+        $pdo = self::pdo($scale);
 
         $started = microtime(true);
-        $report = (new Generator())->generate($pdo, ScalePlan::global(self::SCALE, 5), []);
+        $report = (new Generator())->generate($pdo, ScalePlan::global($scale, 5), []);
         $seconds = round(microtime(true) - $started, 2);
 
         self::assertCount($migration['tables'], $report->outcomes, 'one outcome per base table');
@@ -64,10 +74,10 @@ final class AppGenerationRateDockerTest extends GenerationCase
             ? json_decode((string) file_get_contents(self::config()->appRoot . '/composer.json'), true)
             : [];
         $name = preg_replace('/[^a-z0-9]+/', '-', strtolower((string) ($composer['name'] ?? 'app'))) ?? 'app';
-        self::writeOut('generation-' . trim($name, '-') . '.json', [
+        self::writeOut('generation-' . trim($name, '-') . '-n' . $scale . '.json', [
             'app' => $composer['name'] ?? null,
             'laravel' => $migration['laravel'] ?? null,
-            'plan' => 'global n=' . self::SCALE . ' base=5',
+            'plan' => 'global n=' . $scale . ' base=5',
             'tables_in_schema' => $migration['tables'],
             'migrate_seconds' => $migration['seconds'],
             'generate_seconds' => $seconds,
