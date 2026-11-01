@@ -30,8 +30,8 @@ final class GeneratorPlannerTest extends PlannerTestCase
     {
         $sweeps = (new GeneratorPlanner())->sweepsFor(self::spec('/x', ['n_table' => null]), self::SCALES);
 
-        $this->assertSame(['mode' => 'global', 'n' => 100, 'base' => 5], $sweeps[0]->points[1]->recipe);
-        $this->assertSame('glob', $sweeps[0]->points[1]->tag);
+        $this->assertSame(['mode' => 'global', 'n' => 100, 'base' => 5], $sweeps[0]->points[0]->recipe);
+        $this->assertSame('glob', $sweeps[0]->points[0]->tag);
     }
 
     public function test_global_has_no_empty_system_point_because_its_n_cannot_be_zero(): void

@@ -247,7 +247,7 @@ final class DriverTest extends PlannerTestCase
     public function test_a_contaminated_database_is_rebuilt_and_the_run_goes_on(): void
     {
         $runner = self::runner(static function (MeasureRequest $r, int $n): OneResult {
-            if ($r->route === '/bad' && $r->scale === 100) {
+            if ($r->route === '/bad') {
                 return new OneResult(14, [new Attempt($r->route, $r->method, $r->scale, $r->axis, Attempt::WARMUP, 200, 4, [], [], 10, 1000, false, 'not_rollbackable', 'row_count_changed: orders')], 'the database can no longer be trusted');
             }
 
@@ -288,6 +288,15 @@ final class DriverTest extends PlannerTestCase
         $this->assertSame('runner_failed', $rows['/crash']['class']);
         $this->assertStringContainsString('out of memory', (string) $rows['/crash']['reason_detail']);
         $this->assertSame('measured_ON', $rows['/fine']['verdict']);
+    }
+
+    public function test_a_measurement_that_ran_out_of_time_is_recorded_as_a_timeout(): void
+    {
+        $runner = self::runner(static fn (MeasureRequest $r, int $n): OneResult => new OneResult(124, [], "timed out after 150 seconds"));
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner))->run([self::task('/slow')], self::SCALES);
+
+        $this->assertSame(MeasureExit::OK, $result->exit);
+        $this->assertSame('timeout', $result->report->rows()[0]['class']);
     }
 
     public function test_an_attempt_log_keeps_every_attempt_of_every_route(): void
