@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use PeakSim\Runtime\Boot\AppBooter;
 use PeakSim\Runtime\Guard\DbGuard;
 
 // Knowledge about this app (Koel, a Laravel music server) that its schema and its routes cannot give. A run uses it
@@ -25,9 +26,25 @@ use PeakSim\Runtime\Guard\DbGuard;
 //   fixups                 single UPDATE statements that undo what generated data does to Koel's meaning of a row.
 //   arguments              how to fill a route argument the tool's own rules do not reach.
 //   unfillable             what could not be prepared, and why (the design's fixed vocabulary of reasons).
-//   after_generation       the function that applies reference_rows, role_permissions, the two logins and the fixups.
-//                          It takes the PDO connection of the measurement database and that database's name, and
-//                          refuses any name that is not a measurement database.
+//   after_generation       the function that applies reference_rows, role_permissions, the two logins (with the API key
+//                          each holds for the Subsonic routes) and the fixups. It takes the PDO connection of the
+//                          measurement database and that database's name, and refuses any name that is not a
+//                          measurement database.
+//
+// Routes to an operation the controller does not define
+//   Koel registers whole resources (`apiResource`) for controllers that define only some operations. The tool
+//   records such a route as `action_not_defined` and does not hit it. By that mechanical test (the class has no public
+//   method of that name) 25 of the app's routes are recorded so: 3 without arguments and 22 with. The arguments those
+//   22 routes carry are never filled, so a declaration only they needed is dropped from `arguments` (album, artist,
+//   song, playlist, station: the routes that exist have typed controller methods the tool reads itself). The
+//   playlist_folder declaration stays, because routes that exist use it.
+//
+// Subsonic
+//   The Subsonic routes (/rest/...) log in with credentials found in the request's own input (`u` with `apiKey`, or
+//   `u`, `t`, `s`), not with the session. after_generation stores an API key for each of the two logins, encrypted and
+//   hashed the way the app reads it, under the one APP_KEY of the run (the environment variable PEAK_MEASURE_APP_KEY,
+//   which every process of a run shares; the key itself is never written here, in a report or in a log). With no such
+//   variable nothing is stored. Whether a request carries the credentials is up to whoever sends it.
 
 $when = '2026-01-01 00:00:00';
 
@@ -105,17 +122,13 @@ $profile = [
 
     // Route argument => where its value comes from: the first row of a table (a column of it), or a literal. Koel binds
     // most of them to a model by its primary key; the tool's own rules reach these only when the controller method
-    // can be read (see the note in the report on invokable controllers), so the profile says them outright.
+    // can be read (see the note in the report on invokable controllers), so the profile says them outright. Only
+    // routes that exist are counted: the ones recorded as action_not_defined are never hit (see the head of this file).
     'arguments' => [
-        'song' => ['table' => 'songs', 'column' => 'id', 'why' => 'a song is bound by its text key'],
         'songId' => ['table' => 'songs', 'column' => 'id', 'why' => 'a song id is a text key; the argument is not bound to the model'],
-        'album' => ['table' => 'albums', 'column' => 'id', 'why' => 'bound by its key'],
-        'artist' => ['table' => 'artists', 'column' => 'id', 'why' => 'bound by its key'],
-        'playlist' => ['table' => 'playlists', 'column' => 'id', 'why' => 'bound by its key'],
         'playlist_folder' => ['table' => 'playlist_folders', 'column' => 'id', 'why' => 'bound by its key'],
         'playlistFolder' => ['table' => 'playlist_folders', 'column' => 'id', 'why' => 'bound by its key'],
         'podcast' => ['table' => 'podcasts', 'column' => 'id', 'why' => 'bound by its key'],
-        'station' => ['table' => 'radio_stations', 'column' => 'id', 'why' => 'a radio station id is a text key'],
         'radioStation' => ['table' => 'radio_stations', 'column' => 'id', 'why' => 'a radio station id is a text key'],
         'duplicateUpload' => ['table' => 'duplicate_uploads', 'column' => 'id', 'why' => 'bound by its key'],
         'embed' => ['table' => 'embeds', 'column' => 'id', 'why' => 'bound by its key'],
@@ -126,7 +139,7 @@ $profile = [
     ],
 
     'unfillable' => [
-        'subsonic' => ['reason' => 'unauthenticated', 'why' => 'the Subsonic routes log in with a token made from the user\'s API key, which the app stores encrypted with a key the tool makes anew for each process, so it cannot be prepared beforehand'],
+        'subsonic' => ['reason' => 'unauthenticated', 'why' => 'the Subsonic routes read their credentials (u with apiKey, or u, t and s) from the request\'s own input; both logins hold an API key now (encrypted under the run\'s shared APP_KEY), but a request that carries no such input is not authenticated'],
         'embed_options' => ['params' => ['options'], 'reason' => 'unfilled_param', 'why' => 'the options argument of an embed stream is an encrypted string the app builds itself with that same per-process key'],
         'equalizer_preset_id' => ['params' => ['id'], 'reason' => 'unfilled_param', 'why' => 'a preset lives inside the user\'s preferences, not in a table, so there is no row to point at'],
         'dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'authorizing a Dropbox app calls the Dropbox service'],
@@ -138,7 +151,7 @@ $profile = [
 
 $profile['after_generation'] =
     /**
-     * @return array{reference_rows: array{inserted: int, present: int}, role_permissions: int, logins: array<string, int>, fixups: array<string, int>}
+     * @return array{reference_rows: array{inserted: int, present: int}, role_permissions: int, logins: array<string, int>, subsonic: array{api_keys: int}, fixups: array<string, int>}
      */
     static function (PDO $pdo, string $database) use ($profile): array {
         DbGuard::assertDbName($database);
@@ -177,7 +190,7 @@ $profile['after_generation'] =
                 ->execute(array_values($row));
         };
 
-        $summary = ['reference_rows' => ['inserted' => 0, 'present' => 0], 'role_permissions' => 0, 'logins' => [], 'fixups' => []];
+        $summary = ['reference_rows' => ['inserted' => 0, 'present' => 0], 'role_permissions' => 0, 'logins' => [], 'subsonic' => ['api_keys' => 0], 'fixups' => []];
 
         foreach ($profile['reference_rows'] as $entry) {
             [$clause, $args] = $where($entry['match']);
@@ -216,6 +229,31 @@ $profile['after_generation'] =
                 $insert('model_has_roles', $link);
             }
             $summary['logins'][$who] = $login['id'];
+        }
+
+        // The run's one APP_KEY, from the environment (never from this file). A malformed one is refused (without being
+        // quoted); an absent one stores nothing, since a value the app cannot decrypt would break every route that loads
+        // the user.
+        $given = getenv(AppBooter::APP_KEY_ENV);
+        if (is_string($given) && $given !== '') {
+            $appKey = AppBooter::appKeyFrom([AppBooter::APP_KEY_ENV => $given]);
+            $raw = (string) base64_decode(substr($appKey, 7), true);
+            foreach (['user', 'admin'] as $who) {
+                $id = $profile[$who]['id'];
+                // A synthetic key, one per login. The app keeps it encrypted (the `encrypted` cast: Crypt::encryptString
+                // under AES-256-CBC) and looks a user up by its HMAC-SHA256 under APP_KEY.
+                $apiKey = sprintf('measure-subsonic-%d-%s', $id, bin2hex(random_bytes(8)));
+                $iv = random_bytes(16);
+                $value = openssl_encrypt($apiKey, 'aes-256-cbc', $raw, 0, $iv);
+                if ($value === false) {
+                    throw new RuntimeException('the Subsonic API key could not be encrypted');
+                }
+                $ivText = base64_encode($iv);
+                $stored = base64_encode((string) json_encode(['iv' => $ivText, 'value' => $value, 'mac' => hash_hmac('sha256', $ivText . $value, $raw), 'tag' => ''], JSON_UNESCAPED_SLASHES));
+                $pdo->prepare('UPDATE users SET subsonic_api_key = ?, subsonic_api_key_hash = ? WHERE id = ?')
+                    ->execute([$stored, hash_hmac('sha256', $apiKey, $appKey), $id]);
+                ++$summary['subsonic']['api_keys'];
+            }
         }
 
         foreach ($profile['fixups'] as $fix) {
