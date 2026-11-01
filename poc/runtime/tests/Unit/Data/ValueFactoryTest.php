@@ -94,6 +94,28 @@ final class ValueFactoryTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
+    public function testUlidShapedColumnsGetAValidUlidThatIsUniquePerRow(): void
+    {
+        foreach (['char', 'varchar'] as $type) {
+            $column = Schemas::column('id', $type, $type . '(26)', ['length' => 26]);
+            $seen = [];
+            foreach ([1, 2, 10, 1000, 123456] as $i) {
+                $value = $this->value($column, $i);
+                // What Laravel's HasUlids checks before it looks a row up: 26 characters of Crockford's base32, first one 0-7.
+                $this->assertMatchesRegularExpression('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/', $value);
+                $seen[$value] = true;
+            }
+            $this->assertCount(5, $seen);
+        }
+    }
+
+    public function testAUlidIsTheSameForTheSameTableColumnAndRow(): void
+    {
+        $column = Schemas::column('id', 'char', 'char(26)', ['length' => 26]);
+
+        $this->assertSame($this->value($column, 7), $this->value($column, 7));
+    }
+
     #[DataProvider('integerRanges')]
     public function testIntegersStayInsideTheirRange(string $type, bool $unsigned, int $max): void
     {
