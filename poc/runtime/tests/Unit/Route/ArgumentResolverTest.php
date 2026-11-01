@@ -368,4 +368,41 @@ final class ArgumentResolverTest extends TestCase
 
         $this->assertEquals((new ArgumentResolver(self::lookup()))->resolve($spec), (new ArgumentResolver(self::lookup(), []))->resolve($spec));
     }
+
+    public function test_an_entry_with_routes_explains_an_argument_only_in_those_routes(): void
+    {
+        $profile = ['unfillable' => ['file_id' => ['routes' => ['uri_prefix' => ['files/']], 'params' => ['file'], 'reason' => 'file_dependency', 'why' => 'x']]];
+        $resolver = new ArgumentResolver(self::profileLookup(), $profile);
+
+        $inside = $resolver->resolve(self::spec('files/{file}', ['file' => []]));
+        $outside = $resolver->resolve(self::spec('documents/{file}', ['file' => []]));
+
+        $this->assertSame([['param' => 'file', 'reason' => 'profile:file_id', 'class' => 'file_dependency']], $inside->unfilled);
+        $this->assertSame([['param' => 'file', 'reason' => 'no_rule_to_fill']], $outside->unfilled);
+    }
+
+    public function test_a_value_the_tool_made_up_is_marked_as_a_guess_and_one_taken_from_a_row_is_not(): void
+    {
+        $profile = ['arguments' => ['song' => ['table' => 'songs', 'column' => 'id', 'why' => 'x'], 'format' => ['value' => 'json', 'why' => 'x']]];
+        $spec = self::spec('/x/{order}/{song}/{format}/{n}/{kind}/{code}', [
+            'order' => ['model' => 'App\\Models\\Order'],
+            'song' => [],
+            'format' => [],
+            'n' => ['type' => 'int'],
+            'kind' => ['where' => 'daily|weekly'],
+            'code' => ['where' => '[a-z]+'],
+        ]);
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve($spec);
+
+        $this->assertTrue($r->ok());
+        $this->assertSame(['n', 'code'], $r->guessed, 'the number 1 and a sample of a pattern are guesses; a row, the profile and the first of a list of literals are not');
+    }
+
+    public function test_a_name_ending_in_id_that_found_a_row_is_not_a_guess(): void
+    {
+        $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/orders/{orderId}', ['orderId' => []]));
+
+        $this->assertSame([], $r->guessed);
+    }
 }

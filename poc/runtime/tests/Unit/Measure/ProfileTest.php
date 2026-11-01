@@ -127,6 +127,40 @@ final class ProfileTest extends TestCase
         }
     }
 
+    public function test_an_unfillable_entry_that_names_routes_is_checked_when_the_profile_is_loaded(): void
+    {
+        $this->write('routed', "<?php return ['unfillable' => ['a' => ['routes' => ['uri_prefix' => ['rest/'], 'middleware' => ['signed'], 'action_prefix' => ['App\\\\X']], 'reason' => 'unauthenticated', 'why' => 'x']]];");
+
+        $this->assertArrayHasKey('a', Profile::load('routed', $this->dir)['unfillable']);
+    }
+
+    public function test_every_reason_the_koel_profile_uses_is_in_the_vocabulary_so_the_real_profile_loads(): void
+    {
+        $reasons = array_column(Profile::load('koel')['unfillable'], 'reason');
+
+        $this->assertNotSame([], $reasons);
+        $this->assertContains('file_dependency', $reasons);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badEntries(): iterable
+    {
+        yield 'an unknown route key' => ["['routes' => ['url' => ['rest/']], 'reason' => 'unauthenticated', 'why' => 'x']"];
+        yield 'a route key that is not a list of strings' => ["['routes' => ['uri_prefix' => 'rest/'], 'reason' => 'unauthenticated', 'why' => 'x']"];
+        yield 'an empty list' => ["['routes' => ['uri_prefix' => []], 'reason' => 'unauthenticated', 'why' => 'x']"];
+        yield 'a reason outside the vocabulary' => ["['routes' => ['uri_prefix' => ['rest/']], 'reason' => 'because', 'why' => 'x']"];
+    }
+
+    #[DataProvider('badEntries')]
+    public function test_a_badly_formed_unfillable_entry_is_refused_at_load(string $entry): void
+    {
+        $this->write('badentry', "<?php return ['unfillable' => ['a' => $entry]];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('unfillable');
+        Profile::load('badentry', $this->dir);
+    }
+
     public function test_the_profile_for_the_verification_app_gives_every_order_the_status_the_filter_reads(): void
     {
         $profile = Profile::load('fixtures');

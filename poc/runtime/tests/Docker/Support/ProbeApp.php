@@ -41,6 +41,19 @@ final class ProbeApp
             }
             PHP);
 
+        // A controller with a typed argument: the route table reads argument types from controllers, not from closures.
+        file_put_contents($root . '/probe_controller.php', <<<'PHP'
+            <?php
+            namespace PeakProbe;
+            class NumberController
+            {
+                public function show(int $n): string
+                {
+                    return (string) $n;
+                }
+            }
+            PHP);
+
         return new self($root);
     }
 
@@ -107,6 +120,7 @@ final class ProbeApp
         return <<<'PHP'
             <?php
             require_once __DIR__ . '/../probe_user.php';
+            require_once __DIR__ . '/../probe_controller.php';
 
             use Illuminate\Support\Facades\DB;
             use Illuminate\Support\Facades\Gate;
@@ -153,6 +167,8 @@ final class ProbeApp
             Route::get('songs/{song}', fn (string $song) => $song);
             Route::get('dropbox/{key}', fn (string $key) => $key);
             Route::get('things/{thing}', fn (string $thing) => $thing);
+            Route::get('signed/{token}', fn (string $token) => $token);
+            Route::get('numbers/{n}', [\PeakProbe\NumberController::class, 'show']);
             PHP;
     }
 }

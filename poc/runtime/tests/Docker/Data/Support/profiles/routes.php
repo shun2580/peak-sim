@@ -13,5 +13,6 @@ return [
     ],
     'unfillable' => [
         'dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'calls an outside service'],
+        'signed_links' => ['routes' => ['uri_prefix' => ['probe/signed/']], 'reason' => 'signature_required', 'why' => 'the link is a signed URL'],
     ],
 ];

@@ -377,4 +377,50 @@ final class DriverTest extends PlannerTestCase
     {
         return self::runner()::linear($r, 1, 1);
     }
+
+    /** @return callable(MeasureRequest, int): OneResult a runner answer: every attempt is the same non-ok one */
+    private static function notFound(): callable
+    {
+        return static fn (MeasureRequest $r, int $n): OneResult => OneResult::ok(array_map(
+            static fn (Attempt $a): Attempt => new Attempt($a->route, $a->method, $a->scale, $a->axis, $a->attempt, 404, null, [], [], null, null, false, 'not_found', 'HTTP 404'),
+            self::linearOf($r),
+        ));
+    }
+
+    public function test_a_404_on_a_value_the_tool_made_up_is_not_counted_as_a_route_that_was_hit(): void
+    {
+        $task = new RouteTask(self::spec('/presets/{id}'), '/presets/1', guessed: ['id']);
+
+        $result = (new Driver(new SeederPlanner(), self::builder(), self::runner(self::notFound())))->run([$task], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertSame('unfilled_param', $row['class']);
+        $this->assertFalse($row['tried']);
+        $this->assertStringContainsString('guess', (string) $row['reason_detail']);
+        $this->assertStringContainsString('id', (string) $row['reason_detail']);
+        $this->assertStringContainsString('not_found', (string) $row['reason_detail']);
+        $this->assertNotSame([], $result->attempts, 'what was seen is still in the record of attempts');
+    }
+
+    public function test_a_404_on_a_value_taken_from_a_row_stays_a_route_that_was_hit_and_not_found(): void
+    {
+        $task = new RouteTask(self::spec('/presets/{id}'), '/presets/7');
+
+        $result = (new Driver(new SeederPlanner(), self::builder(), self::runner(self::notFound())))->run([$task], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertSame('not_found', $row['class']);
+        $this->assertTrue($row['tried']);
+    }
+
+    public function test_a_guessed_value_that_the_app_accepted_is_measured_as_before(): void
+    {
+        $task = new RouteTask(self::spec('/page/{n}'), '/page/1', guessed: ['n']);
+
+        $result = (new Driver(new SeederPlanner(), self::builder(), self::runner()))->run([$task], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertTrue($row['tried']);
+        $this->assertNotSame('unfilled_param', $row['class']);
+    }
 }

@@ -32,6 +32,8 @@ final class ProfileInspectionDockerTest extends GenerationCase
             self::route('/probe/songs/{song}'),
             self::route('/probe/dropbox/{key}'),
             self::route('/probe/things/{thing}'),
+            self::route('/probe/signed/{token}'),
+            self::route('/probe/numbers/{n}', 'PeakProbe\\NumberController@show'),
             self::route('/probe/missing'),
         ]], JSON_THROW_ON_ERROR));
         [$exit, , $err] = self::php(__DIR__ . '/Support/build_with_profile.php', [(string) self::SCALE], self::env());
@@ -52,10 +54,10 @@ final class ProfileInspectionDockerTest extends GenerationCase
     }
 
     /** @return array<string, mixed> */
-    private static function route(string $uri): array
+    private static function route(string $uri, string $action = 'Closure'): array
     {
         return [
-            'route' => $uri, 'methods' => ['GET', 'HEAD'], 'action' => 'Closure', 'kind' => 'controller',
+            'route' => $uri, 'methods' => ['GET', 'HEAD'], 'action' => $action, 'kind' => 'controller',
             'query' => ['growth' => 'unknown', 'lower_bound' => null, 'confidence' => null],
             'memory' => ['growth' => 'unknown', 'lower_bound' => null, 'confidence' => null],
             'n_table' => null, 'm_table' => null, 'm_per' => null, 'n_table_alternatives' => [],
@@ -136,5 +138,24 @@ final class ProfileInspectionDockerTest extends GenerationCase
 
         self::assertSame(13, $exit);
         self::assertStringContainsString('profile "ghost" does not exist', $err);
+    }
+
+    public function testARouteTheProfileExplainsAsAWholeIsRecordedWithItsClassWithoutFillingAnything(): void
+    {
+        $tasks = self::inspect('routes');
+
+        self::assertSame('signature_required', $tasks['/probe/signed/{token}']['fail_class']);
+        self::assertStringContainsString('signed_links', (string) $tasks['/probe/signed/{token}']['fail_detail']);
+        self::assertNull($tasks['/probe/signed/{token}']['uri']);
+        self::assertSame('unfilled_param', self::inspect(null)['/probe/signed/{token}']['fail_class'], 'without the profile it is an argument nothing could fill');
+    }
+
+    public function testAnArgumentTheToolMadeUpIsMarkedAsAGuessAndOneTakenFromARowIsNot(): void
+    {
+        $tasks = self::inspect('routes');
+
+        self::assertSame('/probe/numbers/1', $tasks['/probe/numbers/{n}']['uri']);
+        self::assertSame(['n'], $tasks['/probe/numbers/{n}']['guessed']);
+        self::assertSame([], $tasks['/probe/songs/{song}']['guessed']);
     }
 }

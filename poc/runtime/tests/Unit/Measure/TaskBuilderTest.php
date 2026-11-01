@@ -314,4 +314,61 @@ final class TaskBuilderTest extends PlannerTestCase
 
         $this->assertSame('unfilled_param', $task->failClass);
     }
+
+    private const ROUTED = [
+        'unfillable' => [
+            'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'reason' => 'unauthenticated', 'why' => 'a token made from an encrypted key'],
+            'signed' => ['routes' => ['middleware' => ['signed']], 'reason' => 'signature_required', 'why' => 'a signed URL'],
+            'a_file' => ['routes' => ['uri_prefix' => ['files/']], 'params' => ['file'], 'reason' => 'file_dependency', 'why' => 'x'],
+        ],
+    ];
+
+    public function test_a_route_the_profile_explains_is_recorded_with_the_profiles_class_and_not_prepared_further(): void
+    {
+        $facts = self::facts();
+        $task = self::builder($facts, self::ROUTED)->build(self::spec('rest/ping', [], 'GET', ['web', 'auth']));
+
+        $this->assertSame('unauthenticated', $task->failClass);
+        $this->assertStringContainsString('subsonic', (string) $task->failDetail);
+        $this->assertStringContainsString('encrypted key', (string) $task->failDetail);
+        $this->assertNull($task->uri);
+        $this->assertSame([], $facts->asked, 'nothing is asked of the app for a route that is not going to be hit');
+    }
+
+    public function test_a_route_is_explained_by_its_middleware_too(): void
+    {
+        $task = self::builder(null, self::ROUTED)->build(self::spec('/confirm', [], 'GET', ['web', 'signed']));
+
+        $this->assertSame('signature_required', $task->failClass);
+    }
+
+    public function test_an_entry_about_an_argument_in_a_route_does_not_fail_the_whole_route(): void
+    {
+        $task = self::builder(null, self::ROUTED)->build(self::spec('/files/list', [], 'GET', ['web']));
+
+        $this->assertNull($task->failClass);
+    }
+
+    public function test_a_route_the_booted_app_does_not_have_is_not_in_runtime_before_any_profile_reason(): void
+    {
+        $task = self::builder(null, self::ROUTED)->build(self::withParameters('rest/ping', [], inRuntime: false));
+
+        $this->assertSame('not_in_runtime', $task->failClass);
+    }
+
+    public function test_the_arguments_that_were_guessed_travel_with_the_task(): void
+    {
+        $task = self::builder()->build(self::withParameters('/x/{n}', ['n' => ['optional' => false, 'where' => null, 'model' => null, 'field' => null, 'type' => 'int', 'scope' => null]]));
+
+        $this->assertNull($task->failClass);
+        $this->assertSame(['n'], $task->guessed);
+        $this->assertSame(['n'], \PeakSim\Runtime\Measure\RouteTask::fromArray($task->toArray())->guessed);
+    }
+
+    public function test_no_guess_means_an_empty_list(): void
+    {
+        $task = self::builder()->build(self::withParameters('/orders/{order}', ['order' => ['optional' => false, 'where' => null, 'model' => 'App\\Models\\Order', 'field' => null, 'type' => null, 'scope' => null]]));
+
+        $this->assertSame([], $task->guessed);
+    }
 }
