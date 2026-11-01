@@ -26,4 +26,6 @@ route). Every planted line carries a `// PLANT:` comment.
 - `/other-order`: the resource has a property of the same class that is **not** the model it wraps (a second constructor argument):
   nothing is known of that model, its relation is a lazy load as before. (`Order::find($o->id)` is the second
   argument: a model without loaded relations; the tool assumes its argument is a scalar, so the route is medium.)
+- `/wrapped-second`: the property holds the model the resource wraps, but that is the **second** constructor argument while the
+  call site loaded the first one: the loaded relations belong to another model, the lazy load is found.
 - `/buyer`: the property is a model of **another class** than the one wrapped: read as before.

@@ -103,6 +103,15 @@ return [
             'assumptions' => ['FIND_ARGUMENT_ASSUMED_SCALAR'],
             'evidence_include' => ['app/Http/Resources/OtherOrderResource.php:23'],
         ],
+        // The resource wraps its second constructor argument: the first argument (loaded with its relation) is not what the property holds.
+        '/wrapped-second' => [
+            'query' => 'O(N)',
+            'confidence' => 'medium',
+            'n_table' => 'orders',
+            'gaps' => [],
+            'assumptions' => ['FIND_ARGUMENT_ASSUMED_SCALAR'],
+            'evidence_include' => ['app/Http/Resources/WrappedSecondResource.php:22'],
+        ],
         // The property is of another class than the wrapped model: its relations are read as before.
         '/buyer' => [
             'query' => 'O(N)',

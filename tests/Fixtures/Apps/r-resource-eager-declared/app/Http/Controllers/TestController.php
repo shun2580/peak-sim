@@ -7,6 +7,7 @@ use App\Http\Resources\NestedResource;
 use App\Http\Resources\OtherOrderResource;
 use App\Http\Resources\PromotedResource;
 use App\Http\Resources\PropResource;
+use App\Http\Resources\WrappedSecondResource;
 use App\Models\Order;
 
 class TestController extends Controller
@@ -59,6 +60,11 @@ class TestController extends Controller
     public function otherOrder()
     {
         return Order::with('customer')->get()->map(fn (Order $o) => new OtherOrderResource($o, Order::find($o->id)));
+    }
+
+    public function wrappedSecond()
+    {
+        return Order::with('customer')->get()->map(fn (Order $o) => new WrappedSecondResource($o, Order::find($o->id)));
     }
 
     public function buyer()

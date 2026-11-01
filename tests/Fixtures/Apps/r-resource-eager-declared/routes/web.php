@@ -13,4 +13,5 @@ Route::get('/prop-lazy', [TestController::class, 'propLazy']);
 Route::get('/promoted-other-relation', [TestController::class, 'promotedOtherRelation']);
 Route::get('/nested-shallow', [TestController::class, 'nestedShallow']);
 Route::get('/other-order', [TestController::class, 'otherOrder']);
+Route::get('/wrapped-second', [TestController::class, 'wrappedSecond']);
 Route::get('/buyer', [TestController::class, 'buyer']);

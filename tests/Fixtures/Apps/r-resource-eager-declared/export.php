@@ -16,6 +16,7 @@ return E::build(
         E::route('/promoted-other-relation', 'App\\Http\\Controllers\\TestController@promotedOtherRelation'),
         E::route('/nested-shallow', 'App\\Http\\Controllers\\TestController@nestedShallow'),
         E::route('/other-order', 'App\\Http\\Controllers\\TestController@otherOrder'),
+        E::route('/wrapped-second', 'App\\Http\\Controllers\\TestController@wrappedSecond'),
         E::route('/buyer', 'App\\Http\\Controllers\\TestController@buyer'),
     ],
     models: [
