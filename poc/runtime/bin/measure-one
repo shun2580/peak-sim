@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Measures one (route, scale) in one process. Runs INSIDE the sealed PHP container (bin/stack exec).
+// Reads the target app's vendor/autoload.php; does NOT read this repository's vendor/ (the app's own
+// dependencies must be the ones that run). See PeakSim\Runtime\Run\MeasureOne for the options and exit codes.
+
+use PeakSim\Runtime\Run\MeasureOne;
+
+require dirname(__DIR__) . '/bootstrap.php';
+
+exit((new MeasureOne(getenv(), STDOUT, STDERR))->run(array_slice($argv, 1)));
