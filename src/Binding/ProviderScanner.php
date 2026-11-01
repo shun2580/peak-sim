@@ -153,6 +153,11 @@ final class ProviderScanner extends NodeVisitorAbstract
     {
         $at = $this->site($call);
         $first = $call->args[0] ?? null;
+        if ($first instanceof Node\Arg && ($first->value instanceof Expr\Closure || $first->value instanceof Expr\ArrowFunction)) {
+            $this->bindByReturnType($call, $method, $first->value, $at);
+
+            return;
+        }
         $abstract = $first instanceof Node\Arg ? $this->reader->className($first->value, $this->context) : null;
         if ($abstract === null) {
             $this->facts->unreadable($at, "unresolvable: the abstract of {$method}() is not a constant");
@@ -163,6 +168,65 @@ final class ProviderScanner extends NodeVisitorAbstract
         $second = $call->args[1] ?? null;
         $impl = $second instanceof Node\Arg && !self::isNull($second->value) ? $second->value : null;
         $this->facts->add($this->entry($abstract, null, $impl, $kind, $always, $at));
+    }
+
+    /**
+     * A closure given alone binds every class its return type names, to the closure itself
+     * (Container::bindBasedOnClosureReturnTypes). The return type is the abstract, never the implementation:
+     * the implementation is what the body returns, and a body that is not followed stays unresolvable.
+     * A return type that names no class leaves the abstract unknown, so it may be any abstract.
+     */
+    private function bindByReturnType(Expr\MethodCall|Expr\StaticCall $call, string $method, Expr\Closure|Expr\ArrowFunction $closure, Site $at): void
+    {
+        $second = $call->args[1] ?? null;
+        $alone = $second === null || ($second instanceof Node\Arg && self::isNull($second->value));
+        if (!$alone || !in_array($method, ['bind', 'singleton', 'scoped'], true)) {
+            $this->facts->unreadable($at, "unresolvable: the abstract of {$method}() is a closure that is not followed here");
+
+            return;
+        }
+        $names = self::returnTypeClasses($closure->returnType);
+        if ($names === null) {
+            $this->facts->unreadable($at, "unresolvable: the abstract of {$method}() is a closure whose return type names no class");
+
+            return;
+        }
+        [$kind, $always] = self::BIND_KINDS[$method];
+        foreach ($names as $name) {
+            $this->facts->add($this->entry($name, null, $closure, $kind, $always, $at));
+        }
+    }
+
+    /**
+     * The classes a return type names, or null when it names anything else (a built-in type, self, static,
+     * parent, an intersection): then the abstract cannot be told.
+     *
+     * @return list<string>|null
+     */
+    private static function returnTypeClasses(?Node $type): ?array
+    {
+        if ($type instanceof Node\NullableType) {
+            $type = $type->type;
+        }
+        if ($type instanceof Node\Name) {
+            return in_array(strtolower($type->toString()), ['self', 'static', 'parent'], true) ? null : [ltrim($type->toString(), '\\')];
+        }
+        if (!$type instanceof Node\UnionType) {
+            return null;
+        }
+        $names = [];
+        foreach ($type->types as $member) {
+            if ($member instanceof Node\Identifier && strtolower($member->toString()) === 'null') {
+                continue;
+            }
+            $one = $member instanceof Node\Name ? self::returnTypeClasses($member) : null;
+            if ($one === null) {
+                return null;
+            }
+            $names = array_merge($names, $one);
+        }
+
+        return $names === [] ? null : array_values(array_unique($names));
     }
 
     private function contextual(Expr\MethodCall $give, string $method): void
