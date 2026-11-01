@@ -28,7 +28,7 @@ final class MemoryGuardTest extends TestCase
         $this->assertStringContainsString('out of memory', $text);
         $this->assertStringContainsString('memory_limit', $text);
         $this->assertStringContainsString('8M', $text);
-        $this->assertStringContainsString('--memory-limit=1G', $text);
+        $this->assertStringContainsString('--memory-limit=2G', $text);
         $this->assertStringEndsWith("\n", $text);
     }
 

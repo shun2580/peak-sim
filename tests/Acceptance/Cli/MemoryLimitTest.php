@@ -24,7 +24,7 @@ final class MemoryLimitTest extends CliTestCase
 
         $this->assertSame(5, $result->exitCode, $result->stderr);
         $this->assertStringContainsString('out of memory', $result->stderr);
-        $this->assertStringContainsString('--memory-limit=1G', $result->stderr);
+        $this->assertStringContainsString('--memory-limit=2G', $result->stderr);
         $this->assertStringContainsString(self::SMALL, $result->stderr, 'the limit that was in force');
         $this->assertSame('', $result->stdout, 'the report is written whole or not at all');
     }
