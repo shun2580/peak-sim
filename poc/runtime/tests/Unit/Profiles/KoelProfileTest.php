@@ -127,6 +127,7 @@ final class KoelProfileTest extends TestCase
         $values = self::profile()['values'];
 
         $this->assertSame('[]', $values['queue_states']['song_ids'], 'the app reads the queue as a JSON list; a generated word breaks the first page load');
+        $this->assertSame('', $values['duplicate_uploads']['storage'], 'the app casts the storage column to an enum whose local case is the empty string; a generated word is not a case');
         $this->assertSame('owner', $values['playlist_user']['role'], 'a playlist listed for its user needs the user to be its owner');
         $this->assertSame(26, strlen(self::profile()['reference_rows'][0]['row']['id']), 'an organization key is 26 characters');
     }
