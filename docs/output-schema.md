@@ -2,12 +2,12 @@
 
 Nov 1, 2026
 
-`peak-sim analyze --format=json` が出す JSON の形を定める。`schema_version` `0.1` として**確定**している(2026-11-01 殿裁定。章 11)。実装は `src/Output/JsonRenderer.php`、CLI の表は `src/Output/TableRenderer.php`。
+`peak-sim analyze --format=json` が出す JSON の形を定める。`schema_version` `0.2` として**確定**している(0.1 は 2026-11-01 殿裁定。0.2 は D38。章 11・12)。実装は `src/Output/JsonRenderer.php`、CLI の表は `src/Output/TableRenderer.php`。
 
 ## 1. 目的と状態
 
 - 目的:ルートごとの判定(クエリ・メモリの増え方、確度、追えなかった部分)を、機械が読める形で出す。後から MCP モードや CI(`--fail-on`)が同じ形を読む(D2)。
-- 状態:**確定(`schema_version` `0.1`)**。2026-11-01 に殿が確認点(章 11)を裁いて確定した。0.x の間の変更の扱いは章 2。この文書は実際の出力に合わせてあり、章 10 の例は実際のコマンドの出力である。
+- 状態:**確定(`schema_version` `0.2`)**。2026-11-01 に殿が確認点(章 11)を裁いて確定し、同日の実アプリ試運転の裁定(D38)で 0.2 に改めた(章 12)。0.x の間の変更の扱いは章 2。この文書は実際の出力に合わせてあり、章 10 の例は実際のコマンドの出力である。
 - 出力の言語:出力(表の見出し、gap・assumption の `message`、`note`、要約行、エラー文)はすべて**英語**で、英日併記はしない(Q11)。この文書(`docs/`)は日本語。
 - 読み方の注意(重要):
   - この JSON の `unknown` は、**静的解析が「追えなかった」と言っている**ことである。`fixtures/` の実測で、増え方を測った結果が基準(傾き 0.2〜0.5)の間に落ちて「判定不能」とした扱いとは**別物**。後者はツールの出力に現れない(静的には「確定」か「unknown」しか無い)。
@@ -16,7 +16,7 @@ Nov 1, 2026
 
 ## 2. 互換方針
 
-- `schema_version` は文字列。現在は `"0.1"`。
+- `schema_version` は文字列。現在は `"0.2"`。
 - 0.x の間は、予告なしに壊れる変更がありうる。1.0 以降は、キーの削除・意味の変更は major を上げ、キーの追加と列挙値の追加は minor で行う。
 - 読み手は、知らないキーと知らない列挙値を無視する(gap と assumption のコードは今後増える)。
 
@@ -110,7 +110,7 @@ Nov 1, 2026
 | キー | 型 | 内容 |
 | --- | --- | --- |
 | `growth` | string | `O(1)` / `O(N)` / `O(N*M)` / `unknown`。 |
-| `degree` | int | 増え方の次数。0 = `O(1)`、1 = `O(N)`、2 以上 = `O(N*M)`。3 段以上の入れ子もラベルは `O(N*M)` で、次数だけが 3 以上になる(Q4)。`unknown` のときは意味を持たず 0。 |
+| `degree` | int または null | 増え方の次数。0 = `O(1)`、1 = `O(N)`、2 以上 = `O(N*M)`。3 段以上の入れ子もラベルは `O(N*M)` で、次数だけが 3 以上になる(Q4)。`growth` が `unknown` で `lower_bound` が `null` のときは `null`(0 を出さない。0 は `O(1)` と読めるため。D38)。`unknown` で `lower_bound` があるときは、その下限の次数(`O(N)` なら 1)。 |
 | `confidence` | string または null | `high` / `medium`。`unknown` のときは `null`(`low` は使わない)。 |
 | `lower_bound` | string または null | `growth` が `unknown` のとき、**見つかった事実だけから言える下限**(`O(N)` など)。下限が無ければ `null`。gap の位置の周りから推測では足さない。`unknown` 以外では `null`。 |
 
@@ -191,7 +191,7 @@ gap は、`affects` に書かれた軸を `unknown` にする。同じ場所・�
 | `O(1)` | 件数に依らず一定。 |
 | `O(N)` | N(テーブルの件数)に比例。 |
 | `O(N*M)` | N と M の積(2 段以上の入れ子)。次数は `degree`。 |
-| `unknown` | 追えなかった(`lower_bound` に下限があれば添える)。 |
+| `unknown` | 追えなかった(`lower_bound` に下限があれば添える。下限が無ければ `degree` も `null`)。 |
 
 ### confidence
 
@@ -310,7 +310,7 @@ bin/peak-sim analyze fixtures/laravel-app --export-dir=fixtures/artisan-export -
 
 ```json
 {
-    "schema_version": "0.1",
+    "schema_version": "0.2",
     "tool": {
         "name": "peak-sim"
     },
@@ -851,13 +851,13 @@ bin/peak-sim analyze fixtures/laravel-app --export-dir=fixtures/artisan-export -
             "kind": "controller",
             "query": {
                 "growth": "unknown",
-                "degree": 0,
+                "degree": null,
                 "confidence": null,
                 "lower_bound": null
             },
             "memory": {
                 "growth": "unknown",
-                "degree": 0,
+                "degree": null,
                 "confidence": null,
                 "lower_bound": null
             },
@@ -926,32 +926,32 @@ bin/peak-sim analyze fixtures/laravel-app --export-dir=fixtures/artisan-export -
 出力は英語(Q11)。実際の出力(`bin/peak-sim analyze fixtures/laravel-app --export-dir=fixtures/artisan-export --format=table`):
 
 ```
-ROUTE                        QUERY                         MEMORY   N(M)                          CONFIDENCE  LOWER BOUND  GAPS
----------------------------  ----------------------------  -------  ----------------------------  ----------  -----------  -------------------
-/hidden/appends              O(N)                          O(N)     orders                        high        —            —
-/hidden/blade                O(N)                          O(N)     orders                        high        —            —
-/hidden/cache                O(N) miss / O(1) hit [cache]  O(N)     orders                        high        —            —
-/hidden/conditional-binding  O(N) [worst-case of 2]        O(N)     orders                        medium      —            —
-/hidden/cursor               O(1)                          O(N)     orders                        high        —            —
-/hidden/model-with           O(1)                          O(N)     orders                        high        —            —
-/hidden/resource             O(N)                          O(N)     orders                        high        —            —
-/ng/collection-filter        O(1)                          O(N)     orders                        high        —            —
-/ng/count-in-loop            O(N)                          O(N)     orders                        high        —            —
-/ng/first-or-create-in-loop  O(N)                          O(N)     products                      high        —            —
-/ng/get-then-count           O(1)                          O(N)     orders                        high        —            —
-/ng/layered                  O(N)                          O(N)     orders                        high        —            —
-/ng/n-plus-one               O(N)                          O(N)     orders                        high        —            —
-/ng/nested                   O(N*M)                        O(N*M)   orders (M: items per orders)  high        —            —
-/ng/save-in-loop             O(N)                          O(N)     customers                     high        —            —
-/ng/service                  O(N)                          O(N)     orders                        high        —            —
-/ng/unbounded                O(1)                          O(N)     orders                        high        —            —
-POST /ok/bulk                O(1)                          O(N)     customers                     high        —            —
-/ok/chunk                    O(N)                          O(1)     orders                        high        —            —
-/ok/eager                    O(1)                          O(N)     orders                        high        —            —
-/ok/lazy                     O(N)                          O(1)     orders                        high        —            —
-/ok/paginate                 O(1)                          O(1)     orders                        high        —            —
-/ok/with-count               O(1)                          O(N)     orders                        high        —            —
-/unknown/dynamic             unknown                       unknown  —                             —           —            DYNAMIC_METHOD_NAME
+ROUTE                        QUERY                         MEMORY                    N(M)                          CONFIDENCE  LOWER BOUND  GAPS
+---------------------------  ----------------------------  ------------------------  ----------------------------  ----------  -----------  -------------------
+/hidden/appends              O(N)                          O(N)                      orders                        high        —            —
+/hidden/blade                O(N)                          O(N)                      orders                        high        —            —
+/hidden/cache                O(N) miss / O(1) hit [cache]  O(N)                      orders                        high        —            —
+/hidden/conditional-binding  O(N) [worst-case of 2]        O(N)                      orders                        medium      —            —
+/hidden/cursor               O(1)                          O(N)                      orders                        high        —            —
+/hidden/model-with           O(1)                          O(N)                      orders                        high        —            —
+/hidden/resource             O(N)                          O(N)                      orders                        high        —            —
+/ng/collection-filter        O(1)                          O(N)                      orders                        high        —            —
+/ng/count-in-loop            O(N)                          O(N)                      orders                        high        —            —
+/ng/first-or-create-in-loop  O(N)                          O(N)                      products                      high        —            —
+/ng/get-then-count           O(1)                          O(N)                      orders                        high        —            —
+/ng/layered                  O(N)                          O(N)                      orders                        high        —            —
+/ng/n-plus-one               O(N)                          O(N)                      orders                        high        —            —
+/ng/nested                   O(N*M)                        O(N*M)                    orders (M: items per orders)  high        —            —
+/ng/save-in-loop             O(N)                          O(N)                      customers                     high        —            —
+/ng/service                  O(N)                          O(N)                      orders                        high        —            —
+/ng/unbounded                O(1)                          O(N)                      orders                        high        —            —
+POST /ok/bulk                O(1)                          O(N)                      customers                     high        —            —
+/ok/chunk                    O(N)                          O(1)                      orders                        high        —            —
+/ok/eager                    O(1)                          O(N)                      orders                        high        —            —
+/ok/lazy                     O(N)                          O(1)                      orders                        high        —            —
+/ok/paginate                 O(1)                          O(1)                      orders                        high        —            —
+/ok/with-count               O(1)                          O(N)                      orders                        high        —            —
+/unknown/dynamic             unknown (no lower bound)      unknown (no lower bound)  —                             —           —            DYNAMIC_METHOD_NAME
 
 peak-sim: 24 routes analysed, 2 not analysed (framework / closure)
 confidence: high 22, medium 1, — 1
@@ -961,7 +961,7 @@ gaps: DYNAMIC_METHOD_NAME in 1 route
 列は `ROUTE | QUERY | MEMORY | N(M) | CONFIDENCE | LOWER BOUND | GAPS`。1ルート1行で、URI の昇順。`kind` が `controller` のルートだけが行になる。
 
 - `ROUTE`:URI。`GET` を含まないルートは、メソッドを前に付ける(`POST /ok/bulk`。複数なら `|` でつなぐ)。
-- `QUERY` / `MEMORY`:`O(1)`、`O(N)`、`O(N*M)`。3 段以上は `O(N*M)×3`(`degree` が 3 以上のとき。Q7)。`unknown` は、下限があれば `unknown (≥O(N))`。
+- `QUERY` / `MEMORY`:`O(1)`、`O(N)`、`O(N*M)`。3 段以上は `O(N*M)×3`(`degree` が 3 以上のとき。Q7)。`unknown` は、下限があれば `unknown (≥O(N))`、下限が無ければ `unknown (no lower bound)`(D38。`O(1)` や次数 0 に読ませない)。
 - キャッシュ付きは、ミスとヒットが違えば `O(N) miss / O(1) hit`、`QUERY` の末尾に `[cache]`。
 - 最悪ケースを採ったルートは、`QUERY` の末尾に `[worst-case of 2]`(候補の数)。
 - `N(M)`:`orders`、M があれば `orders (M: items per orders)`。追えなかったときは `—`。
@@ -972,7 +972,7 @@ gaps: DYNAMIC_METHOD_NAME in 1 route
 
 ## 11. 確認済みの点(2026-11-01 殿裁定)
 
-下書きで殿に確認を求めた点を、2026-11-01 に殿が裁いた(`docs/decisions.md` の D30)。各項目の結論を書く。項目の番号は、下書きの番号のままにしてある(殿の裁定文の「Q3」「Q4」…と同じ番号。ただし殿の裁定文が「Q11」と呼ぶ出力の言語は、ここでは 9。ここでの 11 は `note` の項目)。`schema_version` は `0.1` のまま確定した。
+下書きで殿に確認を求めた点を、2026-11-01 に殿が裁いた(`docs/decisions.md` の D30)。各項目の結論を書く。項目の番号は、下書きの番号のままにしてある(殿の裁定文の「Q3」「Q4」…と同じ番号。ただし殿の裁定文が「Q11」と呼ぶ出力の言語は、ここでは 9。ここでの 11 は `note` の項目)。`schema_version` は `0.1` のまま確定した(その後、D38 で `degree` の `null` を足して `0.2` に改めた。章 12)。
 
 1. **Q3 ルートの確度の集約**:どちらかの軸が `unknown` なら、ルートの `confidence` は `null`(表は `—`)。片方の軸だけ分かっていても、その確度をルート全体の確度にしない(D21・D27 に合わせる)。下書きは「軸の低い方、両軸 unknown なら `null`」だったのを改めた。
 2. **Q4 3 段以上の入れ子の表記**:ラベルは `O(N*M)` のまま、`degree` を整数で別に出す。4つ目のラベルは足さない。
@@ -985,3 +985,8 @@ gaps: DYNAMIC_METHOD_NAME in 1 route
 9. **出力の言語(殿の裁定文では Q11)**:出力(表の見出し・gap と assumption の `message`・`note`・要約行・エラー文)はすべて英語。英日併記はしない。`docs/` は日本語のまま。
 10. **`skipped` の要素の形**:`{route, methods, action, kind}` の4つのまま。`reason` は足さない。
 11. **`gaps[].site.note` と `evidence[].note`**:人が読む文(英語)で、機械判定には `code` / `role` を使う。
+
+## 12. 改訂履歴
+
+- `0.1`(2026-11-01):初版。殿が確認点(章 11)を裁いて確定した。
+- `0.2`(2026-11-01):`growth` が `unknown` で `lower_bound` が `null` の軸は、`degree` を `null` にする(それまでは 0)。表は `unknown (no lower bound)`。`unknown` と次数 0 が `O(1)` に読める誤読の罠をなくすため(D38)。下限があるとき、`O(1)` のとき、他のキーは変えていない。

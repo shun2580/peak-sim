@@ -59,7 +59,7 @@ final class SchemaDocTest extends TestCase
 
     public function testTheDocumentSaysThatDegreeIsNullForAnUnknownAxisWithNoLowerBound(): void
     {
-        $this->assertMatchesRegularExpression('/\| `degree` \| int \| null \|[^\n]*`lower_bound` が `null`[^\n]*`null`/u', $this->doc());
+        $this->assertMatchesRegularExpression('/\| `degree` \| int または null \|[^\n]*`lower_bound` が `null`[^\n]*`null`/u', $this->doc());
         $this->assertStringContainsString('unknown (no lower bound)', $this->doc());
     }
 
