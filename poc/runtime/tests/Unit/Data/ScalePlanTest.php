@@ -71,7 +71,8 @@ final class ScalePlanTest extends TestCase
     {
         $rows = ScalePlan::targeted(['orders'], 'items', 'orders', 20, 3, 5)->resolve(Schemas::shop());
 
-        $this->assertSame(['customers' => 5, 'products' => 5, 'orders' => 20, 'items' => 60, 'product_stats' => 5], $rows);
+        // the map follows the schema's table order, which is by name
+        $this->assertSame(['customers' => 5, 'items' => 60, 'orders' => 20, 'product_stats' => 5, 'products' => 5], $rows);
     }
 
     public function testResolveRaisesTheParentOfAOneToOneUniqueForeignKey(): void
