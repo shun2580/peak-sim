@@ -1312,4 +1312,13 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 
 ## 8. 試験ログ・再現
 
-試験の実行ログは、この文書の commit の後に、作業木が clean な状態の HEAD で保存し、別の commit で追加する。追加するまでは、全スイートの結果(§5 の「各行の補足」)の記述が唯一の記録である。
+試験の実行ログは、この文書の commit の後に、作業木が clean な状態の HEAD(`d872b3e`、この文書を追加した commit)で保存し、別の commit で追加した。
+
+| ログ | PHP | 件数 | アサーション | SKIP | 実行した範囲 |
+| --- | --- | --- | --- | --- | --- |
+| `docs/research/phase1-test-php82.log` | 8.2 | 2,336 | 7,768 | 0 | Unit・Acceptance の全スイート |
+| `docs/research/phase1-test-php83.log` | 8.3 | 2,336 | 7,768 | 0 | Unit・Acceptance の全スイート |
+
+- 実行は `--fail-on-skipped --fail-on-risky --fail-on-warning` 付きで、両方とも `OK` で終わった。
+- 各ログの先頭に、実行したコマンド・PHP のバージョン・リポジトリの状態(HEAD と clean)を書いた。絶対パス・ユーザー名・ホスト名・コンテナ ID は保存の前に除いてある。
+- 再現は `scripts/run-tests-logged.sh <compose プロジェクト名>` で行える(PHP 8.2 と 8.3 の順に実行し、ログを書き直す)。
