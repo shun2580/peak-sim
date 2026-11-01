@@ -7,6 +7,7 @@ namespace PeakSim\Tests\Unit\Judge;
 use PeakSim\Model\AssumptionCode;
 use PeakSim\Model\Axis;
 use PeakSim\Model\EventKind;
+use PeakSim\Model\Gap;
 use PeakSim\Model\GapCode;
 use PeakSim\Model\MemoryCause;
 use PeakSim\Model\RouteResult;
@@ -127,6 +128,20 @@ final class JudgeOutputTest extends JudgeCase
 
         self::assertSame([$early, $late], $r->gaps);
         self::assertSame([$a2, $a1], $r->assumptions);
+    }
+
+    public function testTwoCausesAtOneSiteSurviveAndAnExactRepeatCollapsesInAnyInputOrder(): void
+    {
+        $site = self::site(30);
+        $alpha = new Gap(GapCode::UNRESOLVED_CALL, $site, 'alpha() is not declared', [Axis::Query, Axis::Memory], 0, []);
+        $beta = new Gap(GapCode::UNRESOLVED_CALL, $site, 'beta() is not declared', [Axis::Query, Axis::Memory], 0, []);
+        $alphaAgain = new Gap(GapCode::UNRESOLVED_CALL, $site, 'alpha() is not declared', [Axis::Query, Axis::Memory], 0, []);
+
+        $forward = self::judge(self::summary([], [$alpha, $beta, $alphaAgain]));
+        $backward = self::judge(self::summary([], [$alphaAgain, $beta, $alpha]));
+
+        self::assertSame(['alpha() is not declared', 'beta() is not declared'], array_map(static fn (Gap $g): string => $g->message, $forward->gaps));
+        self::assertEquals($forward->gaps, $backward->gaps, 'the order does not depend on the order of arrival');
     }
 
     public function testEvidenceIsCallsThenBindingsThenEventsThenGapsThenAssumptionsWithoutDuplicates(): void

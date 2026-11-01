@@ -138,15 +138,17 @@ final class ValueObjectsTest extends TestCase
         self::assertNotSame($a->fingerprint(), $this->event([$frame], 1)->fingerprint());
     }
 
-    public function testGapFingerprintIgnoresTheFreeTextMessage(): void
+    public function testGapFingerprintTellsApartTwoCausesAtTheSameSiteAndCode(): void
     {
         $site = new Site('app/A.php', 5);
-        $one = new Gap(GapCode::UNRESOLVED_CALL, $site, 'one wording', [Axis::Query, Axis::Memory], 1, []);
-        $two = new Gap(GapCode::UNRESOLVED_CALL, $site, 'another wording', [Axis::Query, Axis::Memory], 1, []);
-        $other = new Gap(GapCode::RECURSION, $site, 'one wording', [Axis::Query, Axis::Memory], 1, []);
+        $one = new Gap(GapCode::UNRESOLVED_CALL, $site, 'alpha() is not declared', [Axis::Query, Axis::Memory], 1, []);
+        $same = new Gap(GapCode::UNRESOLVED_CALL, $site, 'alpha() is not declared', [Axis::Query, Axis::Memory], 1, []);
+        $otherCause = new Gap(GapCode::UNRESOLVED_CALL, $site, 'beta() is not declared', [Axis::Query, Axis::Memory], 1, []);
+        $otherCode = new Gap(GapCode::RECURSION, $site, 'alpha() is not declared', [Axis::Query, Axis::Memory], 1, []);
 
-        self::assertSame($one->fingerprint(), $two->fingerprint());
-        self::assertNotSame($one->fingerprint(), $other->fingerprint());
+        self::assertSame($one->fingerprint(), $same->fingerprint(), 'the same cause is the same gap');
+        self::assertNotSame($one->fingerprint(), $otherCause->fingerprint(), 'a different cause on the same line is a different gap');
+        self::assertNotSame($one->fingerprint(), $otherCode->fingerprint());
     }
 
     public function testEnumValuesAreUniqueAndKeepTheDocumentedLabels(): void

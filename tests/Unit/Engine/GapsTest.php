@@ -26,6 +26,22 @@ final class GapsTest extends EngineCase
         $this->assertNoUnknownWithoutGap();
     }
 
+    public function testTwoCausesOnOneLineAreTwoGapsButTheSameCauseTwiceIsOne(): void
+    {
+        $summary = $this->invokable(<<<'PHP'
+                $x = alpha_fn() + beta_fn();
+                $y = alpha_fn() + alpha_fn();
+        PHP);
+
+        $messages = array_map(static fn ($g): string => $g->site->line . ':' . $g->message, $summary->gaps);
+        $alpha = array_filter($messages, static fn (string $m): bool => str_contains($m, 'alpha_fn'));
+        $beta = array_filter($messages, static fn (string $m): bool => str_contains($m, 'beta_fn'));
+
+        self::assertCount(2, $alpha, 'alpha_fn is a gap on each of the two lines, once per line');
+        self::assertCount(1, $beta, 'beta_fn shares a line with alpha_fn and still has its own gap');
+        self::assertCount(3, $summary->gaps);
+    }
+
     public function testNoGapMeansNothingWasMissed(): void
     {
         $summary = $this->invokable('        $a = 1 + 2;');
