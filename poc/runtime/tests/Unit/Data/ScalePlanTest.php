@@ -48,6 +48,64 @@ final class ScalePlanTest extends TestCase
         $this->assertSame(15, $plan->rowsFor('items'));
     }
 
+    // -- N = 0: the n table is empty (the response of an empty database is the reference for suspect_empty) --
+
+    public function testNZeroEmptiesTheNTableAndKeepsTheBaseElsewhere(): void
+    {
+        $plan = ScalePlan::targeted(['orders'], null, null, 0, 0, 5);
+
+        $this->assertSame(0, $plan->rowsFor('orders'));
+        $this->assertSame(5, $plan->rowsFor('customers'));
+        $this->assertSame(['orders' => 0], $plan->rows());
+        $this->assertSame('targeted:orders', $plan->scope());
+    }
+
+    public function testNZeroGivesTheMTableNoRowsEither(): void
+    {
+        $plan = ScalePlan::targeted(['orders'], 'items', 'orders', 0, 3, 5);
+
+        $this->assertSame(0, $plan->rowsFor('items'));
+    }
+
+    public function testResolveEmptiesTablesThatNeedTheEmptyTable(): void
+    {
+        $rows = ScalePlan::targeted(['orders'], null, null, 0, 0, 5)->resolve(Schemas::shop());
+
+        // items.order_id is NOT NULL: an item cannot exist without an order
+        $this->assertSame(['customers' => 5, 'items' => 0, 'orders' => 0, 'product_stats' => 5, 'products' => 5], $rows);
+    }
+
+    public function testEmptinessSpreadsThroughAChain(): void
+    {
+        $rows = ScalePlan::targeted(['customers'], null, null, 0, 0, 5)->resolve(Schemas::shop());
+
+        $this->assertSame(0, $rows['customers']);
+        $this->assertSame(0, $rows['orders']);
+        $this->assertSame(0, $rows['items']);
+        $this->assertSame(5, $rows['products']);
+        $this->assertSame(5, $rows['product_stats']);
+    }
+
+    public function testATableWithANullableKeyToAnEmptyTableKeepsItsRows(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('teams', [Schemas::id()], ['id']),
+            new TableSchema('users', [Schemas::id(), Schemas::fk('team_id', true)], ['id'], [], [new ForeignKey('users_team', ['team_id'], 'teams', ['id'])]),
+        ]);
+
+        $this->assertSame(['teams' => 0, 'users' => 5], ScalePlan::targeted(['teams'], null, null, 0, 0, 5)->resolve($schema));
+    }
+
+    public function testAnEmptyTableIsNeverRaisedForAUniqueKey(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('products', [Schemas::id()], ['id']),
+            new TableSchema('stats', [Schemas::id(), Schemas::fk('product_id', true)], ['id'], [['product_id']], [new ForeignKey('stats_product', ['product_id'], 'products', ['id'])]),
+        ]);
+
+        $this->assertSame(['products' => 0, 'stats' => 5], ScalePlan::targeted(['products'], null, null, 0, 0, 5)->resolve($schema));
+    }
+
     public function testGlobalScalesEveryTable(): void
     {
         $plan = ScalePlan::global(1000, 5);
@@ -153,7 +211,7 @@ final class ScalePlanTest extends TestCase
     {
         return [
             'no n table' => [fn () => ScalePlan::targeted([], null, null, 10, 0, 5)],
-            'n below one' => [fn () => ScalePlan::targeted(['a'], null, null, 0, 0, 5)],
+            'n below zero' => [fn () => ScalePlan::targeted(['a'], null, null, -1, 0, 5)],
             'base below one' => [fn () => ScalePlan::targeted(['a'], null, null, 10, 0, 0)],
             'm table without parent' => [fn () => ScalePlan::targeted(['a'], 'b', null, 10, 3, 5)],
             'm below one' => [fn () => ScalePlan::targeted(['a'], 'b', 'a', 10, 0, 5)],

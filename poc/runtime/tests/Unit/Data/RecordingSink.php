@@ -28,6 +28,9 @@ final class RecordingSink implements RowSink
     /** @var array<string, array{0: int, 1: int}> */
     public array $spanOverride = [];
 
+    /** @var array<string, int> rows a table already holds before the generator starts (a migration put them there) */
+    public array $existing = [];
+
     public int $rollBacks = 0;
 
     /** @var array<string, int> */
@@ -73,7 +76,7 @@ final class RecordingSink implements RowSink
             throw new SinkFailure($this->failOn[$table][0], $this->failOn[$table][1]);
         }
         $this->batches[$table][] = ['columns' => $columns, 'rows' => $rows];
-        $this->counts[$table] = ($this->counts[$table] ?? 0) + count($rows);
+        $this->counts[$table] = ($this->counts[$table] ?? ($this->existing[$table] ?? 0)) + count($rows);
         $this->pending[] = $table;
     }
 
@@ -87,7 +90,11 @@ final class RecordingSink implements RowSink
 
     public function count(string $table): int
     {
-        return $this->countOverride[$table] ?? ($this->counts[$table] ?? 0);
+        if (isset($this->counts[$table])) {
+            return $this->countOverride[$table] ?? $this->counts[$table];
+        }
+
+        return $this->existing[$table] ?? 0;
     }
 
     public function span(string $table, string $column): ?array
@@ -95,7 +102,7 @@ final class RecordingSink implements RowSink
         if (isset($this->spanOverride[$table])) {
             return $this->spanOverride[$table];
         }
-        $n = $this->counts[$table] ?? 0;
+        $n = $this->counts[$table] ?? ($this->existing[$table] ?? 0);
 
         return $n === 0 ? null : [1, $n];
     }

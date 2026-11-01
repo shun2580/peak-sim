@@ -289,6 +289,96 @@ final class GeneratorTest extends TestCase
         $this->assertSame(Reason::AUTOINC_GAP, $report->outcome('customers')->reason);
     }
 
+    public function testNZeroGeneratesEmptyTablesAndLeavesTheRestAlone(): void
+    {
+        [$report, $sink] = $this->generate(Schemas::shop(), ScalePlan::targeted(['orders'], null, null, 0, 0, 5));
+
+        $this->assertSame(1.0, $report->successRate());
+        $this->assertSame(5, $report->generatedCount());
+        foreach (['orders', 'items'] as $table) {
+            $this->assertSame(TableOutcome::GENERATED, $report->outcome($table)->status, $table);
+            $this->assertSame(0, $report->outcome($table)->planned, $table);
+            $this->assertSame(0, $report->outcome($table)->actual, $table);
+            $this->assertArrayNotHasKey($table, $sink->batches);
+        }
+        $this->assertSame(5, $report->outcome('customers')->actual);
+        $this->assertSame(0, $sink->rollBacks);
+    }
+
+    public function testNZeroKeepsTheOrderOfTheOtherTables(): void
+    {
+        [, $zero] = $this->generate(Schemas::shop(), ScalePlan::targeted(['orders'], null, null, 0, 0, 5));
+        [, $some] = $this->generate(Schemas::shop(), ScalePlan::targeted(['orders'], null, null, 3, 0, 5));
+
+        $this->assertSame(array_values(array_diff($some->insertedTables(), ['orders', 'items'])), $zero->insertedTables());
+    }
+
+    // -- rows a migration already put there --
+
+    public function testRowsThatAMigrationInsertedAreKeptAndNotCounted(): void
+    {
+        $sink = new RecordingSink();
+        $sink->existing['customers'] = 1;
+        [$report] = $this->generate(Schemas::shop(), ScalePlan::global(6, 6), $sink);
+
+        $this->assertSame(1.0, $report->successRate());
+        $this->assertSame(6, $report->outcome('customers')->planned);
+        $this->assertSame(6, $report->outcome('customers')->actual);
+        $this->assertSame(1, $report->outcome('customers')->existing);
+        $this->assertSame(0, $report->outcome('orders')->existing);
+        $this->assertContains('existing_rows:1', $report->outcome('customers')->notes);
+        $this->assertSame(7, $sink->count('customers'));
+    }
+
+    public function testForeignKeysToAnAutoIncrementParentSkipTheExistingRows(): void
+    {
+        $sink = new RecordingSink();
+        $sink->existing['customers'] = 1;
+        [, $sink] = $this->generate(Schemas::shop(), ScalePlan::targeted(['orders'], null, null, 10, 0, 5), $sink);
+
+        // generated customers have ids 2..6; orders go round them and never point at the reference row 1
+        $this->assertSame([2, 3, 4, 5, 6, 2, 3, 4, 5, 6], array_column($sink->assoc('orders'), 'customer_id'));
+    }
+
+    public function testExistingRowsThatDoNotStartAtOneFailTheTable(): void
+    {
+        $sink = new RecordingSink();
+        $sink->existing['customers'] = 1;
+        $sink->spanOverride['customers'] = [5, 11];
+        [$report] = $this->generate(Schemas::shop(), ScalePlan::global(6, 6), $sink);
+
+        $this->assertSame(Reason::AUTOINC_GAP, $report->outcome('customers')->reason);
+        $this->assertSame(1, $report->outcome('customers')->existing);
+    }
+
+    public function testDeferredUpdatesOnlyTouchTheGeneratedRows(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('categories', [Schemas::id(), Schemas::fk('parent_id', true)], ['id'], [], [
+                new ForeignKey('categories_parent', ['parent_id'], 'categories', ['id']),
+            ]),
+        ]);
+        $sink = new RecordingSink();
+        $sink->existing['categories'] = 2;
+        [, $sink] = $this->generate($schema, ScalePlan::global(10, 5), $sink);
+
+        $this->assertSame(['UPDATE `categories` SET `parent_id` = 2 + ((`id` - 2) DIV 2) WHERE `id` > 3'], $sink->executed);
+    }
+
+    public function testMutualDeferredUpdatesAccountForBothTablesExistingRows(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('users', [Schemas::id(), Schemas::fk('team_id')], ['id'], [], [new ForeignKey('users_team', ['team_id'], 'teams', ['id'])]),
+            new TableSchema('teams', [Schemas::id(), Schemas::fk('owner_id', true)], ['id'], [], [new ForeignKey('teams_owner', ['owner_id'], 'users', ['id'])]),
+        ]);
+        $sink = new RecordingSink();
+        $sink->existing['teams'] = 1;
+        $sink->existing['users'] = 3;
+        [, $sink] = $this->generate($schema, ScalePlan::global(6, 6), $sink);
+
+        $this->assertSame(['UPDATE `teams` SET `owner_id` = ((`id` - 2) % 6) + 1 + 3 WHERE `id` > 1'], $sink->executed);
+    }
+
     // -- what is not generated --
 
     public function testFrameworkBookkeepingTablesAreSkipped(): void
@@ -344,7 +434,7 @@ final class GeneratorTest extends TestCase
         $this->assertSame(5, $data['generated']);
         $this->assertSame(0, $data['failed']);
         $this->assertSame(1.0, $data['success_rate']);
-        $this->assertSame(['table' => 'orders', 'status' => 'generated', 'planned' => 12, 'actual' => 12, 'reason' => null, 'detail' => null, 'notes' => []], $data['tables'][array_search('orders', array_column($data['tables'], 'table'), true)]);
+        $this->assertSame(['table' => 'orders', 'status' => 'generated', 'planned' => 12, 'actual' => 12, 'reason' => null, 'detail' => null, 'notes' => [], 'existing' => 0], $data['tables'][array_search('orders', array_column($data['tables'], 'table'), true)]);
         $this->assertJson(json_encode($data, JSON_THROW_ON_ERROR));
     }
 
