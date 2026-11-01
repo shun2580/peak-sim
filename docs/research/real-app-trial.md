@@ -1386,7 +1386,22 @@ artisan を呼ぶ方式の入口は、アプリが起動できる状態(設定�
 
 4M の実行は、落ちた場所が autoload の最中(`ClassLoader.php`)だったが、案内は出た。`bin/peak-sim` が autoloader より前に案内の部品を読み込み、起動時に予備の領域を確保して shutdown 関数の冒頭で解放する作りにしたためである。全スイートも独立に再実行し、PHP 8.2 と 8.3 の両方で 2,404 件が通った(SKIP・risky・警告 0)。
 
-**実アプリでの確認: (実地確認は追記予定)。** 上の確認は検証用アプリでのものである。試運転の実アプリ(Snipe-IT)での確認(`memory_limit` を下げたときの案内の出方と、`--memory-limit` を足したときの完走)は、別途実施中で、結果が出たらここに足す。
+**実アプリでの確認(試運転の 4 アプリ、`memory_limit` を 128M に下げたとき)。** 上の確認は検証用アプリでのものだったので、試運転の実アプリでも、案内の出方と `--memory-limit` を足したときの完走を確かめた。Snipe-IT は事前書き出し方式、Firefly III・BookStack・Koel は artisan 方式で、`-d memory_limit=128M` は peak-sim の PHP にだけ効かせた。
+
+| アプリ | 設定 | 形式 | 終了コード | 標準出力 | 案内 | 結果 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Snipe-IT | `memory_limit=128M` | JSON | 5 | 0 バイト | あり | 落ちた(`Engine.php` 198 行) |
+| Snipe-IT | `memory_limit=128M` | 表 | 5 | 0 バイト | あり | 落ちた(`Engine.php` 198 行) |
+| Snipe-IT | 128M に `--memory-limit=1G` | JSON | 0 | 186,055,019 B | 出ない | 完走。無制限(通常)の実行と `cmp` で一致 |
+| Snipe-IT | 128M に `--memory-limit=1G` | 表 | 0 | 255,706 B | 出ない | 完走。無制限(通常)の実行と `cmp` で一致 |
+| Firefly III | `memory_limit=128M` | JSON | 5 | 0 バイト | あり | 落ちた(php-parser の `ParserAbstract`) |
+| BookStack | `memory_limit=128M` | JSON | 5 | 0 バイト | あり | 落ちた(`Evidence.php` 69 行) |
+| Koel | `memory_limit=128M` | JSON | 0 | 5,695,494 B | 出ない | 完走。無制限の実行と一致 |
+
+- 落ちたときの終了コードは 5 で、標準出力は空である。標準エラーには PHP の `Fatal error: Allowed memory size …` の行のあとに、peak-sim の案内(原因と `--memory-limit=1G` などでの再実行)が続く。案内の文は Snipe-IT・Firefly III・BookStack で同じである。実装前の測定(§3.5.2)では、同じ 3 アプリが終了コード 255 で、案内は何も出なかった。落ちる場所は実装の前後で近い。
+- Firefly III だけ、PHP の Fatal 行のあとに php-parser の `Stack trace:` が 2 行付く(php-parser の中で落ちたため)。案内は標準エラーの末尾に出る。案内の位置は一定ではないので、案内を探すなら「最後の 4 行」を見る。
+- `--memory-limit` を足して完走した 2 つの出力は、無制限の実行と 1 バイトも違わない。`--memory-limit` が出力を変えないことが、最大のアプリでも確かめられた。
+- **目安への注記。** Snipe-IT の JSON は `--memory-limit=1G` で完走したが、余裕は約 40MB しかない(必要量は約 960M、§3.5.2)。案内文の例の 1G は、5 本のうち最大のアプリの JSON ではぎりぎりである。余裕を見るなら 2G 程度が安全である。README の目安表(P-B、D42)を作るときに、この値を転記する。
 
 優先度(見立て、記録): P-A は完了。P-B は README を作るときに行う。P-C は公開前に必須(6.10 と合わせて設計)。
 
