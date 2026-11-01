@@ -36,6 +36,30 @@ final class OptionsTest extends TestCase
         $this->assertSame('/out/expected.json', $o->expected);
     }
 
+    public function test_the_inspection_child_gets_the_scale_the_routes_and_the_profile_of_the_run(): void
+    {
+        $o = Options::parse(['--data=generator', '--only=/ok/eager,/ng/', '--profile=koel', '--base=7']);
+
+        $this->assertSame(['--scale=5', '--only=/ok/eager,/ng/', '--profile=koel'], $o->inspectionArguments(5));
+    }
+
+    public function test_the_inspection_child_of_a_run_without_a_profile_is_asked_as_before(): void
+    {
+        $this->assertSame(['--scale=0'], Options::parse([])->inspectionArguments(0));
+        $this->assertSame(['--scale=10', '--only=/a'], Options::parse(['--only=/a'])->inspectionArguments(10));
+    }
+
+    public function test_what_the_inspection_child_is_given_is_what_it_parses_back(): void
+    {
+        $o = Options::parse(['--only=/ok/eager,/ng/', '--profile=my-app_2']);
+        $rest = array_values(array_filter($o->inspectionArguments(3), static fn (string $a): bool => !str_starts_with($a, '--scale=')));
+
+        $back = Options::parse($rest);
+
+        $this->assertSame(['/ok/eager', '/ng/'], $back->only);
+        $this->assertSame('my-app_2', $back->profile);
+    }
+
     /** @return iterable<string, array{list<string>}> */
     public static function bad(): iterable
     {

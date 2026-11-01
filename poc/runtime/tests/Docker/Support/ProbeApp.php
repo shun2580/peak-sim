@@ -150,6 +150,9 @@ final class ProbeApp
             Route::get('elsewhere', fn () => redirect('/probe/auth-only'));
             Route::get('forbidden', fn () => abort(403));
             Route::get('missing', fn () => abort(404));
+            Route::get('songs/{song}', fn (string $song) => $song);
+            Route::get('dropbox/{key}', fn (string $key) => $key);
+            Route::get('things/{thing}', fn (string $thing) => $thing);
             PHP;
     }
 }
