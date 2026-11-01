@@ -224,7 +224,7 @@ final class GeneratorTest extends TestCase
         $this->assertSame([Reason::FK_CYCLE => 2, Reason::PARENT_NOT_GENERATED => 1], $report->reasonCounts());
     }
 
-    public function testANullableSelfReferenceIsFilledInAfterTheInserts(): void
+    public function testANullableSelfReferenceIsFilledInsideTheInsert(): void
     {
         $schema = new DatabaseSchema([
             new TableSchema('categories', [Schemas::id(), Schemas::fk('parent_id', true), Schemas::varchar('name')], ['id'], [], [
@@ -234,10 +234,56 @@ final class GeneratorTest extends TestCase
         [$report, $sink] = $this->generate($schema, ScalePlan::global(10, 5));
 
         $this->assertSame(1.0, $report->successRate());
-        $this->assertSame([null], array_values(array_unique(array_column($sink->assoc('categories'), 'parent_id'))));
-        $this->assertSame(['UPDATE `categories` SET `parent_id` = `id` DIV 2 WHERE `id` > 1'], $sink->executed);
-        // the update comes after the last insert
-        $this->assertSame('execute UPDATE `categories` SET `parent_id` = `id` DIV 2 WHERE `id` > 1', $sink->log[count($sink->log) - 1]);
+        // a binary tree in insert order: the first row is the root, row n hangs under row n DIV 2
+        $this->assertSame([null, 1, 1, 2, 2, 3, 3, 4, 4, 5], array_column($sink->assoc('categories'), 'parent_id'));
+        $this->assertSame([], $sink->executed);
+        $this->assertSame([], $report->outcome('categories')->notes);
+    }
+
+    public function testASelfReferenceWithStringKeysIsFilledInsideTheInsertToo(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('nodes', [
+                Schemas::varchar('code', 20),
+                Schemas::varchar('parent_code', 20, true),
+            ], ['code'], [], [new ForeignKey('nodes_parent', ['parent_code'], 'nodes', ['code'])]),
+        ]);
+        [$report, $sink] = $this->generate($schema, ScalePlan::global(6, 5));
+
+        $this->assertSame(TableOutcome::GENERATED, $report->outcome('nodes')->status);
+        $rows = $sink->assoc('nodes');
+        $this->assertNull($rows[0]['parent_code']);
+        $this->assertSame($rows[0]['code'], $rows[1]['parent_code']);
+        $this->assertSame($rows[0]['code'], $rows[2]['parent_code']);
+        $this->assertSame($rows[1]['code'], $rows[3]['parent_code']);
+        $this->assertSame([], $sink->executed);
+    }
+
+    public function testAUniqueSelfReferenceFormsAChainSoNoParentIsUsedTwice(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('steps', [Schemas::id(), Schemas::fk('next_id', true)], ['id'], [['next_id']], [
+                new ForeignKey('steps_next', ['next_id'], 'steps', ['id']),
+            ]),
+        ]);
+        [, $sink] = $this->generate($schema, ScalePlan::global(5, 5));
+
+        $this->assertSame([null, 1, 2, 3, 4], array_column($sink->assoc('steps'), 'next_id'));
+    }
+
+    public function testASelfReferenceSkipsTheExistingRows(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('categories', [Schemas::id(), Schemas::fk('parent_id', true)], ['id'], [], [
+                new ForeignKey('categories_parent', ['parent_id'], 'categories', ['id']),
+            ]),
+        ]);
+        $sink = new RecordingSink();
+        $sink->existing['categories'] = 2;
+        [, $sink] = $this->generate($schema, ScalePlan::global(6, 5), $sink);
+
+        // generated rows have ids 3..8; the reference rows 1 and 2 are never a parent
+        $this->assertSame([null, 3, 3, 4, 4, 5], array_column($sink->assoc('categories'), 'parent_id'));
     }
 
     public function testAMutualCycleIsBrokenAtTheNullableKey(): void
@@ -251,21 +297,6 @@ final class GeneratorTest extends TestCase
         $this->assertSame(1.0, $report->successRate());
         $this->assertSame(['teams', 'users'], $sink->insertedTables());
         $this->assertSame(['UPDATE `teams` SET `owner_id` = ((`id` - 1) % 6) + 1'], $sink->executed);
-    }
-
-    public function testADeferredKeyThatCannotBeFilledStaysNullAndIsNoted(): void
-    {
-        $schema = new DatabaseSchema([
-            new TableSchema('nodes', [
-                Schemas::varchar('code', 20),
-                Schemas::varchar('parent_code', 20, true),
-            ], ['code'], [], [new ForeignKey('nodes_parent', ['parent_code'], 'nodes', ['code'])]),
-        ]);
-        [$report, $sink] = $this->generate($schema, ScalePlan::global(10, 5));
-
-        $this->assertSame(TableOutcome::GENERATED, $report->outcome('nodes')->status);
-        $this->assertSame([], $sink->executed);
-        $this->assertNotEmpty($report->outcome('nodes')->notes);
     }
 
     public function testACountThatDoesNotMatchThePlanFailsTheTable(): void
@@ -349,20 +380,6 @@ final class GeneratorTest extends TestCase
 
         $this->assertSame(Reason::AUTOINC_GAP, $report->outcome('customers')->reason);
         $this->assertSame(1, $report->outcome('customers')->existing);
-    }
-
-    public function testDeferredUpdatesOnlyTouchTheGeneratedRows(): void
-    {
-        $schema = new DatabaseSchema([
-            new TableSchema('categories', [Schemas::id(), Schemas::fk('parent_id', true)], ['id'], [], [
-                new ForeignKey('categories_parent', ['parent_id'], 'categories', ['id']),
-            ]),
-        ]);
-        $sink = new RecordingSink();
-        $sink->existing['categories'] = 2;
-        [, $sink] = $this->generate($schema, ScalePlan::global(10, 5), $sink);
-
-        $this->assertSame(['UPDATE `categories` SET `parent_id` = 2 + ((`id` - 2) DIV 2) WHERE `id` > 3'], $sink->executed);
     }
 
     public function testMutualDeferredUpdatesAccountForBothTablesExistingRows(): void

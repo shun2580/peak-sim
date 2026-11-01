@@ -61,16 +61,26 @@ final class FkOrderTest extends TestCase
         $this->assertSame(['a', 'b', 'c'], FkOrder::sort($schema, ['c', 'a', 'b'])->order);
     }
 
-    public function testANullableSelfReferenceIsDeferred(): void
+    public function testANullableSelfReferenceNeedsNoDeferral(): void
     {
+        // a row can point at an earlier row of the same table inside one INSERT
         $schema = $this->schema(['categories'], [['categories', 'categories', true]]);
         $plan = FkOrder::sort($schema, ['categories']);
 
         $this->assertSame(['categories'], $plan->order);
-        $this->assertCount(1, $plan->deferred);
-        $this->assertSame('categories', $plan->deferred[0]['table']);
-        $this->assertSame('categories_categories_id', $plan->deferred[0]['fk']->name);
+        $this->assertSame([], $plan->deferred);
         $this->assertSame([], $plan->cyclic);
+    }
+
+    public function testOnlyAKeyOnTheCycleIsDeferredNotOneOfATableThatMerelyDependsOnIt(): void
+    {
+        // a -> x (nullable) only depends on the cycle x <-> y; deferring a's key would be pointless
+        $schema = $this->schema(['a', 'x', 'y'], [['a', 'x', true], ['x', 'y', false], ['y', 'x', true]]);
+        $plan = FkOrder::sort($schema, ['a', 'x', 'y']);
+
+        $this->assertCount(1, $plan->deferred);
+        $this->assertSame('y', $plan->deferred[0]['table']);
+        $this->assertSame(['y', 'x', 'a'], $plan->order);
     }
 
     public function testANotNullSelfReferenceIsAnFkCycle(): void
