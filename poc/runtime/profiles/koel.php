@@ -139,13 +139,16 @@ $profile = [
     ],
 
     'unfillable' => [
-        'subsonic' => ['reason' => 'unauthenticated', 'why' => 'the Subsonic routes read their credentials (u with apiKey, or u, t and s) from the request\'s own input; both logins hold an API key now (encrypted under the run\'s shared APP_KEY), but a request that carries no such input is not authenticated'],
-        'embed_options' => ['params' => ['options'], 'reason' => 'unfilled_param', 'why' => 'the options argument of an embed stream is an encrypted string the app builds itself with that same per-process key'],
+        // `routes` names the routes an entry is about (uri_prefix, middleware, action_prefix: every key given must match, one
+        // key's own list is any-of). An entry with `routes` and no `params` stops the whole route: it is recorded with
+        // the entry's reason and not hit.
+        'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'reason' => 'unauthenticated', 'why' => 'the Subsonic routes read their credentials (u with apiKey, or u, t and s) from the request\'s own input; both logins hold an API key now (encrypted under the run\'s shared APP_KEY), but a request that carries no such input is not authenticated. This entry stands until a request can carry the credentials; then it is lifted'],
+        'embed_options' => ['params' => ['options'], 'reason' => 'unfilled_param', 'why' => 'the options argument of an embed stream is an encrypted string the app builds itself under its APP_KEY (the one shared across a run); the tool does not build it'],
         'equalizer_preset_id' => ['params' => ['id'], 'reason' => 'unfilled_param', 'why' => 'a preset lives inside the user\'s preferences, not in a table, so there is no row to point at'],
         'dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'authorizing a Dropbox app calls the Dropbox service'],
-        'email_change_confirm' => ['params' => [], 'reason' => 'signature_required', 'why' => 'the confirmation link is a signed URL'],
+        'email_change_confirm' => ['routes' => ['uri_prefix' => ['api/email-change/confirm/'], 'middleware' => ['signed']], 'reason' => 'signature_required', 'why' => 'the confirmation link is a signed URL'],
         'log_viewer_files' => ['params' => ['fileIdentifier', 'folderIdentifier'], 'reason' => 'file_dependency', 'why' => 'the log viewer names log files that exist on the app\'s disk, and the app is mounted read-only with none'],
-        'license' => ['reason' => 'external_call_blocked', 'why' => 'checking a licence calls an outside service; no licence row is made, so the community edition is measured'],
+        'license' => ['routes' => ['uri_prefix' => ['api/licenses/']], 'reason' => 'external_call_blocked', 'why' => 'checking a licence calls an outside service; no licence row is made, so the community edition is measured'],
     ],
 ];
 
