@@ -7,8 +7,10 @@ namespace PeakSim\Runtime\Measure;
 use PeakSim\Runtime\Boot\AppBooter;
 use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Config\MeasureConfig;
+use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\ScalePlan;
+use PeakSim\Runtime\Guard\DbGuard;
 use PeakSim\Runtime\Guard\MeasureDb;
 
 /**
@@ -17,6 +19,9 @@ use PeakSim\Runtime\Guard\MeasureDb;
  *
  *   seeder     the verification app's own `DatabaseSeeder` with SEED_* sizes (customers, products, orders, items)
  *   generator  the tool's `Generator` from a `ScalePlan` (targeted or global)
+ *
+ * With a profile that has an `after_generation` hook, the hook runs right after the generator, on the same connection
+ * (see `afterGeneration`). The seeder mode ignores the profile.
  *
  * The row counts are read back and compared with the recipe; a database that does not hold what was asked for is a
  * BuildFailure, never a measurement on the wrong data.
@@ -72,6 +77,7 @@ final class DatabaseBuild
         } else {
             $pdo = $app['db']->connection()->getPdo();
             $report = (new Generator())->generate($pdo, self::scalePlan($recipe), $profile);
+            $afterGeneration = self::afterGeneration($profile, $pdo, $name);
             $info['generation'] = [
                 'scope' => $report->scope,
                 'generated' => $report->generatedCount(),
@@ -83,6 +89,9 @@ final class DatabaseBuild
                     array_filter($report->outcomes, static fn ($o): bool => $o->status === 'failed'),
                 )),
             ];
+            if ($afterGeneration !== null) {
+                $info['after_generation'] = $afterGeneration;
+            }
         }
         $info['fill_seconds'] = round(microtime(true) - $filled, 2);
 
@@ -97,6 +106,46 @@ final class DatabaseBuild
         $info['total_seconds'] = round(microtime(true) - $started, 2);
 
         return $info;
+    }
+
+    /**
+     * Runs the profile's `after_generation` hook (reference rows, logins, fixups: what the app needs that generated
+     * rows cannot give) on the connection the generator just filled. Nothing runs unless the name is a measurement
+     * database (the same guard as for creating and dropping one), and on MySQL the connection must be on that
+     * database. A hook that fails stops the build: a database the profile could not finish is not measured on.
+     *
+     * @param array<string, mixed> $profile
+     *
+     * @return array<string, mixed>|null what the hook reports, or null when the profile has no hook
+     *
+     * @throws BuildFailure
+     * @throws MeasureRefused
+     */
+    public static function afterGeneration(array $profile, \PDO $pdo, string $name): ?array
+    {
+        if (!array_key_exists('after_generation', $profile)) {
+            return null;
+        }
+        DbGuard::assertDbName($name);
+        $hook = $profile['after_generation'];
+        if (!is_callable($hook)) {
+            throw new BuildFailure('the profile\'s after_generation is not a function');
+        }
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $current = $pdo->query('SELECT DATABASE()')->fetchColumn();
+            if ($current !== $name) {
+                throw new MeasureRefused(sprintf('refused: the connection is on %s, not on the measurement database', is_string($current) ? json_encode(substr($current, 0, 80)) : 'no database'));
+            }
+        }
+        try {
+            $summary = $hook($pdo, $name);
+        } catch (MeasureRefused $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new BuildFailure('the profile\'s after_generation failed: ' . self::tail($e->getMessage()), 0, $e);
+        }
+
+        return is_array($summary) ? $summary : [];
     }
 
     /** @param array<string, mixed> $recipe */

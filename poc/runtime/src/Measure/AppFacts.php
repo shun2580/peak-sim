@@ -8,10 +8,10 @@ namespace PeakSim\Runtime\Measure;
 interface AppFacts
 {
     /**
-     * The login for a guard as `Model\Class:key[:guard]`: the first row of the guard's user model, or null when the
-     * measurement database has no such row.
+     * The login for a guard as `Model\Class:key[:guard]`: the row of the guard's user model with this key (the first
+     * row when no key is given), or null when the measurement database has no such row.
      */
-    public function loginUser(?string $guard): ?string;
+    public function loginUser(?string $guard, string|int|null $id = null): ?string;
 
     /**
      * The validation rules of the FormRequest the action takes, or null when it takes none (or they cannot be read).

@@ -9,7 +9,7 @@ final class Resolution
 {
     /**
      * @param array<string, string|int> $values
-     * @param list<array{param: string, reason: string}> $unfilled
+     * @param list<array{param: string, reason: string, class?: string}> $unfilled `class` is set when an app profile explains why
      * @param list<string> $omitted optional parameters left out
      */
     public function __construct(

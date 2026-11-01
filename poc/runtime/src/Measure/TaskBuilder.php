@@ -14,10 +14,12 @@ use PeakSim\Runtime\Run\Classification;
 /** Turns a route of the catalogue into a task: fills the parameters, picks the login, builds the body. */
 final class TaskBuilder
 {
+    /** @param array<string, mixed> $profile the app's profile (empty when none was asked for): who logs in */
     public function __construct(
         private readonly ArgumentResolver $arguments,
         private readonly BodyBuilder $bodies,
         private readonly AppFacts $facts,
+        private readonly array $profile = [],
     ) {
     }
 
@@ -36,7 +38,16 @@ final class TaskBuilder
 
         $resolution = $this->arguments->resolve($spec);
         if (!$resolution->ok()) {
-            return self::failed($spec, 'unfilled_param', implode('; ', array_map(
+            // An app profile may say why a parameter cannot be prepared; the first such reason is the route's class.
+            $class = 'unfilled_param';
+            foreach ($resolution->unfilled as $u) {
+                if (isset($u['class'])) {
+                    $class = $u['class'];
+                    break;
+                }
+            }
+
+            return self::failed($spec, $class, implode('; ', array_map(
                 static fn (array $u): string => $u['param'] . ': ' . $u['reason'],
                 $resolution->unfilled,
             )));
@@ -46,10 +57,10 @@ final class TaskBuilder
             return self::failed($spec, 'unfilled_param', 'the uri could not be filled');
         }
 
-        $plan = UserProvider::plan(UserProvider::requirement($spec->middleware), null);
+        $plan = UserProvider::plan(UserProvider::requirement($spec->middleware), $this->profile === [] ? null : $this->profile);
         $actAs = null;
         if ($plan['login']) {
-            $actAs = $this->facts->loginUser($plan['guard']);
+            $actAs = $this->facts->loginUser($plan['guard'], $plan['login_id']);
             if ($actAs === null) {
                 return self::failed($spec, 'no_login_user', 'the route needs a login and the measurement database has no row of the user model (guard: ' . ($plan['guard'] ?? 'default') . ')');
             }

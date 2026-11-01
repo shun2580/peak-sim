@@ -59,22 +59,28 @@ final class UserProvider
     }
 
     /**
-     * @param array<string, mixed>|null $profile the app's profile (optional): `user` describes the login user,
+     * @param array<string, mixed>|null $profile the app's profile (optional): `user` describes the login user and
+     *                                           `admin` the administrator (each with the `id` of its row);
      *                                           `login_as` is `admin` to use the admin from the first stage on
      *
-     * @return array{login: bool, guard: ?string, source: ?string, admin: bool, verified: bool, ability: ?string}
+     * @return array{login: bool, guard: ?string, source: ?string, admin: bool, login_id: string|int|null, verified: bool, ability: ?string}
+     *         login_id is the key of the row to log in as, or null for the first row of the user model
      */
     public static function plan(AuthRequirement $requirement, ?array $profile): array
     {
         if (! $requirement->required) {
-            return ['login' => false, 'guard' => null, 'source' => null, 'admin' => false, 'verified' => false, 'ability' => null];
+            return ['login' => false, 'guard' => null, 'source' => null, 'admin' => false, 'login_id' => null, 'verified' => false, 'ability' => null];
         }
+
+        $admin = ($profile['login_as'] ?? null) === 'admin';
+        $id = $profile[$admin ? 'admin' : 'user']['id'] ?? null;
 
         return [
             'login' => true,
             'guard' => $requirement->guard,
             'source' => isset($profile['user']) ? 'profile' : 'generator',
-            'admin' => ($profile['login_as'] ?? null) === 'admin',
+            'admin' => $admin,
+            'login_id' => is_int($id) || is_string($id) ? $id : null,
             'verified' => $requirement->verified,
             'ability' => $requirement->ability,
         ];

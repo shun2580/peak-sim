@@ -13,6 +13,15 @@ namespace PeakSim\Runtime\Route;
  *  2. a name ending in `id` (`orderId`, `category_id`): the primary key of the first row of the table the prefix names
  *  3. the `where` constraint: its first alternative when it is a list of literals, else the first sample it matches
  *  4. a declared `int` type: 1
+ *
+ * An app profile (`arguments`, `unfillable`; see `profiles/`) adds what the rules cannot reach:
+ *  - `arguments`: a parameter name => where its value comes from, the first row of a table's column (`table`,
+ *    `column`) or a literal (`value`). It is tried after the implicit model binding (the app's own declaration, which
+ *    a profile does not override) and before the guesses from a name, a constraint or a type.
+ *  - `unfillable`: what could not be prepared, with a reason from the fixed vocabulary. It only explains: a
+ *    parameter nothing could fill, whose name an entry lists in `params`, is recorded with that entry's reason as its
+ *    class. It never stops a parameter the rules did fill, and an entry with no `params` names no parameter.
+ *
  * A value that breaks the `where` constraint is not used. The row picked is the first one whatever the scale, so the
  * number of children of that row is the same at every N and only M can move it. An optional parameter that cannot be
  * filled is left out; any other is recorded with its name and a reason.
@@ -21,7 +30,8 @@ final class ArgumentResolver
 {
     private const WHERE_SAMPLES = ['1', 'a', 'abc', 'x1', '0', '1a', '00000000-0000-4000-8000-000000000000', '01ARZ3NDEKTSV4RRFFQ69G5FAV', '2026-01-01'];
 
-    public function __construct(private readonly RowLookup $lookup)
+    /** @param array<string, mixed> $profile the app's profile (empty when none was asked for) */
+    public function __construct(private readonly RowLookup $lookup, private readonly array $profile = [])
     {
     }
 
@@ -42,7 +52,7 @@ final class ArgumentResolver
             } elseif ($p['optional']) {
                 $omitted[] = $name;
             } else {
-                $unfilled[] = ['param' => $name, 'reason' => $reason];
+                $unfilled[] = $this->explained($name, $reason);
             }
         }
 
@@ -60,7 +70,7 @@ final class ArgumentResolver
         if ($p['model'] !== null) {
             $table = $this->lookup->tableForModel($p['model']);
             if ($table === null) {
-                return [null, 'no_table_for_model'];
+                return $this->declared($name) ?? [null, 'no_table_for_model'];
             }
             $where = [];
             if ($p['scope'] !== null && isset($chosen[$p['scope']['parent']])) {
@@ -69,6 +79,11 @@ final class ArgumentResolver
             $value = $this->lookup->firstValue($table, $p['field'] ?? $this->lookup->routeKeyColumn($p['model']), $where);
 
             return $value === null ? [null, 'no_row:' . $table] : [$value, ''];
+        }
+
+        $declared = $this->declared($name);
+        if ($declared !== null) {
+            return $declared;
         }
 
         if (preg_match('/^(.+?)_?[iI]d$/', $name, $m) === 1) {
@@ -93,6 +108,45 @@ final class ArgumentResolver
         }
 
         return [null, 'no_rule_to_fill'];
+    }
+
+    /**
+     * What the profile says about a parameter, or null when it says nothing.
+     *
+     * @return array{0: string|int|null, 1: string}|null
+     */
+    private function declared(string $name): ?array
+    {
+        $how = $this->profile['arguments'][$name] ?? null;
+        if (!is_array($how)) {
+            return null;
+        }
+        if (array_key_exists('value', $how)) {
+            return is_string($how['value']) || is_int($how['value']) ? [$how['value'], ''] : null;
+        }
+        if (!isset($how['table'], $how['column']) || !is_string($how['table']) || !is_string($how['column'])) {
+            return null;
+        }
+        $value = $this->lookup->hasTable($how['table']) ? $this->lookup->firstValue($how['table'], $how['column']) : null;
+
+        return $value === null ? [null, 'no_row:' . $how['table']] : [$value, ''];
+    }
+
+    /**
+     * An unfilled parameter as it is recorded: with the profile's reason and class when an `unfillable` entry lists
+     * the parameter, else as the rules left it.
+     *
+     * @return array{param: string, reason: string, class?: string}
+     */
+    private function explained(string $name, string $reason): array
+    {
+        foreach ((array) ($this->profile['unfillable'] ?? []) as $label => $entry) {
+            if (is_array($entry) && in_array($name, (array) ($entry['params'] ?? []), true) && is_string($entry['reason'] ?? null)) {
+                return ['param' => $name, 'reason' => 'profile:' . $label, 'class' => $entry['reason']];
+            }
+        }
+
+        return ['param' => $name, 'reason' => $reason];
     }
 
     /** @return list<string> */

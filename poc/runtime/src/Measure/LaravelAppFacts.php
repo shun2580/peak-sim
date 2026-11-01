@@ -16,7 +16,7 @@ final class LaravelAppFacts implements AppFacts
     {
     }
 
-    public function loginUser(?string $guard): ?string
+    public function loginUser(?string $guard, string|int|null $id = null): ?string
     {
         $config = $this->app['config'];
         $name = $guard ?? (string) $config->get('auth.defaults.guard');
@@ -28,12 +28,16 @@ final class LaravelAppFacts implements AppFacts
         }
         $instance = new $model();
         $key = $instance->getKeyName();
-        $id = $model::query()->orderBy($key)->value($key);
-        if ($id === null) {
+        $query = $model::query();
+        if ($id !== null) {
+            $query->where($key, '=', $id);
+        }
+        $found = $query->orderBy($key)->value($key);
+        if ($found === null) {
             return null;
         }
 
-        return $model . ':' . $id . ($guard === null ? '' : ':' . $guard);
+        return $model . ':' . $found . ($guard === null ? '' : ':' . $guard);
     }
 
     public function bodyRules(?string $action): ?array
