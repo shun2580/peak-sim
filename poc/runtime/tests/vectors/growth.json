@@ -1,0 +1,541 @@
+{
+  "thresholds": {
+    "constant_max_slope": 0.2,
+    "linear_min_slope": 0.5,
+    "max_slope_spread": 0.1
+  },
+  "note": "Shared by the runtime PoC GrowthRules and checked against the fixture app's Tests\\Support\\GrowthRules on the same series. 'class' is the classification of the two largest scales; 'verdict' also needs three points and, for a linear claim, the spread limit.",
+  "series": [
+    {
+      "name": "flat",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        5,
+        5,
+        5
+      ],
+      "slope": 0.0,
+      "class": "O(1)",
+      "segment_slopes": [
+        0.0,
+        0.0
+      ],
+      "spread_ok": true,
+      "verdict": "measured_O1"
+    },
+    {
+      "name": "flat at zero (a cache hit)",
+      "scales": [
+        10,
+        100,
+        1000
+      ],
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "slope": 0.0,
+      "class": "O(1)",
+      "segment_slopes": [
+        0.0,
+        0.0
+      ],
+      "spread_ok": true,
+      "verdict": "measured_O1"
+    },
+    {
+      "name": "linear",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        100,
+        1000,
+        10000
+      ],
+      "slope": 1.0,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        1.0
+      ],
+      "spread_ok": true,
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "linear with a fixed part",
+      "scales": [
+        5,
+        10,
+        20
+      ],
+      "values": [
+        6,
+        11,
+        21
+      ],
+      "slope": 0.932885804,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        1.0
+      ],
+      "spread_ok": true,
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "sub-linear but clearly growing (slope 0.6)",
+      "scales": [
+        1000,
+        10000
+      ],
+      "values": [
+        1000,
+        3981
+      ],
+      "slope": 0.599992178,
+      "class": "O(N)",
+      "segment_slopes": [
+        0.331222222
+      ],
+      "spread_ok": true,
+      "verdict": "insufficient_points"
+    },
+    {
+      "name": "sub-linear, three points, first segment dominates",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        100,
+        1000,
+        3981
+      ],
+      "slope": 0.599992178,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        0.331222222
+      ],
+      "spread_ok": false,
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "just under the constant limit (slope 0.2)",
+      "scales": [
+        1000,
+        10000
+      ],
+      "values": [
+        1000,
+        1584
+      ],
+      "slope": 0.199755177,
+      "class": "O(1)",
+      "segment_slopes": [
+        0.064888889
+      ],
+      "spread_ok": true,
+      "verdict": "insufficient_points"
+    },
+    {
+      "name": "just under the constant limit, three points",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        10,
+        10,
+        15
+      ],
+      "slope": 0.176091259,
+      "class": "O(1)",
+      "segment_slopes": [
+        0.0,
+        0.000555556
+      ],
+      "spread_ok": false,
+      "verdict": "measured_O1"
+    },
+    {
+      "name": "in between (slope 0.35)",
+      "scales": [
+        1000,
+        10000
+      ],
+      "values": [
+        1000,
+        2239
+      ],
+      "slope": 0.350054094,
+      "class": "inconclusive",
+      "segment_slopes": [
+        0.137666667
+      ],
+      "spread_ok": true,
+      "verdict": "insufficient_points"
+    },
+    {
+      "name": "in between, three points",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        100,
+        1000,
+        2239
+      ],
+      "slope": 0.350054094,
+      "class": "inconclusive",
+      "segment_slopes": [
+        1.0,
+        0.137666667
+      ],
+      "spread_ok": false,
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "only the two largest scales count",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "values": [
+        10,
+        10,
+        1000
+      ],
+      "slope": 2.0,
+      "class": "O(N)",
+      "segment_slopes": [
+        0.0,
+        0.11
+      ],
+      "spread_ok": false,
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "linear whose slope wanders (spread over 10 percent)",
+      "scales": [
+        100,
+        200,
+        300
+      ],
+      "values": [
+        100,
+        200,
+        350
+      ],
+      "slope": 1.380182355,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        1.5
+      ],
+      "spread_ok": false,
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "linear within the spread limit",
+      "scales": [
+        100,
+        200,
+        300
+      ],
+      "values": [
+        100,
+        200,
+        309
+      ],
+      "slope": 1.072900976,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        1.09
+      ],
+      "spread_ok": true,
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "below the spread limit on the low side",
+      "scales": [
+        100,
+        200,
+        300
+      ],
+      "values": [
+        100,
+        200,
+        288
+      ],
+      "slope": 0.899320574,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        0.88
+      ],
+      "spread_ok": false,
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "values below one count as one (zero then fifty)",
+      "scales": [
+        10,
+        100
+      ],
+      "values": [
+        0,
+        50
+      ],
+      "slope": 1.698970004,
+      "class": "O(N)",
+      "segment_slopes": [
+        0.555555556
+      ],
+      "spread_ok": true,
+      "verdict": "insufficient_points"
+    },
+    {
+      "name": "chunked reads: queries grow slowly then flat",
+      "scales": [
+        10,
+        100,
+        1000
+      ],
+      "values": [
+        3,
+        3,
+        4
+      ],
+      "slope": 0.124938737,
+      "class": "O(1)",
+      "segment_slopes": [
+        0.0,
+        0.001111111
+      ],
+      "spread_ok": false,
+      "verdict": "measured_O1"
+    },
+    {
+      "name": "one query per row",
+      "scales": [
+        10,
+        100,
+        1000
+      ],
+      "values": [
+        11,
+        101,
+        1001
+      ],
+      "slope": 0.996112704,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0,
+        1.0
+      ],
+      "spread_ok": true,
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "two points are not enough for a verdict",
+      "scales": [
+        100,
+        1000
+      ],
+      "values": [
+        100,
+        1000
+      ],
+      "slope": 1.0,
+      "class": "O(N)",
+      "segment_slopes": [
+        1.0
+      ],
+      "spread_ok": true,
+      "verdict": "insufficient_points"
+    }
+  ],
+  "products": [
+    {
+      "name": "both sweeps linear",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          10,
+          100,
+          1000
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30,
+          300
+        ],
+        "values": [
+          3,
+          30,
+          300
+        ]
+      },
+      "verdict": "measured_ONM"
+    },
+    {
+      "name": "N linear, M flat",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          10,
+          100,
+          1000
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30,
+          300
+        ],
+        "values": [
+          5,
+          5,
+          5
+        ]
+      },
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "N flat, M linear",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          5,
+          5,
+          5
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30,
+          300
+        ],
+        "values": [
+          3,
+          30,
+          300
+        ]
+      },
+      "verdict": "measured_ON"
+    },
+    {
+      "name": "both flat",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          5,
+          5,
+          5
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30,
+          300
+        ],
+        "values": [
+          5,
+          5,
+          5
+        ]
+      },
+      "verdict": "measured_O1"
+    },
+    {
+      "name": "one sweep inconclusive is never rounded",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          10,
+          100,
+          1000
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30,
+          300
+        ],
+        "values": [
+          3,
+          30,
+          67
+        ]
+      },
+      "verdict": "inconclusive"
+    },
+    {
+      "name": "one sweep too short",
+      "n": {
+        "scales": [
+          10,
+          100,
+          1000
+        ],
+        "values": [
+          10,
+          100,
+          1000
+        ]
+      },
+      "m": {
+        "scales": [
+          3,
+          30
+        ],
+        "values": [
+          3,
+          30
+        ]
+      },
+      "verdict": "insufficient_points"
+    }
+  ]
+}
