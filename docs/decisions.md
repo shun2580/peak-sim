@@ -404,3 +404,27 @@ Claudeの提案をもとに、2026-10-29に合意した実装方針。
 - 付記:D5 の取得対象(スキーマとインデックスだけ)は、利用者のローカルDBに対する規則として変えない。実測モードが読むのは、`peak_sim_measure_` で始まる計測専用のデータベースの合成データに限る。利用者の既存のデータベースの中身を読むことは、引き続きしない
 - (補足)D5 の本文は「ローカルDBへの接続」と「取得するのはスキーマとインデックスだけ」を定めており、ツールが自分で作って入れたデータの読みを想定していない。この判断は、D5 の理由(実データの個人情報)に照らして、規則の文面ではなく趣旨に反しないと読んだもの
 - (補足)実測モードの安全の条件(対象アプリのコードはコンテナの中だけ、計測専用データベースの名前の検査、など)は、この判断の前提である。条件が崩れて既存のデータが混ざる余地が生じたときは、この判断は成り立たない
+
+### D45. enum の `->value`・`->name` の読みは、受け手が enum と静的に分かるときだけ、`gap` にしない例外とする(2026-11-01 指示書#04 の A3。D39 の実施)
+
+- 内容:プロパティ読みの受け手が、次のどちらかで enum と静的に分かるとき、`->name`(backed enum・pure enum とも)と `->value`(backed enum のみ)の読みを値(PlainT)として通し、`gap` にしない
+  - `Foo::BAR->value`・`self::BAR->name` の形。`Foo`(`self`・`static` を含む)がアプリの enum で、`BAR` がその enum の `case` として宣言されている
+  - 受け手の型が、宣言された型(引数・プロパティ・戻り値。`?Foo` を含む)としてアプリの enum と取れる
+- 内容:次は従来どおり `gap` のまま
+  - 受け手の型が分からない読み(型宣言の無い変数・プロパティ、`mixed`、型の取れない呼び出しの結果)
+  - enum でないクラスの `->value`、enum のケースでない定数(`const ALIAS = self::BAR;` の別名、スカラーの定数)の読み
+  - pure enum の `->value`(pure enum に `value` は無い。(補足)マニュアルは pure enum の `value` が無いことを明言していないが、`value` を持つと述べるのは Backed enumerations の節だけ)
+  - `->name`・`->value` の結果への更なる読み(`$e->value->x`)。結果は PlainT で、FIX3 の防壁(PlainT へのプロパティ読みは `gap`)が効く
+  - enum のメソッド呼び出し(`$e->label()`)。アプリのコードを呼び返すので、従来どおり扱う(型が enum と取れる受け手は呼び先を追い、`Foo::BAR->label()` は従来どおり `gap`)。この例外は読みの 2 つの名前だけで、メソッドには及ばない
+- 根拠(D28 の作法。PHP の言語機能であり、DB に触れず、アプリのコードを呼び返さない):
+  - PHP マニュアル「Enumerations」の「Basic enumerations」(https://www.php.net/manual/en/language.enumerations.basics.php):「All Cases have a read-only property, `name`, that is the case-sensitive name of the case itself.」
+  - 同「Backed enumerations」(https://www.php.net/manual/en/language.enumerations.backed.php):「Backed Cases have an additional read-only property, `value`, which is the value specified in the definition.」。定義に書かれた値であり、定数のスカラー式である(「The equivalent values may be a constant scalar expression.」)
+  - 同「Enumerations overview」(https://www.php.net/manual/en/language.enumerations.overview.php):「Enum cases are objects」。ケースは enum クラスの単一インスタンスのオブジェクトである
+  - 読みの結果は、定義に書かれた名前または定数で、実行の度に変わらない。DB に触れず、`name`・`value` はマニュアルが read-only の組み込みのプロパティと述べるもので、アプリのコードが書くものではないので、アプリのコードを呼び返さない
+  - (補足)「ケースの `name`・`value` の読みはゲッターを呼ばない」という点は、マニュアルが「read-only の property」と述べていることから読んだ。マニュアルに「ゲッターを呼ばない」という文言はない
+- 理由:D39 のとおり、FIX3 の防壁(型の取れない値へのプロパティ読みは `gap`)が、DB に触れない enum の読みまで `gap` にしていた(real-app-trial.md の §3.6・§6.1。`->value` 612 件・`->name` 71 件、確実な形で 568 件・271 箇所)。受け手が enum と分かるものに限れば、D21 を崩さずにこの過検知を外せる
+- 理由:個別処理にして、例外表(`resources/known-calls.php`)には載せない。例外表は「関数名・クラスとメソッド名」の引き当てで、載せる条件は呼び出しの名前だけで決まる。この例外は「受け手の型が enum と静的に分かること」を要するので、型を見る場所(`CallResolver` のプロパティ読み)に置くのが自然である。D35(`$loop` の 1 段目)が `ViewHandler` の個別処理で、例外表に載せなかった前例に合わせた
+- 付記:実装は `CallResolver` の `propertyFetch`(定数の形)と `propertyOf`(宣言された型)。試験は `tests/Unit/Engine/EnumReadTest.php`
+- (補足)外した場合は、enum の読みが `gap` に戻るだけで、判定は重くなる側に動く。見逃しは増えない(推測)。この段の再測定で D33 の抜き取りを行う
+- 退けた案:例外表に `->value`・`->name` を載せる(型が enum かどうかを見ず、enum でない値の `->name`(モデルの列など)まで通してしまう)
+- 退けた案:`Foo::BAR` の型そのものを enum の型に変える(`Foo::BAR->label()` のようなメソッド呼び出しまで追うことになり、読みの例外の範囲を超える)
