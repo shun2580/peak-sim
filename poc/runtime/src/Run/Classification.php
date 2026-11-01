@@ -109,6 +109,7 @@ final class Classification
      * @param list<string> $externalHosts  hosts the app tried to reach (host names only)
      * @param ?string      $rollbackProblem e.g. "ddl: ALTER TABLE ..." (see QueryCounter::rollbackProblem())
      * @param bool         $redirectedToLogin a 3xx whose target is the login page: the route wanted a user
+     * @param ?string      $responseNote what Requester::noteOf() kept of a failed answer; it is the detail when nothing else is
      */
     public static function decide(
         ?int $status,
@@ -117,6 +118,7 @@ final class Classification
         array $externalHosts,
         ?string $rollbackProblem,
         bool $redirectedToLogin = false,
+        ?string $responseNote = null,
     ): ClassificationResult {
         if ($rollbackProblem !== null) {
             return new ClassificationResult(self::NOT_ROLLBACKABLE, $rollbackProblem);
@@ -145,7 +147,7 @@ final class Classification
 
         $class = self::fromStatus($status);
 
-        return new ClassificationResult($class, $class === self::OK ? null : $exceptionDetail);
+        return new ClassificationResult($class, $class === self::OK ? null : ($exceptionDetail ?? $responseNote));
     }
 
     public static function isMeasured(string $class): bool

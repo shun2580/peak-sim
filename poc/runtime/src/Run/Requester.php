@@ -78,6 +78,11 @@ final class Requester
         }
         $peak = max(0, memory_get_peak_usage() - $base);
 
+        $note = null;
+        if ($response !== null && ! $response instanceof \Symfony\Component\HttpFoundation\StreamedResponse && ! $response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
+            $note = self::noteOf($response->getStatusCode(), (string) $response->getContent());
+        }
+
         $reported = $this->booted->exceptions->take();
         $location = $response === null ? null : $response->headers->get('Location');
         $redirectPath = is_string($location) ? parse_url($location, PHP_URL_PATH) : null;
@@ -88,7 +93,33 @@ final class Requester
             $peak,
             $thrown ?? $reported,
             is_string($redirectPath) ? $redirectPath : null,
+            $note,
         );
+    }
+
+    /**
+     * What is kept of a failed answer (4xx and 5xx) so the reason can be told afterwards: the app's own `message` and
+     * the NAMES of the fields that failed validation (never the values or their messages), cut at the detail limit.
+     * Null for a success or for an answer that is not a JSON object.
+     */
+    public static function noteOf(int $status, string $content): ?string
+    {
+        if ($status < 400) {
+            return null;
+        }
+        $data = json_decode($content, true);
+        if (! is_array($data)) {
+            return null;
+        }
+        $parts = [];
+        if (isset($data['message']) && is_string($data['message']) && $data['message'] !== '') {
+            $parts[] = $data['message'];
+        }
+        if (isset($data['errors']) && is_array($data['errors']) && $data['errors'] !== []) {
+            $parts[] = 'fields: ' . implode(', ', array_map('strval', array_keys($data['errors'])));
+        }
+
+        return $parts === [] ? null : mb_substr(implode(' | ', $parts), 0, Attempt::DETAIL_LIMIT);
     }
 
     /**

@@ -163,6 +163,7 @@ final class MeasureOne
                 $booted->externalCalls->hosts(),
                 $problem,
                 $result->redirectPath !== null && $result->redirectPath === $this->loginPath($app),
+                $result->note,
             );
 
             $measured = $decision->isMeasured();
