@@ -42,6 +42,13 @@ final class RelationOps implements CallHandler
 
     private const REFRESHES = ['refresh', 'fresh'];
 
+    /**
+     * `$order->newQuery()` is Eloquent's `Model::newQuery()`: a fresh Eloquent builder for the row's model, as
+     * `Order::query()` is. It is the only builder-making method known on a row (D28); any other name the model
+     * does not define stays a gap.
+     */
+    private const NEW_QUERY = ['newquery'];
+
     public function __construct(private readonly BuilderOps $ops = new BuilderOps())
     {
     }
@@ -59,7 +66,7 @@ final class RelationOps implements CallHandler
             return true;
         }
         $key = strtolower($c->name);
-        if (!in_array($key, [...self::WRITES, ...self::LOADS, ...self::LOAD_AGGREGATES, ...self::REFRESHES], true)) {
+        if (!in_array($key, [...self::WRITES, ...self::LOADS, ...self::LOAD_AGGREGATES, ...self::REFRESHES, ...self::NEW_QUERY], true)) {
             return false;
         }
         try {
@@ -91,6 +98,7 @@ final class RelationOps implements CallHandler
             in_array($key, self::LOADS, true) => $this->load($row, $c, $k, $key === 'loadmissing'),
             in_array($key, self::LOAD_AGGREGATES, true) => $this->loadAggregate($row, $descriptor, $c, $k),
             in_array($key, self::REFRESHES, true) => $this->refresh($row, $c, $k, $key === 'fresh'),
+            in_array($key, self::NEW_QUERY, true) => $this->ops->newBuilder($row->class, $c->node, $k),
             default => $this->ops->apply(new BuilderT($row->class, $k->facts->table($descriptor, $c->node), $row->eager), $c, $ctx, true),
         };
     }
