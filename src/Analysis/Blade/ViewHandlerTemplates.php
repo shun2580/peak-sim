@@ -57,21 +57,36 @@ final class ViewHandlerTemplates
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
     }
 
-    /** The app-relative path of the view called $name, or null when there is none (or the name is not a view name). */
+    /**
+     * The app-relative path of the view called $name, or null when there is none (or the name is not a view name).
+     *
+     * A "/" is a directory step like a "." (Laravel turns both into a path). A name with a ".." step, a leading "/",
+     * a "::" or any other character is not a view name; and a file is only taken when it really lies under the
+     * directory it was found in, links resolved.
+     */
     public function locate(string $name, SourceIndex $source): ?string
     {
-        if (preg_match('/^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$/', $name) !== 1) {
+        if (preg_match('/^[A-Za-z0-9_-]+(?:[.\/][A-Za-z0-9_-]+)*$/D', $name) !== 1) {
             return null;
         }
         $file = str_replace('.', '/', $name) . '.blade.php';
         foreach ($this->paths($source) as $dir) {
             $relative = ($dir === '' ? '' : $dir . '/') . $file;
-            if (is_file($this->appRoot . '/' . $relative)) {
+            if (is_file($this->appRoot . '/' . $relative) && $this->liesUnder($dir, $relative)) {
                 return $relative;
             }
         }
 
         return null;
+    }
+
+    /** Whether the file, once links are followed, is inside the directory (both app-relative). */
+    private function liesUnder(string $dir, string $relative): bool
+    {
+        $base = realpath($this->appRoot . ($dir === '' ? '' : '/' . $dir));
+        $real = realpath($this->appRoot . '/' . $relative);
+
+        return $base !== false && $real !== false && str_starts_with($real, rtrim($base, '/') . '/');
     }
 
     /** @return Expr\Closure|string the closure that runs the view, or the reason it cannot be run */
