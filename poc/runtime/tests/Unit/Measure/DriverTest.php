@@ -208,6 +208,17 @@ final class DriverTest extends PlannerTestCase
         $this->assertTrue($result->report->rows()[0]['gate_bypass']);
     }
 
+    public function test_with_the_gate_bypass_off_a_403_is_recorded_as_it_is_and_never_retried(): void
+    {
+        $runner = self::runner(static fn (MeasureRequest $r, int $n): OneResult => OneResult::ok([new Attempt($r->route, $r->method, $r->scale, $r->axis, Attempt::WARMUP, 403, 3, [], [], 10, 1000, false, 'forbidden', null)]));
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner, gateBypass: false))->run([self::task()], self::SCALES);
+
+        $this->assertCount(4, $runner->requests, 'one try per scale');
+        $this->assertSame([], array_filter($runner->requests, static fn (MeasureRequest $r): bool => $r->gateBypass));
+        $this->assertFalse($result->report->rows()[0]['gate_bypass']);
+        $this->assertSame('forbidden', $result->report->rows()[0]['class']);
+    }
+
     public function test_a_failed_database_build_stops_the_run_with_13_and_still_drops_it(): void
     {
         $builder = self::builder(static function (DatabasePoint $p, int $count): void {

@@ -48,6 +48,7 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'profile with a path' => [['--app=/x', '--static=/y', '--profile=../x']];
         yield 'profile with a dot' => [['--app=/x', '--static=/y', '--profile=a.php']];
         yield 'empty profile' => [['--app=/x', '--static=/y', '--profile=']];
+        yield 'gate bypass maybe' => [['--app=/x', '--static=/y', '--gate-bypass=maybe']];
         yield 'timeout not a number' => [['--app=/x', '--static=/y', '--request-timeout=soon']];
     }
 
@@ -71,6 +72,7 @@ final class MeasureScriptUsageTest extends TestCase
             $this->assertStringContainsString($exit, $out);
         }
         $this->assertStringContainsString('--request-timeout', $out);
+        $this->assertStringContainsString('--gate-bypass', $out);
     }
 
     public function test_help_names_the_variable_that_runs_the_stack_in_another_image(): void

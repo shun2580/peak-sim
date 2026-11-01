@@ -21,6 +21,19 @@ final class OptionsTest extends TestCase
         $this->assertNull($o->profile);
     }
 
+    public function test_the_gate_is_let_through_after_a_403_unless_the_run_says_off(): void
+    {
+        $this->assertTrue(Options::parse([])->gateBypass);
+        $this->assertTrue(Options::parse(['--gate-bypass=on'])->gateBypass);
+        $this->assertFalse(Options::parse(['--gate-bypass=off'])->gateBypass);
+    }
+
+    public function test_the_gate_switch_takes_on_or_off_only(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse(['--gate-bypass=maybe']);
+    }
+
     public function test_a_profile_is_named_not_pathed(): void
     {
         $this->assertSame('fixtures', Options::parse(['--profile=fixtures'])->profile);
