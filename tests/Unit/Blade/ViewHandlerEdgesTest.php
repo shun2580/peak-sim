@@ -265,6 +265,61 @@ final class ViewHandlerEdgesTest extends ViewHandlerCase
         self::assertSame([self::VIEW . 't.blade.php:2'], $this->eventSites($s, EventKind::LazyLoad));
     }
 
+    // ----- an @php block that ends in a brace (D21 guard: read the template right, do not read more into it) --------
+
+    /** A header-like template: a match assignment closed without `;`, then a loop that lazy loads. */
+    private const MATCH_BLOCK = "@php\n    \$link = match (config('shop.mode')) {\n        'retail' => '/orders',\n        default => '/admin',\n    }\n@endphp\n<a href=\"{{ \$link }}\">orders</a>\n@foreach (\$orders as \$order)\n    {{ \$order->customer->name }}\n@endforeach";
+
+    public function testAPhpBlockEndingInAMatchExpressionIsReadAsTemplateNotAParseFailure(): void
+    {
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => self::MATCH_BLOCK]);
+
+        self::assertNotContains(GapCode::PARSE_FAILED, $this->gapCodes($s));
+        self::assertSame([self::VIEW . 't.blade.php:9'], $this->eventSites($s, EventKind::LazyLoad), 'the loop after the block is walked');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testACallTheViewHandlerCannotFollowStaysAGapInsideTheMatchCondition(): void
+    {
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => self::MATCH_BLOCK]);
+
+        self::assertContains(self::VIEW . 't.blade.php:2', array_map(
+            static fn ($g): string => $g->site->file . ':' . $g->site->line,
+            array_filter($s->gaps, static fn ($g): bool => $g->code !== GapCode::PARSE_FAILED),
+        ), 'config() is not in the known calls: it is still a gap, now visible instead of hidden behind the parse failure');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testACallInAMatchArmThatCannotBeFollowedStaysAGap(): void
+    {
+        $blade = "@php\n    \$total = match (\$kind) {\n        'a' => Vendor\\Billing\\Tax::rate(\$kind),\n        default => 0,\n    }\n@endphp\n{{ \$total }}";
+        $s = $this->walk("\$kind = 'a';\nreturn view('t', ['kind' => \$kind]);", ['t.blade.php' => $blade]);
+
+        self::assertNotContains(GapCode::PARSE_FAILED, $this->gapCodes($s));
+        self::assertContains(self::VIEW . 't.blade.php:3', array_map(
+            static fn ($g): string => $g->site->file . ':' . $g->site->line,
+            $s->gaps,
+        ), 'the vendor static call in the arm is not modelled: its gap must survive the fix');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testARealSyntaxErrorInAPhpBlockIsStillAParseFailure(): void
+    {
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => "@php \$link = ; @endphp\n" . self::LOOP_ROW]);
+
+        self::assertSame([GapCode::PARSE_FAILED], $this->gapCodes($s));
+        self::assertSame([], $this->events($s, EventKind::LazyLoad), 'a template that cannot be read is not walked');
+        $this->assertNoUnknownWithoutGap();
+    }
+
+    public function testAnUnclosedBraceInAPhpBlockIsStillAParseFailure(): void
+    {
+        $s = $this->walk("return view('t', ['orders' => Order::get()]);", ['t.blade.php' => "@php \$link = match (\$x) { 1 => 'a' @endphp\n" . self::LOOP_ROW]);
+
+        self::assertContains(GapCode::PARSE_FAILED, $this->gapCodes($s));
+        $this->assertNoUnknownWithoutGap();
+    }
+
     // ----- gaps the transpiler reports ---------------------------------------------------------------------
 
     public function testAGapIsReportedOncePerTemplateEvenWhenTheViewIsMadeTwice(): void

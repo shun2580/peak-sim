@@ -44,6 +44,31 @@ final class BladeToPhpTest extends TestCase
         yield 'php inline' => ['@php($a = 1)', '$a = 1;'];
         yield 'php inline with call' => ['@php($x = f(1, 2))', '$x = f(1, 2);'];
         yield 'php block holding a foreach' => ['@php foreach ($a as $b) { echo $b; } @endphp', 'foreach ($a as $b) { echo $b; }'];
+        // an assignment may end in a closing brace (match, closure) and still needs its `;`
+        yield 'php block ending in a match expression' => [
+            "@php \$label = match (\$order->status) { 1 => 'new', default => 'old' } @endphp",
+            "\$label = match (\$order->status) { 1 => 'new', default => 'old' };",
+        ];
+        yield 'php block ending in a multi-line match expression' => [
+            "@php\n\$label = match (\$order->status) {\n    1 => 'new',\n    default => 'old',\n}\n@endphp",
+            "\$label = match (\$order->status) { 1 => 'new', default => 'old' };",
+        ];
+        yield 'php block ending in a closure' => [
+            '@php $total = function () { return 1; } @endphp',
+            '$total = function () { return 1; };',
+        ];
+        yield 'php block ending in an array literal' => [
+            "@php \$row = ['k' => 1] @endphp",
+            "\$row = ['k' => 1];",
+        ];
+        yield 'php block ending in an arrow function' => [
+            '@php $double = fn ($x) => $x * 2 @endphp',
+            '$double = fn ($x) => $x * 2;',
+        ];
+        yield 'php block with a foreach then a match assignment' => [
+            "@php foreach (\$a as \$b) { echo \$b; } \$c = match (\$b) { 1 => 'x', default => 'y' } @endphp",
+            "foreach (\$a as \$b) { echo \$b; } \$c = match (\$b) { 1 => 'x', default => 'y' };",
+        ];
 
         // @if family
         yield 'if' => ['@if($a) x @endif', 'if ($a) {}'];
@@ -201,5 +226,46 @@ final class BladeToPhpTest extends TestCase
 
         $this->assertStringStartsWith('<?php', $view->php);
         $this->assertStringNotContainsString('?>', $view->php);
+    }
+
+    public function testSemicolonAfterAMatchAssignmentKeepsLaterLinesWhereTheyAre(): void
+    {
+        $view = self::transpile("@php\n\$a = match (\$b) {\n    1 => 'x',\n    default => 'y',\n}\n@endphp\n{{ \$a }}");
+
+        $this->assertSame([], $view->gaps);
+        $echo = array_values(array_filter(self::parse($view->php), static fn ($n) => $n instanceof \PhpParser\Node\Stmt\Echo_));
+        $this->assertCount(1, $echo);
+        $this->assertSame(7, $echo[0]->getStartLine(), 'the echo sits on template line 7');
+    }
+
+    public function testABraceOpenedInOnePhpBlockAndClosedInAnotherIsLeftAsItWas(): void
+    {
+        // neither half is a statement on its own: the output stays exactly what it was before the semicolon rule changed
+        $view = self::transpile('@php if ($a) { @endphp x @php } @endphp');
+
+        $this->assertSame('<?php  if ($a) { ;  }  ', $view->php);
+    }
+
+    public function testALineCommentEndingAPhpBlockDoesNotThrow(): void
+    {
+        $view = self::transpile('@php $a = 1 // note @endphp');
+
+        $this->assertSame('<?php  $a = 1 // note ; ', $view->php);
+    }
+
+    public function testASyntaxErrorInAPhpBlockIsNotRepaired(): void
+    {
+        $view = self::transpile('@php $a = ; @endphp');
+
+        $this->assertSame('<?php  $a = ;  ', $view->php);
+        $this->expectException(\PhpParser\Error::class);
+        self::parse($view->php);
+    }
+
+    public function testABraceThatCannotBeReadEvenWithASemicolonIsNotRepaired(): void
+    {
+        $view = self::transpile('@php $a = [1, 2 } @endphp');
+
+        $this->assertSame('<?php  $a = [1, 2 }  ', $view->php);
     }
 }
