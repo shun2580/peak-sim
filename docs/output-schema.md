@@ -990,3 +990,40 @@ gaps: DYNAMIC_METHOD_NAME in 1 route
 
 - `0.1`(2026-11-01):初版。殿が確認点(章 11)を裁いて確定した。
 - `0.2`(2026-11-01):`growth` が `unknown` で `lower_bound` が `null` の軸は、`degree` を `null` にする(それまでは 0)。表は `unknown (no lower bound)`。`unknown` と次数 0 が `O(1)` に読める誤読の罠をなくすため(D38)。下限があるとき、`O(1)` のとき、他のキーは変えていない。
+
+## 13. 終了コードと `--memory-limit`(D41)
+
+出力の形はこの章では変わらない(`schema_version` は `0.2` のまま)。終了コードは JSON の外の約束で、CI が読む(D2)。
+
+### 13.1 終了コードの一覧
+
+| コード | 意味 | 標準出力 | 標準エラー |
+| --- | --- | --- | --- |
+| `0` | 解析が終わり、レポートを出した。 | レポート全体。 | 注記(`note:`)と `--stats` のみ。 |
+| `2` | 使い方の誤り(未知のオプション、不正な値、`<app-root>` が無い、`--route` に該当が無い、など。`--memory-limit` の不正な値もここ)。 | 空。 | 原因と使い方。 |
+| `3` | 入力の誤り(artisan が動かない、または artisan・書き出しの JSON が読めない)。 | 空。 | 原因と、見る場所。 |
+| `4` | ツールの内部エラー(想定外の例外)。 | 空。 | 例外の型とメッセージ。 |
+| `5` | **メモリ不足**。PHP の `memory_limit` を使い切った(`Allowed memory size … exhausted`)。 | 空。 | 原因と「`--memory-limit=1G` などで再実行」の案内。 |
+| `255` | PHP 自身の致命的エラー(上のどれでもない)。ツールは案内を出さない。 | 空のことが多い。 | PHP のメッセージ。 |
+
+- `5` は既存のコード(0・2・3・4)と重ならない。`1` は使わず空けてある。
+- `5` を出すのは、`error_get_last()` が `E_ERROR` かつメッセージが `Allowed memory size` で始まるときだけ(`register_shutdown_function`)。それ以外の致命的エラーに「メモリを増やせ」と案内しない。
+- レポートは**最後まで組み立ててから一度に**標準出力へ書く(`JsonRenderer` / `TableRenderer` の戻り値を書く)。したがって、メモリ不足で落ちたとき標準出力には途中までの JSON が残らない(空)。終了コード `5` のとき、標準出力に何かあってもレポートとして読まないこと。
+
+### 13.2 `--memory-limit=<size>`
+
+- 例:`peak-sim analyze <app-root> --memory-limit=1G`。
+- 起動時に PHP の `memory_limit` をこの値にする(`ini_set`)。書式は PHP と同じ:バイト数、または数値に `K` `M` `G`(大文字小文字どちらでも)を付ける。`-1`(無制限)は**利用者が明示したときだけ**通る。
+- 指定が無ければ `php.ini`(または `php -d memory_limit=…`)の値に従う。**ツールが自分で無制限(`-1`)にすることはない**。
+- 不正な値(空、数値でない、未知の単位、小数、`0`、`-1` 以外の負の数、PHP が受け付けない値)は、ほかのオプションの誤りと同じく終了コード `2`。
+- 出力は `--memory-limit` の有無で変わらない(メモリの上限が足りて完走する限り、同じバイト列)。
+
+案内の全文(標準エラー。`memory_limit` の値は実際の設定が入る):
+
+```
+peak-sim: out of memory: PHP's memory_limit (8M) was used up before the analysis finished.
+No report was completed. Run it again with a larger limit, for example --memory-limit=1G
+(or raise memory_limit in php.ini). The tool never raises the limit by itself.
+```
+
+この前に PHP 自身の `Fatal error: Allowed memory size of … bytes exhausted …` が標準エラーに出ることがある(`display_errors=stderr`)。
