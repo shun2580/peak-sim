@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use PeakSim\Runtime\Boot\AppBooter;
 use PeakSim\Runtime\Guard\DbGuard;
+use PeakSim\Runtime\Route\RequestCredentials;
 
 // Knowledge about this app (Koel, a Laravel music server) that its schema and its routes cannot give. A run uses it
 // only when asked for (`--profile=koel`), and a result reached with it is reported as such.
@@ -142,7 +143,6 @@ $profile = [
         // `routes` names the routes an entry is about (uri_prefix, middleware, action_prefix: every key given must match, one
         // key's own list is any-of). An entry with `routes` and no `params` stops the whole route: it is recorded with
         // the entry's reason and not hit.
-        'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'reason' => 'unauthenticated', 'why' => 'the Subsonic routes read their credentials (u with apiKey, or u, t and s) from the request\'s own input; both logins hold an API key now (encrypted under the run\'s shared APP_KEY), but a request that carries no such input is not authenticated. This entry stands until a request can carry the credentials; then it is lifted'],
         'embed_options' => ['params' => ['options'], 'reason' => 'unfilled_param', 'why' => 'the options argument of an embed stream is an encrypted string the app builds itself under its APP_KEY (the one shared across a run); the tool does not build it'],
         'equalizer_preset_id' => ['params' => ['id'], 'reason' => 'unfilled_param', 'why' => 'a preset lives inside the user\'s preferences, not in a table, so there is no row to point at'],
         'dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'authorizing a Dropbox app calls the Dropbox service'],
@@ -150,6 +150,12 @@ $profile = [
         'log_viewer_files' => ['params' => ['fileIdentifier', 'folderIdentifier'], 'reason' => 'file_dependency', 'why' => 'the log viewer names log files that exist on the app\'s disk, and the app is mounted read-only with none'],
         'license' => ['routes' => ['uri_prefix' => ['api/licenses/']], 'reason' => 'external_call_blocked', 'why' => 'checking a licence calls an outside service; no licence row is made, so the community edition is measured'],
     ],
+];
+
+    // The Subsonic routes read their credentials from the request's own input. A GET of these routes carries the
+    // login's email as `u` and the key the profile stores for it (derived from the run's app key) as `apiKey`.
+$profile['request_query'] = [
+    'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']],
 ];
 
 $profile['after_generation'] =
@@ -243,9 +249,9 @@ $profile['after_generation'] =
             $raw = (string) base64_decode(substr($appKey, 7), true);
             foreach (['user', 'admin'] as $who) {
                 $id = $profile[$who]['id'];
-                // A synthetic key, one per login. The app keeps it encrypted (the `encrypted` cast: Crypt::encryptString
+                // A synthetic key, one per login, derived from the run's app key so the process that sends the request makes the same value. The app keeps it encrypted (the `encrypted` cast: Crypt::encryptString
                 // under AES-256-CBC) and looks a user up by its HMAC-SHA256 under APP_KEY.
-                $apiKey = sprintf('measure-subsonic-%d-%s', $id, bin2hex(random_bytes(8)));
+                $apiKey = RequestCredentials::derive($appKey, 'subsonic', $id);
                 $iv = random_bytes(16);
                 $value = openssl_encrypt($apiKey, 'aes-256-cbc', $raw, 0, $iv);
                 if ($value === false) {
