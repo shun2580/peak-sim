@@ -302,6 +302,41 @@ final class DriverTest extends PlannerTestCase
         $this->assertSame('timeout', $result->report->rows()[0]['class']);
     }
 
+    public function test_a_scale_that_failed_is_named_when_the_sweep_is_left_too_short_to_judge(): void
+    {
+        $runner = self::runner(static function (MeasureRequest $r, int $n): OneResult {
+            if ($r->scale === 10000) {
+                return OneResult::ok([new Attempt($r->route, $r->method, $r->scale, $r->axis, Attempt::WARMUP, 500, null, [], [], null, null, false, 'exception', 'QueryException: the request ran longer than 20 seconds')]);
+            }
+
+            return OneResult::ok(self::linearOf($r));
+        });
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner))->run([self::task('/heavy')], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertSame('not_measured', $row['verdict']);
+        $this->assertSame('exception', $row['class'], 'the row says why the largest scale is missing, not that all went well');
+        $this->assertStringContainsString('scale 10000', (string) $row['reason_detail']);
+        $this->assertStringContainsString('longer than 20 seconds', (string) $row['reason_detail']);
+    }
+
+    public function test_a_failure_on_the_second_sweep_does_not_hide_a_verdict_of_the_first(): void
+    {
+        $runner = self::runner(static function (MeasureRequest $r, int $n): OneResult {
+            if ($r->axis === 'M') {
+                return OneResult::ok([new Attempt($r->route, $r->method, $r->scale, $r->axis, Attempt::WARMUP, 500, null, [], [], null, null, false, 'exception', 'boom')]);
+            }
+
+            return OneResult::ok(self::linearOf($r));
+        });
+        $task = self::task('/ng/nested', ['m_table' => 'items', 'm_per' => 'orders']);
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner))->run([$task], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertSame('measured_ON', $row['verdict']);
+        $this->assertSame('ok', $row['class']);
+    }
+
     public function test_an_attempt_log_keeps_every_attempt_of_every_route(): void
     {
         $result = (new Driver(new SeederPlanner(), self::builder(), self::runner()))->run([self::task('/a')], self::SCALES);

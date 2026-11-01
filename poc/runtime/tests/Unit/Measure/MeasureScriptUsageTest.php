@@ -43,6 +43,9 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'relative app' => [['--app=x', '--static=/y']];
         yield 'bad data kind' => [['--app=/x', '--static=/y', '--data=dump']];
         yield 'bad scales' => [['--app=/x', '--static=/y', '--scales=1,2']];
+        yield 'timeout of zero' => [['--app=/x', '--static=/y', '--request-timeout=0']];
+        yield 'timeout over a minute' => [['--app=/x', '--static=/y', '--request-timeout=61']];
+        yield 'timeout not a number' => [['--app=/x', '--static=/y', '--request-timeout=soon']];
     }
 
     /** @param list<string> $args */
@@ -64,5 +67,6 @@ final class MeasureScriptUsageTest extends TestCase
         foreach (['10', '11', '12', '13', '14'] as $exit) {
             $this->assertStringContainsString($exit, $out);
         }
+        $this->assertStringContainsString('--request-timeout', $out);
     }
 }
