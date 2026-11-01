@@ -19,6 +19,22 @@ final class KoelProfileTest extends TestCase
 
     private const DATABASE = 'peak_sim_measure_0123456789ab_100';
 
+    /** The run's shared app key, as bin/measure makes it (a synthetic one; the real one is made anew for each run). */
+    private const APP_KEY = 'base64:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=';
+
+    private string|false $savedKey = false;
+
+    protected function setUp(): void
+    {
+        $this->savedKey = getenv('PEAK_MEASURE_APP_KEY');
+        putenv('PEAK_MEASURE_APP_KEY');
+    }
+
+    protected function tearDown(): void
+    {
+        putenv($this->savedKey === false ? 'PEAK_MEASURE_APP_KEY' : 'PEAK_MEASURE_APP_KEY=' . $this->savedKey);
+    }
+
     /** Every key the profile may have. The first five are read by the driver today; the rest are described in the file. */
     private const KEYS = ['skip', 'rows', 'values', 'user', 'login_as', 'admin', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'after_generation'];
 
@@ -207,7 +223,7 @@ final class KoelProfileTest extends TestCase
         $pdo->exec('CREATE TABLE role_has_permissions (permission_id INTEGER, role_id INTEGER)');
         $pdo->exec('CREATE TABLE model_has_roles (role_id INTEGER, model_type TEXT, model_id INTEGER)');
         $pdo->exec('CREATE TABLE settings (id INTEGER PRIMARY KEY AUTOINCREMENT, organization_id TEXT, "key" TEXT, value TEXT)');
-        $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, organization_id TEXT, name TEXT, email TEXT, password TEXT, preferences TEXT)');
+        $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, organization_id TEXT, name TEXT, email TEXT, password TEXT, preferences TEXT, subsonic_api_key TEXT, subsonic_api_key_hash TEXT)');
         $pdo->exec('CREATE TABLE songs (id TEXT PRIMARY KEY, podcast_id TEXT, episode_guid TEXT, title TEXT)');
         // what the generator leaves behind: a user in a generated organization, songs that all look like episodes
         $pdo->exec("INSERT INTO organizations (id, name, slug) VALUES ('generated-org', 'organizations_name_1', 'organizations_slug_1')");
@@ -286,5 +302,131 @@ final class KoelProfileTest extends TestCase
         $this->expectException(\Throwable::class);
         $this->expectExceptionMessageMatches('/measurement database/i');
         (self::profile()['after_generation'])($pdo, 'app');
+    }
+
+    // ---- Subsonic: the two logins hold an API key the app accepts ---------------------------------------------------
+
+    /** What Laravel's `encrypted` cast stores (Crypt::encryptString under AES-256-CBC), read back: null when it does not verify. */
+    private static function decrypt(string $stored, string $appKey): ?string
+    {
+        $key = (string) base64_decode(substr($appKey, 7), true);
+        $payload = json_decode((string) base64_decode($stored, true), true);
+        if (!is_array($payload) || !isset($payload['iv'], $payload['value'], $payload['mac'])) {
+            return null;
+        }
+        if (!hash_equals(hash_hmac('sha256', $payload['iv'] . $payload['value'], $key), $payload['mac'])) {
+            return null;
+        }
+        $plain = openssl_decrypt($payload['value'], 'aes-256-cbc', $key, 0, (string) base64_decode($payload['iv'], true));
+
+        return $plain === false ? null : $plain;
+    }
+
+    public function test_with_the_runs_app_key_each_login_gets_an_api_key_stored_encrypted_and_hashed_the_way_the_app_reads_it(): void
+    {
+        putenv('PEAK_MEASURE_APP_KEY=' . self::APP_KEY);
+        $pdo = self::standIn();
+        $p = self::profile();
+
+        $summary = self::apply($pdo);
+
+        $keys = [];
+        foreach (['user', 'admin'] as $who) {
+            $id = $p[$who]['id'];
+            $stored = (string) self::scalar($pdo, "SELECT subsonic_api_key FROM users WHERE id = $id");
+            $plain = self::decrypt($stored, self::APP_KEY);
+            $this->assertNotNull($plain, "$who: the stored value is what the app's encrypted cast can read under the run's key");
+            $this->assertNotSame('', $plain);
+            $this->assertSame(
+                hash_hmac('sha256', $plain, self::APP_KEY),
+                self::scalar($pdo, "SELECT subsonic_api_key_hash FROM users WHERE id = $id"),
+                "$who: the hash column is the HMAC the app looks a key up by (HMAC-SHA256 of the key under APP_KEY)",
+            );
+            $keys[$who] = $plain;
+        }
+        $this->assertNotSame($keys['user'], $keys['admin'], 'one key per login');
+        $this->assertSame(2, $summary['subsonic']['api_keys']);
+        $this->assertStringNotContainsString(self::APP_KEY, json_encode($summary), 'the summary never holds the app key');
+        foreach ($keys as $plain) {
+            $this->assertStringNotContainsString($plain, json_encode($summary), 'nor an api key');
+        }
+    }
+
+    public function test_the_api_key_is_made_again_in_the_same_form_when_the_profile_is_applied_twice(): void
+    {
+        putenv('PEAK_MEASURE_APP_KEY=' . self::APP_KEY);
+        $pdo = self::standIn();
+
+        self::apply($pdo);
+        self::apply($pdo);
+
+        $this->assertSame(2, (int) self::scalar($pdo, 'SELECT COUNT(DISTINCT subsonic_api_key_hash) FROM users WHERE id IN (1, 2)'));
+        $this->assertNotNull(self::decrypt((string) self::scalar($pdo, 'SELECT subsonic_api_key FROM users WHERE id = 1'), self::APP_KEY));
+    }
+
+    public function test_without_an_app_key_in_the_environment_no_api_key_is_made_and_the_summary_says_so(): void
+    {
+        $pdo = self::standIn();
+
+        $summary = self::apply($pdo);
+
+        $this->assertSame(0, $summary['subsonic']['api_keys']);
+        $this->assertNull(self::scalar($pdo, 'SELECT subsonic_api_key FROM users WHERE id = 1'), 'a value nothing can decrypt is worse than none');
+        $this->assertNull(self::scalar($pdo, 'SELECT subsonic_api_key_hash FROM users WHERE id = 1'));
+        $this->assertSame(2, $summary['logins']['admin'], 'the rest of the profile is still applied');
+    }
+
+    public function test_a_malformed_app_key_is_refused_without_quoting_it(): void
+    {
+        putenv('PEAK_MEASURE_APP_KEY=base64:c2hvcnQ=');
+        $pdo = self::standIn();
+
+        try {
+            self::apply($pdo);
+            $this->fail('a key that is not 32 bytes must be refused');
+        } catch (\Throwable $e) {
+            $this->assertStringNotContainsString('c2hvcnQ', $e->getMessage());
+        }
+    }
+
+    public function test_the_file_never_holds_an_app_key_and_reads_it_from_the_environment(): void
+    {
+        $source = (string) file_get_contents(self::FILE);
+
+        $this->assertStringContainsString('PEAK_MEASURE_APP_KEY', $source);
+        $this->assertSame(0, preg_match('/base64:[A-Za-z0-9+\/]{20,}/', $source), 'no key value in the file');
+    }
+
+    public function test_the_subsonic_note_says_what_is_prepared_and_what_the_request_still_has_to_carry(): void
+    {
+        $note = self::profile()['unfillable']['subsonic'];
+
+        $this->assertContains($note['reason'], self::REASONS);
+        $this->assertStringNotContainsString('anew for each process', $note['why'], 'the key is shared across the processes of a run now');
+        $this->assertMatchesRegularExpression('/apiKey|credential/i', $note['why'], 'the Subsonic routes read their credentials from the request');
+    }
+
+    // ---- the routes the controller does not define -------------------------------------------------------------------
+
+    public function test_the_head_says_how_many_routes_are_recorded_as_action_not_defined(): void
+    {
+        $source = (string) file_get_contents(self::FILE);
+        $head = substr($source, 0, (int) strpos($source, '$when ='));
+
+        $this->assertStringContainsString('action_not_defined', $head);
+        $this->assertMatchesRegularExpression('/\b25\b/', $head, 'the machine count: 25 routes');
+        $this->assertMatchesRegularExpression('/\b3\b.*\b22\b|\b22\b.*\b3\b/s', $head, '3 without arguments and 22 with');
+    }
+
+    public function test_arguments_only_the_missing_operations_needed_are_not_declared_and_one_that_existing_routes_use_is_kept(): void
+    {
+        $arguments = self::profile()['arguments'];
+
+        foreach (['album', 'artist', 'song', 'playlist', 'station'] as $dead) {
+            $this->assertArrayNotHasKey($dead, $arguments, "$dead was needed only by routes to an operation the controller does not define");
+        }
+        foreach (['playlist_folder', 'genre', 'user'] as $kept) {
+            $this->assertArrayHasKey($kept, $arguments, $kept);
+        }
     }
 }

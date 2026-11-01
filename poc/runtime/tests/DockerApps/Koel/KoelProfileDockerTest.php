@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\DockerApps\Koel;
 
 use PDO;
+use PeakSim\Runtime\Boot\AppBooter;
 use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
@@ -48,6 +49,9 @@ final class KoelProfileDockerTest extends GenerationCase
             'This test needs Koel mounted at /app (PEAK_APP_ROOT=<a Koel checkout> bin/stack up); it does not run against another app.',
         );
 
+        // The run's one APP_KEY, as bin/measure makes it: the profile reads it to store the logins' Subsonic API keys
+        // encrypted, and every child process below inherits it, so the app decrypts what the profile stored.
+        putenv(AppBooter::APP_KEY_ENV . '=' . AppBooter::newAppKey());
         self::fresh(self::SCALE);
         self::$profile = (static fn (): array => require '/peak-sim/poc/runtime/profiles/koel.php')();
         $pdo = self::pdo(self::SCALE);
@@ -57,6 +61,7 @@ final class KoelProfileDockerTest extends GenerationCase
 
     public static function tearDownAfterClass(): void
     {
+        putenv(AppBooter::APP_KEY_ENV);
         self::drop(self::SCALE);
     }
 
@@ -198,8 +203,12 @@ final class KoelProfileDockerTest extends GenerationCase
             }
         }
 
-        $summary = ['routes_with_arguments' => count($result['routes']), 'tool_alone' => 0, 'with_profile_arguments' => 0, 'unfillable' => [], 'uncovered' => []];
+        $summary = ['routes_with_arguments' => count($result['routes']), 'not_defined' => 0, 'tool_alone' => 0, 'with_profile_arguments' => 0, 'unfillable' => [], 'uncovered' => []];
         foreach ($result['routes'] as $route) {
+            if ($route['action_not_defined']) {
+                ++$summary['not_defined'];
+                continue; // the route is recorded as action_not_defined and never hit: its arguments do not matter
+            }
             if ($route['unfilled'] === []) {
                 ++$summary['tool_alone'];
                 continue;
@@ -225,4 +234,56 @@ final class KoelProfileDockerTest extends GenerationCase
         $this->assertSame([], $summary['uncovered'], 'a parameter the tool cannot fill and the profile neither declares nor explains');
         $this->assertGreaterThan(0, $summary['with_profile_arguments']);
     }
+
+    public function testNoArgumentIsDeclaredThatOnlyRoutesToUndefinedOperationsNeed(): void
+    {
+        [$exit, $out, $err] = self::php(self::SUPPORT . '/arguments.php', [(string) self::SCALE]);
+        $this->assertSame(0, $exit, mb_substr($err, -500));
+        $result = json_decode(trim(strstr($out, '{') ?: ''), true);
+        $this->assertIsArray($result);
+
+        // What the tool alone cannot fill, split by whether the route's operation exists in the controller.
+        $needed = [];
+        $missingOnly = [];
+        $notDefined = 0;
+        foreach ($result['routes'] as $route) {
+            $notDefined += $route['action_not_defined'] ? 1 : 0;
+            foreach ($route['unfilled'] as $u) {
+                if ($route['action_not_defined']) {
+                    $missingOnly[$u['param']] = true;
+                } else {
+                    $needed[$u['param']] = true;
+                }
+            }
+        }
+        $onlyMissing = array_values(array_diff(array_keys($missingOnly), array_keys($needed)));
+        sort($onlyMissing);
+
+        $this->assertGreaterThan(0, $notDefined, 'Koel has routes to operations its controllers do not define');
+        $this->assertSame(['album', 'artist', 'playlist', 'song', 'station'], $onlyMissing, 'the arguments only those routes leave unfilled (measured on the real app)');
+        $declared = array_keys(self::$profile['arguments']);
+        $unfillable = array_merge(...array_map(static fn (array $e): array => $e['params'] ?? [], array_values(self::$profile['unfillable'])));
+        foreach ($onlyMissing as $param) {
+            $this->assertNotContains($param, $declared, "$param is declared though only a route that is never hit needs it");
+            $this->assertNotContains($param, $unfillable, "$param is explained as unfillable though only a route that is never hit needs it");
+        }
+        $this->assertContains('playlist_folder', $declared, 'routes that exist still need playlist_folder');
+    }
+
+    public function testTheAppAcceptsTheSubsonicApiKeysTheProfileStoredAndRefusesAWrongOne(): void
+    {
+        $this->assertSame(2, self::$applied['subsonic']['api_keys']);
+
+        [$exit, $out, $err] = self::php(self::SUPPORT . '/subsonic.php', [(string) self::SCALE, '1']);
+        $this->assertSame(0, $exit, 'subsonic.php failed: ' . mb_substr($err, -500));
+        $r = json_decode(trim(strstr($out, '{') ?: ''), true);
+        $this->assertIsArray($r, mb_substr($out, -300));
+
+        $this->assertTrue($r['model_reads_key'], 'the app\'s own encrypted cast decrypts what the profile stored, under the run\'s shared key');
+        $this->assertSame(['http' => 200, 'status' => 'ok'], $r['by_api_key'], 'ping by API key');
+        $this->assertSame(['http' => 200, 'status' => 'ok'], $r['by_token'], 'ping by token and salt (the app decrypts the stored key to check the token)');
+        $this->assertNotSame('ok', $r['by_wrong_api_key']['status']);
+        $this->assertNotSame('ok', $r['without_credentials']['status'], 'a request that carries no credentials is not authenticated: the tool\'s requests must carry them');
+    }
 }
+

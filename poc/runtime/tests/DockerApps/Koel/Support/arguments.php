@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Test support (runs INSIDE the sealed container): starts the app on the measurement database of one scale, reads its
 // route table and runs the tool's ArgumentResolver over every controller route, with no static analysis at hand (the
 // routes are taken from the app itself). Prints one JSON line:
-//   {"routes": [{"uri", "method", "params": [names], "unfilled": [{"param", "reason"}]}], "laravel": "..."}
+//   {"routes": [{"uri", "method", "action", "action_not_defined" (the controller has no such operation: the app's classes are loaded here, not in the test), "params": [names], "unfilled": [{"param", "reason"}]}], "laravel": "..."}
 //
 //   php arguments.php <scale>
 
@@ -15,6 +15,7 @@ use PeakSim\Runtime\Measure\EloquentRowLookup;
 use PeakSim\Runtime\Measure\RouteTable;
 use PeakSim\Runtime\Route\ArgumentResolver;
 use PeakSim\Runtime\Route\RouteCatalog;
+use PeakSim\Runtime\Run\ActionDefinition;
 
 require dirname(__DIR__, 4) . '/bootstrap.php';
 
@@ -40,7 +41,7 @@ foreach ($catalog->specs() as $spec) {
         continue;
     }
     $resolution = $resolver->resolve($spec);
-    $routes[] = ['uri' => $spec->uri, 'method' => $spec->method, 'params' => array_keys($spec->parameters), 'unfilled' => $resolution->unfilled];
+    $routes[] = ['uri' => $spec->uri, 'method' => $spec->method, 'action' => $spec->action, 'action_not_defined' => ActionDefinition::undefined($spec->action) !== null, 'params' => array_keys($spec->parameters), 'unfilled' => $resolution->unfilled];
 }
 
 echo json_encode(['routes' => $routes, 'laravel' => $app->version()], JSON_UNESCAPED_SLASHES), "\n";
