@@ -62,7 +62,7 @@ final class MemoryGuard
         }
 
         return "peak-sim: out of memory: PHP's memory_limit ({$limit}) was used up before the analysis finished.\n"
-            . "No report was completed. Run it again with a larger limit, for example --memory-limit=1G\n"
+            . "No report was completed. Run it again with a larger limit, for example --memory-limit=2G\n"
             . "(or raise memory_limit in php.ini). The tool never raises the limit by itself.\n";
     }
 }
