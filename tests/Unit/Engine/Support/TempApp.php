@@ -35,7 +35,8 @@ final class TempApp
             \RecursiveIteratorIterator::CHILD_FIRST,
         );
         foreach ($items as $item) {
-            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+            // a link to a directory is removed as a file: the directory it points at is not ours to remove
+            $item->isDir() && !$item->isLink() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
         rmdir($this->root);
     }
