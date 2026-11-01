@@ -8,6 +8,9 @@ use PeakSim\Model\Axis;
 use PeakSim\Model\Gap;
 use PeakSim\Model\GapCode;
 use PeakSim\Model\Site;
+use PhpParser\Error as PhpParserError;
+use PhpParser\ParserFactory;
+use PhpParser\PhpVersion;
 
 /**
  * Turns a Blade template into PHP source that the engine can walk like any other code.
@@ -453,12 +456,43 @@ final class BladeToPhp
         $code = $body;
         if (trim($body) === '') {
             $code = '';
-        } elseif (preg_match('/[;}]\s*$/', $body) !== 1) {
-            $code .= ';'; // `@php $a = 1 @endphp` is valid Blade
+        } elseif (self::needsSemicolon($body)) {
+            $code .= ';'; // `@php $a = 1 @endphp` is valid Blade: PHP reads the closing tag as a `;`
         }
         $this->emit($code, $this->take($end + strlen('@endphp')));
 
         return true;
+    }
+
+    /**
+     * Whether the body of an @php block needs the `;` that the closing tag implies in PHP.
+     * A body ending in `;` is complete. A body ending in `}` is complete only when it is a block statement
+     * (`foreach (...) { ... }`); one that ends an expression (`$a = match (...) { ... }`) is not. Told apart by
+     * trying the parser: it must read the body as it is, or fail on it and read it with the `;`.
+     * A body neither way readable (e.g. the `}` that closes a brace opened in an earlier block) is left as it was.
+     */
+    private static function needsSemicolon(string $body): bool
+    {
+        if (preg_match('/;\s*$/', $body) === 1) {
+            return false;
+        }
+        if (preg_match('/}\s*$/', $body) !== 1) {
+            return true;
+        }
+        $parser = (new ParserFactory())->createForVersion(PhpVersion::fromString('8.2'));
+        try {
+            $parser->parse('<?php ' . $body);
+
+            return false;
+        } catch (PhpParserError) {
+        }
+        try {
+            $parser->parse('<?php ' . $body . ';');
+
+            return true;
+        } catch (PhpParserError) {
+            return false;
+        }
     }
 
     private function verbatim(int $nameEnd, int $line): bool
