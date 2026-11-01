@@ -39,7 +39,8 @@ $profile = [
     // with no licence row the app is the community edition, and checking one calls an outside service.
     'skip' => ['roles', 'permissions', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'settings', 'licenses'],
 
-    // One organization: the default one the migrations make, which every login is moved into.
+    // One generated organization: the users table needs a parent to point at while it is written. The two logins are
+    // then moved into the default organization the migrations make (see after_generation).
     'rows' => ['organizations' => 1],
 
     'values' => [
