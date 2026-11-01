@@ -1,0 +1,166 @@
+# 実測モードの試作(runtime PoC)の結果
+
+作成日: 2026-11-02
+
+実測モードの試作(PoC)の結果である。設計は `docs/research/runtime-poc-design.md` に書いた。この文書は、試作を動かして得たものだけを書く。対象アプリを計測用の DB に載せ、件数を変えながらルートを実際に叩き、クエリの本数を数えて増え方を判定した結果である。
+
+**これは試作の結果であり、実測モードの本採用ではない。** 試作のコードは `poc/runtime/` にあり、公式の CLI にも phar にも入っていない。
+
+節の構成は、目的と読み方(§1)・検証用アプリの 24 ルート、シーダー方式(§2)・生成器方式(§3)・実アプリ(§4)・本採用の判断材料(§5)・安全の条件の根拠(§6)である。**この版に書いてあるのは §1 と §2 だけである。** §3〜§6 は後で追記する。
+
+## 1. 目的と読み方
+
+### 1.1 目的
+
+静的解析は「コードが何をしうるか」を読む。実測は「この入力で、実際にどの経路を通り、何本のクエリを流したか」を数える。両方を並べて、次の 3 点を調べる(設計メモ §0.1)。
+
+1. 静的解析が確定と言ったルートを、実測も同じ判定にするか(食い違いは最優先の発見である)
+2. 静的解析が unknown と言ったルートのうち、実測が判定できる割合
+3. 実アプリで、自動で叩けるルートの割合と、叩けない理由の内訳
+
+この版の §2 は、1 と 2 を検証用アプリ(`fixtures/laravel-app`)の 24 ルートで調べた結果である。3 は実アプリで調べるもので、§4 に書く。
+
+### 1.2 読み方の注意
+
+- **試作であって、本採用ではない。** ここに書く数字は、試作が動いたこと、そして試作の範囲で何が言えるかを示す。ツールの機能として約束するものではない。
+- **実測の言い切りは「この入力で通った経路での実測」だけである。** 実測の判定は静的解析の判定と語を分け(`measured_O1`・`measured_ON`・`measured_ONM`・`inconclusive`・`no_info`・`not_measured`)、どの表をどう増やして測ったか(scope)を付けて出す。`measured_O1` を「O(1)」と読み替えない。
+- **実測の `unknown` の扱い。** 静的解析が unknown と言ったルートを実測が判定した場合、それは「この入力で通った経路は O(1) だった(または O(N) だった)」であって、「そのルートの全ての経路が」ではない。静的解析の unknown を実測が `measured_*` で埋めたものは、分類で `runtime_only` と呼び、確定した判定とは別の枠で扱う(§2.4)。
+- **実測は静的の確定を上書きしない。** D21(「分からない」を「安全」にしない)は崩さない。静的が確定と言い、実測が食い違った場合は、期待値にも実測にも合わせず、そのまま `conflict` として報告する。この試作では 0 件だった(§2.3)。
+- **データに届いていない実測は、平坦に見えても「情報なし」とする**(`no_info`)。応答が空の系と同じ大きさのままなら、本数が変わらなくても O(1) とは言わない(設計メモ §7.3)。
+- **「24 ルートで一致した」は、ツール全体の実証ではない。** 24 本の性質は §2.5 に書いた。
+
+## 2. B2a: 検証用アプリの 24 ルート(シーダー方式)
+
+### 2.1 方法
+
+検証用アプリ(Laravel 13.39.0)の 24 ルートを、**アプリ自身のシーダー**で入れたデータで実測し、静的解析の出力と、`fixtures/expected.json` の期待値に並べた。
+
+| 項目 | 内容 |
+| --- | --- |
+| 測った commit | `d68a88b` |
+| 実行環境 | 封じたコンテナ(PHP 8.3.36。内部ネットワークのみ)。対象アプリは読み取り専用でマウント。起動前の検査(preflight)は通過 |
+| 静的解析の入力 | 同じ commit の `peak-sim analyze fixtures/laravel-app --export-dir=fixtures/artisan-export --format=json`(24 ルート、スキーマ 0.2) |
+| データ | アプリ自身の `DatabaseSeeder`。規模ごとに新しい DB を作り、migrate → シーダー(行数は環境変数で渡す)→ 行数を読み戻して計画と一致を確認する。ずれたら測らない |
+| 規模の列 | N 軸 **100・1,000・10,000**(期待値を決めたときと同じ。設計メモ Q5)。加えて、増やす表を空にした N=0 を 1 回。N=0 は応答の同一判定にだけ使い、傾きの点には入れない |
+| M 軸 | `/ng/nested` だけ、M(1 注文あたりの明細数)を **3・30・300** で測る(注文は 20 件に固定) |
+| 測り方 | 1 計測 = 1 プロセス(ルート × 規模)。ウォームアップ → コールド(キャッシュ空。主値)→ ウォーム(副値)。リクエストごとにトランザクションで巻き戻し、行数の前後比較で汚染を調べる |
+| リクエストの上限 | 60 秒(`--request-timeout=60`。使った値は `summary.json` に書かれる。§2.6) |
+| 所要 | 320 秒。DB 1 つの作成・migrate・シーダーは 0.5〜2 秒。最大は注文 10,000 件の DB の 20 ルートで、測定に 203 秒 |
+| 終了 | 終了コード 0。終了後に残った計測用 DB 0・コンテナ 0 |
+
+データの形はルートごとに決めた。orders を測るルートは、顧客 20・商品 20・注文 N・1 注文 3 明細。customers を測るルートは、顧客 N・商品 20・注文 0。products を測るルートは、顧客 1・商品 N・注文 0。増やす表の候補がない `/unknown/dynamic` は、全表を N にした(`scope: global`。N と M を分けないので、O(N×M) とは言わない。設計メモ Q4)。
+
+### 2.2 結果の表
+
+「期待」は `fixtures/expected.json` の `query`、「静的」は静的解析の判定、「実測」は**コールド**の本数での判定である。本数は N=100 / 1,000 / 10,000 のときのクエリ本数(`/ng/nested` は M 軸も併記)。傾きは最大の 2 規模の log-log 傾き(設計メモ §7.1)。
+
+| # | ルート | 期待 | 静的 | 実測の判定 | scope | N 軸の本数 | M 軸の本数(M=3/30/300) | 傾き | 静的 vs 実測 | 実測 vs 期待 |
+| ---: | --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- |
+| 1 | `/ok/eager` | O(1) | O(1) | measured_O1 | targeted:orders | 2/2/2 | - | 0 | agree | match |
+| 2 | `/ok/paginate` | O(1) | O(1) | measured_O1 | targeted:orders | 2/2/2 | - | 0 | agree | match |
+| 3 | `/ok/chunk` | O(N) | O(N) | measured_ON | targeted:orders | 2/11/101 | - | 0.9629 | agree | match |
+| 4 | `/ok/lazy` | O(N) | O(N) | measured_ON | targeted:orders | 2/11/101 | - | 0.9629 | agree | match |
+| 5 | `/ok/with-count` | O(1) | O(1) | measured_O1 | targeted:orders | 1/1/1 | - | 0 | agree | match |
+| 6 | `/ok/bulk` | O(1) | O(1) | measured_O1 | targeted:customers | 2/2/2 | - | 0 | agree | match |
+| 7 | `/ng/n-plus-one` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 8 | `/ng/nested` | O(N*M) | O(N*M) | measured_ONM | targeted:orders | 401/4001/40001 | 81/621/6021 | 0.9999 | agree | match |
+| 9 | `/ng/count-in-loop` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 10 | `/ng/unbounded` | O(1) | O(1) | measured_O1 | targeted:orders | 1/1/1 | - | 0 | agree | match |
+| 11 | `/ng/get-then-count` | O(1) | O(1) | measured_O1 | targeted:orders | 1/1/1 | - | 0 | agree | match |
+| 12 | `/ng/collection-filter` | O(1) | O(1) | measured_O1 | targeted:orders | 1/1/1 | - | 0 | agree | match |
+| 13 | `/ng/save-in-loop` | O(N) | O(N) | measured_ON | targeted:customers | 101/1001/10001 | - | 0.9996 | agree | match |
+| 14 | `/ng/first-or-create-in-loop` | O(N) | O(N) | measured_ON | targeted:products | 201/2001/20001 | - | 0.9998 | agree | match |
+| 15 | `/ng/service` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 16 | `/ng/layered` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 17 | `/hidden/blade` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 18 | `/hidden/resource` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 19 | `/hidden/cache` | 期待の `query` は null(キャッシュに無いとき O(N)、あるとき O(1)) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | unknown_filled |
+| 20 | `/hidden/appends` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 21 | `/hidden/model-with` | O(1) | O(1) | measured_O1 | targeted:orders | 2/2/2 | - | 0 | agree | match |
+| 22 | `/hidden/cursor` | O(1) | O(1) | measured_O1 | targeted:orders | 1/1/1 | - | 0 | agree | match |
+| 23 | `/hidden/conditional-binding` | O(N) | O(N) | measured_ON | targeted:orders | 101/1001/10001 | - | 0.9996 | agree | match |
+| 24 | `/unknown/dynamic` | unknown | unknown | measured_O1 | global | 1/1/1 | - | 0 | runtime_only | unknown_filled |
+
+`/ok/chunk` と `/ok/lazy` は、本数が 2/11/101 で、N に比例して増える(アプリが 100 件ずつの塊で読むため、本数は `N/100 + 1`)。傾きが 1 に届かないのは、この定数 1 が効くためである。期待の O(N) と一致した。
+
+### 2.3 要約
+
+| 静的 vs 実測 | 件数 | ルート |
+| --- | ---: | --- |
+| agree(静的が確定で、実測が一致) | **23** | `/unknown/dynamic` 以外の 23 本 |
+| runtime_only(静的は unknown で、実測が判定) | **1** | `/unknown/dynamic` |
+| static_stronger(静的が下限で、実測がそれ未満) | 0 | - |
+| conflict(静的が確定で、実測が食い違う) | **0** | - |
+| not_comparable | 0 | - |
+
+| 実測 vs 期待 | 件数 |
+| --- | ---: |
+| match | **22** |
+| unknown_filled(期待が unknown または null で、実測が判定) | **2**(`/unknown/dynamic`・`/hidden/cache`) |
+| mismatch | **0** |
+
+実測の判定の内訳は、`measured_O1` 10・`measured_ON` 13・`measured_ONM` 1(`/ng/nested`)で、`inconclusive`・`no_info`・`not_measured` は 0 である。
+
+**D21 に反する食い違いは 0 件だった。期待値にも、実測にも合わせた箇所は無い**(静的解析の出力と期待値は、実測の前後で無改変)。判定規則の変更も、実測の結果を見て行っていない(判定・ルート・報告の部品と `src/`・`fixtures/` は、commit `8efa932` 以降、並べ表のための `Verdict::fromArray` の追加を除いて変わっていない)。
+
+### 2.4 別枠: 静的が分からないと言ったルートを、実測がどこまで埋めたか
+
+次の 2 ルートは、静的解析が「分からない」または「最悪のケースを採った」ルートである。実測が埋めたのは**既定の経路だけ**で、そこから先は言えない。
+
+#### `/unknown/dynamic`(静的: unknown)
+
+- 実測は **measured_O1**(`scope: global`、本数 1/1/1。空の系でも 1)だった。静的が unknown としたものを、実測が判定した(`runtime_only`)。
+- **言えるのは「既定の経路」だけである。** ツールはクエリ文字列を付けずに 1 回叩く。このルートは `?method=` で呼ぶメソッドを選び、既定は `summary`(`Order::count()` の 1 本)である。もう一方の `latest`(`limit(10)`)は叩いていない。コードを読むと `latest` も 1 本だが、それはツールの実測ではなく、読んだ結果である。したがって「動的呼び出しの全分岐が O(1)」とは言わない。
+- 偽の O(1) の防止は働いた。触れた表は orders で、応答本体のバイト数は規模で変わる(`{"orders":N}`)ため、`untouched_data` にも `suspect_empty` にもならなかった。
+
+#### `/hidden/conditional-binding`(静的: O(N)、最悪ケース採用)
+
+- 実測は **measured_ON**(101/1001/10001、傾き 0.9996)で、静的の最悪ケース採用の O(N) と一致した。
+- **これは「production でない側」を測っただけである。** この束縛は、`environment('production')` のときは先読み(eager loading)の実装、それ以外では N+1 の実装に切り替わる。ツールは `APP_ENV=local` で動かすので、N+1 の側が走った。production 側(先読み。O(1) の見込み)は測っていない。
+- 実測が確かめたのは「最悪ケースの採用が、実在する経路だ」ということまでである。「このアプリの本番での挙動」は言えない。ツールが環境を変えて 2 回測る案は未実装で、本採用の判断材料になる(§5)。
+
+#### 参考: `/hidden/cache`(期待の `query` は null)
+
+- コールド(キャッシュ空)の本数は 101/1001/10001 で O(N)。期待の `query_on_miss: O(N)` と一致した。
+- ウォーム(2 回目)は 0/0/0 で、`query_on_hit: O(1)` と整合する(ヒットでは DB に行かない)。判定の主はコールドである。
+
+### 2.5 限界
+
+次の限界は、この結果を読むときに必ず付ける。
+
+1. **実測の範囲は「この入力・この経路」である。** ツールは `APP_ENV=local`・クエリ文字列なし・必須項目だけの本体・`Accept: application/json` で叩く。環境・クエリ文字列・任意項目・HTML の画面で分岐する経路は測っていない。§2.4 の 2 ルートが、その実例である。
+2. **既定の経路だけが埋まった。** `/unknown/dynamic` は既定の分岐(`summary`)だけ、`/hidden/conditional-binding` は `APP_ENV=local` の側だけである。静的が分からないと言ったルートを、実測が全経路について埋めたわけではない。
+3. **検証用アプリの 24 本は、GET のみ・認証なし・パラメーターなしである。** したがって、引数の埋め(ArgumentResolver)・ログイン利用者の用意(UserProvider)・POST などの本体の生成(BodyBuilder)・巻き戻しの汚染からの再構築は、**24 ルートの実測では通っていない**。これらは、単体試験と、封じたコンテナの中の試験(プローブ用に複製したアプリで、DDL・commit・403・401・404・500 を返すルートを使う)でだけ確かめた。実アプリで初めて、実測の経路として通る(§4 で扱う)。パラメーター付きルートの検出と、scoped binding の外部キーの推定も、実アプリのルートに当てた試験がまだ無い。**「24 本とも一致」を、ツール全体が正しいことの証拠として読まないこと。**
+4. **書き込みを持つルートは 3 本ある**(`/ok/bulk`・`/ng/save-in-loop`・`/ng/first-or-create-in-loop`)。巻き戻しは働き、汚染(行数のずれ)は 0 だった。ただし DDL や別接続を使うルートは、この 24 本には無い(巻き戻せないものは測らず記録する規則は、プローブ用の複製アプリの試験でだけ確かめた)。
+5. **ピークメモリは参考値である。** 100 → 10,000 の倍率は、`/ok/paginate`・`/ok/chunk`・`/ok/lazy`・`/unknown/dynamic` が 1.0、`/hidden/cursor` が 10.5、その他は 70〜95 倍(N の 100 倍に対してほぼ線形)だった。判定には使っていない。
+6. **`ShouldQueue` のリスナーは、キューに積まれるだけで走らない**(Queue は偽物)。この 24 本には該当するルートが無い。
+
+### 2.6 20 秒の上限で `/ng/nested` が一度測れなかった経緯
+
+最初の最終走(commit `3464a34`、リクエストの上限は既定の 20 秒)で、`/ng/nested` の N=10,000 が約 4 万本のクエリを要して 20 秒を超えた。ウォームアップが `exception(the request ran longer than 20 seconds)` となり、残った点が 100 と 1,000 の 2 つだけになって、このルートは `not_measured(insufficient_points)` になった。
+
+- **原因は、実装の欠陥でも判定規則でもなく、時間の上限である。** 同じ上限で通った開発中の通し走があり、時間の余裕が薄い境界だったと考えている。当時は他の処理が同じ機械で動いていた可能性があるが、負荷は測っていない。
+- 対応は 2 つ。(a) 上限を `--request-timeout`(1〜60 秒)で変えられるようにした。最終走は 60 秒で行い、使った値は走ごとに `summary.json` の `request_time_limit_seconds` に書かれる。(b) 点が足りずに判定できないとき、その行の分類を `ok` のままにせず、落ちた規模と理由(`scale 10000 (axis N): … ran longer than 20 seconds`)を出すようにした(`d68a88b`)。
+- 最初の走の記録は、教訓として手元に残してある。上の表は 60 秒で再走した結果である。
+
+この経緯が示すとおり、**クエリを数万本流すルートは、既定の上限に近づく。** 上限に当たったルートは `not_measured` として理由つきで残り、O(N) とも O(1) とも言わない。
+
+### 2.7 食い違いの切り分け
+
+シーダー方式の本番走で、`conflict`・`mismatch`・`static_stronger` は 0 件だったので、切り分けるものは無い。
+
+## 3. B2b: 生成器方式(後で追記)
+
+(後で追記)
+
+## 4. B3: 実アプリ(後で追記)
+
+(後で追記)
+
+## 5. 本採用の判断材料(後で追記)
+
+(後で追記)
+
+## 6. 安全の条件の根拠(後で追記)
+
+(後で追記)
