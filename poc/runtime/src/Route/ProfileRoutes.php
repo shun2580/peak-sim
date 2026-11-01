@@ -16,6 +16,10 @@ namespace PeakSim\Runtime\Route;
  * An entry with `routes` and no `params` explains the whole route: it cannot be prepared, for the entry's reason. An
  * entry with `params` explains those arguments (in the routes it names, or in every route when it names none). An
  * entry with neither is a note and matches nothing.
+ *
+ * A `request_query` entry names routes the same way and says what their GET carries in its query (see
+ * `RequestCredentials`): `query` (name => template) and, optionally, `as` (`user` or `admin`, the login whose email and
+ * key it uses; default the profile's `login_as`). It is for routes that read their credentials from the request's input.
  */
 final class ProfileRoutes
 {
@@ -37,6 +41,31 @@ final class ProfileRoutes
             }
             if (self::covers($entry, $uri, $middleware, $action)) {
                 return ['label' => (string) $label, 'reason' => $entry['reason'], 'why' => (string) ($entry['why'] ?? '')];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The first `request_query` entry that names this route, for a GET (only a GET carries its query this way), or null.
+     *
+     * @param array<string, mixed> $profile
+     * @param list<string>         $middleware
+     *
+     * @return array{label: string, as: ?string, query: array<string, string>}|null
+     */
+    public static function querying(array $profile, string $uri, array $middleware, ?string $action, string $method): ?array
+    {
+        if (strtoupper($method) !== 'GET') {
+            return null;
+        }
+        foreach ((array) ($profile['request_query'] ?? []) as $label => $entry) {
+            if (! is_array($entry) || ! isset($entry['routes']) || ! is_array($entry['query'] ?? null)) {
+                continue;
+            }
+            if (self::covers($entry, $uri, $middleware, $action)) {
+                return ['label' => (string) $label, 'as' => isset($entry['as']) && is_string($entry['as']) ? $entry['as'] : null, 'query' => $entry['query']];
             }
         }
 

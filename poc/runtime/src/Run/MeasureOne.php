@@ -10,6 +10,7 @@ use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\Guard\RollbackGuard;
+use PeakSim\Runtime\Route\RequestCredentials;
 
 /**
  * Measures one (route, scale) in this process: three requests (warm-up, cold, warm) against a database that has
@@ -36,6 +37,7 @@ final class MeasureOne
           --form                  send the body as a form instead of JSON
           --html                  ask for text/html instead of application/json
           --csrf                  send a session cookie and X-CSRF-TOKEN
+          --query=name=value      repeatable: a query string parameter of a GET (a secret is given as a token {key:purpose:login})
           --act-as=Model:key[:guard]   log this user in (before every request)
           --gate-bypass           let every Gate check pass (recorded as gate_bypass=true)
           --phases=warmup,cold,warm    default: all three
@@ -106,7 +108,15 @@ final class MeasureOne
         $counter->listenTo($app['events']);
         $rows = RowCounter::connect($config, $booted->dbName);
         $requester = new Requester($booted);
-        $spec = new RequestSpec($args['method'], $args['uri'], $args['headers'], $args['body'], $args['json'], $args['csrf']);
+        try {
+            $query = RequestCredentials::expand($args['query'], (string) ($this->env[AppBooter::APP_KEY_ENV] ?? ''));
+        } catch (\InvalidArgumentException $e) {
+            // Nothing can be sent: say so as an attempt that was not made (the message names no value).
+            $this->emit($this->attempt($args, Attempt::WARMUP, null, null, null, Classification::UNFILLED_PARAM, 'credentials: ' . $e->getMessage()));
+
+            return self::EXIT_OK;
+        }
+        $spec = new RequestSpec($args['method'], $args['uri'], $args['headers'], $args['body'], $args['json'], $args['csrf'], $query);
 
         if ($args['gateBypass']) {
             $app->make('Illuminate\\Contracts\\Auth\\Access\\Gate')->before(static fn (mixed $user = null, mixed $ability = null): bool => true); // nullable user: guests pass too
@@ -233,11 +243,11 @@ final class MeasureOne
     /**
      * @param list<string> $argv
      *
-     * @return array{scale: int, uri: string, method: string, route: string, axis: string, headers: array<string, string>, body: ?array<string, mixed>, json: bool, csrf: bool, actAs: ?string, gateBypass: bool, phases: list<int>}
+     * @return array{scale: int, uri: string, method: string, route: string, axis: string, headers: array<string, string>, query: array<string, string>, body: ?array<string, mixed>, json: bool, csrf: bool, actAs: ?string, gateBypass: bool, phases: list<int>}
      */
     public static function parseArguments(array $argv): array
     {
-        $opts = ['header' => []];
+        $opts = ['header' => [], 'query' => []];
         foreach ($argv as $arg) {
             if (!str_starts_with($arg, '--')) {
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
@@ -247,11 +257,13 @@ final class MeasureOne
             $value = $pair[1] ?? null;
             if ($name === 'header') {
                 $opts['header'][] = (string) $value;
+            } elseif ($name === 'query') {
+                $opts['query'][] = $value;
             } else {
                 $opts[$name] = $value ?? true;
             }
         }
-        $known = ['scale', 'uri', 'method', 'route', 'axis', 'header', 'body-json', 'form', 'html', 'csrf', 'act-as', 'gate-bypass', 'phases'];
+        $known = ['scale', 'uri', 'method', 'route', 'axis', 'header', 'query', 'body-json', 'form', 'html', 'csrf', 'act-as', 'gate-bypass', 'phases'];
         foreach (array_keys($opts) as $name) {
             if (!in_array($name, $known, true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
@@ -277,6 +289,14 @@ final class MeasureOne
                 throw new \InvalidArgumentException('--header must look like Name:Value');
             }
             $headers[$m[1]] = $m[2];
+        }
+
+        $query = [];
+        foreach ($opts['query'] as $line) {
+            if (!is_string($line) || preg_match('/^([A-Za-z0-9_.-]{1,40})=(.*)$/sD', $line, $m) !== 1) {
+                throw new \InvalidArgumentException('--query must look like name=value');
+            }
+            $query[$m[1]] = $m[2];
         }
 
         $body = null;
@@ -312,6 +332,7 @@ final class MeasureOne
             'route' => is_string($opts['route'] ?? null) ? $opts['route'] : ltrim($uri, '/'),
             'axis' => is_string($opts['axis'] ?? null) ? $opts['axis'] : 'N',
             'headers' => $headers,
+            'query' => $query,
             'body' => $body,
             'json' => !isset($opts['form']),
             'csrf' => isset($opts['csrf']),

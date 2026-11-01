@@ -149,6 +149,7 @@ final class Driver
             $task->headers,
             false,
             $point->scale === 0 ? [Attempt::WARMUP, Attempt::COLD] : [Attempt::WARMUP, Attempt::COLD, Attempt::WARM],
+            $task->query,
         );
 
         $result = $this->runner->run($request);
@@ -252,6 +253,11 @@ final class Driver
                 }
             }
             $row = RunReport::rowFor($task->spec, $attempts, $failClass, $failDetail);
+            if ($task->credentials !== null) {
+                // The route was reached through the app's own authentication with credentials the profile supplied,
+                // not through a session login: a different path, so the record says it.
+                $row['request_credentials'] = $task->credentials;
+            }
             if ($row['verdict'] === Verdict::NOT_MEASURED && $row['class'] === 'ok') {
                 // Too few points were left to judge: say which scale failed and why, not that all went well.
                 foreach ($attempts as $a) {

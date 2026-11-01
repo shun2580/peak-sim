@@ -16,6 +16,8 @@ final class RouteTask
      * @param array<string, mixed>|null $body
      * @param array<string, string>     $headers
      * @param list<string>              $guessed arguments whose value was made up, not read from a row (see ArgumentResolver)
+     * @param array<string, string>     $query   the query string of a GET: credentials the profile has the route carry, the secret only as a token (see RequestCredentials)
+     * @param string|null               $credentials  a sentence for the record when the request carried credentials: which profile entry and the names (never a value)
      */
     public function __construct(
         public readonly RouteSpec $spec,
@@ -28,6 +30,8 @@ final class RouteTask
         public readonly bool $csrf = false,
         public readonly array $headers = [],
         public readonly array $guessed = [],
+        public readonly array $query = [],
+        public readonly ?string $credentials = null,
     ) {
     }
 
@@ -50,6 +54,8 @@ final class RouteTask
             'csrf' => $this->csrf,
             'headers' => $this->headers,
             'guessed' => $this->guessed,
+            'query' => $this->query,
+            'credentials' => $this->credentials,
         ];
     }
 
@@ -69,6 +75,8 @@ final class RouteTask
             (bool) $data['csrf'],
             $data['headers'],
             array_values($data['guessed'] ?? []),
+            $data['query'] ?? [],
+            $data['credentials'] ?? null,
         );
     }
 }

@@ -64,6 +64,44 @@ final class AppBootDockerTest extends DockerCase
         self::assertGreaterThan($count(self::SCALE, '/ng/n-plus-one') * 3, $count(self::SCALE_BIG, '/ng/n-plus-one'));
     }
 
+    public function testAQueryGivenToARequestReachesTheAppAsItsInput(): void
+    {
+        [$exit, $first, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/paginate', '--query=page=1', '--phases=cold']);
+        self::assertSame(0, $exit, $err);
+        [$exit, $second, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/paginate', '--query=page=2', '--phases=cold']);
+        self::assertSame(0, $exit, $err);
+        [$exit, $none, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/paginate', '--phases=cold']);
+        self::assertSame(0, $exit, $err);
+
+        self::assertSame('ok', $first[0]['class']);
+        self::assertSame('ok', $second[0]['class']);
+        self::assertNotSame($first[0]['bytes'], $second[0]['bytes'], 'page 2 is another answer than page 1: the app read the query');
+        self::assertSame($first[0]['bytes'], $none[0]['bytes'], 'no query is page 1, as it always was');
+    }
+
+    public function testATokenInTheQueryIsMadeFromTheRunsAppKeyAndTheKeyIsNeverPrinted(): void
+    {
+        $key = \PeakSim\Runtime\Boot\AppBooter::newAppKey();
+        $derived = \PeakSim\Runtime\Route\RequestCredentials::derive($key, 'subsonic', 1);
+
+        [$exit, $attempts, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/paginate', '--query=token={key:subsonic:1}', '--phases=cold'], ['PEAK_MEASURE_APP_KEY' => $key]);
+
+        self::assertSame(0, $exit, $err);
+        self::assertSame('ok', $attempts[0]['class']);
+        self::assertStringNotContainsString($derived, json_encode($attempts, JSON_THROW_ON_ERROR) . $err, 'the key is not in the output');
+    }
+
+    public function testATokenWithoutTheRunsAppKeyIsNotSentAndSaysWhyWithoutAValue(): void
+    {
+        [$exit, $attempts, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/paginate', '--query=token={key:subsonic:1}', '--phases=cold'], ['PEAK_MEASURE_APP_KEY' => '']);
+
+        self::assertSame(0, $exit, $err);
+        self::assertCount(1, $attempts);
+        self::assertSame('unfilled_param', $attempts[0]['class']);
+        self::assertStringContainsString('APP_KEY', (string) $attempts[0]['detail']);
+        self::assertNull($attempts[0]['queries'], 'no request was made');
+    }
+
     public function testTheAppIsReadOnlyAndNothingChangedAfterARunThatWrites(): void
     {
         $before = self::snapshot(self::APP);

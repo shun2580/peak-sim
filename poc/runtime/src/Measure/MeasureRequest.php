@@ -15,6 +15,7 @@ final class MeasureRequest
      * @param array<string, mixed>|null $body
      * @param array<string, string>     $headers
      * @param list<int>                 $phases  Attempt::WARMUP, COLD, WARM
+     * @param array<string, string>     $query   the query string of a GET; a secret is only a token here (RequestCredentials)
      */
     public function __construct(
         public readonly string $tag,
@@ -30,12 +31,13 @@ final class MeasureRequest
         public readonly array $headers,
         public readonly bool $gateBypass,
         public readonly array $phases,
+        public readonly array $query = [],
     ) {
     }
 
     public function withGateBypass(): self
     {
-        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, true, $this->phases);
+        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, true, $this->phases, $this->query);
     }
 
     /** @return list<string> the arguments of `bin/measure-one` */
@@ -44,6 +46,9 @@ final class MeasureRequest
         $args = ['--scale=' . $this->scale, '--uri=' . $this->uri, '--method=' . $this->method, '--route=' . $this->route, '--axis=' . $this->axis];
         foreach ($this->headers as $name => $value) {
             $args[] = '--header=' . $name . ':' . $value;
+        }
+        foreach ($this->query as $name => $value) {
+            $args[] = '--query=' . $name . '=' . $value;
         }
         if ($this->body !== null) {
             $args[] = '--body-json=' . ($this->body === [] ? '{}' : json_encode($this->body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));

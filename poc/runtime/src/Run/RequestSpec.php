@@ -10,6 +10,7 @@ final class RequestSpec
     /**
      * @param array<string, string>      $headers
      * @param array<string, mixed>|null  $body    sent as JSON when $json, else as a form
+     * @param array<string, string>      $query   the query string of a GET (credentials an app reads from the request's input); empty by default
      */
     public function __construct(
         public readonly string $method,
@@ -18,6 +19,7 @@ final class RequestSpec
         public readonly ?array $body = null,
         public readonly bool $json = true,
         public readonly bool $csrf = false,
+        public readonly array $query = [],
     ) {
     }
 }

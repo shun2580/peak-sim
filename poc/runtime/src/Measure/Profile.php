@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Measure;
 
 use PeakSim\Runtime\Route\ProfileRoutes;
+use PeakSim\Runtime\Route\RequestCredentials;
 use PeakSim\Runtime\Run\Classification;
 
 /**
@@ -25,8 +26,10 @@ final class Profile
      *                                  the hook that runs after the generator (`DatabaseBuild::afterGeneration`); the
      *                                  first three are what that hook reads in the profile that has one
      *   arguments, unfillable          the argument resolver (`Route\ArgumentResolver`)
+     *   request_query                  the task builder: routes whose GET carries credentials in its query
+     *                                  (`Route\ProfileRoutes::querying`, `Route\RequestCredentials`)
      */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'after_generation'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation'];
 
     /**
      * @return array<string, mixed> empty when no profile is named
@@ -60,6 +63,9 @@ final class Profile
         foreach ((array) ($profile['unfillable'] ?? []) as $label => $entry) {
             self::checkUnfillable($name, (string) $label, $entry);
         }
+        foreach ((array) ($profile['request_query'] ?? []) as $label => $entry) {
+            self::checkRequestQuery($name, (string) $label, $entry, $profile);
+        }
         $loginAs = $profile['login_as'] ?? 'user';
         if ($loginAs !== 'user' && $loginAs !== 'admin') {
             throw new BuildFailure(sprintf('profile "%s": login_as must be "user" or "admin"', $name));
@@ -87,15 +93,72 @@ final class Profile
         if (!isset($entry['routes'])) {
             return;
         }
-        if (!is_array($entry['routes']) || $entry['routes'] === []) {
+        self::checkRoutes($entry['routes'], $fail);
+    }
+
+    /**
+     * @param callable(string): BuildFailure $fail
+     *
+     * @throws BuildFailure
+     */
+    private static function checkRoutes(mixed $routes, callable $fail): void
+    {
+        if (!is_array($routes) || $routes === []) {
             throw $fail('has routes that are not a list of keys');
         }
-        foreach ($entry['routes'] as $key => $values) {
+        foreach ($routes as $key => $values) {
             if (!in_array($key, ProfileRoutes::ROUTE_KEYS, true)) {
                 throw $fail(sprintf('names a route key nothing reads: %s', (string) $key));
             }
             if (!is_array($values) || $values === [] || array_filter($values, 'is_string') !== $values) {
                 throw $fail(sprintf('needs a non-empty list of strings for %s', (string) $key));
+            }
+        }
+    }
+
+    /**
+     * A `request_query` entry names the routes whose GET carries credentials in its query: `routes` (as in `unfillable`),
+     * `query` (parameter name => text, with the placeholders `RequestCredentials` reads) and, optionally, `as`: the login
+     * (`user` or `admin`) whose email and key it uses, which the profile must have.
+     *
+     * @param array<string, mixed> $profile
+     *
+     * @throws BuildFailure
+     */
+    private static function checkRequestQuery(string $name, string $label, mixed $entry, array $profile): void
+    {
+        $fail = static fn (string $why): BuildFailure => new BuildFailure(sprintf('profile "%s": request_query "%s" %s', $name, $label, $why));
+        if (!is_array($entry) || !isset($entry['routes'])) {
+            throw $fail('needs routes');
+        }
+        self::checkRoutes($entry['routes'], $fail);
+        $query = $entry['query'] ?? null;
+        if (!is_array($query) || $query === []) {
+            throw $fail('needs a query (a non-empty list of name => text)');
+        }
+        $as = $entry['as'] ?? ($profile['login_as'] ?? 'user');
+        if ($as !== 'user' && $as !== 'admin') {
+            throw $fail('has an "as" that is neither user nor admin');
+        }
+        $login = $profile[$as] ?? null;
+        $needsLogin = false;
+        foreach ($query as $name => $value) {
+            if (!is_string($name) || preg_match('/^[A-Za-z0-9_.-]{1,40}$/D', $name) !== 1) {
+                throw $fail('has a query name that is not a plain word');
+            }
+            if (!is_string($value) || !RequestCredentials::isAllowedTemplate($value)) {
+                throw $fail(sprintf('has a query value for "%s" that is not text or has a placeholder nothing reads', $name));
+            }
+            $needsLogin = $needsLogin || str_contains($value, '{');
+        }
+        if ($needsLogin) {
+            if (!is_array($login) || !(is_int($login['id'] ?? null) || is_string($login['id'] ?? null))) {
+                throw $fail(sprintf('uses the %s login and the profile has none with an id', $as));
+            }
+            foreach ($query as $value) {
+                if (str_contains($value, '{email}') && !(is_string($login['email'] ?? null) && $login['email'] !== '')) {
+                    throw $fail(sprintf('asks for the email of the %s login and it has none', $as));
+                }
             }
         }
     }

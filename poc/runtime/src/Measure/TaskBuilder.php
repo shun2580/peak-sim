@@ -7,6 +7,7 @@ namespace PeakSim\Runtime\Measure;
 use PeakSim\Runtime\Route\ArgumentResolver;
 use PeakSim\Runtime\Route\BodyBuilder;
 use PeakSim\Runtime\Route\ProfileRoutes;
+use PeakSim\Runtime\Route\RequestCredentials;
 use PeakSim\Runtime\Route\RouteSpec;
 use PeakSim\Runtime\Route\UserProvider;
 use PeakSim\Runtime\Run\ActionDefinition;
@@ -37,8 +38,27 @@ final class TaskBuilder
             return self::failed($spec, Classification::ACTION_NOT_DEFINED, $undefined);
         }
 
+        // A GET route the profile has carry credentials in its query is prepared (not explained away): the credentials are
+        // what it needs to be reached through the app's own authentication. The secret stays a token in the task.
+        $query = [];
+        $credentials = null;
+        $querying = ProfileRoutes::querying($this->profile, $spec->uri, $spec->middleware, $spec->action, $spec->method);
+        if ($querying !== null) {
+            $as = $querying['as'] ?? ($this->profile['login_as'] ?? 'user');
+            try {
+                $query = RequestCredentials::template($querying['query'], (array) ($this->profile[$as] ?? []));
+            } catch (\InvalidArgumentException $e) {
+                return self::failed($spec, 'unfilled_param', 'profile:' . $querying['label'] . ': ' . $e->getMessage());
+            }
+            $credentials = sprintf(
+                'profile:%s: reached with the profile\'s credentials (%s) in the query, through the route\'s own authentication and not a session login',
+                $querying['label'],
+                implode(', ', array_keys($query)),
+            );
+        }
+
         // A route the profile says cannot be prepared (and why) is recorded with that reason, before anything is asked of the app.
-        $explained = ProfileRoutes::explaining($this->profile, $spec->uri, $spec->middleware, $spec->action);
+        $explained = $querying !== null ? null : ProfileRoutes::explaining($this->profile, $spec->uri, $spec->middleware, $spec->action);
         if ($explained !== null) {
             return self::failed($spec, $explained['reason'], 'profile:' . $explained['label'] . ($explained['why'] === '' ? '' : ': ' . $explained['why']));
         }
@@ -95,7 +115,7 @@ final class TaskBuilder
             }
         }
 
-        return new RouteTask($spec, $uri, null, null, $actAs, $body, false, $csrf, [], $resolution->guessed);
+        return new RouteTask($spec, $uri, null, null, $actAs, $body, false, $csrf, [], $resolution->guessed, $query, $credentials);
     }
 
     private static function failed(RouteSpec $spec, string $class, string $detail): RouteTask

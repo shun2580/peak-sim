@@ -47,16 +47,11 @@ final class Requester
 
         $method = strtoupper($spec->method);
         $content = null;
-        $parameters = [];
-        if ($spec->body !== null) {
-            if ($spec->json) {
-                $server['CONTENT_TYPE'] = 'application/json';
-                $content = json_encode($spec->body, JSON_THROW_ON_ERROR);
-            } else {
-                $parameters = $spec->body;
-            }
+        if ($spec->body !== null && $spec->json) {
+            $server['CONTENT_TYPE'] = 'application/json';
+            $content = json_encode($spec->body, JSON_THROW_ON_ERROR);
         }
-        $request = $requestClass::create(self::BASE_URL . '/' . ltrim($spec->uri, '/'), $method, $method === 'GET' ? [] : $parameters, $cookies, [], $server, $content);
+        $request = $requestClass::create(self::BASE_URL . '/' . ltrim($spec->uri, '/'), $method, self::parametersFor($spec), $cookies, [], $server, $content);
 
         $this->booted->exceptions->take();
         gc_collect_cycles();
@@ -95,6 +90,21 @@ final class Requester
             is_string($redirectPath) ? $redirectPath : null,
             $note,
         );
+    }
+
+    /**
+     * The parameters the request is made with: the spec's query for a GET (empty when it has none), the form fields for
+     * any other method sent as a form, nothing for JSON.
+     *
+     * @return array<string, mixed>
+     */
+    public static function parametersFor(RequestSpec $spec): array
+    {
+        if (strtoupper($spec->method) === 'GET') {
+            return $spec->query;
+        }
+
+        return $spec->body !== null && ! $spec->json ? $spec->body : [];
     }
 
     /**
