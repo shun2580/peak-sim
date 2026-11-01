@@ -8,6 +8,7 @@ use PeakSim\Analysis\Contracts\CallHandler;
 use PeakSim\Analysis\Contracts\CallSite;
 use PeakSim\Analysis\Contracts\EvalContext;
 use PeakSim\Analysis\Engine\TypeMerge;
+use PeakSim\Analysis\Engine\TypeResolver;
 use PeakSim\Analysis\Handlers\Query\RelationOps;
 use PeakSim\Analysis\Type\ClosureT;
 use PeakSim\Analysis\Type\ModelT;
@@ -154,7 +155,24 @@ final class ResourceHandler implements CallHandler
             return $ctx->gap(GapCode::RESOURCE_NOT_ANALYZED, $c->node, "property {$c->name} of the resource collection {$r->resourceClass} is not modelled");
         }
 
+        $declared = $this->declared($r, $c, $ctx);
+        if ($declared !== null) {
+            return $declared;
+        }
+
         return $this->onWrapped($r->inner, $c, $ctx);
+    }
+
+    /**
+     * `$this->order` where the resource class declares (or promotes) a property `order` of a class type: PHP reads that
+     * property, it does not forward to the wrapped model, so the value is what the declaration says (a model, an object).
+     * A property with no class type (untyped, scalar, union) says nothing here and is left to the forwarding path.
+     */
+    private function declared(ResourceT $r, CallSite $c, EvalContext $ctx): ?Type
+    {
+        $text = $ctx->source()->propertyType($r->resourceClass, $c->name);
+
+        return $text === null ? null : (new TypeResolver($ctx->models()))->fromTypeString($text, $r->resourceClass);
     }
 
     /** A property read or a call that a resource forwards to the model it wraps. */
