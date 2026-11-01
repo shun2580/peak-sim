@@ -132,6 +132,9 @@ final class Generator implements DataGenerator
                 $nullFks[$fk->name] = true;
                 continue;
             }
+            if ($fk->refTable === $table->name) {
+                continue; // a self reference points at an earlier row of this very insert
+            }
             $parent = $state[$fk->refTable] ?? null;
             if ($parent !== null && $parent['status'] === TableOutcome::GENERATED) {
                 continue;
@@ -240,7 +243,7 @@ final class Generator implements DataGenerator
             $row[] = match ($entry['kind']) {
                 'null' => null,
                 'constant' => $constants[$table->name][$entry['name']],
-                'fk' => $this->foreignKeyValue($schema, $entry['fk'], $entry['position'], $radix[$entry['fk']->name] ?? null, $rows, $existing, $i, $constants),
+                'fk' => $this->foreignKeyValue($schema, $table, $entry['fk'], $entry['position'], $radix[$entry['fk']->name] ?? null, $rows, $existing, $i, $constants),
                 default => $this->values->value($table, $table->column($entry['name']), $i),
             };
         }
@@ -261,12 +264,21 @@ final class Generator implements DataGenerator
      * @param array<string, int>  $existing
      * @param array<string, mixed> $constants
      */
-    private function foreignKeyValue(DatabaseSchema $schema, ForeignKey $fk, int $position, ?array $radix, array $rows, array $existing, int $i, array $constants): mixed
+    private function foreignKeyValue(DatabaseSchema $schema, TableSchema $table, ForeignKey $fk, int $position, ?array $radix, array $rows, array $existing, int $i, array $constants): mixed
     {
-        $parentRows = max(1, $rows[$fk->refTable]);
-        $j = $radix === null
-            ? (($i - 1) % $parentRows) + 1
-            : ((intdiv($i - 1, $radix['stride'])) % $parentRows) + 1;
+        if ($fk->refTable === $table->name) {
+            // Inside the table: the first row is a root (NULL). Row n hangs under row n DIV 2 (a tree), or under
+            // row n - 1 when the key is unique (a chain: no parent may be used twice).
+            $j = $table->isUniqueColumn($fk->columns[$position]) ? $i - 1 : intdiv($i, 2);
+            if ($j < 1) {
+                return null;
+            }
+        } else {
+            $parentRows = max(1, $rows[$fk->refTable]);
+            $j = $radix === null
+                ? (($i - 1) % $parentRows) + 1
+                : ((intdiv($i - 1, $radix['stride'])) % $parentRows) + 1;
+        }
         $parent = $schema->table($fk->refTable);
         $column = $parent?->column($fk->refColumns[$position]);
         if ($parent === null || $column === null) {
@@ -310,8 +322,9 @@ final class Generator implements DataGenerator
     }
 
     /**
-     * Fills a deferred (NULL for now) foreign key, when the rows are plain enough to know the answer: a single
-     * integer key column pointing at a single integer primary key. Otherwise the key stays NULL and says so.
+     * Fills a deferred (NULL for now) foreign key of a mutual cycle, when the rows are plain enough to know the
+     * answer: a single integer key column pointing at a single integer primary key. Otherwise the key stays NULL
+     * and says so. (Self references need no deferral: see foreignKeyValue().)
      *
      * Only the rows the generator inserted are updated (the ids after the rows that already existed).
      *
@@ -346,16 +359,17 @@ final class Generator implements DataGenerator
         $c = Sql::identifier($fk->columns[0]);
         $id = Sql::identifier($pk->name);
         $own = $existing[$tableName];
-        if ($fk->refTable === $tableName) {
-            // a binary tree over the generated rows: row n (n > 1) has row n DIV 2 as its parent
-            $sql = $own === 0
-                ? sprintf('UPDATE %s SET %s = %s DIV 2 WHERE %s > 1', $t, $c, $id, $id)
-                : sprintf('UPDATE %s SET %s = %d + ((%s - %d) DIV 2) WHERE %s > %d', $t, $c, $own, $id, $own, $id, $own + 1);
-        } else {
-            $parent = $existing[$fk->refTable];
-            $index = $own === 0 ? sprintf('(%s - 1)', $id) : sprintf('(%s - %d)', $id, $own + 1);
-            $sql = sprintf('UPDATE %s SET %s = (%s %% %d) + 1%s%s', $t, $c, $index, max(1, $rows[$fk->refTable]), $parent > 0 ? ' + ' . $parent : '', $own > 0 ? sprintf(' WHERE %s > %d', $id, $own) : '');
-        }
+        $parentOffset = $existing[$fk->refTable];
+        $index = $own === 0 ? sprintf('(%s - 1)', $id) : sprintf('(%s - %d)', $id, $own + 1);
+        $sql = sprintf(
+            'UPDATE %s SET %s = (%s %% %d) + 1%s%s',
+            $t,
+            $c,
+            $index,
+            max(1, $rows[$fk->refTable]),
+            $parentOffset > 0 ? ' + ' . $parentOffset : '',
+            $own > 0 ? sprintf(' WHERE %s > %d', $id, $own) : '',
+        );
         try {
             $sink->execute($sql);
         } catch (Throwable $e) {

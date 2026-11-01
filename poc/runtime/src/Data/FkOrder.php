@@ -42,9 +42,14 @@ final class FkOrder
                 continue;
             }
             foreach ($table->foreignKeys as $fk) {
-                if (isset($inSet[$fk->refTable])) {
-                    $edges[] = ['table' => $name, 'fk' => $fk];
+                if (!isset($inSet[$fk->refTable])) {
+                    continue;
                 }
+                $edge = ['table' => $name, 'fk' => $fk];
+                if ($fk->refTable === $name && self::nullable($schema, $edge)) {
+                    continue; // a row may point at an earlier row of its own table inside one INSERT: no ordering, no deferral
+                }
+                $edges[] = $edge;
             }
         }
         usort($edges, static fn (array $a, array $b): int => [$a['table'], $a['fk']->name] <=> [$b['table'], $b['fk']->name]);
@@ -59,9 +64,11 @@ final class FkOrder
             }
 
             $stuckSet = array_fill_keys($stuck, true);
+            // only a key that lies on a cycle is worth deferring (not one of a table that merely depends on the cycle)
             $pick = null;
             foreach ($active as $edge) {
-                if (isset($stuckSet[$edge['table']]) && isset($stuckSet[$edge['fk']->refTable]) && self::nullable($schema, $edge)) {
+                if (isset($stuckSet[$edge['table']], $stuckSet[$edge['fk']->refTable]) && self::nullable($schema, $edge)
+                    && self::reaches($edge['fk']->refTable, $edge['table'], $active, $stuckSet)) {
                     $pick = $edge;
                     break;
                 }
@@ -112,6 +119,35 @@ final class FkOrder
         sort($stuck, SORT_STRING);
 
         return [$order, $stuck];
+    }
+
+    /**
+     * Can $from reach $to by following keys (child to parent) among the stuck tables?
+     *
+     * @param list<array{table: string, fk: ForeignKey}> $edges
+     * @param array<string, true>                       $within
+     */
+    private static function reaches(string $from, string $to, array $edges, array $within): bool
+    {
+        $seen = [];
+        $queue = [$from];
+        while ($queue !== []) {
+            $node = array_shift($queue);
+            if ($node === $to) {
+                return true;
+            }
+            if (isset($seen[$node])) {
+                continue;
+            }
+            $seen[$node] = true;
+            foreach ($edges as $edge) {
+                if ($edge['table'] === $node && isset($within[$edge['fk']->refTable])) {
+                    $queue[] = $edge['fk']->refTable;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** @param array{table: string, fk: ForeignKey} $edge */
