@@ -59,11 +59,15 @@ final class TaskBuilderTest extends PlannerTestCase
             {
             }
 
-            public function loginUser(?string $guard): ?string
+            public function loginUser(?string $guard, string|int|null $id = null): ?string
             {
-                $this->asked[] = 'user:' . ($guard ?? '-');
+                $this->asked[] = 'user:' . ($guard ?? '-') . ($id === null ? '' : '#' . $id);
+                if ($this->user === null) {
+                    return null;
+                }
+                $user = $id === null ? $this->user : substr($this->user, 0, (int) strrpos($this->user, ':')) . ':' . $id;
 
-                return $this->user === null ? null : $this->user . ($guard === null ? '' : ':' . $guard);
+                return $user . ($guard === null ? '' : ':' . $guard);
             }
 
             public function bodyRules(?string $action): ?array
@@ -75,11 +79,12 @@ final class TaskBuilderTest extends PlannerTestCase
         };
     }
 
-    private static function builder(?AppFacts $facts = null): TaskBuilder
+    /** @param array<string, mixed> $profile */
+    private static function builder(?AppFacts $facts = null, array $profile = []): TaskBuilder
     {
         $lookup = self::lookup();
 
-        return new TaskBuilder(new ArgumentResolver($lookup), new BodyBuilder($lookup), $facts ?? self::facts());
+        return new TaskBuilder(new ArgumentResolver($lookup, $profile), new BodyBuilder($lookup), $facts ?? self::facts(), $profile);
     }
 
     /** @param array<string, mixed> $parameters */
@@ -256,5 +261,57 @@ final class TaskBuilderTest extends PlannerTestCase
         $copy = \PeakSim\Runtime\Measure\RouteTask::fromArray(json_decode(json_encode($task->toArray(), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
 
         $this->assertEquals($task, $copy);
+    }
+
+    // ---- with a profile ---------------------------------------------------------------------------------------
+
+    private const PROFILE = [
+        'user' => ['id' => 1, 'role' => 'user'],
+        'admin' => ['id' => 2, 'role' => 'admin'],
+        'unfillable' => ['dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'calls the Dropbox service']],
+    ];
+
+    public function test_with_a_profile_the_login_is_the_row_it_names(): void
+    {
+        $facts = self::facts('App\\Models\\User:1');
+        $task = self::builder($facts, self::PROFILE)->build(self::spec('/me', [], 'GET', ['web', 'auth:sanctum']));
+
+        $this->assertSame('App\\Models\\User:1:sanctum', $task->actAs);
+        $this->assertSame(['user:sanctum#1'], $facts->asked);
+    }
+
+    public function test_with_login_as_admin_the_first_request_is_made_as_the_admin(): void
+    {
+        $facts = self::facts('App\\Models\\User:1');
+        $task = self::builder($facts, ['login_as' => 'admin'] + self::PROFILE)->build(self::spec('/users', [], 'GET', ['web', 'auth']));
+
+        $this->assertSame('App\\Models\\User:2', $task->actAs);
+        $this->assertSame(['user:-#2'], $facts->asked);
+    }
+
+    public function test_a_profile_with_no_login_rows_leaves_the_first_row_login_alone(): void
+    {
+        $facts = self::facts('App\\Models\\User:1');
+        $task = self::builder($facts, ['skip' => ['roles']])->build(self::spec('/me', [], 'GET', ['auth']));
+
+        $this->assertSame('App\\Models\\User:1', $task->actAs);
+        $this->assertSame(['user:-'], $facts->asked);
+    }
+
+    public function test_a_parameter_the_profile_explains_is_recorded_with_the_profiles_class(): void
+    {
+        $task = self::builder(null, self::PROFILE)->build(self::withParameters('/dropbox/{key}', ['key' => ['optional' => false, 'where' => null, 'model' => null, 'field' => null, 'type' => null, 'scope' => null]]));
+
+        $this->assertSame('external_call_blocked', $task->failClass);
+        $this->assertStringContainsString('key', (string) $task->failDetail);
+        $this->assertStringContainsString('dropbox_key', (string) $task->failDetail);
+        $this->assertNull($task->uri);
+    }
+
+    public function test_a_parameter_the_profile_does_not_explain_is_still_unfilled_param(): void
+    {
+        $task = self::builder(null, self::PROFILE)->build(self::withParameters('/files/{file}', ['file' => ['optional' => false, 'where' => null, 'model' => null, 'field' => null, 'type' => null, 'scope' => null]]));
+
+        $this->assertSame('unfilled_param', $task->failClass);
     }
 }

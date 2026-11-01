@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Tests\Unit\Measure;
 
+use PDO;
 use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Measure\BuildFailure;
@@ -89,6 +90,41 @@ final class ProfileTest extends TestCase
         $this->expectException(BuildFailure::class);
         $this->expectExceptionMessage('value');
         Profile::load('typo', $this->dir);
+    }
+
+    public function test_the_keys_a_profile_with_logins_reference_rows_and_a_hook_may_carry_are_all_read(): void
+    {
+        $this->write('full', "<?php return ['skip' => [], 'rows' => [], 'values' => [], 'user' => ['id' => 1], 'admin' => ['id' => 2], 'login_as' => 'user', "
+            . "'reference_rows' => [], 'role_permissions' => [], 'fixups' => [], 'arguments' => [], 'unfillable' => [], "
+            . "'after_generation' => static fn (PDO \$pdo, string \$database): array => []];");
+
+        $profile = Profile::load('full', $this->dir);
+
+        $this->assertSame(['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'after_generation'], array_keys($profile));
+    }
+
+    public function test_a_hook_that_cannot_be_called_is_refused_at_load_not_in_the_middle_of_a_build(): void
+    {
+        $this->write('hookless', "<?php return ['after_generation' => 'not a function'];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('after_generation');
+        Profile::load('hookless', $this->dir);
+    }
+
+    public function test_login_as_names_the_user_or_the_admin_and_the_admin_needs_a_row_to_log_in_as(): void
+    {
+        $this->write('nobody', "<?php return ['user' => ['id' => 1], 'login_as' => 'admin'];");
+        $this->write('stranger', "<?php return ['user' => ['id' => 1], 'login_as' => 'root'];");
+
+        foreach (['nobody', 'stranger'] as $name) {
+            try {
+                Profile::load($name, $this->dir);
+                $this->fail($name . ' should have been refused');
+            } catch (BuildFailure $e) {
+                $this->assertStringContainsString('login_as', $e->getMessage());
+            }
+        }
     }
 
     public function test_the_profile_for_the_verification_app_gives_every_order_the_status_the_filter_reads(): void

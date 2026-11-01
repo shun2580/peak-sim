@@ -90,4 +90,33 @@ final class UserProviderTest extends TestCase
 
         $this->assertFalse($plan['admin']);
     }
+
+    public function test_the_plan_logs_in_as_the_profiles_admin_by_its_id_when_login_as_says_so(): void
+    {
+        $profile = ['user' => ['id' => 1, 'role' => 'user'], 'admin' => ['id' => 2, 'role' => 'admin'], 'login_as' => 'admin'];
+
+        $plan = UserProvider::plan(UserProvider::requirement(['auth']), $profile);
+
+        $this->assertTrue($plan['admin']);
+        $this->assertSame(2, $plan['login_id']);
+    }
+
+    public function test_the_plan_logs_in_as_the_profiles_user_by_its_id_otherwise(): void
+    {
+        $profile = ['user' => ['id' => 1, 'role' => 'user'], 'admin' => ['id' => 2, 'role' => 'admin']];
+
+        foreach ([$profile, $profile + ['login_as' => 'user']] as $p) {
+            $plan = UserProvider::plan(UserProvider::requirement(['auth']), $p);
+
+            $this->assertFalse($plan['admin']);
+            $this->assertSame(1, $plan['login_id']);
+        }
+    }
+
+    public function test_without_an_id_in_the_profile_the_login_is_the_first_row_as_before(): void
+    {
+        $this->assertNull(UserProvider::plan(UserProvider::requirement(['auth']), null)['login_id']);
+        $this->assertNull(UserProvider::plan(UserProvider::requirement(['auth']), ['user' => ['role' => 'member']])['login_id']);
+        $this->assertNull(UserProvider::plan(UserProvider::requirement(['web']), ['user' => ['id' => 1]])['login_id'], 'an open route logs nobody in');
+    }
 }

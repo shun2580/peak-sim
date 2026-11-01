@@ -232,4 +232,140 @@ final class ArgumentResolverTest extends TestCase
 
         $this->assertSame('/x/a%20b', $r->fill('/x/{type}'));
     }
+
+    // ---- what the profile says outright -----------------------------------------------------------------------
+
+    /** The lookup of the tests above, with a table of text keys that the tool's own rules do not reach. */
+    private static function profileLookup(): RowLookup
+    {
+        return new class() implements RowLookup {
+            public function tableForModel(string $modelClass): ?string
+            {
+                return $modelClass === 'App\\Models\\Order' ? 'orders' : null;
+            }
+
+            public function routeKeyColumn(string $modelClass): string
+            {
+                return 'id';
+            }
+
+            public function hasTable(string $table): bool
+            {
+                return in_array($table, ['orders', 'songs', 'genres', 'empty_things'], true);
+            }
+
+            public function primaryKey(string $table): ?string
+            {
+                return 'id';
+            }
+
+            public function firstValue(string $table, string $column, array $where = []): string|int|null
+            {
+                return match ([$table, $column]) {
+                    ['orders', 'id'] => 1,
+                    ['songs', 'id'] => 'song-key-1',
+                    ['genres', 'public_id'] => 'genre-public-1',
+                    default => null,
+                };
+            }
+        };
+    }
+
+    public function test_a_profile_argument_takes_the_first_value_of_the_column_it_names(): void
+    {
+        $profile = ['arguments' => [
+            'song' => ['table' => 'songs', 'column' => 'id', 'why' => 'a text key'],
+            'genre' => ['table' => 'genres', 'column' => 'public_id', 'why' => 'bound by its public id'],
+        ]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/songs/{song}/genre/{genre}', ['song' => [], 'genre' => []]));
+
+        $this->assertTrue($r->ok());
+        $this->assertSame(['song' => 'song-key-1', 'genre' => 'genre-public-1'], $r->values);
+    }
+
+    public function test_a_profile_argument_can_be_a_literal(): void
+    {
+        $profile = ['arguments' => ['format' => ['value' => 'json', 'why' => 'the only format the route takes']]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/export/{format}', ['format' => []]));
+
+        $this->assertSame(['format' => 'json'], $r->values);
+    }
+
+    public function test_a_profile_argument_beats_a_guess_by_name_but_not_the_apps_own_model_binding(): void
+    {
+        $profile = ['arguments' => [
+            'songId' => ['table' => 'songs', 'column' => 'id', 'why' => 'a text key, not a number'],
+            'order' => ['table' => 'songs', 'column' => 'id', 'why' => 'would be wrong here'],
+        ]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/x/{songId}/{order}', [
+            'songId' => ['type' => 'int'],
+            'order' => ['model' => 'App\\Models\\Order'],
+        ]));
+
+        $this->assertSame(['songId' => 'song-key-1', 'order' => 1], $r->values);
+    }
+
+    public function test_a_profile_argument_with_no_row_behind_it_is_a_reason_not_a_guess(): void
+    {
+        $profile = ['arguments' => ['thing' => ['table' => 'empty_things', 'column' => 'id', 'why' => 'x']]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/things/{thing}', ['thing' => []]));
+
+        $this->assertFalse($r->ok());
+        $this->assertSame([['param' => 'thing', 'reason' => 'no_row:empty_things']], $r->unfilled);
+    }
+
+    public function test_a_profile_argument_that_breaks_the_where_constraint_is_not_used(): void
+    {
+        $profile = ['arguments' => ['song' => ['table' => 'songs', 'column' => 'id', 'why' => 'x']]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/songs/{song}', ['song' => ['where' => '[0-9]+']]));
+
+        $this->assertSame([['param' => 'song', 'reason' => 'violates_where']], $r->unfilled);
+    }
+
+    public function test_an_unfillable_parameter_the_profile_explains_carries_the_profiles_reason_and_class(): void
+    {
+        $profile = ['unfillable' => [
+            'embed_options' => ['params' => ['options'], 'reason' => 'unfilled_param', 'why' => 'an encrypted string'],
+            'dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'calls the Dropbox service'],
+            'email_change_confirm' => ['params' => [], 'reason' => 'signature_required', 'why' => 'a signed URL'],
+        ]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/dropbox/{key}', ['key' => []]));
+
+        $this->assertFalse($r->ok());
+        $this->assertSame([['param' => 'key', 'reason' => 'profile:dropbox_key', 'class' => 'external_call_blocked']], $r->unfilled);
+    }
+
+    public function test_the_profile_does_not_override_a_parameter_the_tool_could_fill(): void
+    {
+        $profile = ['unfillable' => ['preset' => ['params' => ['id'], 'reason' => 'unfilled_param', 'why' => 'x']]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/orders/{order}', ['order' => ['model' => 'App\\Models\\Order']]));
+
+        $this->assertTrue($r->ok());
+    }
+
+    public function test_an_unfillable_parameter_nothing_explains_stays_as_it_was(): void
+    {
+        $profile = ['unfillable' => ['dropbox_key' => ['params' => ['key'], 'reason' => 'external_call_blocked', 'why' => 'x']]];
+
+        $r = (new ArgumentResolver(self::profileLookup(), $profile))->resolve(self::spec('/files/{file}', ['file' => []]));
+
+        $this->assertSame([['param' => 'file', 'reason' => 'no_rule_to_fill']], $r->unfilled);
+    }
+
+    public function test_with_no_profile_the_resolver_behaves_as_before(): void
+    {
+        $spec = self::spec('/posts/{post}/comments/{comment}', [
+            'post' => ['model' => 'App\\Models\\Post'],
+            'comment' => ['model' => 'App\\Models\\Comment', 'scope' => ['parent' => 'post', 'fk' => 'post_id']],
+        ]);
+
+        $this->assertEquals((new ArgumentResolver(self::lookup()))->resolve($spec), (new ArgumentResolver(self::lookup(), []))->resolve($spec));
+    }
 }
