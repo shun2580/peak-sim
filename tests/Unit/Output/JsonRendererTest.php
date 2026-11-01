@@ -136,6 +136,81 @@ final class JsonRendererTest extends TestCase
         $this->assertSame('O(N*M)', $route['memory']['lower_bound']);
     }
 
+    public function testAnUnknownAxisWithNoLowerBoundHasANullDegreeNotZero(): void
+    {
+        $doc = $this->decode($this->render(ReportBuilder::inputSpec()));
+        $unknown = $this->routeNamed($doc, '/unknown/dynamic');
+
+        foreach (['query', 'memory'] as $axis) {
+            $this->assertSame('unknown', $unknown[$axis]['growth']);
+            $this->assertNull($unknown[$axis]['lower_bound']);
+            $this->assertNull($unknown[$axis]['degree'], "{$axis}: unknown with no lower bound must not read as degree 0 (D38)");
+        }
+        $this->assertStringContainsString('"degree": null', $this->render(ReportBuilder::inputSpec()));
+    }
+
+    public function testAnUnknownAxisWithALowerBoundKeepsTheDegreeOfThatBound(): void
+    {
+        $spec = ReportBuilder::inputSpec();
+        foreach ($spec['routes'] as &$route) {
+            if ($route['uri'] === '/hidden/lower-bound') {
+                $route['query']['degree'] = 1;
+                $route['memory']['degree'] = 2;
+            }
+        }
+        unset($route);
+
+        $route = $this->routeNamed($this->decode($this->render($spec)), '/hidden/lower-bound');
+
+        $this->assertSame('O(N)', $route['query']['lower_bound']);
+        $this->assertSame(1, $route['query']['degree']);
+        $this->assertSame('O(N*M)', $route['memory']['lower_bound']);
+        $this->assertSame(2, $route['memory']['degree']);
+    }
+
+    public function testAnO1AxisKeepsDegreeZero(): void
+    {
+        $doc = $this->decode($this->render(ReportBuilder::inputSpec()));
+        $o1 = [];
+        foreach ($doc['routes'] as $r) {
+            foreach (['query', 'memory'] as $axis) {
+                if ($r[$axis]['growth'] === 'O(1)') {
+                    $o1[] = $r[$axis]['degree'];
+                }
+            }
+        }
+
+        $this->assertNotSame([], $o1, 'the golden input has O(1) axes');
+        $this->assertSame([0], array_values(array_unique($o1)));
+    }
+
+    public function testTheOnlyNullDegreesAreOnUnknownAxesWithNoLowerBound(): void
+    {
+        $doc = $this->decode($this->render(ReportBuilder::inputSpec()));
+        $axes = [];
+        foreach ($doc['routes'] as $r) {
+            $axes[] = $r['query'];
+            $axes[] = $r['memory'];
+            foreach ([$r['cache']['on_miss'] ?? null, $r['cache']['on_hit'] ?? null] as $view) {
+                if ($view !== null) {
+                    $axes[] = $view['query'];
+                    $axes[] = $view['memory'];
+                }
+            }
+        }
+
+        $this->assertNotSame([], $axes);
+        foreach ($axes as $a) {
+            $this->assertSame($a['growth'] === 'unknown' && $a['lower_bound'] === null, $a['degree'] === null, json_encode($a));
+        }
+    }
+
+    public function testTheSchemaVersionIsZeroPointTwo(): void
+    {
+        $this->assertSame('0.2', JsonRenderer::SCHEMA_VERSION);
+        $this->assertSame('0.2', $this->decode($this->render(ReportBuilder::inputSpec()))['schema_version']);
+    }
+
     public function testADegreeOfThreeStaysAnIntegerWhileTheLabelStaysNestedGrowth(): void
     {
         $route = $this->routeNamed($this->decode($this->render(ReportBuilder::inputSpec())), '/deep/triple');

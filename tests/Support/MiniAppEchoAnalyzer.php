@@ -51,7 +51,7 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
 
     public function renderedJson(string $appRoot, ?string $exportDir, string $inputMode, array $options = []): string
     {
-        return ReportAssert::encode(['schema_version' => '0.1', 'input' => ['mode' => $inputMode], 'routes' => array_values($this->analyzeAll($appRoot, $exportDir, $options))]);
+        return ReportAssert::encode(['schema_version' => '0.2', 'input' => ['mode' => $inputMode], 'routes' => array_values($this->analyzeAll($appRoot, $exportDir, $options))]);
     }
 
     /** @return array<string, array<string, mixed>> */
@@ -137,7 +137,10 @@ final class MiniAppEchoAnalyzer implements MiniAppAnalyzer
         $a = is_string($want) ? ['growth' => $want] : $want;
         $growth = $a['growth'];
         if ($growth === 'unknown') {
-            return ['growth' => 'unknown', 'degree' => 0, 'confidence' => null, 'lower_bound' => $a['lower_bound'] ?? null];
+            $bound = $a['lower_bound'] ?? null;
+
+            // D38: no lower bound, no degree; a lower bound brings the degree of that bound.
+            return ['growth' => 'unknown', 'degree' => $bound === null ? null : ReportAssert::rank($bound), 'confidence' => null, 'lower_bound' => $bound];
         }
         $degree = max(0, ReportAssert::rank($growth) - $this->lighterBy);
 

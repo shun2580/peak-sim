@@ -309,12 +309,14 @@ final class MiniAppHarnessSelfTest extends TestCase
     public static function violationProvider(): array
     {
         return [
-            'unknown without any gap' => [['query' => ['growth' => 'unknown', 'degree' => 0, 'confidence' => null, 'lower_bound' => null], 'confidence' => 'high'], 'unknown with no gap'],
-            'a confidence on an unknown axis' => [['query' => ['growth' => 'unknown', 'degree' => 0, 'confidence' => 'high', 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]]], 'carries a confidence'],
+            'unknown without any gap' => [['query' => ['growth' => 'unknown', 'degree' => null, 'confidence' => null, 'lower_bound' => null], 'confidence' => 'high'], 'unknown with no gap'],
+            'unknown with no lower bound but a degree 0' => [['query' => ['growth' => 'unknown', 'degree' => 0, 'confidence' => null, 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]]], 'degree must be null'],
+            'unknown with a lower bound but no degree' => [['query' => ['growth' => 'unknown', 'degree' => null, 'confidence' => null, 'lower_bound' => 'O(N)'], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]]], 'degree of its lower bound'],
+            'a confidence on an unknown axis' => [['query' => ['growth' => 'unknown', 'degree' => null, 'confidence' => 'high', 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]]], 'carries a confidence'],
             'no confidence on a finite axis' => [['memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => null, 'lower_bound' => null]], 'has no confidence'],
             'degree and label disagree' => [['memory' => ['growth' => 'O(N)', 'degree' => 2, 'confidence' => 'high', 'lower_bound' => null]], 'does not fit label'],
             'route confidence is not the lower axis' => [['memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => 'medium', 'lower_bound' => null], 'confidence' => 'high'], 'lower of the two axes'],
-            'route confidence kept while one axis is unknown' => [['query' => ['growth' => 'unknown', 'degree' => 0, 'confidence' => null, 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]], 'confidence' => 'high'], 'must be null'],
+            'route confidence kept while one axis is unknown' => [['query' => ['growth' => 'unknown', 'degree' => null, 'confidence' => null, 'lower_bound' => null], 'gaps' => [['code' => 'X', 'file' => 'a', 'line' => 1, 'affects' => ['query']]], 'confidence' => 'high'], 'must be null'],
             'nothing found, nothing missed, yet not O(1)' => [['events_found' => 0, 'memory' => ['growth' => 'O(N)', 'degree' => 1, 'confidence' => 'high', 'lower_bound' => null]], 'both axes must be O(1)'],
             'truncated without DEPTH_LIMIT' => [['truncated' => true], 'DEPTH_LIMIT'],
             'worst case without its assumption' => [['worst_case_adopted' => true], 'WORST_CASE_OF_CANDIDATES'],

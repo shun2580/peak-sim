@@ -57,6 +57,22 @@ final class SchemaDocTest extends TestCase
         $this->assertStringContainsString('現在は `"' . JsonRenderer::SCHEMA_VERSION . '"`', $this->doc());
     }
 
+    public function testTheDocumentSaysThatDegreeIsNullForAnUnknownAxisWithNoLowerBound(): void
+    {
+        $this->assertMatchesRegularExpression('/\| `degree` \| int \| null \|[^\n]*`lower_bound` が `null`[^\n]*`null`/u', $this->doc());
+        $this->assertStringContainsString('unknown (no lower bound)', $this->doc());
+    }
+
+    public function testTheRevisionHistoryNamesVersionZeroPointTwo(): void
+    {
+        $this->assertMatchesRegularExpression('/^- .*`0\.2`.*degree.*null/mu', $this->doc());
+    }
+
+    public function testNoExampleInTheDocumentShowsAnUnknownAxisWithADegreeOfZero(): void
+    {
+        $this->assertDoesNotMatchRegularExpression('/"growth": "unknown",\s*"degree": 0,\s*"confidence": null,\s*"lower_bound": null/u', $this->doc());
+    }
+
     public function testTheDocumentSaysThatStaticUnknownIsNotTheMeasuredUndecidable(): void
     {
         $this->assertMatchesRegularExpression('/`unknown`.*別物/su', $this->doc());

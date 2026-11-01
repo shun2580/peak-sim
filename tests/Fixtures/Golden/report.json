@@ -1,5 +1,5 @@
 {
-    "schema_version": "0.1",
+    "schema_version": "0.2",
     "tool": {
         "name": "peak-sim"
     },
@@ -666,13 +666,13 @@
             "kind": "controller",
             "query": {
                 "growth": "unknown",
-                "degree": 0,
+                "degree": null,
                 "confidence": null,
                 "lower_bound": null
             },
             "memory": {
                 "growth": "unknown",
-                "degree": 0,
+                "degree": null,
                 "confidence": null,
                 "lower_bound": null
             },

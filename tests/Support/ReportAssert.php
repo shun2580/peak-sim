@@ -10,6 +10,7 @@ use PeakSim\Model\Axis;
 use PeakSim\Model\AxisVerdict;
 use PeakSim\Model\CacheView;
 use PeakSim\Model\Gap;
+use PeakSim\Model\Growth;
 use PeakSim\Model\RouteResult;
 use PeakSim\Model\Site;
 
@@ -133,6 +134,13 @@ final class ReportAssert
                 if ($a['lower_bound'] === 'unknown') {
                     $out[] = "{$uri}: {$axis}.lower_bound must be a finite growth, not unknown";
                 }
+                // D38: with no lower bound the degree is null (never a 0 that reads as O(1)); with one it is the bound's degree.
+                if ($a['lower_bound'] === null && $a['degree'] !== null) {
+                    $out[] = "{$uri}: {$axis} is unknown with no lower bound, so its degree must be null (got " . var_export($a['degree'], true) . ')';
+                }
+                if ($a['lower_bound'] !== null && $a['lower_bound'] !== 'unknown' && ($degreeLabel[$a['degree']] ?? 'O(N*M)') !== $a['lower_bound']) {
+                    $out[] = "{$uri}: {$axis} is unknown with a lower bound, so its degree must be the degree of its lower bound";
+                }
             } else {
                 if (!in_array($a['confidence'], ['high', 'medium'], true)) {
                     $out[] = "{$uri}: {$axis} is {$a['growth']} but has no confidence";
@@ -211,7 +219,8 @@ final class ReportAssert
     {
         return [
             'growth' => $a->growth->value,
-            'degree' => $a->degree,
+            // D38: the same rule as the JSON output; unknown with no lower bound has no degree.
+            'degree' => $a->growth === Growth::Unknown && $a->lowerBound === null ? null : $a->degree,
             'confidence' => $a->confidence?->value,
             'lower_bound' => $a->lowerBound?->value,
         ];

@@ -80,7 +80,17 @@ final class TableRendererTest extends TestCase
         $this->assertStringContainsString('unknown (≥O(N))', $row);
         $this->assertStringContainsString('unknown (≥O(N*M))', $row);
         $this->assertStringContainsString('query ≥O(N), memory ≥O(N*M)', $row);
-        $this->assertStringNotContainsString('(≥', $this->rowOf('/unknown/dynamic'), 'no lower bound, nothing in parentheses');
+        $this->assertStringNotContainsString('(≥', $this->rowOf('/unknown/dynamic'), 'no lower bound, no bound in parentheses');
+    }
+
+    public function testAnUnknownAxisWithNoLowerBoundSaysSoAndShowsNoZero(): void
+    {
+        $row = $this->rowOf('/unknown/dynamic');
+
+        $this->assertSame(2, substr_count($row, 'unknown (no lower bound)'), 'both axes');
+        $this->assertStringNotContainsString('(≥', $row);
+        $this->assertDoesNotMatchRegularExpression('/\b0\b|O\(1\)/', $row, 'unknown must not read as O(1) or as a degree 0 (D38)');
+        $this->assertStringNotContainsString('(no lower bound)', $this->rowOf('/hidden/lower-bound'), 'a known lower bound is shown as the bound');
     }
 
     public function testADegreeOfThreeOrMoreIsShownAsNestedGrowthTimesTheDegree(): void
@@ -105,7 +115,7 @@ final class TableRendererTest extends TestCase
     {
         $cells = preg_split('/\s{2,}/', $this->rowOf('/unknown/dynamic'));
 
-        $this->assertSame(['/unknown/dynamic', 'unknown', 'unknown', '—', '—', '—', 'DYNAMIC_METHOD_NAME'], $cells);
+        $this->assertSame(['/unknown/dynamic', 'unknown (no lower bound)', 'unknown (no lower bound)', '—', '—', '—', 'DYNAMIC_METHOD_NAME'], $cells);
     }
 
     public function testARouteWithOneUnknownAxisHasADashForConfidenceAndTheBoundOfThatAxisOnly(): void
