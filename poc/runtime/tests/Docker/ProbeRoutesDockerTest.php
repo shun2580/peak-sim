@@ -62,6 +62,20 @@ final class ProbeRoutesDockerTest extends DockerCase
         self::assertCount(1, $attempts, 'a failed warm-up stops the measurement');
     }
 
+    public function testAnAppThatReadsTheRequestWhileBootingStarts(): void
+    {
+        $probe = ProbeApp::create('/app', 'early');
+        try {
+            $probe->readRequestDuringBootstrap();
+            [$exit, $attempts, $err] = self::measure(['--scale=' . self::SCALE, '--uri=/ok/eager', '--phases=warmup'], ['PEAK_MEASURE_APP_ROOT' => $probe->root]);
+        } finally {
+            $probe->remove();
+        }
+
+        self::assertSame(0, $exit, $err);
+        self::assertSame('ok', $attempts[0]['class']);
+    }
+
     public function testAFailedWarmupStopsTheRemainingRequests(): void
     {
         [$exit, $attempts] = $this->run1(['--uri=/probe/external']);

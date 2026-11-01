@@ -59,6 +59,18 @@ final class ProbeApp
         file_put_contents($file, $text);
     }
 
+    /** Like an app whose routing reads request() while the kernel boots (before Kernel::handle binds one). */
+    public function readRequestDuringBootstrap(): void
+    {
+        $file = $this->root . '/bootstrap/app.php';
+        $text = (string) file_get_contents($file);
+        $text = str_replace('then: function (): void {', "then: function (): void {\n            request()->header('X-Api-Version');", $text, $count);
+        if ($count !== 1) {
+            throw new \RuntimeException('the fixture bootstrap/app.php changed; update ProbeApp');
+        }
+        file_put_contents($file, $text);
+    }
+
     public function remove(): void
     {
         if (!str_starts_with(basename($this->root), 'peak-probe-app-') || !is_dir($this->root)) {
