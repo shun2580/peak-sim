@@ -9,6 +9,7 @@ use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\Reason;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
+use PHPUnit\Framework\Attributes\Group;
 use PDO;
 
 /**
@@ -16,6 +17,7 @@ use PDO;
  * the verification app at /app): generate into a freshly migrated measurement database and compare the real row
  * counts with the plan.
  */
+#[Group('in-stack')]
 final class FixturesGenerationDockerTest extends GenerationCase
 {
     private const SCALE = 100;

@@ -10,12 +10,14 @@ use PeakSim\Runtime\Data\Reason;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Data\TableOutcome;
 use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The value rules and the failure reasons against the real server, with hand-made tables (no app needed): every
  * column type the generator knows, a CHECK constraint, foreign key cycles, a pivot. Test code may issue DDL in the
  * measurement database it made; the tool itself never does.
  */
+#[Group('in-stack')]
 final class RealServerRulesDockerTest extends GenerationCase
 {
     private const SCALE = 100;
@@ -24,6 +26,7 @@ final class RealServerRulesDockerTest extends GenerationCase
 
     public static function setUpBeforeClass(): void
     {
+        parent::setUpBeforeClass();
         $config = self::config();
         $name = $config->dbNameForScale(self::SCALE);
         $admin = self::db();

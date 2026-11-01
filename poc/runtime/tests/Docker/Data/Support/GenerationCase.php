@@ -13,6 +13,11 @@ use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
  */
 abstract class GenerationCase extends DockerCase
 {
+    public static function setUpBeforeClass(): void
+    {
+        self::requireInsideStack();
+    }
+
     /** Migrates the app into the (re-created) measurement database of one scale and returns the child's report. */
     protected static function fresh(int $scale): array
     {

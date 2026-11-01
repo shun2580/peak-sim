@@ -9,6 +9,7 @@ use PeakSim\Runtime\Data\Reason;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Data\TableOutcome;
 use PeakSim\Runtime\Tests\Docker\Data\Support\GenerationCase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
@@ -20,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * Run it against another app by starting the stack with PEAK_APP_ROOT pointing at that app, then
  *   bin/stack exec /peak-sim/vendor/bin/phpunit -c /peak-sim/poc/runtime/phpunit.runtime.xml --filter AppGenerationRate
  */
+#[Group('in-stack')]
 final class AppGenerationRateDockerTest extends GenerationCase
 {
     private const SCALES = [100, 1000];
