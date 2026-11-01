@@ -70,13 +70,19 @@ final class AppBooterAppKeyTest extends TestCase
         self::assertSame('subsonic-api-key-0123', $decrypted);
     }
 
-    /** Without the variable every process has its own key (the old behaviour): the value cannot be read back. */
+    /**
+     * Without the variable every process has its own key (the old behaviour): the value cannot be read back.
+     *
+     * With the wrong key CBC decryption usually fails, but about once in 256 it passes the padding check by chance and
+     * returns garbage instead of false. So the test asks for what matters, that the original never comes back, and not
+     * for the failure itself (which made this test fail now and then).
+     */
     public function test_without_the_variable_two_processes_cannot_read_each_others_values(): void
     {
         $encrypted = self::child('encrypt', []);
         $decrypted = self::child('decrypt', [], $encrypted);
 
-        self::assertSame('undecryptable', $decrypted);
+        self::assertNotSame('subsonic-api-key-0123', $decrypted);
     }
 
     public function test_a_child_never_prints_the_key(): void
