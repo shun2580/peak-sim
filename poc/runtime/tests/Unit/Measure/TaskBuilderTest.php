@@ -10,6 +10,10 @@ use PeakSim\Runtime\Route\ArgumentResolver;
 use PeakSim\Runtime\Route\BodyBuilder;
 use PeakSim\Runtime\Route\RouteSpec;
 use PeakSim\Runtime\Route\RowLookup;
+use PeakSim\Runtime\Tests\Unit\Measure\Stubs\AlbumController;
+use PeakSim\Runtime\Tests\Unit\Measure\Stubs\InvokableAlbumController;
+
+require_once __DIR__ . '/Stubs/RouteTableStubs.php';
 
 final class TaskBuilderTest extends PlannerTestCase
 {
@@ -101,6 +105,54 @@ final class TaskBuilderTest extends PlannerTestCase
 
         $this->assertSame('not_in_runtime', $task->failClass);
         $this->assertNull($task->uri);
+    }
+
+    private static function withAction(string $action, string $uri = '/albums/{album}', string $method = 'GET'): RouteSpec
+    {
+        $album = ['optional' => false, 'where' => null, 'model' => 'App\\Models\\Order', 'field' => null, 'type' => null, 'scope' => null];
+
+        return new RouteSpec($uri, $method, [$method], ['web'], str_contains($uri, '{') ? ['album' => $album] : [], $action, ['n_table' => 'orders', 'm_table' => null, 'm_per' => null, 'n_table_alternatives' => []], true);
+    }
+
+    public function test_an_operation_the_controller_does_not_have_is_recorded_and_not_hit(): void
+    {
+        $facts = self::facts();
+        $task = self::builder($facts)->build(self::withAction(AlbumController::class . '@destroy', method: 'DELETE'));
+
+        $this->assertSame('action_not_defined', $task->failClass);
+        $this->assertStringContainsString('destroy', (string) $task->failDetail);
+        $this->assertNull($task->uri);
+        $this->assertNull($task->body);
+        $this->assertSame([], $facts->asked, 'nothing about the app is asked for a route that is not going to be hit');
+    }
+
+    public function test_it_is_told_apart_from_a_parameter_that_cannot_be_filled(): void
+    {
+        $spec = new RouteSpec('/files/{file}', 'DELETE', ['DELETE'], [], ['file' => ['optional' => false, 'where' => null, 'model' => null, 'field' => null, 'type' => null, 'scope' => null]], AlbumController::class . '@destroy', ['n_table' => null, 'm_table' => null, 'm_per' => null, 'n_table_alternatives' => []], true);
+
+        $this->assertSame('action_not_defined', self::builder()->build($spec)->failClass);
+    }
+
+    public function test_an_operation_the_controller_has_is_prepared_as_before(): void
+    {
+        $task = self::builder()->build(self::withAction(AlbumController::class . '@show'));
+
+        $this->assertNull($task->failClass);
+        $this->assertSame('/albums/7', $task->uri);
+    }
+
+    public function test_an_invokable_controller_is_prepared_as_before(): void
+    {
+        $task = self::builder()->build(self::withAction(InvokableAlbumController::class));
+
+        $this->assertNull($task->failClass);
+    }
+
+    public function test_the_route_the_booted_app_does_not_have_is_still_not_in_runtime(): void
+    {
+        $spec = new RouteSpec('/gone', 'DELETE', ['DELETE'], [], [], AlbumController::class . '@destroy', ['n_table' => null, 'm_table' => null, 'm_per' => null, 'n_table_alternatives' => []], false);
+
+        $this->assertSame('not_in_runtime', self::builder()->build($spec)->failClass);
     }
 
     public function test_parameters_are_filled_from_the_first_row(): void

@@ -181,6 +181,8 @@ final class ClassificationTest extends TestCase
             self::assertSame($class === Classification::OK, Classification::isMeasured($class), $class);
         }
         self::assertContains(Classification::UNFILLED_PARAM, Classification::ALL);
+        self::assertContains(Classification::ACTION_NOT_DEFINED, Classification::ALL);
+        self::assertSame('action_not_defined', Classification::ACTION_NOT_DEFINED);
         self::assertSame(count(Classification::ALL), count(array_unique(Classification::ALL)));
     }
 }
