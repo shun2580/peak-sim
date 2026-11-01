@@ -1,0 +1,16 @@
+# PHP image in which the target app's code runs during a measurement. Built on the ordinary network (the build
+# needs the internet); RUN time is on the internal network only. Extensions the apps need beyond these are added
+# per app by building with EXTRA_EXTENSIONS.
+ARG PHP_VERSION=8.3
+FROM php:${PHP_VERSION}-cli
+
+ARG EXTRA_EXTENSIONS=""
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libzip-dev libicu-dev \
+ && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl ${EXTRA_EXTENSIONS} \
+ && rm -rf /var/lib/apt/lists/*
+
+# No memory cap and a short socket timeout, so a blocked outbound call fails fast instead of hanging.
+RUN printf 'memory_limit=-1\ndefault_socket_timeout=3\n' > /usr/local/etc/php/conf.d/zz-measure.ini
+
+WORKDIR /peak-sim

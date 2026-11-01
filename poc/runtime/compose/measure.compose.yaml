@@ -1,0 +1,63 @@
+# Measurement stack for the runtime PoC. The target app's code runs ONLY in measure-php, which sits on an
+# internal network with the DB service and nothing else. No port is published.
+#
+# Host paths come from the environment (set by bin/_stack.sh):
+#   PEAK_REPO_ROOT             this repository (mounted read-only: poc/runtime and vendor)
+#   PEAK_APP_ROOT              the target app (mounted read-only)
+#   PEAK_OUT_DIR               where run logs go (the only writable mount)
+#   PEAK_MEASURE_DB_ROOT_PASSWORD / PEAK_MEASURE_DB_PASSWORD / PEAK_MEASURE_RUN_ID   throwaway values
+name: peak-measure
+
+networks:
+  measure-internal:
+    internal: true
+
+services:
+  measure-db:
+    image: mysql:8.4.7
+    networks: [measure-internal]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PEAK_MEASURE_DB_ROOT_PASSWORD:?set by bin/_stack.sh}
+      # Creates the `measure` user with no privilege; mysql-init/10-measure-user.sql grants the wildcard.
+      MYSQL_USER: measure
+      MYSQL_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by bin/_stack.sh}
+    volumes:
+      - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    # ports: none. The DB is reachable only from measure-php.
+
+  measure-php:
+    build:
+      context: .
+      dockerfile: Dockerfile.measure
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+    image: peak-measure-php:${PHP_VERSION:-8.3}
+    networks: [measure-internal]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=2g,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "1000:1000"
+    working_dir: /peak-sim
+    volumes:
+      - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}:/peak-sim:ro
+      - ${PEAK_APP_ROOT:-${PEAK_REPO_ROOT}/fixtures/laravel-app}:/app:ro
+      - ${PEAK_OUT_DIR:?set by bin/_stack.sh}:/out:rw
+    environment:
+      HOME: /tmp
+      PEAK_MEASURE_DB_HOST: measure-db
+      PEAK_MEASURE_DB_USER: measure
+      PEAK_MEASURE_DB_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by bin/_stack.sh}
+      PEAK_MEASURE_RUN_ID: ${PEAK_MEASURE_RUN_ID:?set by bin/_stack.sh}
+      PEAK_MEASURE_APP_ROOT: /app
+      PEAK_MEASURE_OUT_DIR: /out
+    depends_on:
+      measure-db:
+        condition: service_healthy
+    command: ["sleep", "infinity"]
