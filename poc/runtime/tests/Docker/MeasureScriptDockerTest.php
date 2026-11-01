@@ -20,6 +20,7 @@ final class MeasureScriptDockerTest extends StackTestCase
     public static function setUpBeforeClass(): void
     {
         self::requireDocker();
+        static::$stackEnv = []; // the base class keeps one environment for all its tests; start from none
         self::$repo = (string) getenv('PEAK_REPO_ROOT');
         self::$work = rtrim((string) getenv('PEAK_OUT_DIR'), '/') . '/measure-script-' . self::randomHex(3);
         mkdir(self::$work, 0775, true);
@@ -57,7 +58,7 @@ final class MeasureScriptDockerTest extends StackTestCase
         $out = self::$work . '/run';
         $result = self::exec(
             ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager,/ng/n-plus-one'],
-            ['PEAK_COMPOSE_PROJECT' => $project, 'PEAK_OUT_DIR' => $out],
+            ['PEAK_COMPOSE_PROJECT' => $project, 'PEAK_OUT_DIR' => $out, 'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/measure.compose.yaml'],
         );
         self::evidence('measure', 'bin-measure-run.txt', self::transcript('bin/measure --data=seeder --scales=5,10,20 --only=/ok/eager,/ng/n-plus-one', [$result[0], substr($result[1], -3000), substr($result[2], -1500)]));
 
