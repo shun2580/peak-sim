@@ -72,6 +72,21 @@ final class Options
         return new self($data, $only, $expected, $base, $profile);
     }
 
+    /**
+     * What the driver hands to the inspection child (`bin/inner/inspect.php`): the scale, and the options that child
+     * needs to prepare the same routes the run measures, with the same app knowledge.
+     *
+     * @return list<string>
+     */
+    public function inspectionArguments(int $scale): array
+    {
+        return [
+            '--scale=' . $scale,
+            ...($this->only === [] ? [] : ['--only=' . implode(',', $this->only)]),
+            ...($this->profile === null ? [] : ['--profile=' . $this->profile]),
+        ];
+    }
+
     public function wants(string $route): bool
     {
         if ($this->only === []) {

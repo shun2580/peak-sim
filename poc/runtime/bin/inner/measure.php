@@ -66,7 +66,7 @@ $inspection = $planner->inspectionPoint($scales);
 try {
     $builder->build($inspection);
     [$code, $out, $err] = Proc::run(
-        [PHP_BINARY, $bin . '/inner/inspect.php', '--scale=' . $inspection->scale, ...($options->only === [] ? [] : ['--only=' . implode(',', $options->only)])],
+        [PHP_BINARY, $bin . '/inner/inspect.php', ...$options->inspectionArguments($inspection->scale)],
         ['PEAK_MEASURE_DB_TAG' => $inspection->tag] + $env,
         300,
     );
