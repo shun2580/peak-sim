@@ -22,6 +22,8 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
   --scales=100,1000,10000   the sizes of the main sweep: at least 3, strictly ascending (default 100,1000,10000)
   --only=<a>,<b>         measure only the routes whose uri contains one of these
   --base=N               generator only: rows of every table that is not scaled (default 5)
+  --profile=<name>       generator only: app knowledge from profiles/<name>.php (column values, tables to skip); a result
+                         reached with a profile is reported apart from one reached without
   --request-timeout=N    seconds one request may run, 1 to 60 (default 20; a route that runs tens of thousands of queries
                          at the largest scale can need more; the one used is written in summary.json)
   --keep-stack           leave the stack up afterwards (for looking around; tear it down with bin/stack down)
@@ -44,7 +46,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" timeout="" keep=0
+app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 timeout="" keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -56,6 +58,7 @@ for arg in "$@"; do
     --scales=*) scales="${arg#--scales=}" ;;
     --only=*) only="${arg#--only=}" ;;
     --base=*) base="${arg#--base=}" ;;
+    --profile=*) profile="${arg#--profile=}"; profile_given=1 ;;
     --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
     --keep-stack) keep=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
@@ -75,6 +78,7 @@ for s in "${scale_list[@]}"; do
   prev="$s"
 done
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
 if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,2}$ ]] && [ "$timeout" -ge 1 ] && [ "$timeout" -le 60 ] || fail_usage "--request-timeout must be 1 to 60 seconds"; fi
 if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
 [ -d "$app" ] || fail_usage "--app is not a directory: $app"
@@ -95,6 +99,7 @@ cp "$static" "$PEAK_OUT_DIR/static.json" || { echo "bin/measure: cannot write to
 inner=(--data="$data")
 [ -n "$only" ] && inner+=(--only="$only")
 [ -n "$base" ] && inner+=(--base="$base")
+[ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 if [ -n "$expected" ]; then
   cp "$expected" "$PEAK_OUT_DIR/expected.json" || exit 2
   inner+=(--expected=/out/expected.json)

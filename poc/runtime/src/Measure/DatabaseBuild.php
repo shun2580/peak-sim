@@ -25,12 +25,13 @@ final class DatabaseBuild
 {
     /**
      * @param array<string, mixed> $recipe
+     * @param array<string, mixed> $profile app knowledge for the generator (ignored by the seeder)
      *
      * @return array<string, mixed> what was built
      *
      * @throws BuildFailure
      */
-    public function run(MeasureConfig $config, int $scale, string $mode, array $recipe): array
+    public function run(MeasureConfig $config, int $scale, string $mode, array $recipe, array $profile = []): array
     {
         $name = $config->dbNameForScale($scale);
         $started = microtime(true);
@@ -70,7 +71,7 @@ final class DatabaseBuild
             }
         } else {
             $pdo = $app['db']->connection()->getPdo();
-            $report = (new Generator())->generate($pdo, self::scalePlan($recipe), []);
+            $report = (new Generator())->generate($pdo, self::scalePlan($recipe), $profile);
             $info['generation'] = [
                 'scope' => $report->scope,
                 'generated' => $report->generatedCount(),

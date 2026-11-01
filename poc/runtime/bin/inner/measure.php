@@ -6,7 +6,7 @@ declare(strict_types=1);
 // inspect the app, then for each database a route needs: build it, measure the routes on it, drop it. Writes the
 // record into PEAK_MEASURE_OUT_DIR (default /out) and prints a short summary.
 //
-//   php measure.php [--data=generator|seeder] [--only=a,b] [--base=N] [--expected=/out/expected.json]
+//   php measure.php [--data=generator|seeder] [--only=a,b] [--base=N] [--profile=<name>] [--expected=/out/expected.json]
 //
 // Input comes from PEAK_MEASURE_* variables (MeasureConfig). Exit codes: see Measure\MeasureExit.
 
@@ -58,7 +58,7 @@ try {
 
 $bin = dirname(__DIR__);
 $planner = $options->data === 'seeder' ? new SeederPlanner() : new GeneratorPlanner($options->base);
-$builder = new ProcessDatabaseBuilder($bin . '/inner/build-db.php', $env, $options->data);
+$builder = new ProcessDatabaseBuilder($bin . '/inner/build-db.php', $env, $options->data, ProcessDatabaseBuilder::TIMEOUT, PHP_BINARY, $options->profile);
 $scales = $config->scales;
 
 // 1. Inspect: build a small whole system, start the app on it, turn every route into a task.
@@ -96,6 +96,7 @@ $result = $driver->run($tasks, $scales);
 $expected = $options->expected === null ? null : Comparison::loadExpected($options->expected);
 $meta = [
     'data' => $options->data,
+    'profile' => $options->profile,
     'scales' => $scales,
     'run_id' => $config->runId,
     'laravel' => $inspected['laravel'],

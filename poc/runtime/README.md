@@ -26,7 +26,7 @@ into it) and the static analysis of it (`peak-sim analyze <app> --format=json`) 
 
 ```bash
 bin/measure --app=<app dir> --static=<analysis.json> [--expected=<expected.json>] [--data=generator|seeder] \
-            [--scales=100,1000,10000] [--only=/ok/,/ng/] [--out=<dir>] [--keep-stack]
+            [--scales=100,1000,10000] [--only=/ok/,/ng/] [--profile=<name>] [--out=<dir>] [--keep-stack]
 ```
 
 It brings the sealed stack up, requires `bin/preflight` to pass (exit 11 otherwise, nothing is measured), runs the driver
@@ -47,6 +47,12 @@ inside the container, and tears the stack down. The driver:
 row counts are read back and compared with what was asked). `--data=generator` (the default, any app) uses the tool's
 generator: a table that grows with the route gets N rows, the rest a small base, or every table N when the analysis names no
 candidate table (`scope: global`).
+
+`--profile=<name>` (generator only) adds what a person knows about one app and its schema cannot say: it reads
+`profiles/<name>.php`, an array the generator takes (`values`: column values per table, `skip`: tables left empty,
+`rows`: row counts). The name is recorded in `summary.json`. A verdict reached with a profile has app knowledge added to
+it; report it apart from a run without. `profiles/fixtures.php` gives the verification app's orders the status `paid`,
+which one of its controllers filters for.
 
 The record (`--out`, default under `~/.cache`; keep it outside the repository): `attempts.jsonl` (every attempt),
 `routes.jsonl` and `report.md` (one row per route: outcome, verdict with its scope, standing against the static analysis),
@@ -69,6 +75,7 @@ never read the scaled tables, or whose largest response equals the empty system'
 | `src/Run/`, `src/Boot/` | one route at one scale in one process; starting the app read-only with fakes |
 | `src/Route/`, `src/Judge/`, `src/Report/` | routes, arguments, login, bodies; the growth rules and verdicts; the comparison with the static analysis |
 | `src/Data/` | the data generator |
+| `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |

@@ -15,6 +15,7 @@ final class Options
         public readonly array $only,
         public readonly ?string $expected,
         public readonly int $base,
+        public readonly ?string $profile = null,
     ) {
     }
 
@@ -31,7 +32,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -63,7 +64,12 @@ final class Options
             $base = (int) $values['base'];
         }
 
-        return new self($data, $only, $expected, $base);
+        $profile = $values['profile'] ?? null;
+        if ($profile !== null && preg_match(Profile::NAME_PATTERN, $profile) !== 1) {
+            throw new \InvalidArgumentException('--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)');
+        }
+
+        return new self($data, $only, $expected, $base, $profile);
     }
 
     public function wants(string $route): bool

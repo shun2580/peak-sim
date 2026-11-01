@@ -22,13 +22,14 @@ final class ProcessDatabaseBuilder implements DatabaseBuilder
         private readonly string $mode,
         private readonly int $timeoutSeconds = self::TIMEOUT,
         private readonly string $php = PHP_BINARY,
+        private readonly ?string $profile = null,
     ) {
     }
 
     public function build(DatabasePoint $point): array
     {
         [$code, $out, $err] = Proc::run(
-            [$this->php, $this->script, '--scale=' . $point->scale, '--mode=' . $this->mode, '--recipe-json=' . json_encode($point->recipe, JSON_THROW_ON_ERROR)],
+            [$this->php, $this->script, '--scale=' . $point->scale, '--mode=' . $this->mode, '--recipe-json=' . json_encode($point->recipe, JSON_THROW_ON_ERROR), ...($this->profile === null ? [] : ['--profile=' . $this->profile])],
             ['PEAK_MEASURE_DB_TAG' => $point->tag] + $this->env,
             $this->timeoutSeconds,
         );
