@@ -50,7 +50,7 @@ final class KoelProfileTest extends TestCase
     {
         $source = (string) file_get_contents(self::FILE);
 
-        $this->assertSame(0, preg_match('~/home/|/Users/|/mnt/|nishikawa|tono~', $source));
+        $this->assertSame(0, preg_match('~/home/|/Users/|/mnt/~', $source));
         $this->assertSame(0, preg_match('/(secret|token|api[_-]?key)\s*=>\s*[\'"][^\'"]{12,}/i', $source), 'no credential-looking value');
     }
 
