@@ -62,7 +62,7 @@ final class Generator implements DataGenerator
         }
         $constants = is_array($profile['values'] ?? null) ? $profile['values'] : [];
 
-        /** @var array<string, array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>}> $state */
+        /** @var array<string, array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>, existing: int}> $state */
         $state = [];
         $candidates = [];
         foreach ($schema->names() as $name) {
@@ -92,18 +92,20 @@ final class Generator implements DataGenerator
             $deferred[$edge['table']][$edge['fk']->name] = $edge['fk'];
         }
 
+        $existing = [];
         foreach ($order->order as $name) {
-            $state[$name] = $this->generateTable($schema, $schema->table($name), $sink, $rows, $state, $deferred[$name] ?? [], $constants);
+            $existing[$name] = $sink->count($name);
+            $state[$name] = $this->generateTable($schema, $schema->table($name), $sink, $rows, $existing, $state, $deferred[$name] ?? [], $constants);
         }
 
         foreach ($order->deferred as $edge) {
-            $this->fillDeferred($schema, $edge['table'], $edge['fk'], $sink, $rows, $state);
+            $this->fillDeferred($schema, $edge['table'], $edge['fk'], $sink, $rows, $existing, $state);
         }
 
         $outcomes = [];
         foreach ($schema->names() as $name) {
             $s = $state[$name];
-            $outcomes[] = new TableOutcome($name, $s['status'], $s['planned'], $s['actual'], $s['reason'], $s['detail'], $s['notes']);
+            $outcomes[] = new TableOutcome($name, $s['status'], $s['planned'], $s['actual'], $s['reason'], $s['detail'], $s['notes'], $s['existing']);
         }
 
         return new GenerationReport($plan->scope(), $outcomes);
@@ -111,16 +113,18 @@ final class Generator implements DataGenerator
 
     /**
      * @param array<string, int>                                $rows
+     * @param array<string, int>                                $existing rows each processed table held before generation
      * @param array<string, array<string, mixed>>               $state
      * @param array<string, ForeignKey>                         $deferred
      * @param array<string, mixed>                              $constants
      *
-     * @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>}
+     * @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>, existing: int}
      */
-    private function generateTable(DatabaseSchema $schema, TableSchema $table, RowSink $sink, array $rows, array $state, array $deferred, array $constants): array
+    private function generateTable(DatabaseSchema $schema, TableSchema $table, RowSink $sink, array $rows, array $existing, array $state, array $deferred, array $constants): array
     {
         $planned = $rows[$table->name];
-        $notes = [];
+        $before = $existing[$table->name];
+        $notes = $before > 0 ? ['existing_rows:' . $before] : [];
         $nullFks = []; // fk name => true: the key is inserted as NULL
 
         foreach ($table->foreignKeys as $fk) {
@@ -137,7 +141,7 @@ final class Generator implements DataGenerator
                 $nullFks[$fk->name] = true;
                 $notes[] = sprintf('fk_left_null:%s (parent %s %s)', implode(',', $fk->columns), $fk->refTable, $why);
             } else {
-                return $this->failed($planned, Reason::PARENT_NOT_GENERATED, sprintf('needs %s, which %s', $fk->refTable, $why));
+                return $this->failed($planned, Reason::PARENT_NOT_GENERATED, sprintf('needs %s, which %s', $fk->refTable, $why), 0, $before);
             }
         }
 
@@ -151,24 +155,25 @@ final class Generator implements DataGenerator
             for ($start = 1; $start <= $planned; $start += $batchRows) {
                 $batch = [];
                 for ($i = $start; $i < $start + $batchRows && $i <= $planned; $i++) {
-                    $batch[] = $this->row($schema, $table, $plan, $radix, $rows, $i, $constants);
+                    $batch[] = $this->row($schema, $table, $plan, $radix, $rows, $existing, $i, $constants);
                 }
                 $sink->insert($table->name, $columns, $batch);
             }
 
-            $actual = $sink->count($table->name);
+            $actual = $sink->count($table->name) - $before;
             if ($actual !== $planned) {
                 $sink->rollBack();
 
-                return $this->failed($planned, Reason::COUNT_MISMATCH, sprintf('planned %d rows, found %d', $planned, $actual), $actual);
+                return $this->failed($planned, Reason::COUNT_MISMATCH, sprintf('planned %d rows, found %d', $planned, $actual), $actual, $before);
             }
             foreach ($table->columns as $column) {
                 if ($column->autoIncrement) {
-                    $span = $sink->span($table->name, $column->name);
-                    if ($span !== [1, $planned]) {
+                    // ids must run 1..(existing + planned): a foreign key to row j is the id before + j
+                    $expected = $before + $planned === 0 ? null : [1, $before + $planned];
+                    if ($sink->span($table->name, $column->name) !== $expected) {
                         $sink->rollBack();
 
-                        return $this->failed($planned, Reason::AUTOINC_GAP, sprintf('%s is not 1..%d', $column->name, $planned), $actual);
+                        return $this->failed($planned, Reason::AUTOINC_GAP, sprintf('%s is not 1..%d', $column->name, $before + $planned), $actual, $before);
                     }
                 }
             }
@@ -176,14 +181,14 @@ final class Generator implements DataGenerator
         } catch (SinkFailure $e) {
             $sink->rollBack();
 
-            return $this->failed($planned, $e->reason, $e->getMessage());
+            return $this->failed($planned, $e->reason, $e->getMessage(), 0, $before);
         } catch (Throwable $e) {
             $sink->rollBack();
 
-            return $this->failed($planned, Reason::INSERT_ERROR, $e->getMessage());
+            return $this->failed($planned, Reason::INSERT_ERROR, $e->getMessage(), 0, $before);
         }
 
-        $result = $this->state(TableOutcome::GENERATED, $planned, $planned, null, null);
+        $result = $this->state(TableOutcome::GENERATED, $planned, $planned, null, null, $before);
         $result['notes'] = $notes;
 
         return $result;
@@ -223,18 +228,19 @@ final class Generator implements DataGenerator
      * @param list<array{name: string, kind: string, fk: ?ForeignKey, position: int}> $plan
      * @param array<string, array{stride: int}>                                        $radix
      * @param array<string, int>                                                       $rows
+     * @param array<string, int>                                                       $existing
      * @param array<string, mixed>                                                     $constants
      *
      * @return list<mixed>
      */
-    private function row(DatabaseSchema $schema, TableSchema $table, array $plan, array $radix, array $rows, int $i, array $constants): array
+    private function row(DatabaseSchema $schema, TableSchema $table, array $plan, array $radix, array $rows, array $existing, int $i, array $constants): array
     {
         $row = [];
         foreach ($plan as $entry) {
             $row[] = match ($entry['kind']) {
                 'null' => null,
                 'constant' => $constants[$table->name][$entry['name']],
-                'fk' => $this->foreignKeyValue($schema, $entry['fk'], $entry['position'], $radix[$entry['fk']->name] ?? null, $rows, $i, $constants),
+                'fk' => $this->foreignKeyValue($schema, $entry['fk'], $entry['position'], $radix[$entry['fk']->name] ?? null, $rows, $existing, $i, $constants),
                 default => $this->values->value($table, $table->column($entry['name']), $i),
             };
         }
@@ -247,11 +253,15 @@ final class Generator implements DataGenerator
      * rows (so a table scaled M times its parent gives every parent exactly M children); keys that must be
      * unique together walk the parents like the digits of a number.
      *
+     * An auto-increment parent that held rows before generation has its generated rows after them: row j is id
+     * (existing + j).
+     *
      * @param ?array{stride: int} $radix
      * @param array<string, int>  $rows
+     * @param array<string, int>  $existing
      * @param array<string, mixed> $constants
      */
-    private function foreignKeyValue(DatabaseSchema $schema, ForeignKey $fk, int $position, ?array $radix, array $rows, int $i, array $constants): mixed
+    private function foreignKeyValue(DatabaseSchema $schema, ForeignKey $fk, int $position, ?array $radix, array $rows, array $existing, int $i, array $constants): mixed
     {
         $parentRows = max(1, $rows[$fk->refTable]);
         $j = $radix === null
@@ -266,7 +276,9 @@ final class Generator implements DataGenerator
             return $constants[$parent->name][$column->name];
         }
 
-        return $this->values->value($parent, $column, $j);
+        $value = $this->values->value($parent, $column, $j);
+
+        return $column->autoIncrement ? $existing[$parent->name] + $value : $value;
     }
 
     /**
@@ -301,10 +313,13 @@ final class Generator implements DataGenerator
      * Fills a deferred (NULL for now) foreign key, when the rows are plain enough to know the answer: a single
      * integer key column pointing at a single integer primary key. Otherwise the key stays NULL and says so.
      *
+     * Only the rows the generator inserted are updated (the ids after the rows that already existed).
+     *
      * @param array<string, int>   $rows
+     * @param array<string, int>   $existing
      * @param array<string, array<string, mixed>> $state
      */
-    private function fillDeferred(DatabaseSchema $schema, string $tableName, ForeignKey $fk, RowSink $sink, array $rows, array &$state): void
+    private function fillDeferred(DatabaseSchema $schema, string $tableName, ForeignKey $fk, RowSink $sink, array $rows, array $existing, array &$state): void
     {
         $table = $schema->table($tableName);
         $parent = $schema->table($fk->refTable);
@@ -330,9 +345,17 @@ final class Generator implements DataGenerator
         $t = Sql::identifier($tableName);
         $c = Sql::identifier($fk->columns[0]);
         $id = Sql::identifier($pk->name);
-        $sql = $fk->refTable === $tableName
-            ? sprintf('UPDATE %s SET %s = %s DIV 2 WHERE %s > 1', $t, $c, $id, $id)
-            : sprintf('UPDATE %s SET %s = ((%s - 1) %% %d) + 1', $t, $c, $id, max(1, $rows[$fk->refTable]));
+        $own = $existing[$tableName];
+        if ($fk->refTable === $tableName) {
+            // a binary tree over the generated rows: row n (n > 1) has row n DIV 2 as its parent
+            $sql = $own === 0
+                ? sprintf('UPDATE %s SET %s = %s DIV 2 WHERE %s > 1', $t, $c, $id, $id)
+                : sprintf('UPDATE %s SET %s = %d + ((%s - %d) DIV 2) WHERE %s > %d', $t, $c, $own, $id, $own, $id, $own + 1);
+        } else {
+            $parent = $existing[$fk->refTable];
+            $index = $own === 0 ? sprintf('(%s - 1)', $id) : sprintf('(%s - %d)', $id, $own + 1);
+            $sql = sprintf('UPDATE %s SET %s = (%s %% %d) + 1%s%s', $t, $c, $index, max(1, $rows[$fk->refTable]), $parent > 0 ? ' + ' . $parent : '', $own > 0 ? sprintf(' WHERE %s > %d', $id, $own) : '');
+        }
         try {
             $sink->execute($sql);
         } catch (Throwable $e) {
@@ -373,8 +396,8 @@ final class Generator implements DataGenerator
         DbGuard::assertDbName($sink->currentDatabase() ?? '');
     }
 
-    /** @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>} */
-    private function state(string $status, int $planned, int $actual, ?string $reason, ?string $detail): array
+    /** @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>, existing: int} */
+    private function state(string $status, int $planned, int $actual, ?string $reason, ?string $detail, int $existing = 0): array
     {
         return [
             'status' => $status,
@@ -383,13 +406,14 @@ final class Generator implements DataGenerator
             'reason' => $reason,
             'detail' => $detail === null ? null : TableOutcome::cut($detail),
             'notes' => [],
+            'existing' => $existing,
         ];
     }
 
-    /** @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>} */
-    private function failed(int $planned, string $reason, string $detail, int $actual = 0): array
+    /** @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>, existing: int} */
+    private function failed(int $planned, string $reason, string $detail, int $actual = 0, int $existing = 0): array
     {
-        return $this->state(TableOutcome::FAILED, $planned, $actual, $reason, $detail);
+        return $this->state(TableOutcome::FAILED, $planned, $actual, $reason, $detail, $existing);
     }
 
     /** @return list<string> */

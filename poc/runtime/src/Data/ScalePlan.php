@@ -12,7 +12,9 @@ use InvalidArgumentException;
  * Two shapes (design 1.2.2):
  *  - targeted: the static analysis named the table(s) that grow (n_table), and perhaps a table that grows
  *    per row of another (m_table, m_per). The n tables get N rows; the m table gets M rows per row of m_per;
- *    everyone else gets the small fixed base B.
+ *    everyone else gets the small fixed base B. N may be 0: the n table is empty, and so is every table that
+ *    cannot hold a row without a row of it (a NOT NULL foreign key); the response of that empty database is the
+ *    reference for "is the response empty at every scale".
  *  - global: no candidate; every table gets N rows (the "fixed" tables, such as roles, stay at B). A result
  *    measured this way says how the cost grows with the size of the whole database, nothing finer.
  *
@@ -47,7 +49,9 @@ final class ScalePlan
         if ($nTables === []) {
             throw new InvalidArgumentException('targeted plan needs at least one n table (use global() when there is none)');
         }
-        self::positive($n, 'n');
+        if ($n < 0) {
+            throw new InvalidArgumentException('n must be at least 0');
+        }
         self::positive($base, 'base');
 
         $explicit = array_fill_keys($nTables, $n);
@@ -106,14 +110,16 @@ final class ScalePlan
         foreach ($schema->names() as $name) {
             $rows[$name] = $this->rowsFor($name);
         }
+        self::emptyWhatNeedsEmptyTables($schema, $rows);
 
         for ($round = 0; $round < self::MAX_RESOLVE_ROUNDS; $round++) {
             $changed = false;
             foreach ($schema->tables() as $table) {
                 $coverers = self::uniqueForeignKeyCoverers($table);
                 foreach ($coverers as $parents) {
-                    $parents = array_values(array_unique(array_filter($parents, static fn (string $p): bool => $p !== $table->name && isset($rows[$p]))));
-                    if ($parents === []) {
+                    // an empty table stays empty on purpose (N = 0); it is never raised for a unique key
+                    $parents = array_values(array_unique(array_filter($parents, static fn (string $p): bool => $p !== $table->name && ($rows[$p] ?? 0) > 0)));
+                    if ($parents === [] || $rows[$table->name] === 0) {
                         continue;
                     }
                     $need = self::smallestRoot($rows[$table->name], count($parents));
@@ -131,6 +137,38 @@ final class ScalePlan
         }
 
         return $rows;
+    }
+
+    /**
+     * A table with a NOT NULL foreign key to an empty table cannot have rows: it is emptied too (repeatedly, so a
+     * chain of tables empties together). A key whose columns are all nullable stays NULL instead.
+     *
+     * @param array<string, int> $rows
+     */
+    private static function emptyWhatNeedsEmptyTables(DatabaseSchema $schema, array &$rows): void
+    {
+        do {
+            $changed = false;
+            foreach ($schema->tables() as $table) {
+                if ($rows[$table->name] === 0) {
+                    continue;
+                }
+                foreach ($table->foreignKeys as $fk) {
+                    if ($fk->refTable === $table->name || ($rows[$fk->refTable] ?? 1) > 0) {
+                        continue;
+                    }
+                    $nullable = true;
+                    foreach ($fk->columns as $name) {
+                        $nullable = $nullable && ($table->column($name)?->nullable ?? false);
+                    }
+                    if (!$nullable) {
+                        $rows[$table->name] = 0;
+                        $changed = true;
+                        break;
+                    }
+                }
+            }
+        } while ($changed);
     }
 
     /**
