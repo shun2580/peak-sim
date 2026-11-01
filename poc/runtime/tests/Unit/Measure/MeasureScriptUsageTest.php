@@ -72,4 +72,13 @@ final class MeasureScriptUsageTest extends TestCase
         }
         $this->assertStringContainsString('--request-timeout', $out);
     }
+
+    public function test_help_names_the_variable_that_runs_the_stack_in_another_image(): void
+    {
+        [$code, $out] = self::invoke(['--help']);
+
+        $this->assertSame(0, $code);
+        $this->assertStringContainsString('PEAK_PHP_IMAGE', $out);
+        $this->assertStringContainsString('build-image', $out, 'and where such an image comes from');
+    }
 }
