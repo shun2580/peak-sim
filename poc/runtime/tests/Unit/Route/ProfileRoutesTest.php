@@ -85,4 +85,39 @@ final class ProfileRoutesTest extends TestCase
         $this->assertFalse(ProfileRoutes::covers($entry, '/other/9', [], null));
         $this->assertTrue(ProfileRoutes::covers(self::PROFILE['unfillable']['an_argument'], '/anything', [], null), 'no routes key: every route');
     }
+
+    // ---- request_query: the routes whose GET carries credentials in its query ------------------------------------
+
+    private const QUERYING = ['request_query' => [
+        'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']],
+        'as_admin' => ['routes' => ['uri_prefix' => ['admin-feed/']], 'as' => 'admin', 'query' => ['u' => '{email}']],
+    ]];
+
+    public function test_a_get_route_the_entry_names_is_given_its_query_and_the_login_it_asks_for(): void
+    {
+        $entry = ProfileRoutes::querying(self::QUERYING, '/rest/ping', [], null, 'GET');
+
+        $this->assertSame(['label' => 'subsonic', 'as' => null, 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']], $entry);
+        $this->assertSame('admin', ProfileRoutes::querying(self::QUERYING, 'admin-feed/x', [], null, 'GET')['as']);
+    }
+
+    public function test_only_a_get_carries_the_query(): void
+    {
+        $this->assertNull(ProfileRoutes::querying(self::QUERYING, '/rest/ping', [], null, 'POST'));
+        $this->assertNull(ProfileRoutes::querying(self::QUERYING, '/rest/ping', [], null, 'DELETE'));
+    }
+
+    public function test_a_route_no_entry_names_has_no_query_and_neither_has_a_profile_without_the_key(): void
+    {
+        $this->assertNull(ProfileRoutes::querying(self::QUERYING, '/api/songs', [], null, 'GET'));
+        $this->assertNull(ProfileRoutes::querying(self::PROFILE, '/rest/ping', [], null, 'GET'));
+        $this->assertNull(ProfileRoutes::querying([], '/rest/ping', [], null, 'GET'));
+    }
+
+    public function test_an_entry_with_no_routes_names_no_route(): void
+    {
+        $profile = ['request_query' => ['everything' => ['query' => ['u' => 'x']]]];
+
+        $this->assertNull(ProfileRoutes::querying($profile, '/rest/ping', [], null, 'GET'));
+    }
 }

@@ -434,4 +434,22 @@ final class DriverTest extends PlannerTestCase
         $this->assertTrue($row['tried']);
         $this->assertNotSame('unfilled_param', $row['class']);
     }
+
+    public function test_the_request_carries_the_tasks_query_and_the_row_says_credentials_were_carried(): void
+    {
+        $runner = self::runner();
+        $task = new RouteTask(self::spec('rest/ping'), '/rest/ping', query: ['u' => 'user@measure.invalid', 'apiKey' => '{key:subsonic:1}'], credentials: 'profile:subsonic: credentials (u, apiKey) carried in the query');
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner))->run([$task], self::SCALES);
+
+        $this->assertSame(['u' => 'user@measure.invalid', 'apiKey' => '{key:subsonic:1}'], $runner->requests[1]->query);
+        $row = $result->report->rows()[0];
+        $this->assertSame('profile:subsonic: credentials (u, apiKey) carried in the query', $row['request_credentials']);
+    }
+
+    public function test_a_row_of_a_route_that_carried_no_credentials_has_no_such_key(): void
+    {
+        $result = (new Driver(new SeederPlanner(), self::builder(), self::runner()))->run([self::task('/a')], self::SCALES);
+
+        $this->assertArrayNotHasKey('request_credentials', $result->report->rows()[0]);
+    }
 }

@@ -113,4 +113,29 @@ final class ProcessOneRunnerTest extends TestCase
         $this->assertSame([], $parsed['body']);
         $this->assertContains('--body-json={}', $request->toArguments());
     }
+
+    public function test_a_query_round_trips_as_tokens_and_the_arguments_hold_no_key(): void
+    {
+        $request = new MeasureRequest('koel', 100, 'N', 'rest/ping', '/rest/ping', 'GET', null, null, false, false, [], false, [Attempt::COLD], ['u' => 'user@measure.invalid', 'apiKey' => '{key:subsonic:1}', 'odd' => 'a=b&c d']);
+
+        $parsed = \PeakSim\Runtime\Run\MeasureOne::parseArguments($request->toArguments());
+
+        $this->assertSame(['u' => 'user@measure.invalid', 'apiKey' => '{key:subsonic:1}', 'odd' => 'a=b&c d'], $parsed['query']);
+        $this->assertStringNotContainsString('measure-subsonic', implode(' ', $request->toArguments()));
+    }
+
+    public function test_a_request_with_no_query_adds_no_argument(): void
+    {
+        $request = new MeasureRequest('ord', 1, 'N', '/a', '/a', 'GET', null, null, false, false, [], false, [Attempt::COLD]);
+
+        $this->assertSame([], array_values(array_filter($request->toArguments(), static fn (string $a): bool => str_starts_with($a, '--query'))));
+        $this->assertSame([], \PeakSim\Runtime\Run\MeasureOne::parseArguments($request->toArguments())['query']);
+    }
+
+    public function test_the_gate_bypass_retry_keeps_the_query(): void
+    {
+        $request = new MeasureRequest('koel', 100, 'N', 'rest/ping', '/rest/ping', 'GET', null, null, false, false, [], false, [Attempt::COLD], ['u' => 'x']);
+
+        $this->assertSame(['u' => 'x'], $request->withGateBypass()->query);
+    }
 }

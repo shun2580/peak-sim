@@ -173,4 +173,48 @@ final class ProfileTest extends TestCase
         $statuses = array_unique(array_column($sink->assoc('orders'), 'status'));
         $this->assertSame(['paid'], $statuses);
     }
+
+    // ---- request_query -----------------------------------------------------------------------------------------
+
+    public function test_a_request_query_entry_is_checked_when_the_profile_is_loaded(): void
+    {
+        $this->write('queried', "<?php return ['user' => ['id' => 1, 'email' => 'u@x.invalid'], 'admin' => ['id' => 2, 'email' => 'a@x.invalid'], "
+            . "'request_query' => ['s' => ['routes' => ['uri_prefix' => ['rest/']], 'as' => 'admin', 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']]]];");
+
+        $this->assertArrayHasKey('s', Profile::load('queried', $this->dir)['request_query']);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badQueries(): iterable
+    {
+        yield 'no routes' => ["['query' => ['u' => 'x']]"];
+        yield 'an unknown route key' => ["['routes' => ['url' => ['rest/']], 'query' => ['u' => 'x']]"];
+        yield 'no query' => ["['routes' => ['uri_prefix' => ['rest/']]]"];
+        yield 'an empty query' => ["['routes' => ['uri_prefix' => ['rest/']], 'query' => []]"];
+        yield 'a name that is not a plain word' => ["['routes' => ['uri_prefix' => ['rest/']], 'query' => ['a b' => 'x']]"];
+        yield 'a value that is not text' => ["['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => 3]]"];
+        yield 'a placeholder nothing reads' => ["['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => '{password}']]"];
+        yield 'a login that is neither the user nor the admin' => ["['routes' => ['uri_prefix' => ['rest/']], 'as' => 'root', 'query' => ['u' => 'x']]"];
+        yield 'a login the profile does not have' => ["['routes' => ['uri_prefix' => ['rest/']], 'as' => 'manager', 'query' => ['u' => 'x']]"];
+        yield 'an email wanted of a login that has none' => ["['routes' => ['uri_prefix' => ['rest/']], 'as' => 'user', 'query' => ['u' => '{email}']]"];
+    }
+
+    #[DataProvider('badQueries')]
+    public function test_a_badly_formed_request_query_entry_is_refused_at_load(string $entry): void
+    {
+        $this->write('badquery', "<?php return ['user' => ['id' => 1], 'request_query' => ['a' => $entry]];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('request_query');
+        Profile::load('badquery', $this->dir);
+    }
+
+    public function test_a_request_query_with_no_login_at_all_is_refused_when_it_asks_for_the_email(): void
+    {
+        $this->write('nologin', "<?php return ['request_query' => ['a' => ['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => '{email}']]]];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('request_query');
+        Profile::load('nologin', $this->dir);
+    }
 }

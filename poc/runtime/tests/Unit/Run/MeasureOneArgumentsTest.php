@@ -78,4 +78,32 @@ final class MeasureOneArgumentsTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         MeasureOne::parseArguments(['--scale=100', '--uri=/x', '--db=app']);
     }
+
+    public function testQueryIsRepeatableAndKeepsEverythingAfterTheFirstEquals(): void
+    {
+        $a = MeasureOne::parseArguments(['--scale=100', '--uri=/rest/ping', '--query=u=a@b.invalid', '--query=apiKey={key:subsonic:1}', '--query=x=1=2']);
+
+        self::assertSame(['u' => 'a@b.invalid', 'apiKey' => '{key:subsonic:1}', 'x' => '1=2'], $a['query']);
+    }
+
+    public function testNoQueryIsAnEmptyOne(): void
+    {
+        self::assertSame([], MeasureOne::parseArguments(['--scale=100', '--uri=/x'])['query']);
+    }
+
+    /** @return iterable<string, array{list<string>}> */
+    public static function badQueries(): iterable
+    {
+        yield 'no equals sign' => [['--scale=100', '--uri=/x', '--query=oops']];
+        yield 'an empty name' => [['--scale=100', '--uri=/x', '--query==v']];
+        yield 'a name that is not a plain word' => [['--scale=100', '--uri=/x', '--query=a b=v']];
+        yield 'no value at all' => [['--scale=100', '--uri=/x', '--query']];
+    }
+
+    #[DataProvider('badQueries')]
+    public function testABadQueryIsAUsageError(array $argv): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        MeasureOne::parseArguments($argv);
+    }
 }

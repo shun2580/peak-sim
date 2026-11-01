@@ -371,4 +371,111 @@ final class TaskBuilderTest extends PlannerTestCase
 
         $this->assertSame([], $task->guessed);
     }
+
+    // ---- credentials in the query of a GET (request_query) ----------------------------------------------------------
+
+    private const QUERIED = [
+        'user' => ['id' => 1, 'role' => 'user', 'email' => 'user@measure.invalid'],
+        'admin' => ['id' => 2, 'role' => 'admin', 'email' => 'admin@measure.invalid'],
+        'request_query' => [
+            'subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']],
+            'admin_feed' => ['routes' => ['uri_prefix' => ['feed/']], 'as' => 'admin', 'query' => ['u' => '{email}', 'apiKey' => '{key:subsonic}']],
+        ],
+    ];
+
+    public function test_a_get_route_the_profile_names_carries_the_logins_email_and_a_token_for_its_key(): void
+    {
+        $facts = self::facts();
+        $task = self::builder($facts, self::QUERIED)->build(self::spec('rest/ping', [], 'GET', ['web']));
+
+        $this->assertNull($task->failClass);
+        $this->assertSame('/rest/ping', '/' . ltrim((string) $task->uri, '/'));
+        $this->assertSame(['u' => 'user@measure.invalid', 'apiKey' => '{key:subsonic:1}'], $task->query);
+        $this->assertNull($task->actAs, 'the credentials are in the query, not in a session login');
+    }
+
+    public function test_the_entry_may_ask_for_the_admin_and_the_default_follows_login_as(): void
+    {
+        $admin = self::builder(null, self::QUERIED)->build(self::spec('feed/x', [], 'GET', []));
+        $this->assertSame(['u' => 'admin@measure.invalid', 'apiKey' => '{key:subsonic:2}'], $admin->query);
+
+        $loginAsAdmin = self::builder(null, ['login_as' => 'admin'] + self::QUERIED)->build(self::spec('rest/ping', [], 'GET', []));
+        $this->assertSame(['u' => 'admin@measure.invalid', 'apiKey' => '{key:subsonic:2}'], $loginAsAdmin->query);
+    }
+
+    public function test_the_task_says_which_entry_gave_the_credentials_and_what_names_they_have_but_never_a_value(): void
+    {
+        $task = self::builder(null, self::QUERIED)->build(self::spec('rest/ping', [], 'GET', []));
+
+        $this->assertNotNull($task->credentials);
+        $this->assertStringContainsString('subsonic', (string) $task->credentials);
+        $this->assertStringContainsString('u', (string) $task->credentials);
+        $this->assertStringContainsString('apiKey', (string) $task->credentials);
+        $this->assertStringNotContainsString('measure.invalid', (string) $task->credentials);
+        $this->assertStringNotContainsString('{key', (string) $task->credentials);
+    }
+
+    public function test_only_the_routes_the_entry_names_carry_a_query(): void
+    {
+        $task = self::builder(null, self::QUERIED)->build(self::spec('/api/songs', [], 'GET', ['web']));
+
+        $this->assertSame([], $task->query);
+        $this->assertNull($task->credentials);
+    }
+
+    public function test_a_route_that_is_not_a_get_carries_no_query_even_when_its_uri_is_named(): void
+    {
+        $task = self::builder(null, self::QUERIED)->build(self::spec('rest/ping', [], 'POST', []));
+
+        $this->assertSame([], $task->query);
+        $this->assertNull($task->credentials);
+    }
+
+    public function test_with_no_request_query_in_the_profile_a_task_is_what_it_was_before(): void
+    {
+        foreach ([[], self::PROFILE, self::ROUTED] as $profile) {
+            $task = self::builder(null, $profile)->build(self::spec('rest/ping', [], 'GET', ['web']));
+
+            $this->assertSame([], $task->query);
+            $this->assertNull($task->credentials);
+        }
+    }
+
+    public function test_an_entry_that_carries_credentials_wins_over_an_unfillable_entry_for_the_same_routes(): void
+    {
+        $profile = self::QUERIED + ['unfillable' => ['subsonic' => ['routes' => ['uri_prefix' => ['rest/']], 'reason' => 'unauthenticated', 'why' => 'old']]];
+        $task = self::builder(null, $profile)->build(self::spec('rest/ping', [], 'GET', []));
+
+        $this->assertNull($task->failClass);
+        $this->assertSame('user@measure.invalid', $task->query['u']);
+    }
+
+    public function test_a_route_with_arguments_still_has_them_filled_and_carries_the_query(): void
+    {
+        $format = ['optional' => true, 'where' => null, 'model' => null, 'field' => null, 'type' => null, 'scope' => null];
+        $profile = self::QUERIED + ['arguments' => ['format' => ['literal' => 'json', 'why' => 'the response format']]];
+        $spec = new RouteSpec('rest/ping{format?}', 'GET', ['GET'], [], ['format' => $format], 'A@b', ['n_table' => null, 'm_table' => null, 'm_per' => null, 'n_table_alternatives' => []], true);
+        $task = self::builder(null, $profile)->build($spec);
+
+        $this->assertNull($task->failClass, (string) $task->failDetail);
+        $this->assertSame('user@measure.invalid', $task->query['u']);
+    }
+
+    public function test_a_task_with_a_query_survives_json_and_an_older_task_without_one_still_loads(): void
+    {
+        $task = self::builder(null, self::QUERIED)->build(self::spec('rest/ping', [], 'GET', []));
+        $copy = \PeakSim\Runtime\Measure\RouteTask::fromArray(json_decode(json_encode($task->toArray(), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
+        $this->assertEquals($task, $copy);
+
+        $old = $task->toArray();
+        unset($old['query'], $old['credentials']);
+        $this->assertSame([], \PeakSim\Runtime\Measure\RouteTask::fromArray($old)->query);
+    }
+
+    public function test_the_task_holds_the_token_not_the_key(): void
+    {
+        $task = self::builder(null, self::QUERIED)->build(self::spec('rest/ping', [], 'GET', []));
+
+        $this->assertStringNotContainsString('measure-subsonic', json_encode($task->toArray(), JSON_THROW_ON_ERROR));
+    }
 }
