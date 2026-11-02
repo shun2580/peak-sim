@@ -29,9 +29,25 @@ final class MorphDiscoveryTest extends TestCase
 
         $this->assertSame([
             'attachments.attachable_id/attachable_type <- bills(id) ' . Bill::class,
+            'labelables.labelable_id/labelable_type <- bills(id) ' . Bill::class,
             'locations.locatable_id/locatable_type <- bills(id) ' . Bill::class,
             'taggables.taggable_id/taggable_type <- bills(id) ' . Bill::class,
         ], self::lines($links));
+    }
+
+    public function testAToManyRelationAlsoSaysWhichTableItsOtherKeyPointsAt(): void
+    {
+        $byTable = [];
+        foreach (MorphDiscovery::discover([Bill::class]) as $link) {
+            $byTable[$link->table] = $link;
+        }
+
+        // the pivot has no foreign key in the database, so the relation is the only place that says tag_id is a tags id
+        $this->assertSame(['tag_id', 'tags', 'id'], [$byTable['taggables']->relatedColumn, $byTable['taggables']->relatedTable, $byTable['taggables']->relatedKey]);
+        // a relation that does not say (or that throws when asked) leaves it out, and the link itself is still found
+        $this->assertSame([null, null, null], [$byTable['labelables']->relatedColumn, $byTable['labelables']->relatedTable, $byTable['labelables']->relatedKey]);
+        // a one-sided relation has no other key
+        $this->assertNull($byTable['attachments']->relatedColumn);
     }
 
     public function testTheSameChildTableCanBelongToSeveralParentTypes(): void
@@ -49,7 +65,7 @@ final class MorphDiscoveryTest extends TestCase
     {
         // Bill also has plain() (not a morph), withArgument($x), broken() and a static make(): none adds a link and
         // none stops the others.
-        $this->assertCount(3, MorphDiscovery::discover([Bill::class]));
+        $this->assertCount(4, MorphDiscovery::discover([Bill::class]));
     }
 
     public function testAClassThatIsNotAModelOrNotThereIsLeftAlone(): void

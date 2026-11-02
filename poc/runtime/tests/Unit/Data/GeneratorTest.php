@@ -163,6 +163,54 @@ final class GeneratorTest extends TestCase
         $this->assertSame([1, 2, 3, 4, 5, 1], array_values(array_column($bills, 'attachable_id')));
     }
 
+    private static function taggingSchema(bool $declared = false): DatabaseSchema
+    {
+        return new DatabaseSchema([
+            new TableSchema('tags', [Schemas::id(), Schemas::varchar('name')], ['id']),
+            new TableSchema('posts', [Schemas::id(), Schemas::varchar('name')], ['id']),
+            new TableSchema('taggables', [
+                Schemas::column('tag_id', 'int', 'int'),
+                Schemas::column('taggable_id', 'bigint', 'bigint unsigned', ['unsigned' => true]),
+                Schemas::varchar('taggable_type'),
+            ], [], [], $declared ? [new ForeignKey('taggables_tag', ['tag_id'], 'tags', ['id'])] : []),
+        ]);
+    }
+
+    private static function tagging(): MorphLink
+    {
+        return new MorphLink('taggables', 'taggable_id', 'taggable_type', 'App\\Post', 'posts', 'id', 'tag_id', 'tags', 'id');
+    }
+
+    public function testTheOtherKeyOfAToManyPivotPointsAtRowsOfTheTableTheRelationNames(): void
+    {
+        $sink = new RecordingSink();
+        $report = (new Generator())->generateInto(self::taggingSchema(), $sink, ScalePlan::targeted(['taggables'], null, null, 23, 0, 4), [], [self::tagging()]);
+
+        $this->assertSame(0, $report->failedCount());
+        $ids = array_column($sink->assoc('taggables'), 'tag_id');
+        $this->assertCount(23, $ids);
+        // 4 tags: the rows walk round them; none points past the last tag (the column has no foreign key to say so)
+        $this->assertSame([1, 2, 3, 4, 1, 2], array_slice($ids, 0, 6));
+        $this->assertLessThanOrEqual(4, max($ids));
+        $this->assertGreaterThanOrEqual(1, min($ids));
+    }
+
+    public function testTheOtherKeyIsLeftToTheOrdinaryRulesWhenItHasAForeignKeyAConstantOrNoTableToPointAt(): void
+    {
+        $morph = [self::tagging()];
+        $declared = new RecordingSink();
+        (new Generator())->generateInto(self::taggingSchema(true), $declared, ScalePlan::targeted(['taggables'], null, null, 9, 0, 4), [], $morph);
+        $this->assertLessThanOrEqual(4, max(array_column($declared->assoc('taggables'), 'tag_id')), 'a declared key is the foreign key rule, as before');
+
+        $constant = new RecordingSink();
+        (new Generator())->generateInto(self::taggingSchema(), $constant, ScalePlan::targeted(['taggables'], null, null, 9, 0, 4), ['values' => ['taggables' => ['tag_id' => 7]]], $morph);
+        $this->assertSame([7], array_values(array_unique(array_column($constant->assoc('taggables'), 'tag_id'))), 'a value the profile gives wins');
+
+        $skipped = new RecordingSink();
+        (new Generator())->generateInto(self::taggingSchema(), $skipped, ScalePlan::targeted(['taggables'], null, null, 9, 0, 4), ['skip' => ['tags']], $morph);
+        $this->assertGreaterThan(4, max(array_column($skipped->assoc('taggables'), 'tag_id')), 'with no tag rows to point at the ordinary values are used');
+    }
+
     public function testAMorphWhoseParentTableHasNoRowsIsLeftToTheOrdinaryValues(): void
     {
         $morphs = [new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Bill', 'bills', 'id')];

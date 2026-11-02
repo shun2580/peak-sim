@@ -40,8 +40,24 @@ namespace PeakSim\Runtime\Tests\Stubs\Relations {
 
     final class MorphToMany
     {
-        public function __construct(private readonly string $pivot, private readonly string $type, private readonly string $id)
+        /** @param ?class-string $related the model on the other side; null: this relation does not say */
+        public function __construct(private readonly string $pivot, private readonly string $type, private readonly string $id, private readonly ?string $related = null, private readonly string $relatedPivotKey = '')
         {
+        }
+
+        public function getRelated(): object
+        {
+            return $this->related === null ? throw new \LogicException('this relation does not say what it relates to') : new ($this->related)();
+        }
+
+        public function getRelatedPivotKeyName(): string
+        {
+            return $this->relatedPivotKey;
+        }
+
+        public function getRelatedKeyName(): string
+        {
+            return 'id';
         }
 
         public function getTable(): string
@@ -112,6 +128,14 @@ namespace PeakSim\Runtime\Tests\Stubs\Models {
         }
     }
 
+    final class Tag extends Base
+    {
+        public static function table(): string
+        {
+            return 'tags';
+        }
+    }
+
     final class Bill extends Base
     {
         public static function table(): string
@@ -131,7 +155,12 @@ namespace PeakSim\Runtime\Tests\Stubs\Models {
 
         public function tags(): MorphToMany
         {
-            return new MorphToMany('taggables', 'taggable_type', 'taggable_id');
+            return new MorphToMany('taggables', 'taggable_type', 'taggable_id', Tag::class, 'tag_id');
+        }
+
+        public function labels(): MorphToMany
+        {
+            return new MorphToMany('labelables', 'labelable_type', 'labelable_id');
         }
 
         public function plain(): HasMany
