@@ -107,4 +107,14 @@ final class OptionsTest extends TestCase
         $this->assertFalse($o->wants('/ng/service'));
         $this->assertTrue(Options::parse([])->wants('/anything'));
     }
+
+    public function test_only_with_an_equals_prefix_matches_the_whole_uri(): void
+    {
+        $o = Options::parse(['--only==/api/v1/transactions/{transactionGroup},=/json/box/available']);
+
+        $this->assertTrue($o->wants('/api/v1/transactions/{transactionGroup}'));
+        $this->assertTrue($o->wants('/json/box/available'));
+        $this->assertFalse($o->wants('/api/v1/transactions/{transactionGroup}/attachments'));
+        $this->assertFalse($o->wants('/json/box/available/extra'));
+    }
 }

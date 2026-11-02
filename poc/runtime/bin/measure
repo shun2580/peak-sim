@@ -31,7 +31,7 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
   --data=generator       how the databases are filled: the tool's generator (default; any app)
   --data=seeder          the verification app's own seeder (only for fixtures/laravel-app)
   --scales=100,1000,10000   the sizes of the main sweep: at least 3, strictly ascending (default 100,1000,10000)
-  --only=<a>,<b>         measure only the routes whose uri contains one of these
+  --only=<a>,<b>         measure only the routes whose uri contains one of these; a name that starts with = must equal the whole uri
   --base=N               generator only: rows of every table that is not scaled (default 5)
   --profile=<name>       generator only: app knowledge from profiles/<name>.php (column values, tables to skip); a result
                          reached with a profile is reported apart from one reached without

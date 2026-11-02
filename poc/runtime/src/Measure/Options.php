@@ -99,7 +99,8 @@ final class Options
             return true;
         }
         foreach ($this->only as $needle) {
-            if (str_contains($route, $needle)) {
+            // A needle that starts with "=" must equal the whole uri; any other needle is a substring match.
+            if (str_starts_with($needle, '=') ? $route === substr($needle, 1) : str_contains($route, $needle)) {
                 return true;
             }
         }
