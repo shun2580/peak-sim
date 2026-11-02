@@ -76,7 +76,7 @@ final class DatabaseBuild
             }
         } else {
             $pdo = $app['db']->connection()->getPdo();
-            $report = (new Generator())->generate($pdo, self::scalePlan($recipe), $profile);
+            $report = (new Generator())->generate($pdo, self::scalePlan($recipe), $profile, self::morphLinks($app));
             $afterGeneration = self::afterGeneration($profile, $pdo, $name);
             $info['generation'] = [
                 'scope' => $report->scope,
@@ -146,6 +146,21 @@ final class DatabaseBuild
         }
 
         return is_array($summary) ? $summary : [];
+    }
+
+    /**
+     * The polymorphic relations the started app declares (see MorphDiscovery). Nothing found, or a failure to look, is
+     * an empty list: the generator then fills such columns as it always did.
+     *
+     * @return list<\PeakSim\Runtime\Data\MorphLink>
+     */
+    private static function morphLinks(object $app): array
+    {
+        try {
+            return MorphDiscovery::discover(MorphDiscovery::appModels($app));
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** @param array<string, mixed> $recipe */

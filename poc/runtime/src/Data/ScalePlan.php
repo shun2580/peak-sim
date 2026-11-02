@@ -102,16 +102,19 @@ final class ScalePlan
      * The full {table => rows} map for a schema, with parents raised where a unique foreign key needs it.
      * Never lowers a table.
      *
+     * @param list<MorphLink> $morphs polymorphic relations the app declares: a child table with no key to its parents,
+     *                                which is raised like a link table (see growLinkTables)
+     *
      * @return array<string, int> in the schema's (sorted) table order
      */
-    public function resolve(DatabaseSchema $schema): array
+    public function resolve(DatabaseSchema $schema, array $morphs = []): array
     {
         $rows = [];
         foreach ($schema->names() as $name) {
             $rows[$name] = $this->rowsFor($name);
         }
         self::emptyWhatNeedsEmptyTables($schema, $rows);
-        $this->growLinkTables($schema, $rows);
+        $this->growLinkTables($schema, $rows, $morphs);
 
         for ($round = 0; $round < self::MAX_RESOLVE_ROUNDS; $round++) {
             $changed = false;
@@ -155,10 +158,20 @@ final class ScalePlan
      * the same few rows at every scale). A table the plan names keeps its own count; an empty table stays empty.
      * Repeated, so that a link table of link tables grows too.
      *
+     * A table that is the child side of a polymorphic relation is treated the same way: it is tied to its parents
+     * by a type and an id, not by a key, but what is reached through it must grow with them all the same.
+     *
      * @param array<string, int> $rows
+     * @param list<MorphLink>    $morphs
      */
-    private function growLinkTables(DatabaseSchema $schema, array &$rows): void
+    private function growLinkTables(DatabaseSchema $schema, array &$rows, array $morphs): void
     {
+        $morphParents = [];
+        foreach ($morphs as $link) {
+            if ($schema->table($link->parentTable) !== null) {
+                $morphParents[$link->table][$link->parentTable] = true;
+            }
+        }
         for ($round = 0; $round < self::MAX_RESOLVE_ROUNDS; $round++) {
             $changed = false;
             foreach ($schema->tables() as $table) {
@@ -172,6 +185,11 @@ final class ScalePlan
                         continue;
                     }
                     foreach ($parents as $parent) {
+                        $largest = max($largest, $rows[$parent] ?? 0);
+                    }
+                }
+                foreach (array_keys($morphParents[$table->name] ?? []) as $parent) {
+                    if ($parent !== $table->name) {
                         $largest = max($largest, $rows[$parent] ?? 0);
                     }
                 }
