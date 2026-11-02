@@ -54,6 +54,30 @@ candidate table (`scope: global`).
 it; report it apart from a run without. `profiles/fixtures.php` gives the verification app's orders the status `paid`,
 which one of its controllers filters for.
 
+What the tool does for any app, without a profile (nothing here is knowledge about one app):
+
+- **Link tables and polymorphic relations.** A table whose key is made of foreign keys to two or more tables, and the child
+  table of a `morphMany` / `morphOne` / `morphToMany` the app declares (read from the app's models, `Measure/MorphDiscovery`),
+  grows with its largest parent when the plan does not name it, and the generated rows are tied to rows that exist (the type
+  column takes the parents' morph classes in turn, the id column walks their rows). Without this a route that reads through the
+  link saw the same few rows at every scale.
+- **Packages.** An app that has `laravel/passport` gets a throw-away key pair in the configuration of the measuring process (no
+  file is written; a key the app already has is left alone). An app that has Vite gets an empty asset helper, so pages whose
+  front end is not built still render (`Boot/AppSupport`).
+- **Values by name** (`Data/ValueFactory`): an optional column named for a secret (`*secret*`, `*recovery_codes*`) is NULL, because
+  a value there switches two-factor login on; a `*_tz` text column is `UTC`.
+- **Arguments.** A route argument whose name is a table (`{category}`, `{piggyBank}`) takes the first primary key of it, when
+  that value does not break the argument's `where` constraint.
+- **422.** A write that answers 422 is sent again with a body rebuilt from the fields the answer names (a string, then a number,
+  then an array for a field that keeps failing; three rounds). The body that works is kept for the route's later scales.
+- **A doubt, not a verdict.** If the response size and the rows the scaled tables gave the app (counted from the statements'
+  results, `Run/RowsRead`) are the same at every scale, the route's row carries `data_not_arriving_suspected` and `data_doubt`,
+  `summary.json` lists it, and `report.md` says "data may not have arrived". The judging rules are untouched by it.
+
+A profile's `on_boot` is allowed in this proof of concept on two conditions that `Boot/OnBootWatch` checks every time it runs:
+it sends no statement and opens no transaction, and it leaves the mail, notification, queue and outbound-HTTP fakes as they were.
+(A statement sent straight to the PDO object, which no event reports, is outside what the check can see.)
+
 The record (`--out`, default under `~/.cache`; keep it outside the repository): `attempts.jsonl` (every attempt),
 `routes.jsonl` and `report.md` (one row per route: outcome, verdict with its scope, standing against the static analysis),
 `comparison.md/json` (with `--expected`), `summary.json` (counts, seconds per database, what each build produced) and

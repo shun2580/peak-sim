@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Boot;
 
 /**
- * Holds a profile's `on_boot` to the two conditions it is allowed under (decision 5 of order 06):
+ * Holds a profile's `on_boot` to the two conditions it is allowed under:
  *  1. it does not touch the database: no statement is sent (the QueryExecuted event of every connection is counted
  *     while the hook runs) and the transaction level of the connection is the same after as before;
  *  2. it does not take the fakes off: what `Fakes::fingerprint()` reads (the objects behind the mail, notification and

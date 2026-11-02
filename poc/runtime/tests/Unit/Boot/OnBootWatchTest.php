@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 require_once __DIR__ . '/Stubs/FakeApp.php';
 
 /**
- * Decision 5 of the order: a profile's `on_boot` is allowed in the proof of concept on two conditions that are held by
+ * A profile's `on_boot` is allowed in the proof of concept on two conditions that are held by
  * a test, not by a promise: it does not touch the database, and it does not take the fakes off.
  */
 final class OnBootWatchTest extends TestCase
