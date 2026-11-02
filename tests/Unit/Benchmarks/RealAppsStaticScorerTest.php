@@ -164,6 +164,73 @@ final class RealAppsStaticScorerTest extends TestCase
         }
     }
 
+    public function testTheCommittedCollectionsHaveTheRecordedSizes(): void
+    {
+        $truth = Truth::load(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');
+
+        $perSet = [];
+        $perApp = [];
+        $axes = 0;
+        foreach ($truth['routes'] as $route) {
+            foreach ($route['sets'] as $set) {
+                $perSet[$set] = ($perSet[$set] ?? 0) + 1;
+            }
+            $perApp[$route['app']] = ($perApp[$route['app']] ?? 0) + 1;
+            $axes += count($route['axes']);
+        }
+        ksort($perSet);
+        ksort($perApp);
+
+        $this->assertCount(69, $truth['routes']);
+        $this->assertSame(112, $axes);
+        $this->assertSame([
+            'lower-bound-sample' => 15,
+            'round1-control' => 2,
+            'round1-target' => 25,
+            'round2-new24' => 24,
+            'settled' => 5,
+        ], $perSet);
+        $this->assertSame(['bookstack' => 5, 'firefly-iii' => 53, 'koel' => 7, 'snipe-it' => 4], $perApp);
+    }
+
+    public function testTheNewTwentyFourAreAnsweredInEnglishWithTheirConditionsAndEvidence(): void
+    {
+        $truth = Truth::load(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');
+
+        $new = array_values(array_filter($truth['routes'], static fn (array $r): bool => in_array('round2-new24', $r['sets'], true)));
+        $this->assertCount(24, $new);
+
+        $growth = [];
+        foreach ($new as $route) {
+            $this->assertSame('firefly-iii', $route['app']);
+            $this->assertArrayHasKey('query', $route['axes'], $route['id']);
+            $q = $route['axes']['query'];
+            $growth[$q['growth']] = ($growth[$q['growth']] ?? 0) + 1;
+            $this->assertContains($q['confidence'], ['high', 'medium'], $route['id']);
+            $this->assertNotEmpty($route['evidence'], $route['id']);
+            if ($q['growth'] === 'conditional') {
+                $this->assertNotSame('', trim((string) ($q['condition'] ?? '')), $route['id'] . ' needs the condition in words');
+                $this->assertSame(1, $q['growth_if_condition_degree'], $route['id']);
+            }
+            // the prose is English: no character from the Japanese blocks
+            $this->assertSame(0, preg_match('/[\x{3000}-\x{30ff}\x{3400}-\x{9fff}\x{ff00}-\x{ffef}]/u', (string) json_encode($route, JSON_UNESCAPED_UNICODE)), $route['id']);
+        }
+        ksort($growth);
+        $this->assertSame(['O(1)' => 2, 'O(N)' => 16, 'conditional' => 6], $growth);
+    }
+
+    public function testTheRouteThatOverlapsTheEarlierSampleKeepsItsEarlierRecordAsInformation(): void
+    {
+        $truth = Truth::load(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');
+
+        $found = array_values(array_filter($truth['routes'], static fn (array $r): bool => $r['id'] === 'firefly-iii POST /piggy-banks/remove/{piggyBank}'));
+        $this->assertCount(1, $found);
+        $this->assertSame(['round2-new24'], $found[0]['sets'], 'one answer, in one set');
+        $this->assertSame('conditional', $found[0]['axes']['query']['growth'], 'the full trace is the answer');
+        $this->assertSame(['S10'], array_values(array_unique(array_column($found[0]['earlier_records'], 'sample'))));
+        $this->assertFalse($found[0]['cross_check']['agrees_on_growth']);
+    }
+
     public function testTheCommittedAnswersCarryNoEnvironmentDetailsAndNoQuotedCode(): void
     {
         $text = (string) file_get_contents(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');

@@ -2157,6 +2157,1249 @@
      "note": "reads as constant, not confirmed"
     }
    ]
+  },
+  {
+   "id": "firefly-iii GET /accounts/show/{account?}/{start_date?}/{end_date?}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/accounts/show/{account?}/{start_date?}/{end_date?}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the account in the URL (morphMany); one extra query per attachment for its note",
+     "note": "1+A queries for A attachments. The period overview (P periods, bounded by the date range) and the transaction list (capped by the page size, 50 by default) do not grow with the row count."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "transactions of the account (the period collection reads all of them for each period)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Account/ShowController.php",
+     "line": 115,
+     "note": "calls getAttachments for the account"
+    },
+    {
+     "file": "app/Repositories/Account/AccountRepository.php",
+     "line": 375,
+     "note": "reads all attachments of the account, then one notes()->first() per attachment (A queries for A attachments)"
+    },
+    {
+     "file": "app/Models/Account.php",
+     "line": 102,
+     "note": "attachments() is a morphMany (children of one account)"
+    },
+    {
+     "file": "app/Http/Controllers/Account/ShowController.php",
+     "line": 139,
+     "note": "period overview: the number of periods P is set by the date range (three years back at most), not by the row count"
+    },
+    {
+     "file": "app/Http/Controllers/Account/ShowController.php",
+     "line": 151,
+     "note": "the transaction list is capped by setLimit (page size, 50 by default)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/accounts/{account}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/accounts/{account}/attachments",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the account in the URL (morphMany); one extra query per attachment for its note",
+     "note": "All attachments are read, with one notes()->first() each, before the caller slices the page, so the cost is proportional to A whatever the page size. The conversion after the slice adds at most the page limit (50 by default)."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the account in the URL (morphMany); one extra query per attachment for its note"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Account/ListController.php",
+     "line": 75,
+     "note": "reads all attachments of the account with getAttachments, then slices at line 78"
+    },
+    {
+     "file": "app/Repositories/Account/AccountRepository.php",
+     "line": 375,
+     "note": "one notes()->first() per attachment (A queries for A attachments)"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 63,
+     "note": "after the slice, getNoteText runs for at most the page limit (50 by default)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii PUT /api/v1/budgets/{budget}",
+   "app": "firefly-iii",
+   "method": "PUT",
+   "uri": "/api/v1/budgets/{budget}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rule_actions and rule_triggers that hold the old budget name as their value (K rows chosen by a match on the value, not by a foreign key to the budget)",
+     "condition": "the request renames the budget (a name different from the current one) and rule rows that hold the old name exist: set_budget actions and budget_is triggers",
+     "growth_if_condition_degree": 1,
+     "note": "O(K) with K the number of such rows, one save (an UPDATE) each. A save with an unchanged value issues no UPDATE, so the cost appears only when the name changes; the SELECT of the matching rows runs once in any case. Without a name in the body, or with no matching row, the count is constant.",
+     "memory_note": "O(K): the matching rule rows are read into memory"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 656,
+     "note": "when a name is given, calls updateRuleActions and updateRuleTriggers"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 792,
+     "note": "reads every rule_actions row joined to rules with action_type set_budget and the old name as value"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 803,
+     "note": "one save() per such row (no UPDATE when the value is unchanged, so the cost appears only when the name changes)"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 822,
+     "note": "rule_triggers (budget_is) are handled the same way, one save per row"
+    },
+    {
+     "file": "app/Api/V1/Requests/Models/Budget/UpdateRequest.php",
+     "line": 55,
+     "note": "name is read from the body when it is present"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/budgets/{budget}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/budgets/{budget}/attachments",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the budget in the URL (morphMany); one extra query per attachment for its note",
+     "note": "All attachments are read, with one notes()->first() each, before the caller slices the page, so the cost is proportional to A whatever the page size. The conversion after the slice adds at most the page limit (50 by default)."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the budget in the URL (morphMany); one extra query per attachment for its note"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Budget/ListController.php",
+     "line": 78,
+     "note": "reads all attachments of the budget with getAttachments, then slices at line 81"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 348,
+     "note": "one notes()->first() per attachment (A queries for A attachments)"
+    },
+    {
+     "file": "app/Models/Budget.php",
+     "line": 77,
+     "note": "attachments() is a morphMany"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii DELETE /api/v1/object-groups/{objectGroup}",
+   "app": "firefly-iii",
+   "method": "DELETE",
+   "uri": "/api/v1/object-groups/{objectGroup}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "piggy banks that belong to the object group in the URL (morphedByMany)",
+     "note": "About 1+2P+1 queries for P piggy banks. Bills tied to the same group are not touched by the deletion (only piggy banks are)."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "piggy banks that belong to the object group in the URL (morphedByMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/ObjectGroup/ObjectGroupRepository.php",
+     "line": 69,
+     "note": "reads the P piggy banks of the group in one query"
+    },
+    {
+     "file": "app/Repositories/ObjectGroup/ObjectGroupRepository.php",
+     "line": 73,
+     "note": "per piggy bank, objectGroups()->sync([]) (a SELECT and a DELETE, about 2 queries)"
+    },
+    {
+     "file": "app/Repositories/ObjectGroup/ObjectGroupRepository.php",
+     "line": 74,
+     "note": "save() with no change issues no UPDATE, and the updated observer does not run"
+    },
+    {
+     "file": "app/Models/ObjectGroup.php",
+     "line": 88,
+     "note": "piggyBanks() is a morphedByMany (children of one group)"
+    },
+    {
+     "file": "app/Api/V1/Controllers/Models/ObjectGroup/DestroyController.php",
+     "line": 65,
+     "note": "only calls repository->destroy"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /api/v1/piggy-banks",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/api/v1/piggy-banks",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "piggy banks tied to the accounts of the user whose order is not the sequence 1..N, and the number K of accounts[] elements in the body",
+     "condition": "existing piggy banks are not in the order sequence 1..N (the column default is 0, so rows created without an order are all 0): resetOrder then saves each out-of-sequence piggy bank and the updated observer runs several queries each (about 5), so the cost grows with their number N; with a sequence this term is 0. accounts[] in the body adds K-proportional queries (a find and more per account)",
+     "growth_if_condition_degree": 1,
+     "note": "O(N) for the out-of-sequence piggy banks; O(K) alone when the data is in sequence. The M table of the static analysis (object_groups) is not counted anywhere on this path. Confidence is medium because whether the N term is 0 or N depends on the order values that are stored."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "all piggy banks of the user (resetOrder and getPiggyBanks read them all)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/unreached-branch",
+    "axis/size-of-request-input"
+   ],
+   "evidence": [
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 269,
+     "note": "store calls setOrder, which calls resetOrder (the new piggy bank is not yet linked to an account, so it is not in the list)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 319,
+     "note": "setOrder calls resetOrder (line 201), which reads all piggy banks of the user with their objectGroups and fixes the order of those out of sequence"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 216,
+     "note": "save() once per out-of-sequence piggy bank"
+    },
+    {
+     "file": "app/Handlers/Observer/PiggyBankObserver.php",
+     "line": 72,
+     "note": "updated -> updatePrimaryCurrencyAmount: accounts()->first() twice, plus user, user group and currency lookups (several queries per piggy bank)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 125,
+     "note": "linkToAccountIds: one accountRepository->find per accounts[] element (K queries); a single element already costs a few queries"
+    },
+    {
+     "file": "database/migrations/2016_06_16_000002_create_main_tables.php",
+     "line": 268,
+     "note": "the default of piggy_banks.order is 0 (not in sequence)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/piggy-banks/{piggyBank}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/piggy-banks/{piggyBank}/attachments",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the piggy bank in the URL (morphMany); one extra query per attachment for its note",
+     "note": "There is no settings gate on this route. All attachments are read, with one notes()->first() each, before the caller slices the page, so the cost is proportional to A whatever the page size. The conversion after the slice adds at most the page limit (50 by default)."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the piggy bank in the URL (morphMany); one extra query per attachment for its note"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/PiggyBank/ListController.php",
+     "line": 108,
+     "note": "reads all attachments of the piggy bank with getAttachments, then slices at line 111"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 124,
+     "note": "one notes()->first() per attachment (A queries for A attachments)"
+    },
+    {
+     "file": "app/Models/PiggyBank.php",
+     "line": 103,
+     "note": "attachments() is a morphMany"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii DELETE /api/v1/rules/{rule}",
+   "app": "firefly-iii",
+   "method": "DELETE",
+   "uri": "/api/v1/rules/{rule}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "rule_triggers and rule_actions of the rule in the URL (hasMany)",
+     "note": "T+A queries for T triggers and A actions, one delete each, plus a constant 2 bulk deletes from the rule delete itself."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "rule_triggers and rule_actions of the rule in the URL (hasMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/Rule/RuleRepository.php",
+     "line": 56,
+     "note": "foreach over ruleTriggers with one delete() per trigger (T queries)"
+    },
+    {
+     "file": "app/Repositories/Rule/RuleRepository.php",
+     "line": 59,
+     "note": "foreach over ruleActions with one delete() per action (A queries)"
+    },
+    {
+     "file": "app/Handlers/Observer/DeletedRuleObserver.php",
+     "line": 34,
+     "note": "on $rule->delete(): two bulk deletes of ruleActions and ruleTriggers (a constant 2 queries)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/subscriptions/{bill}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/subscriptions/{bill}/attachments",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the subscription (bill) in the URL (morphMany); one extra query per attachment for its note",
+     "note": "About 2+A queries. All attachments are read whatever the page parameters are."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the subscription (bill) in the URL (morphMany); one extra query per attachment for its note"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Bill/ListController.php",
+     "line": 77,
+     "note": "reads all attachments of the bill; paging happens afterwards in memory (the slice at line 80), not as an SQL LIMIT"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 185,
+     "note": "bill->attachments()->get(): one query"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 189,
+     "note": "one notes()->first() per attachment: 1+A queries"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 63,
+     "note": "getNoteText is called while converting; whether it adds a query per item was not checked (the growth is the same, O(A))"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii DELETE /api/v1/users/{user}",
+   "app": "firefly-iii",
+   "method": "DELETE",
+   "uri": "/api/v1/users/{user}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all groups of the installation, not the size of the user being deleted",
+     "note": "The cost grows with the number of groups G in the whole installation, not with the size of the deleted user: deleteEmptyGroups reads every group and counts the memberships of each (1+G queries)."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all groups of the installation, not the size of the user being deleted"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 162,
+     "note": "groupMemberships()->delete() is one bulk delete"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 164,
+     "note": "calls deleteEmptyGroups()"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 137,
+     "note": "UserGroup::get() reads all groups (not filtered by user)"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 141,
+     "note": "one groupMemberships()->count() query per group: 1+G queries"
+    },
+    {
+     "file": "app/User.php",
+     "line": 244,
+     "note": "groupMemberships is a HasMany; the User model has no deleting observer (cascades done by database foreign keys are not counted)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /bills/show/{bill}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/bills/show/{bill}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "transaction_journals of the bill in the URL (J; getOverallAverage queries once per journal)",
+     "note": "About a constant + J queries; the yearly average and the paged collector add more. Medium confidence: the loop inside getYearAverage was read only in part."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "transaction_journals of the bill in the URL (J; getOverallAverage queries once per journal)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 121,
+     "note": "correctTransfers() is one UPDATE over the journals of the user (BillRepository.php line 109); there is no per-row round trip"
+    },
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 136,
+     "note": "calls getOverallAverage($bill)"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 270,
+     "note": "reads all journals of the bill with get() (no paging)"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 275,
+     "note": "one transactions()->where(...)->first() per journal: J queries"
+    },
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 135,
+     "note": "getYearAverage($bill, $start) looks like a similar journal loop (the read at BillRepository.php lines 428-433 was confirmed; the query inside the loop was not)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /budgets/show/{budget}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/budgets/show/{budget}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "attachments of the budget in the URL (morphMany), plus the budget limits of the budget inside the date range (sumExpenses is called once per limit)",
+     "note": "About a constant + L (the queries inside sumExpenses were not checked) + A. The static lower bound is right in degree but leaves out the term for the budget limits L."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "attachments of the budget in the URL (morphMany), plus the budget limits of the budget inside the date range (sumExpenses is called once per limit)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Budget/ShowController.php",
+     "line": 171,
+     "note": "calls getLimits($budget, $allStart, $allEnd)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/AugumentData.php",
+     "line": 177,
+     "note": "getLimits loops over the budget limits and calls sumExpenses for each (proportional to L; depends on the cache)"
+    },
+    {
+     "file": "app/Http/Controllers/Budget/ShowController.php",
+     "line": 173,
+     "note": "repository->getAttachments($budget)"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 343,
+     "note": "budget->attachments()->get(): one query"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 348,
+     "note": "one notes()->first() per attachment: 1+A queries"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /budgets/update/{budget}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/budgets/update/{budget}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "rule_actions that hold the old name (set_budget rows found by a name match, not tied to the budget by a foreign key), plus the active budgets B of the user (all read into memory to reorder them)",
+     "condition": "the request renames the budget and at least one set_budget action or budget_is trigger holds the old name (R rows)",
+     "growth_if_condition_degree": 1,
+     "note": "Each matching row costs one save (an UPDATE); without a rename or a match there is no R term. cleanupBudgets always reads the B active budgets in one statement, but round trips happen only for budgets whose order changes. Query count: about a constant + R + the number of budgets whose order changes. The largest read is B, which the static analysis does not name; the subscribers of the UpdatedBudget event were not traced.",
+     "memory_note": "O(B): all active budgets of the user are read to reorder them"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 656,
+     "note": "when a name is given, calls updateRuleActions(old, new)"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 789,
+     "note": "updateRuleActions reads the set_budget actions of the rules of the user whose value is the old name"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 803,
+     "note": "one save() (an UPDATE) per matching row: proportional to R"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 657,
+     "note": "updateRuleTriggers has the same shape (budget_is rows)"
+    },
+    {
+     "file": "app/Http/Controllers/Budget/EditController.php",
+     "line": 136,
+     "note": "calls cleanupBudgets()"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 215,
+     "note": "cleanupBudgets: one bulk delete of budget limits, then getActiveBudgets() reads all B active budgets (the loop at line 225)"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 226,
+     "note": "assigns an order to each budget with saveQuietly; no UPDATE when nothing changed, so round trips happen only for budgets whose order changed"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /flush",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/flush",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "transactions (all rows are read in one statement, so memory is proportional to the row count); writes happen only for the rows flagged balance_dirty (D rows)",
+     "condition": "the number D of rows with balance_dirty set decides how the query count grows (the running_balance setting is on by default, config/firefly.php line 78)",
+     "growth_if_condition_degree": 1,
+     "note": "If every row is dirty it is one UPDATE per row (proportional to the row count); in a clean state it is O(1) (one read plus the liability correction). The static O(N) holds for memory and for the worst case, not for the default query count. The liability correction was not traced in detail.",
+     "memory_note": "O(T): all transactions are read in one statement"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/DebugController.php",
+     "line": 127,
+     "note": "when running_balance is enabled, calls AccountBalanceCalculator::recalculateAll(false)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 185,
+     "note": "recalculateAll(false): not forced, so rows are not all flagged dirty first (only optimizedCalculation runs)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 107,
+     "note": "optimizedCalculation reads all transactions in one statement (no condition)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 152,
+     "note": "per row, saveQuietly() (an UPDATE) only when balance_dirty is true"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 50,
+     "note": "getLatestBalance returns '0' without a query when notBefore is null, so no account-by-currency query runs on this path"
+    },
+    {
+     "file": "app/Console/Commands/Correction/TriggersCreditCalculation.php",
+     "line": 34,
+     "note": "correction:recalculates-liabilities: reads all liability accounts and recalculates each (L accounts times their transactions; the breakdown was not traced)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /piggy-banks/remove-money/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/piggy-banks/remove-money/{piggyBank}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the query count does not depend on the number of accounts A of the piggy bank (one statement reads the A accounts, then the cached relation is used)",
+     "note": "Memory and CPU are O(A) for the read plus O(A^2) for the bcadd work (A is the number of accounts of one piggy bank). The static O(N) is too high for the query count.",
+     "memory_note": "O(A) to read the accounts of one piggy bank plus O(A^2) for the bcadd work (memory and CPU)"
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 264,
+     "note": "one foreach over piggyBank->accounts (the relation is loaded once)"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 265,
+     "note": "calls getCurrentAmount($piggyBank, $account) inside the loop"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 138,
+     "note": "the foreach over $piggyBank->accounts in getCurrentAmount reuses the loaded relation (no query)"
+    },
+    {
+     "file": "app/Models/PiggyBank.php",
+     "line": 98,
+     "note": "accounts() is a belongsToMany(Account) with the pivot column current_amount"
+    },
+    {
+     "file": "resources/views/piggy-banks/remove-mobile.blade.php",
+     "line": 13,
+     "note": "the view loops over the loaded array (no per-account query found; one point was not checked)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /piggy-banks/remove/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/piggy-banks/remove/{piggyBank}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "accounts of the piggy bank in the URL (A) that get a non-zero amount in the request: request input times the children of one parent",
+     "condition": "the number K of accounts for which the request amount[] holds a non-zero amount (K <= A)",
+     "growth_if_condition_degree": 1,
+     "note": "For each of the K accounts: one query reading the pivot, one pivot UPDATE and an event; about a constant + K x 2 or more queries. A is the number of accounts of one piggy bank, not of the accounts table. The currency converter and the event subscribers were not checked.",
+     "memory_note": "O(A): the accounts of the piggy bank are looped over"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 204,
+     "note": "foreach over the accounts of the piggy bank (A of them)"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 212,
+     "note": "canRemoveAmount -> getCurrentAmount uses the loaded relation (no query)"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 213,
+     "note": "calls removeAmount (only for accounts with a non-zero amount)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/ModifiesPiggyBanks.php",
+     "line": 153,
+     "note": "per account, piggyBank->accounts()->where(...)->first(): one query that bypasses the relation cache"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/ModifiesPiggyBanks.php",
+     "line": 161,
+     "note": "pivot->save(): one UPDATE; when the currency differs, the exchange-rate converter is called as well (its queries were not checked)"
+    }
+   ],
+   "earlier_records": [
+    {
+     "sample": "S10",
+     "axis": "query",
+     "claimed_lower_bound": null,
+     "verdict": "under",
+     "note": "no lower bound was given; the loop over the accounts with a non-zero amount (a pivot read, a pivot UPDATE and an event per account) was behind an unresolved binding"
+    },
+    {
+     "sample": "S10",
+     "axis": "memory",
+     "claimed_lower_bound": "O(N)",
+     "verdict": "correct",
+     "note": "the lower bound rested on the loop over the accounts of the piggy bank"
+    }
+   ],
+   "cross_check": {
+    "growth": "O(N)",
+    "agrees_on_growth": false,
+    "note": "an earlier reading of this route, made before the full trace, took the query cost as at least O(N) in the accounts that get an amount, without stating the condition; the degree is the same and the full trace adds the condition. Information only: the answer above is the judgement."
+   }
+  },
+  {
+   "id": "firefly-iii POST /piggy-banks/store",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/piggy-banks/store",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "piggy banks of the user (resetOrder reads all of them; only those whose stored order is not the sequence 1..N are updated, one UPDATE each), plus the number K of accounts[] elements in the body (validation and linking cost a few queries per account)",
+     "condition": "whether the stored piggy_banks.order values are the sequence 1..N: with a sequence the query count does not depend on N (O(1)); with order 0 or out of sequence on many rows there is one UPDATE per mismatching piggy bank (O(N))",
+     "growth_if_condition_degree": 1,
+     "note": "The M table of the static analysis (object_groups per piggy bank) does not multiply: findOrCreateObjectGroup is a constant number of find, count and sync calls. Data made through the screens is normally in sequence because every create or update runs resetOrder; rows made through the API or an import, and piggy banks tied to several accounts, can be out of sequence. Whether model events add queries per UPDATE was not traced, so the exact factor is left open."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "all piggy banks of the user (resetOrder and getPiggyBanks read them all)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/unreached-branch",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 269,
+     "note": "store calls setOrder (after createQuietly)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 204,
+     "note": "resetOrder: reads all piggy banks of the user in one query (objectGroups preloaded, a constant)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 213,
+     "note": "in the foreach, only piggy banks whose order differs from the sequence are saved (save() at line 216): one UPDATE per mismatch"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 270,
+     "note": "the new piggy bank is not linked to an account yet and is not in the resetOrder set (created with order 131337, fixed to max+1 later); linkToAccountIds calls accountRepository->find per accounts[] element (line 125): proportional to K"
+    },
+    {
+     "file": "app/Validation/FireflyValidator.php",
+     "line": 113,
+     "note": "belongsToUser:accounts runs a count query per accounts[] element (proportional to K)"
+    },
+    {
+     "file": "app/Http/Requests/PiggyBankStoreRequest.php",
+     "line": 103,
+     "note": "the after-validation hook runs find, getAccountCurrency and getMetaValue per accounts[] element (proportional to K)"
+    },
+    {
+     "file": "app/Repositories/ObjectGroup/CreatesObjectGroups.php",
+     "line": 46,
+     "note": "findOrCreateObjectGroup: a constant number of count and find (or create) calls by title; it does not grow with the number of object groups"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /profile/delete-account",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/profile/delete-account",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all user groups of the application, not only those of the caller",
+     "note": "About a constant + 1 + G queries, G being the total rows of user_groups: deleteEmptyGroups reads every group and counts the memberships of each. Rows added around one user do not affect it; the groups of other users do. User and UserGroup have no soft deletes, model events or observers (checked by search); cascades done by database foreign keys are not application queries."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all user groups of the application, not only those of the caller"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/ProfileController.php",
+     "line": 340,
+     "note": "after the logout, calls repository->destroy(user)"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 162,
+     "note": "groupMemberships()->delete() and user->delete() (line 163) are a constant number of calls"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 164,
+     "note": "destroy calls deleteEmptyGroups"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 137,
+     "note": "UserGroup::get() reads every group of every user, with no limit"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 141,
+     "note": "one groupMemberships()->count() per group in the foreach; an empty group is deleted (line 144)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /settings/links",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/settings/links",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "link_types: the journal-link types of the whole application (a settings table, not per user); one count query per type (1+L)",
+     "note": "About a constant + 1 + L queries, L being the rows of link_types. link_types is a settings table with a few rows by default (Related, Refund, Paid, Reversal and so on): it does not grow with the number of transactions or accounts, nor with the rows of transaction_journal_links (the count returns a number). It can only be measured by increasing the link_types rows directly, and even a growth seen that way would not support the claim that the cost grows with the data volume. The O(N) answer itself stands.",
+     "memory_note": "O(L): all link types are read; the count returns only a number"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Admin/LinkController.php",
+     "line": 167,
+     "note": "repository->get() reads all link types (ordered by name)"
+    },
+    {
+     "file": "app/Http/Controllers/Admin/LinkController.php",
+     "line": 170,
+     "note": "inside each(), countJournals(linkType) is called (line 171)"
+    },
+    {
+     "file": "app/Repositories/LinkType/LinkTypeRepository.php",
+     "line": 45,
+     "note": "transactionJournalLinks()->count(): one query per link type"
+    },
+    {
+     "file": "app/Repositories/LinkType/LinkTypeRepository.php",
+     "line": 109,
+     "note": "LinkType::query()->orderBy('name')->get() with no limit"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /settings/users/destroy/{user}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/settings/users/destroy/{user}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all user groups of the application, not only those of the user",
+     "note": "About a constant + 1 + G queries, G being the total rows of user_groups. It ends in the same destroy as the profile route; the difference is the entry (an administrator deleting another user) and that no password is asked."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "user_groups: all user groups of the application, not only those of the user"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Admin/UserController.php",
+     "line": 111,
+     "note": "calls repository->destroy(user) (when the authentication is not external)"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 164,
+     "note": "destroy calls deleteEmptyGroups"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 137,
+     "note": "UserGroup::get() reads all groups"
+    },
+    {
+     "file": "app/Repositories/User/UserRepository.php",
+     "line": 141,
+     "note": "one count query per group (1+G)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /tags/show/{tagOrId}/all",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/tags/show/{tagOrId}/all",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments of the tag in the URL (morphMany); one extra query per attachment for its note",
+     "note": "About 1+A+a constant, A being the attachments of the tag. showAll sets the periods to an empty array (TagController.php line 303), so there is no period loop; that is the difference from the route with dates. No per-journal query was found inside the collector and sumsOfTag, but they were not traced deeply.",
+     "memory_note": "O(N) for the attachments plus O(J) for the journals of the tag (getJournalIds reads them all)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/TagController.php",
+     "line": 307,
+     "note": "showAll calls getAttachments($tag)"
+    },
+    {
+     "file": "app/Http/Controllers/TagController.php",
+     "line": 322,
+     "note": "the list is paged with setLimit($pageSize); setJournalIds is one whereIn query"
+    },
+    {
+     "file": "app/Http/Controllers/TagController.php",
+     "line": 332,
+     "note": "sumsOfTag reads all extracted journals through the collector (a constant number of statements; memory O(J))"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 118,
+     "note": "$tag->attachments()->get(): all attachments, with no limit"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 123,
+     "note": "one notes()->first() per attachment: 1+A queries (the Storage exists call at line 125 is a file check, not a query)"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 133,
+     "note": "getJournalIds reads all journals of the tag in one query (the statement count does not grow; memory is O(J))"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /tags/show/{tagOrId}/{start_date?}/{end_date?}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/tags/show/{tagOrId}/{start_date?}/{end_date?}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "attachments of the tag in the URL: 1+A queries; a second axis is the number of periods P (from the first use of the tag to the end of the session range), which depends on the spread of the dates in the data, not on row counts",
+     "note": "The A term does not depend on any state. The P term runs only when period_statistics holds no row for a period (the first display): each period then costs a collector query plus a save for each of four types (about 1+A+P x (1 collector + at least 4 saves)); with statistics already stored, periods add almost nothing. P is set by the spread of the dates, so moving only the attachment count leaves P constant. The static analysis counts only the attachments; the period loop is another axis. The exact period count of Navigation::blockPeriods was not traced.",
+     "memory_note": "O(N) for the attachments plus O(J) for the journals of the tag"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/TagController.php",
+     "line": 237,
+     "note": "getAttachments($tag) (1+A)"
+    },
+    {
+     "file": "app/Http/Controllers/TagController.php",
+     "line": 244,
+     "note": "firstUseDate (one query) gives the start period; getTagPeriodOverview(tag, startPeriod, end) at line 247"
+    },
+    {
+     "file": "app/Support/Http/Controllers/PeriodOverview.php",
+     "line": 246,
+     "note": "foreach over the dates: getSingleModelPeriod per period (line 247)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/PeriodOverview.php",
+     "line": 215,
+     "note": "getSingleModelPeriod runs getSingleModelPeriodByType for each of the 4 types (spent, earned, transferred_in, transferred_away)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/PeriodOverview.php",
+     "line": 437,
+     "note": "a period without statistics calls periodCollection (one query per period, shared across the types at line 440) and saves grouped statistics per type (line 489); empty results are saved too (lines 682-685)"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 208,
+     "note": "periodCollection reads the journals of the period with one joined query"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 118,
+     "note": "$tag->attachments()->get(): all attachments, with no limit"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 123,
+     "note": "one notes()->first() per attachment: 1+A queries (the Storage exists call at line 125 is a file check, not a query)"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 133,
+     "note": "getJournalIds reads all journals of the tag in one query (the statement count does not grow; memory is O(J))"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /transactions/delete/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/transactions/delete/{transactionGroup}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the queries depend neither on the table size nor on the number of splits of the group in the URL; the route only shows a confirmation page",
+     "note": "About a constant: the binding, the read of the journals of the group, the read of the transaction type and the editable check. The static analysis names transactions as the table, but no code on this path loops over it. The deletion itself is done by another route (POST /transactions/destroy/{transactionGroup}, DeleteController.php line 98). Queries of the shared layout and middleware were not traced and are read as constant."
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the queries depend neither on the table size nor on the number of splits of the group in the URL; the route only shows a confirmation page",
+     "note": "reads the journals of the one group (a small read proportional to its split count)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/unreached-branch"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 69,
+     "note": "isEditableGroup($group): inside it, transactionJournals()->first() and transactionType (UserNavigation.php lines 81 and 85), a constant number of calls"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 75,
+     "note": "$group->transactionJournals->first(): the journals of the group are read in one query (no extra query per split)"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 79,
+     "note": "$journal->transaction_type_type ?? $journal->transactionType->type: at most one lazy load"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 86,
+     "note": "view('transactions.delete') shows a confirmation text and a form only; no loop or extra query (checked in the blade file by search)"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 111,
+     "note": "repository->destroy is called only by destroy() (POST), not by delete()"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /transactions/show/{transactionGroup?}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/transactions/show/{transactionGroup?}",
+   "sets": [
+    "round2-new24"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "piggy_bank_events tied to the journals of the group in the URL (E): one AccountMeta query per event; added terms are the splits S (per journal two queries for tags and one for the audit log) and the attachments A (per attachment a notes()->first() and a lazy load of attachable). All are children of one parent in the URL",
+     "note": "The static degree O(N) is right in the sense of the events E of the one group (about 1+2E; for events of the same piggy bank about 1+E plus the number of distinct piggy banks). The M table (accounts per piggy bank) does not multiply: the account of a piggy bank is taken with first(), not looped over. S, A and the links L add further terms. Medium confidence: the query counts inside TransactionGroupEnrichment and TransactionGroupTransformer, and what getFormattedAmount does for the links, were not traced; and an event counts only when it carries a transaction_journal_id.",
+     "memory_note": "O(S+E+A+L): all children of the one group"
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/ShowController.php",
+     "line": 147,
+     "note": "getPiggyEvents($transactionGroup)"
+    },
+    {
+     "file": "app/Repositories/TransactionGroup/TransactionGroupRepository.php",
+     "line": 294,
+     "note": "PiggyBankEvent by whereIn on the journal ids of the group: one query; piggyBank and piggyBank.account are preloaded (accounts are not)"
+    },
+    {
+     "file": "app/Repositories/TransactionGroup/TransactionGroupRepository.php",
+     "line": 302,
+     "note": "one AccountMeta::query()->...->first() per event; on the same line $row->piggyBank->accounts->first() is an unpreloaded lazy load, done once per piggy bank instance because the preloaded piggy bank is shared"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ShowController.php",
+     "line": 136,
+     "note": "per journal getTagObjects (a find and a tags query): proportional to the split count S"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ShowController.php",
+     "line": 144,
+     "note": "per journal aleRepository->getForId (one query): proportional to S"
+    },
+    {
+     "file": "app/Repositories/TransactionGroup/TransactionGroupRepository.php",
+     "line": 130,
+     "note": "per attachment getNoteText (notes()->first()); line 132 lazy-loads attachable->description: proportional to the attachments A"
+    }
+   ]
   }
  ]
 }
