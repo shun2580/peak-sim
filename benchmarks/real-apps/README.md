@@ -54,14 +54,15 @@ the size of the request itself, is not N.
 | Set | Routes | Where the answer comes from |
 | --- | ---: | --- |
 | `settled` | 5 | The only routes peak-sim gave a firm answer on (O(1), high) in the first trial: 2 in Firefly III, 3 in Koel. Checked by reading the code and by running one request with the data growing. |
-| `lower-bound-sample` | 15 | Routes that had only a lower bound, picked by an even spacing (not random) from 4 apps in the first trial. 18 were picked; 2 of them are answered more deeply in `round1-target`, and 1 is not included yet (see `docs/research/real-app-scoring.md`). |
+| `lower-bound-sample` | 15 | Routes that had only a lower bound, picked by an even spacing (not random) from 4 apps in the first trial. 18 were picked; 2 of them are answered more deeply in `round1-target`, and 1 in `round2-new24` (see `docs/research/real-app-scoring.md`). |
 | `round1-target` | 25 | The 25 Firefly III routes of the first decisive runtime experiment, traced by reading the code before any measurement was seen. |
 | `round1-control` | 2 | The two controls of that experiment. They are the same two routes as 2 of `settled`. |
+| `round2-new24` | 24 | 24 further Firefly III routes: the controller routes whose static query lower bound is O(N) (39 in all) minus the 15 the first experiment used. Traced by reading the code; the answers were written down apart from any measurement of these routes. 16 are O(N), 6 are conditional (each with its `condition`), 2 are O(1). One of them, `POST /piggy-banks/remove/{piggyBank}`, is also one of the 18 sampled routes: the full trace is the answer, and the earlier record is kept in `earlier_records` and `cross_check`. |
 
 The sets are small and picked by even spacing, not drawn at random. **A count here describes these routes; it does not
 estimate the rate over all routes of an app.**
 
-**`deviation_types`** (only for the routes of `round1-target`):
+**`deviation_types`** (only for the routes of `round1-target` and `round2-new24`):
 
 | Id | The static lower bound counts … |
 | --- | --- |
