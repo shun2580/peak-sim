@@ -406,6 +406,107 @@ final class ValueFactoryTest extends TestCase
         $this->assertSame(ValueFactory::OMIT, (new ValueFactory())->usage($this->table($column), $column));
     }
 
+    // -- a secret that is optional is left empty: a value there switches a feature on --
+
+    /** @return array<string, array{0: string, 1: string}> */
+    public static function secretColumns(): array
+    {
+        return [
+            'mfa_secret' => ['mfa_secret', 'varchar'],
+            'two_factor_secret' => ['two_factor_secret', 'text'],
+            'two_factor_recovery_codes' => ['two_factor_recovery_codes', 'text'],
+            'google_2fa_secret' => ['google_2fa_secret', 'varchar'],
+            'client_secret' => ['google_client_secret', 'varchar'],
+            'plain secret' => ['secret', 'varchar'],
+        ];
+    }
+
+    #[DataProvider('secretColumns')]
+    public function testAnOptionalSecretColumnIsNull(string $name, string $type): void
+    {
+        $column = Schemas::column($name, $type, $type === 'varchar' ? 'varchar(255)' : $type, ['nullable' => true, 'length' => 255]);
+
+        $this->assertNull($this->value($column, 3));
+    }
+
+    public function testARequiredSecretColumnStillGetsAValue(): void
+    {
+        // NULL is not allowed there, and the row would not be written
+        $column = Schemas::varchar('secret', 100);
+
+        $this->assertSame('things_secret_3', $this->value($column, 3));
+    }
+
+    public function testAColumnThatOnlyLooksLikeASecretIsNotEmptied(): void
+    {
+        foreach (['secretary', 'secret_santa_name', 'secretive'] as $name) {
+            $this->assertNotNull($this->value(Schemas::varchar($name, 100, true), 2), $name);
+        }
+    }
+
+    // -- a time-zone column is a time zone --
+
+    public function testAnTzColumnGetsUtc(): void
+    {
+        $this->assertSame('UTC', $this->value(Schemas::varchar('date_tz', 50), 4));
+        $this->assertSame('UTC', $this->value(Schemas::varchar('start_date_tz', 50, true), 9));
+    }
+
+    public function testAnTzColumnIsUtcInTheRowsOfEveryNumber(): void
+    {
+        $column = Schemas::varchar('end_tz', 50, true);
+
+        foreach ([1, 2, 1000] as $i) {
+            $this->assertSame('UTC', $this->value($column, $i));
+        }
+    }
+
+    public function testATzColumnThatCannotHoldAWordKeepsTheOrdinaryRule(): void
+    {
+        $this->assertSame(1, $this->value(Schemas::column('tz_offset_tz', 'int', 'int', ['precision' => 10]), 1));
+        $this->assertNotSame('UTC', $this->value(Schemas::varchar('x_tz', 2), 1));
+    }
+
+    public function testNamesThatEndInTzOnlyAsPartOfAWordAreLeftAlone(): void
+    {
+        $this->assertNotSame('UTC', $this->value(Schemas::varchar('blitz', 50), 1));
+        $this->assertNotSame('UTC', $this->value(Schemas::varchar('tz_note', 50), 1));
+    }
+
+    public function testAProfileConstantStillWinsOverTheNameRules(): void
+    {
+        $generated = $this->generateOne(Schemas::varchar('date_tz', 50), ['date_tz' => 'Europe/Paris']);
+
+        $this->assertSame('Europe/Paris', $generated);
+    }
+
+    /** @param array<string, mixed> $constants */
+    private function generateOne(ColumnSchema $column, array $constants): mixed
+    {
+        $schema = new \PeakSim\Runtime\Data\DatabaseSchema([new TableSchema('events', [Schemas::id(), $column], ['id'])]);
+        $sink = new RecordingSink();
+        (new \PeakSim\Runtime\Data\Generator())->generateInto($schema, $sink, \PeakSim\Runtime\Data\ScalePlan::global(2, 2), ['values' => ['events' => $constants]]);
+
+        return $sink->assoc('events')[0][$column->name];
+    }
+
+    public function testGeneratedRowsCarryTheNullSecretAndTheUtcZone(): void
+    {
+        $schema = new \PeakSim\Runtime\Data\DatabaseSchema([new TableSchema('users', [
+            Schemas::id(),
+            Schemas::varchar('name'),
+            Schemas::varchar('mfa_secret', 50, true),
+            Schemas::varchar('joined_tz', 50, true),
+        ], ['id'])]);
+        $sink = new RecordingSink();
+        (new \PeakSim\Runtime\Data\Generator())->generateInto($schema, $sink, \PeakSim\Runtime\Data\ScalePlan::global(3, 3));
+
+        foreach ($sink->assoc('users') as $row) {
+            $this->assertNull($row['mfa_secret']);
+            $this->assertSame('UTC', $row['joined_tz']);
+        }
+    }
+
     /** @return array<string, array{0: string}> */
     public static function unsupportedTypes(): array
     {
