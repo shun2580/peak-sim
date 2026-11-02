@@ -137,6 +137,11 @@ php benchmarks/real-apps/score.php \
 | D_candidate | the same answers, but the measurement said nothing |
 | E | the answer is not firm enough (confidence below medium, or not decided) |
 
+The report also splits D into *confirmed* (the code says O(1) and the measurement said O(1), or the code says
+"conditional" and the measurement showed growth) and *doubtful* (every other D, above all a conditional answer whose
+response size is the same at every scale, so it is not known that the condition held). `D_candidate` is not counted in D.
+The split does not change `A / (A+B+C)`.
+
 A verdict counts only when the request reached the handler; a verdict taken from a response that stopped at
 authentication, an exception, a missing argument or a client error is ignored. `A / (A+B+C)` leaves out conditional
 routes. `--unreached-bytes=N` names a response size known to be a prompt and not the handler (the first run of
