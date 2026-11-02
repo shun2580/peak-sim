@@ -12,6 +12,9 @@ namespace PeakSim\Benchmarks\RealApps;
  *   B  the code says O(N) or heavier, and the measurement did not reach the handler or learned nothing
  *   C  the code says O(N) or heavier, and the measurement said O(1) (a false O(1))
  *   D  the code says O(1) or "conditional", and the measurement said O(1) or showed growth
+ *       D is split in two: "confirmed" (the code says O(1) and the measurement said O(1); or the code says "conditional"
+ *       and the measurement showed growth) and "doubtful" (every other D, above all a "conditional" whose response
+ *       size is the same at every scale, so it is not known that the condition held). The split does not change A / (A+B+C).
  *   D_candidate  the same code answers, but the measurement said nothing (not reached, no information)
  *   E  the code answer is not firm enough (confidence below medium, or not decided)
  *
@@ -122,7 +125,7 @@ final class RuntimeScorer
      * @param array<string, mixed> $record     one line of routes.jsonl
      * @param list<array<string, mixed>> $attempts  that route's lines of attempts.jsonl
      *
-     * @return array{class: string, detail: string, reached: bool, bytes_flat: bool, verdict: string, measured: string}
+     * @return array{class: string, detail: string, reached: bool, bytes_flat: bool, verdict: string, measured: string, d_kind: string|null}
      */
     public static function classify(string $group, array $record, array $attempts, ?int $unreachedBytes = null): array
     {
@@ -157,9 +160,15 @@ final class RuntimeScorer
             default => 'D_candidate',
         };
 
+        $dKind = null;
+        if ($class === 'D') {
+            $confirmed = !($group === 'COND' && $flat) && (($group === 'O1' && $measured === 'O1') || ($group === 'COND' && $measured === 'ON'));
+            $dKind = $confirmed ? 'confirmed' : 'doubtful';
+        }
+
         return [
             'class' => $class, 'detail' => $why, 'reached' => $reached, 'bytes_flat' => $flat,
-            'verdict' => $verdict, 'measured' => $spurious ? 'SPURIOUS_' . $measured : $measured,
+            'verdict' => $verdict, 'measured' => $spurious ? 'SPURIOUS_' . $measured : $measured, 'd_kind' => $dKind,
         ];
     }
 
@@ -193,7 +202,7 @@ final class RuntimeScorer
             $group = self::codeGroup($tr['axes']['query']);
             $key = $tr['method'] . ' ' . $tr['uri'];
             if (!isset($byRoute[$key])) {
-                $rows[] = ['id' => $tr['id'], 'sets' => $tr['sets'] ?? [], 'group' => $group, 'class' => 'not_run', 'detail' => 'the route is not in the run', 'reached' => false, 'bytes_flat' => false, 'verdict' => '-', 'measured' => '-'];
+                $rows[] = ['id' => $tr['id'], 'sets' => $tr['sets'] ?? [], 'group' => $group, 'class' => 'not_run', 'detail' => 'the route is not in the run', 'reached' => false, 'bytes_flat' => false, 'verdict' => '-', 'measured' => '-', 'd_kind' => null];
                 continue;
             }
             $rows[] = ['id' => $tr['id'], 'sets' => $tr['sets'] ?? [], 'group' => $group] + self::classify($group, $byRoute[$key], $attemptsOf[$key] ?? [], $unreachedBytes);
@@ -214,8 +223,12 @@ final class RuntimeScorer
         $reasons = [];
         $falseO1 = [];
         $reached = 0;
+        $dKinds = ['confirmed' => 0, 'doubtful' => 0];
         foreach ($rows as $row) {
             $counts[$row['class']]++;
+            if (($row['d_kind'] ?? null) !== null) {
+                $dKinds[$row['d_kind']]++;
+            }
             $reached += $row['reached'] ? 1 : 0;
             if ($row['class'] === 'B') {
                 $reasons[$row['detail']] = ($reasons[$row['detail']] ?? 0) + 1;
@@ -231,6 +244,8 @@ final class RuntimeScorer
             'routes' => count($rows),
             'reached' => $reached,
             'counts' => $counts,
+            'd_confirmed' => $dKinds['confirmed'],
+            'd_doubtful' => $dKinds['doubtful'],
             'denominator' => $denominator,
             'a_over_abc' => $denominator === 0 ? null : $counts['A'] / $denominator,
             'b_reasons' => $reasons,

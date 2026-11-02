@@ -48,6 +48,61 @@ final class RealAppsRuntimeScorerTest extends TestCase
         ];
     }
 
+    /**
+     * @param array<string, mixed> $record
+     * @param list<array<string, mixed>> $attempts
+     */
+    #[DataProvider('dKindCases')]
+    public function testDIsSplitIntoConfirmedAndDoubtful(string $group, array $record, array $attempts, ?string $expected): void
+    {
+        $this->assertSame($expected, RuntimeScorer::classify($group, $record, $attempts)['d_kind']);
+    }
+
+    /** @return array<string, array{string, array<string, mixed>, list<array<string, mixed>>, string|null}> */
+    public static function dKindCases(): array
+    {
+        $ok = ['class' => 'ok', 'reason' => 'ok'];
+        $grow = [self::attempt('N', 10, 100), self::attempt('N', 100, 400)];
+        $flat = [self::attempt('N', 10, 346), self::attempt('N', 100, 346)];
+
+        return [
+            'light by the code, O(1) measured' => ['O1', $ok + ['verdict' => 'measured_O1'], $flat, 'confirmed'],
+            'conditional, growth measured' => ['COND', $ok + ['verdict' => 'measured_ON'], $grow, 'confirmed'],
+            'conditional, O(1) measured, response size identical at every scale' => ['COND', $ok + ['verdict' => 'measured_O1'], $flat, 'doubtful'],
+            'conditional, growth measured, but the response size never changed' => ['COND', $ok + ['verdict' => 'measured_ON'], $flat, 'doubtful'],
+            'conditional, O(1) measured, the response size changed' => ['COND', $ok + ['verdict' => 'measured_O1'], $grow, 'doubtful'],
+            'light by the code, growth measured' => ['O1', $ok + ['verdict' => 'measured_ON'], $grow, 'doubtful'],
+            'not a D: nothing measured' => ['COND', ['class' => 'unauthenticated', 'verdict' => 'not_measured'], [], null],
+            'not a D: heavy by the code' => ['ON', $ok + ['verdict' => 'measured_ON'], $grow, null],
+        ];
+    }
+
+    public function testTheSummaryCountsConfirmedAndDoubtfulWithoutMovingTheRatio(): void
+    {
+        $truth = $this->truth([['O(N)', 'high'], ['O(1)', 'high'], ['conditional', 'medium'], ['conditional', 'medium']]);
+        $flat = [self::attempt('N', 10, 50), self::attempt('N', 100, 50)];
+        $records = [
+            ['route' => '/r0', 'method' => 'GET', 'class' => 'ok', 'verdict' => 'measured_ON'],
+            ['route' => '/r1', 'method' => 'GET', 'class' => 'ok', 'verdict' => 'measured_O1'],
+            ['route' => '/r2', 'method' => 'GET', 'class' => 'ok', 'verdict' => 'measured_O1'],
+            ['route' => '/r3', 'method' => 'GET', 'class' => 'unauthenticated', 'verdict' => 'not_measured'],
+        ];
+        $attempts = [];
+        foreach ([1, 2] as $i) {
+            foreach ($flat as $a) {
+                $attempts[] = $a + ['route' => '/r' . $i, 'method' => 'GET'];
+            }
+        }
+
+        $s = RuntimeScorer::score($truth, 'a', $records, $attempts)['summary'];
+
+        $this->assertSame(2, $s['counts']['D']);
+        $this->assertSame(1, $s['d_confirmed']);
+        $this->assertSame(1, $s['d_doubtful']);
+        $this->assertSame(1, $s['counts']['D_candidate'], 'D_candidate is not part of D');
+        $this->assertSame(1, $s['denominator']);
+    }
+
     public function testAFalseO1IsMarkedWhenTheResponseNeverChanged(): void
     {
         $record = ['class' => 'ok', 'verdict' => 'measured_O1'];

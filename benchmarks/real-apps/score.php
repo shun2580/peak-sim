@@ -249,6 +249,7 @@ function scoreText(array $report, bool $withRows): string
         $c = $s['counts'];
         $out .= "\n== runtime: {$label} ==\n";
         $out .= sprintf("routes %d, reached %d; A %d  B %d  C %d  D %d  D_candidate %d  E %d  not_run %d\n", $s['routes'], $s['reached'], $c['A'], $c['B'], $c['C'], $c['D'], $c['D_candidate'], $c['E'], $c['not_run']);
+        $out .= sprintf("D = %d: confirmed %d / doubtful %d (D_candidate %d is not counted in D)\n", $c['D'], $s['d_confirmed'], $s['d_doubtful'], $c['D_candidate']);
         $out .= $s['a_over_abc'] === null
             ? "A / (A+B+C): no denominator\n"
             : sprintf("A / (A+B+C) = %d/%d = %.1f%%\n", $c['A'], $s['denominator'], $s['a_over_abc'] * 100);
@@ -260,7 +261,7 @@ function scoreText(array $report, bool $withRows): string
         }
         if ($withRows) {
             foreach ($run['rows'] as $row) {
-                $out .= sprintf("  %-12s %-5s %s%s\n", $row['class'], $row['group'], $row['id'], $row['class'] === 'A' ? '' : ' - ' . $row['detail']);
+                $out .= sprintf("  %-12s %-5s %s%s\n", $row['class'] . ($row['d_kind'] === null ? '' : ':' . $row['d_kind']), $row['group'], $row['id'], $row['class'] === 'A' ? '' : ' - ' . $row['detail']);
             }
         }
     }

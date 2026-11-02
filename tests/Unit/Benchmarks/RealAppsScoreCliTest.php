@@ -61,6 +61,7 @@ final class RealAppsScoreCliTest extends TestCase
         $this->assertSame(0, $code, $out);
         $this->assertStringContainsString('== runtime: a:R1 ==', $out);
         $this->assertStringContainsString('A 1', $out);
+        $this->assertStringContainsString('D = 0: confirmed 0 / doubtful 0', $out);
         $this->assertStringContainsString('A / (A+B+C) = 1/1 = 100.0%', $out);
     }
 
