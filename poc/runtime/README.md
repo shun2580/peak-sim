@@ -60,7 +60,9 @@ What the tool does for any app, without a profile (nothing here is knowledge abo
   table of a `morphMany` / `morphOne` / `morphToMany` the app declares (read from the app's models, `Measure/MorphDiscovery`),
   grows with its largest parent when the plan does not name it, and the generated rows are tied to rows that exist (the type
   column takes the parents' morph classes in turn, the id column walks their rows). Without this a route that reads through the
-  link saw the same few rows at every scale.
+  link saw the same few rows at every scale. A `morphToMany` also says which table its other key (the `tag_id` of a `taggables`)
+  points at; that key has no foreign key either, so it is made to walk the rows of that table too, instead of counting past its
+  last row. (Not done: keeping the rows of a link in one owner, when the owner of a row is only known through another link.)
 - **Packages.** An app that has `laravel/passport` gets a throw-away key pair in the configuration of the measuring process (no
   file is written; a key the app already has is left alone). An app that has Vite gets an empty asset helper, so pages whose
   front end is not built still render (`Boot/AppSupport`).
