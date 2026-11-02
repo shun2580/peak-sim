@@ -42,9 +42,15 @@ final class MorphDiscovery
     /**
      * The class names of the `.php` files under a directory, named from the paths below it (PSR-4).
      *
+     * With `$onlyFilesThatDeclareAType`, a file that declares no class, interface, trait or enum is left out. Such a file
+     * (a helpers file of plain functions, a returned array) is not a class, and naming it would make the autoloader
+     * include it when the name is looked up: a file of functions that the framework's autoloader has already loaded
+     * would then be loaded twice, which is a fatal error that nothing can catch. The file is only read and tokenized
+     * here, never included.
+     *
      * @return list<string> sorted
      */
-    public static function classNamesIn(string $dir, string $namespacePrefix): array
+    public static function classNamesIn(string $dir, string $namespacePrefix, bool $onlyFilesThatDeclareAType = false): array
     {
         if (!is_dir($dir)) {
             return [];
@@ -55,12 +61,53 @@ final class MorphDiscovery
             if (!$file instanceof \SplFileInfo || !$file->isFile() || $file->getExtension() !== 'php' || count($names) >= 5000) {
                 continue;
             }
+            if ($onlyFilesThatDeclareAType && !self::declaresAType($file->getPathname())) {
+                continue;
+            }
             $relative = substr($file->getPathname(), strlen(rtrim($dir, '/')) + 1, -4);
             $names[] = $namespacePrefix . str_replace('/', '\\', $relative);
         }
         sort($names, SORT_STRING);
 
         return $names;
+    }
+
+    /**
+     * Whether a PHP file declares a class, interface, trait or enum (by its tokens; the file is not included). An
+     * anonymous class (`new class`), a `Foo::class` reference and a keyword with no name after it do not count.
+     */
+    private static function declaresAType(string $path): bool
+    {
+        $code = @file_get_contents($path);
+        if ($code === false) {
+            return false;
+        }
+        try {
+            $tokens = token_get_all($code);
+        } catch (\Throwable) {
+            return false;
+        }
+        $keywords = [T_CLASS, T_INTERFACE, T_TRAIT];
+        if (defined('T_ENUM')) {
+            $keywords[] = constant('T_ENUM');
+        }
+        $count = count($tokens);
+        for ($i = 0; $i < $count; $i++) {
+            if (!is_array($tokens[$i]) || !in_array($tokens[$i][0], $keywords, true)) {
+                continue;
+            }
+            for ($j = $i + 1; $j < $count; $j++) {
+                if (is_array($tokens[$j]) && in_array($tokens[$j][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                    continue;
+                }
+                if (is_array($tokens[$j]) && $tokens[$j][0] === T_STRING) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -80,7 +127,7 @@ final class MorphDiscovery
         $prefix = $namespace . (is_dir($base . '/Models') ? 'Models\\' : '');
 
         $models = [];
-        foreach (self::classNamesIn($dir, $prefix) as $class) {
+        foreach (self::classNamesIn($dir, $prefix, true) as $class) {
             try {
                 if (class_exists($class) && is_subclass_of($class, $model) && !(new \ReflectionClass($class))->isAbstract()) {
                     $models[] = $class;
