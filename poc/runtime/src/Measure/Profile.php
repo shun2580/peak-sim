@@ -18,6 +18,9 @@ final class Profile
 {
     public const NAME_PATTERN = '/^[a-z][a-z0-9_-]{0,30}$/D';
 
+    /** The variable that hands the profile's name to the processes that start the app (`bin/measure-one`). */
+    public const NAME_ENV = 'PEAK_MEASURE_PROFILE';
+
     /**
      * The keys something reads:
      *   skip, rows, values             the data generator (`Data\Generator`)
@@ -28,8 +31,13 @@ final class Profile
      *   arguments, unfillable          the argument resolver (`Route\ArgumentResolver`)
      *   request_query                  the task builder: routes whose GET carries credentials in its query
      *                                  (`Route\ProfileRoutes::querying`, `Route\RequestCredentials`)
+     *   on_boot                        a function run in the process that measures a route, once the app has started and
+     *                                  before anyone is logged in. It receives the application and may set configuration
+     *                                  or bind a service (a key the app reads at login, the asset helper of an app whose
+     *                                  front end is not built). It must not touch the database
+     *                                  (`Profile::onBoot`, called by `Run\MeasureOne`)
      */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'on_boot'];
 
     /**
      * @return array<string, mixed> empty when no profile is named
@@ -60,6 +68,9 @@ final class Profile
         if (array_key_exists('after_generation', $profile) && !is_callable($profile['after_generation'])) {
             throw new BuildFailure(sprintf('profile "%s": after_generation must be a function', $name));
         }
+        if (array_key_exists('on_boot', $profile) && !is_callable($profile['on_boot'])) {
+            throw new BuildFailure(sprintf('profile "%s": on_boot must be a function', $name));
+        }
         foreach ((array) ($profile['unfillable'] ?? []) as $label => $entry) {
             self::checkUnfillable($name, (string) $label, $entry);
         }
@@ -75,6 +86,18 @@ final class Profile
         }
 
         return $profile;
+    }
+
+    /**
+     * Runs the profile's `on_boot` function, if it has one, on the started application.
+     *
+     * @param array<string, mixed> $profile
+     */
+    public static function onBoot(array $profile, object $app): void
+    {
+        if (isset($profile['on_boot'])) {
+            $profile['on_boot']($app);
+        }
     }
 
     /**

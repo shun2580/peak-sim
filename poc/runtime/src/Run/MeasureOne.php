@@ -10,6 +10,7 @@ use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\Guard\RollbackGuard;
+use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Route\RequestCredentials;
 
 /**
@@ -84,6 +85,17 @@ final class MeasureOne
             fwrite($this->err, 'cannot start the app: ' . $e->getMessage() . "\n");
 
             return BootFailure::EXIT_CODE;
+        }
+
+        $name = (string) ($this->env[Profile::NAME_ENV] ?? '');
+        if ($name !== '') {
+            try {
+                Profile::onBoot(Profile::load($name), $booted->app);
+            } catch (\Throwable $e) {
+                fwrite($this->err, 'profile ' . $name . ': on_boot failed: ' . get_class($e) . ': ' . mb_substr($e->getMessage(), 0, 200) . "\n");
+
+                return BootFailure::EXIT_CODE;
+            }
         }
 
         try {

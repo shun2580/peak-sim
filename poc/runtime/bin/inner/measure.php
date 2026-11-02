@@ -19,6 +19,7 @@ use PeakSim\Runtime\Measure\MeasureExit;
 use PeakSim\Runtime\Measure\Options;
 use PeakSim\Runtime\Measure\OutputWriter;
 use PeakSim\Runtime\Measure\Proc;
+use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Measure\ProcessDatabaseBuilder;
 use PeakSim\Runtime\Measure\ProcessOneRunner;
 use PeakSim\Runtime\Measure\RouteTask;
@@ -47,6 +48,10 @@ try {
     }
     if (($env['PEAK_MEASURE_DB_TAG'] ?? '') !== '') {
         $stop(MeasureExit::REFUSED, 'refused: PEAK_MEASURE_DB_TAG is set by the driver for its children; it is not an input of bin/measure');
+    }
+    // The children that start the app (bin/measure-one) learn the profile's name here, to run its `on_boot` function.
+    if ($options->profile !== null) {
+        $env[Profile::NAME_ENV] = $options->profile;
     }
     $config = MeasureConfig::fromEnv($env);
     if ($config->staticJson === null) {

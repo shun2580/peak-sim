@@ -45,6 +45,33 @@ final class ProfileTest extends TestCase
         $this->assertSame(['values' => ['orders' => ['status' => 'paid']], 'rows' => ['items' => 7]], Profile::load('shop', $this->dir));
     }
 
+    public function test_on_boot_runs_on_the_application_it_is_given(): void
+    {
+        $this->write('boot', "<?php return ['on_boot' => static function (object \$app): void { \$app->booted = true; }];");
+
+        $app = new \stdClass();
+        Profile::onBoot(Profile::load('boot', $this->dir), $app);
+
+        $this->assertTrue($app->booted);
+    }
+
+    public function test_a_profile_without_on_boot_leaves_the_application_alone(): void
+    {
+        $app = new \stdClass();
+        Profile::onBoot([], $app);
+
+        $this->assertSame([], get_object_vars($app));
+    }
+
+    public function test_on_boot_that_is_not_a_function_is_refused(): void
+    {
+        $this->write('badboot', "<?php return ['on_boot' => 'not a function'];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('on_boot must be a function');
+        Profile::load('badboot', $this->dir);
+    }
+
     public function test_no_profile_is_the_empty_profile(): void
     {
         $this->assertSame([], Profile::load(null, $this->dir));
