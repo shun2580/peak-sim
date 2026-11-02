@@ -66,6 +66,7 @@ final class RunReport
         $second = [];
         $bytes = [];
         $touched = [];
+        $rowsRead = [];
         $emptyBytes = null;
         $bypass = false;
         $scope = self::scopeOf($spec);
@@ -88,6 +89,7 @@ final class RunReport
             }
             $main[$a->scale] = $a->queries;
             $bytes[$a->scale] = $a->bytes;
+            $rowsRead[$a->scale] = $a->rowsRead;
             $bypass = $bypass || $a->gateBypass;
             foreach ($a->tables as $table) {
                 $touched[] = self::bare($table);
@@ -114,7 +116,8 @@ final class RunReport
         $lastClass = $attempts === [] ? 'no_attempts' : $attempts[array_key_last($attempts)]->class;
         $class = $failClass ?? ($main !== [] ? 'ok' : ($lastClass !== 'ok' ? $lastClass : 'no_attempts'));
 
-        return [
+        $doubt = self::dataDoubt($bytes, $rowsRead, $scaled);
+        $row = [
             'route' => $spec->uri,
             'method' => $spec->method,
             'tried' => $attempts !== [],
@@ -139,6 +142,53 @@ final class RunReport
             'note' => $cmp['note'],
             'statement' => $verdict->statement(),
         ];
+        if ($doubt !== null) {
+            // An addition to the record, not a change to the verdict: the rule that judges is the same with or without it.
+            $row['data_not_arriving_suspected'] = true;
+            $row['data_doubt'] = $doubt;
+        }
+
+        return $row;
+    }
+
+    /**
+     * The sentence for a route whose answer did not change in size and whose scaled tables gave the app the same number
+     * of rows at every scale, or null. Then the scaled data may never have reached the route (a link that ties no row
+     * to the one it is asked about, a filter that keeps nothing), and a count that stays flat says nothing about the
+     * code. Needs two or more scales, every one with a size and a count; otherwise nothing is said.
+     *
+     * @param array<int, int|null>                     $bytes    per scale
+     * @param array<int, array<string, int>|null>      $rowsRead per scale: table => rows
+     * @param list<string>|null                        $scaled   the scaled tables, null for a global scope (every table counts)
+     */
+    private static function dataDoubt(array $bytes, array $rowsRead, ?array $scaled): ?string
+    {
+        if (count($bytes) < 2 || in_array(null, $bytes, true) || count(array_unique($bytes)) !== 1) {
+            return null;
+        }
+        $totals = [];
+        foreach ($rowsRead as $scale => $tables) {
+            if ($tables === null) {
+                return null;
+            }
+            $total = 0;
+            foreach ($tables as $table => $rows) {
+                if ($scaled === null || in_array(self::bare((string) $table), $scaled, true)) {
+                    $total += $rows;
+                }
+            }
+            $totals[$scale] = $total;
+        }
+        if (count($totals) < 2 || count(array_unique($totals)) !== 1) {
+            return null;
+        }
+
+        return sprintf(
+            'the answer is %d bytes and the %s gave the app %d rows at every scale: the data may not have reached this route, so a flat count here is not evidence of O(1)',
+            reset($bytes),
+            $scaled === null ? 'tables' : 'scaled tables',
+            reset($totals),
+        );
     }
 
     /** @param array<string, mixed> $row */
@@ -170,6 +220,7 @@ final class RunReport
         $relations = array_fill_keys(self::RELATIONS, 0);
         $conflicts = [];
         $stronger = [];
+        $doubted = [];
         $tried = 0;
 
         foreach ($this->rows() as $r) {
@@ -183,10 +234,13 @@ final class RunReport
             if ($r['relation'] === 'static_stronger') {
                 $stronger[] = $r['method'] . ' ' . $r['route'];
             }
+            if (isset($r['data_not_arriving_suspected'])) {
+                $doubted[] = $r['route'];
+            }
         }
         ksort($classes);
 
-        return [
+        $summary = [
             'routes' => count($this->rows),
             'tried' => $tried,
             'classes' => $classes,
@@ -195,6 +249,11 @@ final class RunReport
             'conflicts' => $conflicts,
             'static_stronger' => $stronger,
         ];
+        if ($doubted !== []) {
+            $summary['data_not_arriving_suspected'] = $doubted;
+        }
+
+        return $summary;
     }
 
     public function toJsonLines(): string
@@ -267,7 +326,7 @@ final class RunReport
                 $r['slope'] === null ? '-' : (string) $r['slope'],
                 self::cell($r['static']['growth'] ?? ($r['static']['lower_bound'] === null ? null : '>= ' . $r['static']['lower_bound'])),
                 $r['relation'],
-                self::cell($r['note'] ?? $r['reason_detail'] ?? $r['reason']),
+                self::cell(isset($r['data_not_arriving_suspected']) ? 'data may not have arrived: ' . $r['data_doubt'] : ($r['note'] ?? $r['reason_detail'] ?? $r['reason'])),
             );
         }
 

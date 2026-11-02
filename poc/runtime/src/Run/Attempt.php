@@ -46,6 +46,8 @@ final class Attempt
         ?string $detail,
         /** @var list<string> the fields a 422 answer named (kept only for that answer) */
         public readonly array $errorKeys = [],
+        /** @var array<string, int>|null table => rows the statements returned (null: not counted) */
+        public readonly ?array $rowsRead = null,
     ) {
         $this->detail = $detail === null ? null : mb_substr($detail, 0, self::DETAIL_LIMIT);
     }
@@ -71,6 +73,9 @@ final class Attempt
         ];
         if ($this->errorKeys !== []) {
             $row['error_keys'] = $this->errorKeys;
+        }
+        if ($this->rowsRead !== null) {
+            $row['rows_read'] = $this->rowsRead;
         }
 
         return $row;
@@ -100,6 +105,7 @@ final class Attempt
             class: (string) $data['class'],
             detail: isset($data['detail']) ? (string) $data['detail'] : null,
             errorKeys: array_values(array_map('strval', (array) ($data['error_keys'] ?? []))),
+            rowsRead: isset($data['rows_read']) ? array_map('intval', (array) $data['rows_read']) : null,
         );
     }
 }

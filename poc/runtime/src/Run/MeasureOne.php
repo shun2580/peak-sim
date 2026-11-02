@@ -130,6 +130,7 @@ final class MeasureOne
 
         $counter = new QueryCounter($booted->dbName, $default);
         $counter->listenTo($app['events']);
+        $reads = self::countRows($app);
         $rows = RowCounter::connect($config, $booted->dbName);
         $requester = new Requester($booted);
         try {
@@ -169,8 +170,10 @@ final class MeasureOne
             $db->beginTransaction();
             $booted->externalCalls->clear();
             $counter->start();
+            $reads->start();
             $result = $requester->send($spec);
             $counter->stop();
+            $reads->stop();
             $level = $db->transactionLevel();
             for ($i = 0; $i < 50 && $db->transactionLevel() > 0; $i++) {
                 $db->rollBack();
@@ -209,6 +212,7 @@ final class MeasureOne
                 $counter,
                 $decision->class,
                 $decision->detail,
+                $reads->rows(),
             ));
 
             if ($problem !== null) {
@@ -222,6 +226,16 @@ final class MeasureOne
         }
 
         return self::EXIT_OK;
+    }
+
+    /** Counts the rows the app's statements return, on its default connection (see RowsRead). */
+    private static function countRows(object $app): RowsRead
+    {
+        try {
+            return RowsRead::install($app['db']->connection()->getPdo());
+        } catch (\Throwable) {
+            return RowsRead::unavailable();
+        }
     }
 
     /** The path of the app's login page (route "login" when it exists, else /login). */
@@ -239,7 +253,7 @@ final class MeasureOne
     }
 
     /** @param array<string, mixed> $args */
-    private function attempt(array $args, int $phase, ?int $status, ?RequestResult $result, ?QueryCounter $counter, string $class, ?string $detail): Attempt
+    private function attempt(array $args, int $phase, ?int $status, ?RequestResult $result, ?QueryCounter $counter, string $class, ?string $detail, ?array $rowsRead = null): Attempt
     {
         return new Attempt(
             route: $args['route'],
@@ -257,6 +271,7 @@ final class MeasureOne
             class: $class,
             detail: $detail,
             errorKeys: $result?->errorKeys ?? [],
+            rowsRead: $rowsRead,
         );
     }
 
