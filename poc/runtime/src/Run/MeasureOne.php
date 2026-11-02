@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Run;
 
 use PeakSim\Runtime\Boot\AppBooter;
+use PeakSim\Runtime\Boot\AppSupport;
 use PeakSim\Runtime\Boot\BootedApp;
 use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Config\MeasureConfig;
@@ -85,6 +86,17 @@ final class MeasureOne
             fwrite($this->err, 'cannot start the app: ' . $e->getMessage() . "\n");
 
             return BootFailure::EXIT_CODE;
+        }
+
+        try {
+            $support = AppSupport::apply($booted->app);
+        } catch (\Throwable $e) {
+            fwrite($this->err, 'app support failed: ' . get_class($e) . ': ' . mb_substr($e->getMessage(), 0, 200) . "\n");
+
+            return BootFailure::EXIT_CODE;
+        }
+        if ($support !== []) {
+            fwrite($this->err, 'app support: ' . implode(', ', $support) . "\n");
         }
 
         $name = (string) ($this->env[Profile::NAME_ENV] ?? '');

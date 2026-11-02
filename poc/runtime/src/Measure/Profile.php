@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Measure;
 
+use PeakSim\Runtime\Boot\OnBootWatch;
 use PeakSim\Runtime\Route\ProfileRoutes;
 use PeakSim\Runtime\Route\RequestCredentials;
 use PeakSim\Runtime\Run\Classification;
@@ -89,15 +90,26 @@ final class Profile
     }
 
     /**
-     * Runs the profile's `on_boot` function, if it has one, on the started application.
+     * Runs the profile's `on_boot` function, if it has one, on the started application, under the watch that holds it
+     * to its conditions (it does not touch the database and does not take the fakes off: `Boot\OnBootWatch`). An
+     * object that is not a container (a test's stand-in) is given the function without a watch.
      *
      * @param array<string, mixed> $profile
+     *
+     * @throws \PeakSim\Runtime\Boot\OnBootViolation
      */
-    public static function onBoot(array $profile, object $app): void
+    public static function onBoot(array $profile, object $app, ?OnBootWatch $watch = null): void
     {
-        if (isset($profile['on_boot'])) {
-            $profile['on_boot']($app);
+        if (!isset($profile['on_boot'])) {
+            return;
         }
+        $watch ??= $app instanceof \ArrayAccess ? new OnBootWatch($app) : null;
+        if ($watch === null) {
+            $profile['on_boot']($app);
+
+            return;
+        }
+        $watch->run($profile['on_boot']);
     }
 
     /**

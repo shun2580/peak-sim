@@ -86,6 +86,30 @@ final class Fakes
         return $report;
     }
 
+    /** @return list<string> the names of the things `fingerprint()` reads, sorted */
+    public static function fingerprintKeys(): array
+    {
+        return ['http_stray_blocked', 'mail', 'notification', 'queue'];
+    }
+
+    /**
+     * What identifies the fakes that are in place: the object behind each of the three Laravel fakes, and whether the
+     * outbound HTTP client still refuses a request nobody faked. Compared before and after a profile's `on_boot`.
+     *
+     * @return array<string, mixed>
+     */
+    public static function fingerprint(object $app): array
+    {
+        $http = Http::getFacadeRoot();
+
+        return [
+            'http_stray_blocked' => is_object($http) && method_exists($http, 'preventingStrayRequests') ? $http->preventingStrayRequests() : null,
+            'mail' => spl_object_id(Mail::getFacadeRoot()),
+            'notification' => spl_object_id(Notification::getFacadeRoot()),
+            'queue' => spl_object_id(Queue::getFacadeRoot()),
+        ];
+    }
+
     /** @return list<string> disks that had an outside driver and were replaced by a local one */
     private static function fakeStorage(object $app, ScratchDir $scratch): array
     {
