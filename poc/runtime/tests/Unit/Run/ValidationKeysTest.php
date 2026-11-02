@@ -66,7 +66,7 @@ final class ValidationKeysTest extends TestCase
     public function testTheRetryBodyIsTheErrorKeysFilledWithAValueOfTheRoundsType(): void
     {
         self::assertSame(['name' => 'x_1'], BodyBuilder::bodyFromErrorKeys(['name'], 1));
-        self::assertSame(['items' => [['sku' => 2]]], BodyBuilder::bodyFromErrorKeys(['items.0.sku'], 2));
+        self::assertSame(['items' => [['sku' => 1]]], BodyBuilder::bodyFromErrorKeys(['items.0.sku'], 2));
         self::assertSame(['tags' => []], BodyBuilder::bodyFromErrorKeys(['tags'], 3));
     }
 

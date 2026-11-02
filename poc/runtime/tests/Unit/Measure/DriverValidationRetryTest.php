@@ -17,7 +17,7 @@ use PeakSim\Runtime\Run\Attempt;
 /** A 422 is answered by building the body again from the fields it names (up to three rounds), not recorded as final. */
 final class DriverValidationRetryTest extends PlannerTestCase
 {
-    private const SCALES = [100, 1000];
+    private const SCALES = [100, 1000, 10000];
 
     /** @param callable(MeasureRequest, int): OneResult $script */
     private static function runner(callable $script): object
@@ -129,8 +129,8 @@ final class DriverValidationRetryTest extends PlannerTestCase
 
         $refusals = array_filter($runner->requests, static fn (MeasureRequest $r): bool => !isset($r->body['name']));
         $this->assertCount(1, $refusals, 'only the very first request carried the body that was refused');
-        // scale 0: the refused request and its retry; scales 100 and 1000: one request each, with the body that worked
-        $this->assertCount(4, $runner->requests);
+        // scale 0: the refused request and its retry; the three other scales: one request each, with the body that worked
+        $this->assertCount(5, $runner->requests);
     }
 
     public function test_a_get_is_never_rebuilt(): void
