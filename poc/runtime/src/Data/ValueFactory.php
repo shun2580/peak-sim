@@ -49,6 +49,24 @@ final class ValueFactory
     /** Boolean columns that grant privilege or hide a row stay 0. */
     private const FALSE_FLAG = '/admin|(^|_)(super\w*|deleted|archived|banned|disabled|inactive|blocked|suspended)(_|$)/i';
 
+    /**
+     * An optional column that holds a secret (`mfa_secret`, `two_factor_secret`, `two_factor_recovery_codes`,
+     * `google_2fa_secret`, `google_client_secret`): a word in it is read as "the feature is on". An app that has two-factor
+     * login asks every user whose secret is not empty for a one-time code, so a generated word stops every page at the
+     * prompt before it reaches its handler. NULL is what a user who has not set the feature up has.
+     *
+     * The rule is a name rule, and the name is the only thing the schema gives. What it rests on: of six Laravel apps
+     * whose migrations were read, four have an optional column whose name has the word `secret` or `recovery_codes`
+     * in it, and in each of them the feature is switched on by the column not being empty. It is limited to optional
+     * columns (a required one cannot be NULL and keeps its word), and to the whole word (`secretary` is not matched).
+     */
+    private const OPTIONAL_SECRET = '/(^|_)(secrets?|recovery_codes?)($|_)/i';
+
+    /** A time-zone column is named `<something>_tz` and holds the name of a zone, which the app builds a zone object from. */
+    private const TIME_ZONE_COLUMN = '/_tz$/i';
+
+    private const TEXT_TYPES = ['char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext'];
+
     /** Should the column be written, and can it be? */
     public function usage(TableSchema $table, ColumnSchema $column): string
     {
@@ -141,6 +159,12 @@ final class ValueFactory
         }
         if ($type === 'tinyint' && str_starts_with(strtolower($column->columnType), 'tinyint(1)')) {
             return preg_match(self::FALSE_FLAG, $column->name) === 1 ? 0 : $i % 2;
+        }
+        if ($column->nullable && preg_match(self::OPTIONAL_SECRET, $column->name) === 1) {
+            return null;
+        }
+        if (in_array($type, self::TEXT_TYPES, true) && preg_match(self::TIME_ZONE_COLUMN, $name) === 1 && ($column->length === null || $column->length >= 3)) {
+            return 'UTC';
         }
 
         return false;

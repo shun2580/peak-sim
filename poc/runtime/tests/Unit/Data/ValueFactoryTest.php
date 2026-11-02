@@ -439,7 +439,7 @@ final class ValueFactoryTest extends TestCase
 
     public function testAColumnThatOnlyLooksLikeASecretIsNotEmptied(): void
     {
-        foreach (['secretary', 'secret_santa_name', 'secretive'] as $name) {
+        foreach (['secretary', 'secretive', 'nonsecretion'] as $name) {
             $this->assertNotNull($this->value(Schemas::varchar($name, 100, true), 2), $name);
         }
     }
