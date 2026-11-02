@@ -288,4 +288,18 @@ A2 で直したのは `newQuery()` だけである。「モデルのインスタ
 
 ## 8. 試験ログ
 
-この文書の commit の後に、別の commit で追加する。
+コードの最後の commit `66a8dda` で走らせた結果(実行日 2026-11-02)。走らせる直前と直後に作業木が clean であることを確かめた。走らせている間に `8c2ef79`(`docs/research/runtime-poc.md` だけの変更)が加わったが、コードは `66a8dda` と同じ。すべて SKIP 0・失敗 0・警告 0・risky 0(`failOnSkipped`・`failOnWarning`・`failOnRisky`・`failOnIncomplete` を有効にした設定で走らせた)。
+
+| 組 | PHP | tests | assertions | SKIP | 結果 |
+| --- | --- | --- | --- | --- | --- |
+| Unit・Acceptance(`phpunit.xml`) | 8.2 | 2460 | 8122 | 0 | OK |
+| Unit・Acceptance(`phpunit.xml`) | 8.3 | 2460 | 8122 | 0 | OK |
+| RuntimeUnit(`poc/runtime/phpunit.runtime.xml`、Docker 不要) | 8.2 | 1121 | 3196 | 0 | OK |
+| RuntimeUnit(同上) | 8.3 | 1121 | 3196 | 0 | OK |
+| RuntimeDocker 段1(封じた構成の外から。漏れる構成と `bin/measure` を含む) | 8.3 | 20 | 87 | 0 | OK |
+| RuntimeDocker 段2(封じた構成の中で `in-stack` の群) | 8.3 | 73 | 402 | 0 | OK |
+
+- RuntimeDocker は Docker の MySQL を要するので、通常の組とは別の組として走らせた(通常の組の SKIP 0 に影響しない)。
+- PHP 8.2 の RuntimeDocker は走らせていない。検証用アプリの要件(PHP 8.3)による。
+- 参考(前回の記録 `phase1-test-php8*.log` は 2404 tests・7992 assertions):通常の組は 56 tests・130 assertions 増えている。
+- 生のログは、環境情報(絶対パス・ユーザー名・ホスト名・コンテナ ID)を含むので、リポジトリには置かない。
