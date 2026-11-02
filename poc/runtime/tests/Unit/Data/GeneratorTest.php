@@ -105,6 +105,27 @@ final class GeneratorTest extends TestCase
         $this->assertLessThanOrEqual(10, max(array_column($sink->assoc('likes'), 'song_id')));
     }
 
+    public function testARaisedLinkTableReachesEveryRowOfItsLargerParent(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('accounts', [Schemas::id()], ['id']),
+            new TableSchema('piggies', [Schemas::id()], ['id']),
+            new TableSchema('account_piggy', [Schemas::fk('account_id'), Schemas::fk('piggy_id')], [], [['account_id', 'piggy_id']], [
+                new ForeignKey('ap_account', ['account_id'], 'accounts', ['id']),
+                new ForeignKey('ap_piggy', ['piggy_id'], 'piggies', ['id']),
+            ]),
+        ]);
+        [$report, $sink] = $this->generate($schema, ScalePlan::targeted(['accounts'], null, null, 30, 0, 5));
+
+        $this->assertSame(1.0, $report->successRate());
+        $links = $sink->assoc('account_piggy');
+        $this->assertCount(30, $links);
+        // every account has a link, every piggy has links, and no pair is used twice
+        $this->assertCount(30, array_unique(array_column($links, 'account_id')));
+        $this->assertCount(5, array_unique(array_column($links, 'piggy_id')));
+        $this->assertCount(30, array_unique(array_map(fn (array $r) => $r['account_id'] . '-' . $r['piggy_id'], $links)));
+    }
+
     public function testAForeignKeyToANonKeyColumnGetsTheParentsValue(): void
     {
         $schema = new DatabaseSchema([

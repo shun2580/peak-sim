@@ -162,6 +162,79 @@ final class ScalePlanTest extends TestCase
         $this->assertSame(10, $rows['songs']);
     }
 
+    private static function linkSchema(): DatabaseSchema
+    {
+        return new DatabaseSchema([
+            new TableSchema('accounts', [Schemas::id()], ['id']),
+            new TableSchema('piggies', [Schemas::id()], ['id']),
+            new TableSchema('account_piggy', [Schemas::fk('account_id'), Schemas::fk('piggy_id')], [], [['account_id', 'piggy_id']], [
+                new ForeignKey('ap_account', ['account_id'], 'accounts', ['id']),
+                new ForeignKey('ap_piggy', ['piggy_id'], 'piggies', ['id']),
+            ]),
+        ]);
+    }
+
+    public function testALinkTableBetweenTwoTablesGrowsWithItsLargerParent(): void
+    {
+        // The link table is not named by the plan; it holds one link per row of the larger parent, so that
+        // growing a parent grows what is reached through the link.
+        $rows = ScalePlan::targeted(['accounts'], null, null, 30, 0, 5)->resolve(self::linkSchema());
+
+        $this->assertSame(30, $rows['accounts']);
+        $this->assertSame(5, $rows['piggies']);
+        $this->assertSame(30, $rows['account_piggy']);
+    }
+
+    public function testALinkTableNeverHoldsFewerRowsThanTheBase(): void
+    {
+        $rows = ScalePlan::targeted(['accounts'], null, null, 3, 0, 5)->resolve(self::linkSchema());
+
+        $this->assertSame(5, $rows['account_piggy']);
+    }
+
+    public function testALinkTableTheRouteNamesKeepsItsOwnCount(): void
+    {
+        $rows = ScalePlan::targeted(['account_piggy'], null, null, 7, 0, 5)->resolve(self::linkSchema());
+
+        $this->assertSame(7, $rows['account_piggy']);
+    }
+
+    public function testALinkTableFollowsAnEmptyParent(): void
+    {
+        $rows = ScalePlan::targeted(['accounts'], null, null, 0, 0, 5)->resolve(self::linkSchema());
+
+        $this->assertSame(0, $rows['account_piggy']);
+    }
+
+    public function testALinkTableOfALinkTableGrowsToo(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('a', [Schemas::id()], ['id']),
+            new TableSchema('b', [Schemas::id()], ['id']),
+            new TableSchema('c', [Schemas::id()], ['id']),
+            new TableSchema('ab', [Schemas::fk('a_id'), Schemas::fk('b_id')], [], [['a_id', 'b_id']], [
+                new ForeignKey('ab_a', ['a_id'], 'a', ['id']),
+                new ForeignKey('ab_b', ['b_id'], 'b', ['id']),
+            ]),
+            new TableSchema('abc', [Schemas::fk('ab_id'), Schemas::fk('c_id')], [], [['ab_id', 'c_id']], [
+                new ForeignKey('abc_ab', ['ab_id'], 'ab', ['id']),
+                new ForeignKey('abc_c', ['c_id'], 'c', ['id']),
+            ]),
+        ]);
+        // ab has no id column in this sketch; the reference is by name only, the plan reads structure.
+        $rows = ScalePlan::targeted(['a'], null, null, 40, 0, 5)->resolve($schema);
+
+        $this->assertSame(40, $rows['ab']);
+        $this->assertSame(40, $rows['abc']);
+    }
+
+    public function testAGlobalPlanIsNotChangedByTheLinkRule(): void
+    {
+        $rows = ScalePlan::global(50, 5)->resolve(self::linkSchema());
+
+        $this->assertSame(['account_piggy' => 50, 'accounts' => 50, 'piggies' => 50], $rows);
+    }
+
     public function testResolveRaisesGrandparentsThroughAChainOfUniqueKeys(): void
     {
         $schema = new DatabaseSchema([
