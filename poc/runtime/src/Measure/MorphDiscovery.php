@@ -156,8 +156,32 @@ final class MorphDiscovery
         if ($table === '' || $id === '' || $type === '' || $key === '') {
             return null;
         }
+        [$relatedColumn, $relatedTable, $relatedKey] = $kind === 'MorphToMany' ? self::otherSide($relation) : [null, null, null];
 
-        return new MorphLink($table, $id, $type, $parentMorph, $parentTable, $key);
+        return new MorphLink($table, $id, $type, $parentMorph, $parentTable, $key, $relatedColumn, $relatedTable, $relatedKey);
+    }
+
+    /**
+     * What a to-many relation says about its other key: the pivot column, and the table and column of the related
+     * model. A relation that does not answer (or answers with something empty) says nothing; the link is still used.
+     *
+     * @return array{?string, ?string, ?string}
+     */
+    private static function otherSide(object $relation): array
+    {
+        try {
+            if (!method_exists($relation, 'getRelatedPivotKeyName') || !method_exists($relation, 'getRelated') || !method_exists($relation, 'getRelatedKeyName')) {
+                return [null, null, null];
+            }
+            $column = self::bare((string) $relation->getRelatedPivotKeyName());
+            $related = $relation->getRelated();
+            $table = is_object($related) && method_exists($related, 'getTable') ? (string) $related->getTable() : '';
+            $key = self::bare((string) $relation->getRelatedKeyName());
+        } catch (\Throwable) {
+            return [null, null, null];
+        }
+
+        return $column === '' || $table === '' || $key === '' ? [null, null, null] : [$column, $table, $key];
     }
 
     /** `table.column` becomes `column`. */

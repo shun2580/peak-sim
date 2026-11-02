@@ -96,7 +96,7 @@ final class Generator implements DataGenerator
         $existing = [];
         foreach ($order->order as $name) {
             $existing[$name] = $sink->count($name);
-            $state[$name] = $this->generateTable($schema, $schema->table($name), $sink, $rows, $existing, $state, $deferred[$name] ?? [], $constants, $this->morphGroups($schema, $name, $morphs, $rows, $skip, $constants));
+            $state[$name] = $this->generateTable($schema, $schema->table($name), $sink, $rows, $existing, $state, $deferred[$name] ?? [], $constants, $this->morphGroups($schema, $name, $morphs, $rows, $skip, $constants), $this->relatedKeys($schema, $name, $morphs, $rows, $skip, $constants));
         }
 
         foreach ($order->deferred as $edge) {
@@ -119,10 +119,11 @@ final class Generator implements DataGenerator
      * @param array<string, ForeignKey>                         $deferred
      * @param array<string, mixed>                              $constants
      * @param array<string, array{type: string, links: list<MorphLink>}> $morphGroups id column => the type column and the parents
+     * @param array<string, MorphLink>                          $relatedKeys column => the relation that says which table it points at
      *
      * @return array{status: string, planned: int, actual: int, reason: ?string, detail: ?string, notes: list<string>, existing: int}
      */
-    private function generateTable(DatabaseSchema $schema, TableSchema $table, RowSink $sink, array $rows, array $existing, array $state, array $deferred, array $constants, array $morphGroups = []): array
+    private function generateTable(DatabaseSchema $schema, TableSchema $table, RowSink $sink, array $rows, array $existing, array $state, array $deferred, array $constants, array $morphGroups = [], array $relatedKeys = []): array
     {
         $planned = $rows[$table->name];
         $before = $existing[$table->name];
@@ -151,7 +152,7 @@ final class Generator implements DataGenerator
         }
 
         $radix = $this->radixKeys($table, $rows);
-        $plan = $this->columnPlan($table, $nullFks, $constants[$table->name] ?? [], $morphGroups);
+        $plan = $this->columnPlan($table, $nullFks, $constants[$table->name] ?? [], $morphGroups, $relatedKeys);
         $columns = array_map(static fn (array $p): string => $p['name'], $plan);
         $batchRows = max(1, min(self::MAX_BATCH_ROWS, intdiv(self::MAX_BATCH_VALUES, max(1, count($columns)))));
 
@@ -160,7 +161,7 @@ final class Generator implements DataGenerator
             for ($start = 1; $start <= $planned; $start += $batchRows) {
                 $batch = [];
                 for ($i = $start; $i < $start + $batchRows && $i <= $planned; $i++) {
-                    $batch[] = $this->row($schema, $table, $plan, $radix, $rows, $existing, $i, $constants, $morphGroups);
+                    $batch[] = $this->row($schema, $table, $plan, $radix, $rows, $existing, $i, $constants, $morphGroups, $relatedKeys);
                 }
                 $sink->insert($table->name, $columns, $batch);
             }
@@ -205,10 +206,11 @@ final class Generator implements DataGenerator
      * @param array<string, true>  $nullFks
      * @param array<string, mixed> $tableConstants
      * @param array<string, array{type: string, links: list<MorphLink>}> $morphGroups
+     * @param array<string, MorphLink> $relatedKeys
      *
      * @return list<array{name: string, kind: string, fk: ?ForeignKey, position: int}>
      */
-    private function columnPlan(TableSchema $table, array $nullFks, array $tableConstants, array $morphGroups = []): array
+    private function columnPlan(TableSchema $table, array $nullFks, array $tableConstants, array $morphGroups = [], array $relatedKeys = []): array
     {
         $morphTypes = array_flip(array_column($morphGroups, 'type'));
         $plan = [];
@@ -221,6 +223,8 @@ final class Generator implements DataGenerator
                 $plan[] = ['name' => $column->name, 'kind' => 'morph_id', 'fk' => null, 'position' => 0];
             } elseif ($fk === null && !array_key_exists($column->name, $tableConstants) && isset($morphTypes[$column->name])) {
                 $plan[] = ['name' => $column->name, 'kind' => 'morph_type', 'fk' => null, 'position' => 0];
+            } elseif ($fk === null && !array_key_exists($column->name, $tableConstants) && isset($relatedKeys[$column->name])) {
+                $plan[] = ['name' => $column->name, 'kind' => 'related_key', 'fk' => null, 'position' => 0];
             } elseif ($fk !== null && isset($nullFks[$fk->name])) {
                 $plan[] = ['name' => $column->name, 'kind' => 'null', 'fk' => null, 'position' => 0];
             } elseif ($fk !== null) {
@@ -242,10 +246,11 @@ final class Generator implements DataGenerator
      * @param array<string, int>                                                       $existing
      * @param array<string, mixed>                                                     $constants
      * @param array<string, array{type: string, links: list<MorphLink>}>               $morphGroups
+     * @param array<string, MorphLink>                                                 $relatedKeys
      *
      * @return list<mixed>
      */
-    private function row(DatabaseSchema $schema, TableSchema $table, array $plan, array $radix, array $rows, array $existing, int $i, array $constants, array $morphGroups = []): array
+    private function row(DatabaseSchema $schema, TableSchema $table, array $plan, array $radix, array $rows, array $existing, int $i, array $constants, array $morphGroups = [], array $relatedKeys = []): array
     {
         $row = [];
         foreach ($plan as $entry) {
@@ -253,6 +258,7 @@ final class Generator implements DataGenerator
                 'null' => null,
                 'morph_type' => $this->morphType($morphGroups, $entry['name'], $i),
                 'morph_id' => $this->morphId($schema, $morphGroups[$entry['name']]['links'], $rows, $existing, $i),
+                'related_key' => $this->relatedKeyValue($schema, $relatedKeys[$entry['name']], $rows, $existing, $i),
                 'constant' => $constants[$table->name][$entry['name']],
                 'fk' => $this->foreignKeyValue($schema, $table, $entry['fk'], $entry['position'], $radix[$entry['fk']->name] ?? null, $rows, $existing, $i, $constants),
                 default => $this->values->value($table, $table->column($entry['name']), $i),
@@ -294,6 +300,60 @@ final class Generator implements DataGenerator
         }
 
         return $groups;
+    }
+
+    /**
+     * The other key of a to-many pivot (the `tag_id` of a `taggables` table): column => the relation that says which
+     * table and column it points at. The database has no foreign key for it, and without this the column holds a
+     * counting number that reaches past the last row of the table it means, so a page that reads the related rows by
+     * these numbers finds none. Used only when the table has the column with no key and no value of the profile, and
+     * the related table is in the database with rows to point at.
+     *
+     * @param list<MorphLink>      $morphs
+     * @param array<string, int>   $rows
+     * @param array<string, int>   $skip
+     * @param array<string, mixed> $constants
+     *
+     * @return array<string, MorphLink>
+     */
+    private function relatedKeys(DatabaseSchema $schema, string $name, array $morphs, array $rows, array $skip, array $constants): array
+    {
+        $table = $schema->table($name);
+        $keys = [];
+        foreach ($morphs as $link) {
+            if ($link->table !== $name || $table === null || $link->relatedColumn === null || $link->relatedTable === null || $link->relatedKey === null) {
+                continue;
+            }
+            $related = $schema->table($link->relatedTable);
+            if ($related === null || $related->column($link->relatedKey) === null
+                || isset($skip[$link->relatedTable]) || in_array($link->relatedTable, self::FRAMEWORK_TABLES, true)
+                || ($rows[$link->relatedTable] ?? 0) < 1 || $table->column($link->relatedColumn) === null
+                || $table->foreignKeyOf($link->relatedColumn) !== null || array_key_exists($link->relatedColumn, $constants[$name] ?? [])) {
+                continue;
+            }
+            $keys[$link->relatedColumn] ??= $link;
+        }
+
+        return $keys;
+    }
+
+    /**
+     * The key of row i: the related table's rows are walked round, so that every row of it is reached and every
+     * generated row points at a row that exists.
+     *
+     * @param array<string, int> $rows
+     * @param array<string, int> $existing
+     */
+    private function relatedKeyValue(DatabaseSchema $schema, MorphLink $link, array $rows, array $existing, int $i): mixed
+    {
+        $related = $schema->table((string) $link->relatedTable);
+        $column = $related?->column((string) $link->relatedKey);
+        if ($related === null || $column === null) {
+            return null;
+        }
+        $value = $this->values->value($related, $column, (($i - 1) % max(1, $rows[$related->name])) + 1);
+
+        return $column->autoIncrement ? ($existing[$related->name] ?? 0) + $value : $value;
     }
 
     /** @param array<string, array{type: string, links: list<MorphLink>}> $groups */
