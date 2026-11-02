@@ -96,22 +96,27 @@ final class MorphDiscoveryTest extends TestCase
         }
     }
 
-    public function testOnlyFilesThatDeclareATypeAreNamedWhenAskedFor(): void
+    public function testOnlyFilesThatDeclareTheTypeOfTheirPathAreNamedWhenAskedFor(): void
     {
         $dir = sys_get_temp_dir() . '/peak-morph-' . bin2hex(random_bytes(4));
         mkdir($dir . '/Sub', 0777, true);
         $files = [
-            '/Alpha.php' => '<?php namespace App; class Alpha {}',
-            '/Sub/Beta.php' => "<?php\nnamespace App\\Sub;\nfinal readonly class Beta {}\n",
-            '/Sub/Gamma.php' => '<?php interface Gamma {}',
-            '/Sub/Delta.php' => '<?php trait Delta {}',
-            '/Sub/Epsilon.php' => '<?php enum Epsilon: string { case A = "a"; }',
-            // files that declare no type: functions only, a constant, an anonymous class, a ::class reference
+            // right: the declared full name is the name the path gives
+            '/Alpha.php' => '<?php namespace App\\Models; class Alpha {}',
+            '/Sub/Beta.php' => "<?php\nnamespace App\\Models\\Sub;\nfinal readonly class Beta {}\n",
+            '/Sub/Gamma.php' => '<?php namespace App\\Models\\Sub { interface Gamma {} }',
+            '/Sub/Delta.php' => '<?php namespace App\\Models\\Sub; trait Delta {}',
+            '/Sub/Epsilon.php' => '<?php namespace App\\Models\\Sub; enum Epsilon: string { case A = "a"; }',
+            // wrong: functions only, an array, a constant, an anonymous class, a ::class reference, broken code
             '/helpers.php' => '<?php if (!function_exists("peak_helper")) { function peak_helper(): string { return "x"; } }',
-            '/Sub/consts.php' => '<?php return ["a" => 1];',
+            '/Sub/config.php' => '<?php return ["a" => 1];',
             '/Sub/Anon.php' => '<?php return new class { public function f(): int { return 1; } };',
             '/Sub/Ref.php' => '<?php return Foo::class;',
             '/Sub/Broken.php' => '<?php class {',
+            // wrong: a class whose name is not the name of its path (a different class name, a different namespace, none)
+            '/Sub/Misnamed.php' => '<?php namespace App\\Models\\Sub; class SomethingElse {}',
+            '/Sub/OtherSpace.php' => '<?php namespace Elsewhere; class OtherSpace {}',
+            '/Sub/NoSpace.php' => '<?php class NoSpace {}',
         ];
         foreach ($files as $path => $code) {
             file_put_contents($dir . $path, $code);
@@ -121,7 +126,7 @@ final class MorphDiscoveryTest extends TestCase
                 ['App\\Models\\Alpha', 'App\\Models\\Sub\\Beta', 'App\\Models\\Sub\\Delta', 'App\\Models\\Sub\\Epsilon', 'App\\Models\\Sub\\Gamma'],
                 MorphDiscovery::classNamesIn($dir, 'App\\Models\\', true),
             );
-            $this->assertCount(10, MorphDiscovery::classNamesIn($dir, 'App\\Models\\'), 'without the flag every .php file is still named');
+            $this->assertCount(count($files), MorphDiscovery::classNamesIn($dir, 'App\\Models\\'), 'without the flag every .php file is still named');
         } finally {
             foreach (array_keys($files) as $path) {
                 unlink($dir . $path);
@@ -144,6 +149,8 @@ final class MorphDiscoveryTest extends TestCase
         file_put_contents($root . '/app/App/helpers.php', '<?php namespace Fx\\App; function peak_probe_helper(): string { return "once"; }');
         file_put_contents($root . '/app/Users/Person.php', '<?php namespace Fx\\Users; class Person extends \\Illuminate\\Database\\Eloquent\\Model {}');
         file_put_contents($root . '/app/Users/PlainThing.php', '<?php namespace Fx\\Users; class PlainThing {}');
+        file_put_contents($root . '/app/Users/settings.php', '<?php return ["a" => 1];');
+        file_put_contents($root . '/app/Users/Misnamed.php', '<?php namespace Fx\\Users; class Different extends \\Illuminate\\Database\\Eloquent\\Model {}');
         $script = $root . '/probe.php';
         file_put_contents($script, '<?php
 namespace Illuminate\\Database\\Eloquent { class Model {} }
@@ -176,7 +183,7 @@ namespace {
             $this->assertSame(0, $code, "the scan must not die: $out $err");
             $this->assertSame('["Fx\\\\Users\\\\Person"]', trim($out));
         } finally {
-            foreach (['/app/App/helpers.php', '/app/Users/Person.php', '/app/Users/PlainThing.php', '/probe.php'] as $f) {
+            foreach (['/app/App/helpers.php', '/app/Users/Person.php', '/app/Users/PlainThing.php', '/app/Users/settings.php', '/app/Users/Misnamed.php', '/probe.php'] as $f) {
                 unlink($root . $f);
             }
             rmdir($root . '/app/App');

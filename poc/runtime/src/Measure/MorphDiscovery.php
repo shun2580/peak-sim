@@ -42,15 +42,15 @@ final class MorphDiscovery
     /**
      * The class names of the `.php` files under a directory, named from the paths below it (PSR-4).
      *
-     * With `$onlyFilesThatDeclareAType`, a file that declares no class, interface, trait or enum is left out. Such a file
-     * (a helpers file of plain functions, a returned array) is not a class, and naming it would make the autoloader
-     * include it when the name is looked up: a file of functions that the framework's autoloader has already loaded
-     * would then be loaded twice, which is a fatal error that nothing can catch. The file is only read and tokenized
-     * here, never included.
+     * With `$onlyDeclaredNames`, a file is kept only when it declares a class, interface, trait or enum whose full name
+     * is the very name its path gives. A file of plain functions, a file that returns an array, or a class that does not
+     * carry the name of its path is left out: looking such a name up would make the autoloader include the file, and a
+     * file of functions that the framework's autoloader has already loaded would then be loaded twice, which is a fatal
+     * error that nothing can catch. The file is only read and tokenized here, never included.
      *
      * @return list<string> sorted
      */
-    public static function classNamesIn(string $dir, string $namespacePrefix, bool $onlyFilesThatDeclareAType = false): array
+    public static function classNamesIn(string $dir, string $namespacePrefix, bool $onlyDeclaredNames = false): array
     {
         if (!is_dir($dir)) {
             return [];
@@ -61,53 +61,77 @@ final class MorphDiscovery
             if (!$file instanceof \SplFileInfo || !$file->isFile() || $file->getExtension() !== 'php' || count($names) >= 5000) {
                 continue;
             }
-            if ($onlyFilesThatDeclareAType && !self::declaresAType($file->getPathname())) {
+            $relative = substr($file->getPathname(), strlen(rtrim($dir, '/')) + 1, -4);
+            $name = $namespacePrefix . str_replace('/', '\\', $relative);
+            if ($onlyDeclaredNames && !in_array($name, self::declaredTypes($file->getPathname()), true)) {
                 continue;
             }
-            $relative = substr($file->getPathname(), strlen(rtrim($dir, '/')) + 1, -4);
-            $names[] = $namespacePrefix . str_replace('/', '\\', $relative);
+            $names[] = $name;
         }
-        sort($names, SORT_STRING);
+        sort($names);
 
         return $names;
     }
 
     /**
-     * Whether a PHP file declares a class, interface, trait or enum (by its tokens; the file is not included). An
-     * anonymous class (`new class`), a `Foo::class` reference and a keyword with no name after it do not count.
+     * The full names of the classes, interfaces, traits and enums a PHP file declares, by its tokens (the file is not
+     * included). An anonymous class (`new class`), a `Foo::class` reference and a keyword with no name after it do not count.
+     *
+     * @return list<string>
      */
-    private static function declaresAType(string $path): bool
+    private static function declaredTypes(string $path): array
     {
         $code = @file_get_contents($path);
         if ($code === false) {
-            return false;
+            return [];
         }
         try {
             $tokens = token_get_all($code);
         } catch (\Throwable) {
-            return false;
+            return [];
         }
         $keywords = [T_CLASS, T_INTERFACE, T_TRAIT];
         if (defined('T_ENUM')) {
             $keywords[] = constant('T_ENUM');
         }
+        $skip = [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT];
+        $namespaceTokens = [T_STRING, T_NAME_QUALIFIED];
+        $namespace = '';
+        $found = [];
         $count = count($tokens);
         for ($i = 0; $i < $count; $i++) {
-            if (!is_array($tokens[$i]) || !in_array($tokens[$i][0], $keywords, true)) {
+            $token = $tokens[$i];
+            if (!is_array($token)) {
+                continue;
+            }
+            if ($token[0] === T_NAMESPACE) {
+                $namespace = '';
+                for ($j = $i + 1; $j < $count; $j++) {
+                    if (is_array($tokens[$j]) && in_array($tokens[$j][0], $skip, true)) {
+                        continue;
+                    }
+                    if (is_array($tokens[$j]) && in_array($tokens[$j][0], $namespaceTokens, true)) {
+                        $namespace = $tokens[$j][1];
+                    }
+                    break;
+                }
+                continue;
+            }
+            if (!in_array($token[0], $keywords, true)) {
                 continue;
             }
             for ($j = $i + 1; $j < $count; $j++) {
-                if (is_array($tokens[$j]) && in_array($tokens[$j][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                if (is_array($tokens[$j]) && in_array($tokens[$j][0], $skip, true)) {
                     continue;
                 }
                 if (is_array($tokens[$j]) && $tokens[$j][0] === T_STRING) {
-                    return true;
+                    $found[] = ($namespace === '' ? '' : $namespace . '\\') . $tokens[$j][1];
                 }
                 break;
             }
         }
 
-        return false;
+        return $found;
     }
 
     /**
