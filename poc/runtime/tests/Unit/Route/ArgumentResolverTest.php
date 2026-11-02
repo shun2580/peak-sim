@@ -127,6 +127,80 @@ final class ArgumentResolverTest extends TestCase
         $this->assertSame(['category_id' => 1], $r->values);
     }
 
+    public function test_a_name_that_is_a_table_takes_the_first_primary_key_of_that_table(): void
+    {
+        $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/categories/{category}', ['category' => []]));
+
+        $this->assertTrue($r->ok());
+        $this->assertSame(['category' => 1], $r->values);
+        $this->assertSame([], $r->guessed, 'a row was read, nothing was made up');
+    }
+
+    public function test_the_name_may_be_the_plural_or_the_singular_of_the_table(): void
+    {
+        $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/x/{orders}/{user}', ['orders' => [], 'user' => ['type' => 'int']]));
+
+        $this->assertSame(['orders' => 1, 'user' => 1], $r->values);
+        $this->assertSame([], $r->guessed);
+    }
+
+    public function test_a_name_that_is_a_table_but_whose_row_breaks_the_where_constraint_falls_back_to_the_constraint(): void
+    {
+        $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/x/{category}', ['category' => ['where' => 'daily|weekly']]));
+
+        $this->assertSame(['category' => 'daily'], $r->values);
+    }
+
+    public function test_a_name_that_is_a_table_with_no_row_is_left_to_the_next_rule(): void
+    {
+        $lookup = new class() implements RowLookup {
+            public function tableForModel(string $modelClass): ?string
+            {
+                return null;
+            }
+
+            public function routeKeyColumn(string $modelClass): string
+            {
+                return 'id';
+            }
+
+            public function hasTable(string $table): bool
+            {
+                return $table === 'categories';
+            }
+
+            public function primaryKey(string $table): ?string
+            {
+                return 'id';
+            }
+
+            public function firstValue(string $table, string $column, array $where = []): string|int|null
+            {
+                return null;
+            }
+        };
+        $r = (new ArgumentResolver($lookup))->resolve(self::spec('/x/{category}', ['category' => []]));
+
+        $this->assertFalse($r->ok());
+        $this->assertSame('no_rule_to_fill', $r->unfilled[0]['reason']);
+    }
+
+    public function test_a_name_that_is_no_table_still_has_no_rule(): void
+    {
+        $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/x/{gadget}', ['gadget' => []]));
+
+        $this->assertFalse($r->ok());
+        $this->assertSame('no_rule_to_fill', $r->unfilled[0]['reason']);
+    }
+
+    public function test_a_profile_argument_and_the_apps_own_binding_still_come_before_the_table_of_the_name(): void
+    {
+        $profile = ['arguments' => ['category' => ['value' => 'books']]];
+        $r = (new ArgumentResolver(self::lookup(), $profile))->resolve(self::spec('/x/{category}', ['category' => []]));
+
+        $this->assertSame(['category' => 'books'], $r->values);
+    }
+
     public function test_a_name_ending_in_id_with_no_such_table_but_an_int_type_gets_one(): void
     {
         $r = (new ArgumentResolver(self::lookup()))->resolve(self::spec('/x/{widgetId}', ['widgetId' => ['type' => 'int']]));
