@@ -398,4 +398,94 @@ final class RunReportTest extends TestCase
         $this->assertSame(0, $s['routes']);
         $this->assertSame([], $s['conflicts']);
     }
+
+    // -- "the data may not have arrived": the same bytes and the same rows read at every scale --
+
+    /** @param array<int, array<string, int>|null> $rowsByScale @param array<int, int> $bytesByScale */
+    private static function readSweep(array $rowsByScale, array $bytesByScale, array $queries = [4, 4, 4], string $uri = '/ng/n-plus-one'): array
+    {
+        $out = [];
+        $k = 0;
+        foreach ([10, 100, 1000] as $scale) {
+            $out[] = new Attempt($uri, 'GET', $scale, 'N', Attempt::COLD, 200, $queries[$k++], ['mysql' => 4], ['orders'], $bytesByScale[$scale], 1000, false, 'ok', null, rowsRead: $rowsByScale[$scale]);
+        }
+
+        return $out;
+    }
+
+    public function test_the_same_bytes_and_the_same_rows_at_every_scale_is_marked_as_a_doubt(): void
+    {
+        $same = [10 => ['orders' => 5], 100 => ['orders' => 5], 1000 => ['orders' => 5]];
+        $row = RunReport::rowFor(self::spec(), self::readSweep($same, [10 => 900, 100 => 900, 1000 => 900]));
+
+        $this->assertTrue($row['data_not_arriving_suspected']);
+        $this->assertSame('measured_O1', $row['verdict'], 'the rule that judges is not changed by the mark');
+        $this->assertStringContainsString('rows', $row['data_doubt']);
+    }
+
+    public function test_rows_that_grow_clear_the_doubt_even_when_the_bytes_do_not_change(): void
+    {
+        $grow = [10 => ['orders' => 5], 100 => ['orders' => 50], 1000 => ['orders' => 50]];
+        $row = RunReport::rowFor(self::spec(), self::readSweep($grow, [10 => 900, 100 => 900, 1000 => 900]));
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', $row);
+    }
+
+    public function test_bytes_that_change_clear_the_doubt_even_when_the_rows_do_not(): void
+    {
+        $same = [10 => ['orders' => 5], 100 => ['orders' => 5], 1000 => ['orders' => 5]];
+        $row = RunReport::rowFor(self::spec(), self::readSweep($same, [10 => 900, 100 => 901, 1000 => 902]));
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', $row);
+    }
+
+    public function test_only_the_rows_of_the_scaled_tables_count(): void
+    {
+        // customers is not a scaled table: its rows moving does not clear the doubt about orders
+        $rows = [10 => ['orders' => 5, 'customers' => 1], 100 => ['orders' => 5, 'customers' => 9], 1000 => ['orders' => 5, 'customers' => 30]];
+        $row = RunReport::rowFor(self::spec(), self::readSweep($rows, [10 => 900, 100 => 900, 1000 => 900]));
+
+        $this->assertTrue($row['data_not_arriving_suspected']);
+    }
+
+    public function test_a_global_scope_counts_the_rows_of_every_table(): void
+    {
+        $rows = [10 => ['orders' => 5, 'customers' => 1], 100 => ['orders' => 5, 'customers' => 9], 1000 => ['orders' => 5, 'customers' => 30]];
+        $row = RunReport::rowFor(self::spec('/x', ['n_table' => null]), self::readSweep($rows, [10 => 900, 100 => 900, 1000 => 900], uri: '/x'));
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', $row);
+    }
+
+    public function test_without_the_counts_nothing_is_said(): void
+    {
+        $row = RunReport::rowFor(self::spec(), self::readSweep([10 => null, 100 => null, 1000 => null], [10 => 900, 100 => 900, 1000 => 900]));
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', $row);
+    }
+
+    public function test_one_point_cannot_be_compared(): void
+    {
+        $one = [new Attempt('/ng/n-plus-one', 'GET', 10, 'N', Attempt::COLD, 200, 4, ['mysql' => 4], ['orders'], 900, 1000, false, 'ok', null, rowsRead: ['orders' => 5])];
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', RunReport::rowFor(self::spec(), $one));
+    }
+
+    public function test_the_mark_reaches_the_summary_and_the_markdown(): void
+    {
+        $same = [10 => ['orders' => 5], 100 => ['orders' => 5], 1000 => ['orders' => 5]];
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec(), self::readSweep($same, [10 => 900, 100 => 900, 1000 => 900])));
+        $report->add(RunReport::rowFor(self::spec('/other'), self::sweep([11, 101, 1001])));
+
+        $this->assertSame(['/ng/n-plus-one'], $report->summary()['data_not_arriving_suspected']);
+        $this->assertStringContainsString('data may not have arrived', $report->toMarkdown());
+    }
+
+    public function test_a_summary_with_no_doubt_has_no_such_entry(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec(), self::sweep([11, 101, 1001])));
+
+        $this->assertArrayNotHasKey('data_not_arriving_suspected', $report->summary());
+    }
 }
