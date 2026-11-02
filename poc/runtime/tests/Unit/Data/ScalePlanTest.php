@@ -7,6 +7,7 @@ namespace PeakSim\Runtime\Tests\Unit\Data;
 use InvalidArgumentException;
 use PeakSim\Runtime\Data\DatabaseSchema;
 use PeakSim\Runtime\Data\ForeignKey;
+use PeakSim\Runtime\Data\MorphLink;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Data\TableSchema;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -226,6 +227,37 @@ final class ScalePlanTest extends TestCase
 
         $this->assertSame(40, $rows['ab']);
         $this->assertSame(40, $rows['abc']);
+    }
+
+    public function testAChildTableOfAMorphGrowsWithItsLargestParent(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('bills', [Schemas::id()], ['id']),
+            new TableSchema('notes', [Schemas::id()], ['id']),
+            new TableSchema('attachments', [Schemas::id(), Schemas::column('attachable_id', 'bigint'), Schemas::varchar('attachable_type')], ['id']),
+        ]);
+        $morphs = [
+            new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Bill', 'bills', 'id'),
+            new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Note', 'notes', 'id'),
+        ];
+
+        $rows = ScalePlan::targeted(['bills'], null, null, 40, 0, 5)->resolve($schema, $morphs);
+
+        $this->assertSame(40, $rows['attachments']);
+        $this->assertSame(5, $rows['notes']);
+    }
+
+    public function testAMorphChildTheRouteNamesKeepsItsOwnCountAndAnEmptyParentEmptiesNothingElse(): void
+    {
+        $schema = new DatabaseSchema([
+            new TableSchema('bills', [Schemas::id()], ['id']),
+            new TableSchema('attachments', [Schemas::id(), Schemas::column('attachable_id', 'bigint'), Schemas::varchar('attachable_type')], ['id']),
+        ]);
+        $morphs = [new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Bill', 'bills', 'id')];
+
+        $this->assertSame(9, ScalePlan::targeted(['attachments'], null, null, 9, 0, 5)->resolve($schema, $morphs)['attachments']);
+        // no key ties the child to the parent in the database, so an empty parent does not remove the child's rows
+        $this->assertSame(5, ScalePlan::targeted(['bills'], null, null, 0, 0, 5)->resolve($schema, $morphs)['attachments']);
     }
 
     public function testAGlobalPlanIsNotChangedByTheLinkRule(): void

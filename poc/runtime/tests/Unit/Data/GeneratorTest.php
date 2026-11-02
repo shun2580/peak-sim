@@ -8,6 +8,7 @@ use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\Data\DatabaseSchema;
 use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\ForeignKey;
+use PeakSim\Runtime\Data\MorphLink;
 use PeakSim\Runtime\Data\Reason;
 use PeakSim\Runtime\Data\ScalePlan;
 use PeakSim\Runtime\Data\TableOutcome;
@@ -124,6 +125,53 @@ final class GeneratorTest extends TestCase
         $this->assertCount(30, array_unique(array_column($links, 'account_id')));
         $this->assertCount(5, array_unique(array_column($links, 'piggy_id')));
         $this->assertCount(30, array_unique(array_map(fn (array $r) => $r['account_id'] . '-' . $r['piggy_id'], $links)));
+    }
+
+    private static function morphSchema(): DatabaseSchema
+    {
+        return new DatabaseSchema([
+            new TableSchema('bills', [Schemas::id(), Schemas::varchar('name')], ['id']),
+            new TableSchema('notes', [Schemas::id(), Schemas::varchar('name')], ['id']),
+            new TableSchema('attachments', [
+                Schemas::id(),
+                Schemas::column('attachable_id', 'bigint', 'bigint unsigned', ['unsigned' => true]),
+                Schemas::varchar('attachable_type'),
+            ], ['id']),
+        ]);
+    }
+
+    public function testAMorphChildPointsAtRealRowsOfTheParentTypesItBelongsTo(): void
+    {
+        $morphs = [
+            new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Bill', 'bills', 'id'),
+            new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Note', 'notes', 'id'),
+        ];
+        $sink = new RecordingSink();
+        $report = (new Generator())->generateInto(self::morphSchema(), $sink, ScalePlan::targeted(['attachments'], null, null, 12, 0, 5), [], $morphs);
+
+        $this->assertSame(0, $report->failedCount());
+        $rows = $sink->assoc('attachments');
+        $this->assertCount(12, $rows);
+        // the types take turns, and each type's ids walk round that table's rows (5 rows each)
+        $this->assertSame(['App\\Bill', 'App\\Note', 'App\\Bill', 'App\\Note'], array_slice(array_column($rows, 'attachable_type'), 0, 4));
+        foreach ($rows as $row) {
+            $this->assertContains($row['attachable_type'], ['App\\Bill', 'App\\Note']);
+            $this->assertGreaterThanOrEqual(1, $row['attachable_id']);
+            $this->assertLessThanOrEqual(5, $row['attachable_id']);
+        }
+        $bills = array_filter($rows, static fn (array $r): bool => $r['attachable_type'] === 'App\\Bill');
+        $this->assertSame([1, 2, 3, 4, 5, 1], array_values(array_column($bills, 'attachable_id')));
+    }
+
+    public function testAMorphWhoseParentTableHasNoRowsIsLeftToTheOrdinaryValues(): void
+    {
+        $morphs = [new MorphLink('attachments', 'attachable_id', 'attachable_type', 'App\\Bill', 'bills', 'id')];
+        $sink = new RecordingSink();
+        $profile = ['skip' => ['bills']];
+        $report = (new Generator())->generateInto(self::morphSchema(), $sink, ScalePlan::targeted(['attachments'], null, null, 3, 0, 5), $profile, $morphs);
+
+        $this->assertSame(0, $report->failedCount());
+        $this->assertSame('attachments_attachable_type_1', $sink->assoc('attachments')[0]['attachable_type']);
     }
 
     public function testAForeignKeyToANonKeyColumnGetsTheParentsValue(): void
