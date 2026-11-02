@@ -13,6 +13,8 @@ final class RequestResult
         public readonly ?\Throwable $exception,
         public readonly ?string $redirectPath = null,
         public readonly ?string $note = null,
+        /** @var list<string> the names of the fields a 422 answer says failed */
+        public readonly array $errorKeys = [],
     ) {
     }
 }

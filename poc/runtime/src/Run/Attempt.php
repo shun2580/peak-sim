@@ -44,6 +44,8 @@ final class Attempt
         public readonly bool $gateBypass,
         public readonly string $class,
         ?string $detail,
+        /** @var list<string> the fields a 422 answer named (kept only for that answer) */
+        public readonly array $errorKeys = [],
     ) {
         $this->detail = $detail === null ? null : mb_substr($detail, 0, self::DETAIL_LIMIT);
     }
@@ -51,7 +53,7 @@ final class Attempt
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return [
+        $row = [
             'route' => $this->route,
             'method' => $this->method,
             'scale' => $this->scale,
@@ -67,6 +69,11 @@ final class Attempt
             'class' => $this->class,
             'detail' => $this->detail,
         ];
+        if ($this->errorKeys !== []) {
+            $row['error_keys'] = $this->errorKeys;
+        }
+
+        return $row;
     }
 
     public function toJson(): string
@@ -92,6 +99,7 @@ final class Attempt
             gateBypass: (bool) ($data['gate_bypass'] ?? false),
             class: (string) $data['class'],
             detail: isset($data['detail']) ? (string) $data['detail'] : null,
+            errorKeys: array_values(array_map('strval', (array) ($data['error_keys'] ?? []))),
         );
     }
 }

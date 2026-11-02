@@ -40,6 +40,12 @@ final class MeasureRequest
         return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, true, $this->phases, $this->query);
     }
 
+    /** @param array<string, mixed>|null $body */
+    public function withBody(?array $body): self
+    {
+        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $body, $this->form, $this->csrf, $this->headers, $this->gateBypass, $this->phases, $this->query);
+    }
+
     /** @return list<string> the arguments of `bin/measure-one` */
     public function toArguments(): array
     {

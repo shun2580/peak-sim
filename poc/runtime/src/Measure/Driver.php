@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Measure;
 
 use PeakSim\Runtime\Judge\Verdict;
 use PeakSim\Runtime\Report\RunReport;
+use PeakSim\Runtime\Route\BodyBuilder;
 use PeakSim\Runtime\Route\UserProvider;
 use PeakSim\Runtime\Run\Attempt;
 
@@ -27,6 +28,12 @@ final class Driver
 {
     /** @var list<array<string, mixed>> what the builder said about each database it built, rebuilds included */
     private array $builds = [];
+
+    /** The rounds of rebuilding a body after a 422: a string, a number, an array (see `BodyBuilder`). */
+    private const VALIDATION_ROUNDS = 3;
+
+    /** @var array<string, array<string, mixed>> the body that got past validation, by route: later scales start from it */
+    private array $learnedBodies = [];
 
     public function __construct(
         private readonly DataPlanner $planner,
@@ -152,10 +159,26 @@ final class Driver
             $task->query,
         );
 
+        $learned = $this->learnedBodies[self::bodyKey($task)] ?? null;
+        if ($learned !== null) {
+            $request = $request->withBody($learned);
+        }
         $result = $this->runner->run($request);
         $stop = $this->take($result, $request, $point, $mine, $all);
         if ($stop !== null) {
             return $stop;
+        }
+
+        // A 422 names the fields it did not get: build the body again from them (a string, then a number, then an array
+        // for a field that keeps failing) instead of recording the route as one that could not be reached.
+        if ($result->exit === 0 && $request->method !== 'GET' && ($result->attempts[0]->class ?? null) === 'validation_422') {
+            [$request, $result, $stop] = $this->rebuildAfter422($request, $result, $point, $mine, $all);
+            if ($stop !== null) {
+                return $stop;
+            }
+            if (($result->attempts[0]->class ?? null) !== 'validation_422' && $request->body !== null) {
+                $this->learnedBodies[self::bodyKey($task)] = $request->body;
+            }
         }
 
         // A 403 gets exactly one more try with every Gate check let through (unless the run switched that off); the
@@ -169,6 +192,51 @@ final class Driver
         }
 
         return null;
+    }
+
+    /**
+     * @param list<Attempt> $mine
+     * @param list<Attempt> $all
+     *
+     * @return array{MeasureRequest, OneResult, array{int, string}|null} the last request made, its result, and a stop
+     */
+    private function rebuildAfter422(MeasureRequest $request, OneResult $result, DatabasePoint $point, array &$mine, array &$all): array
+    {
+        /** @var array<string, int> $types field => the type it was last tried with */
+        $types = [];
+        $base = $request->body ?? [];
+        for ($round = 1; $round <= self::VALIDATION_ROUNDS; $round++) {
+            $keys = $result->attempts[0]->errorKeys ?? [];
+            if ($keys === []) {
+                break;
+            }
+            foreach ($keys as $key) {
+                $types[$key] = ($types[$key] ?? 0) + 1;
+            }
+            $body = $base;
+            foreach ($types as $key => $type) {
+                if ($type > self::VALIDATION_ROUNDS) {
+                    break 2;
+                }
+                $body = array_replace_recursive($body, BodyBuilder::bodyFromErrorKeys([(string) $key], $type));
+            }
+            $request = $request->withBody($body);
+            $result = $this->runner->run($request);
+            $stop = $this->take($result, $request, $point, $mine, $all);
+            if ($stop !== null) {
+                return [$request, $result, $stop];
+            }
+            if (($result->attempts[0]->class ?? null) !== 'validation_422') {
+                break;
+            }
+        }
+
+        return [$request, $result, null];
+    }
+
+    private static function bodyKey(RouteTask $task): string
+    {
+        return $task->spec->method . ' ' . $task->spec->uri;
     }
 
     /**

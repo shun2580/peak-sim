@@ -256,6 +256,7 @@ final class MeasureOne
             gateBypass: $args['gateBypass'],
             class: $class,
             detail: $detail,
+            errorKeys: $result?->errorKeys ?? [],
         );
     }
 

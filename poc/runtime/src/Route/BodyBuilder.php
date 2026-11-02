@@ -96,6 +96,18 @@ final class BodyBuilder
      */
     public function fromErrorKeys(array $keys, int $round): array
     {
+        return self::bodyFromErrorKeys($keys, $round);
+    }
+
+    /**
+     * `fromErrorKeys` without a row lookup, for a caller that has none (it reads no row).
+     *
+     * @param list<string> $keys
+     *
+     * @return array<string, mixed>
+     */
+    public static function bodyFromErrorKeys(array $keys, int $round): array
+    {
         if ($round < 1 || $round > self::ROUNDS) {
             throw new \InvalidArgumentException('a retry body is built for round 1 to 3');
         }

@@ -74,8 +74,10 @@ final class Requester
         $peak = max(0, memory_get_peak_usage() - $base);
 
         $note = null;
+        $errorKeys = [];
         if ($response !== null && ! $response instanceof \Symfony\Component\HttpFoundation\StreamedResponse && ! $response instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
             $note = self::noteOf($response->getStatusCode(), (string) $response->getContent());
+            $errorKeys = self::errorKeysOf($response->getStatusCode(), (string) $response->getContent());
         }
 
         $reported = $this->booted->exceptions->take();
@@ -89,6 +91,7 @@ final class Requester
             $thrown ?? $reported,
             is_string($redirectPath) ? $redirectPath : null,
             $note,
+            $errorKeys,
         );
     }
 
@@ -130,6 +133,35 @@ final class Requester
         }
 
         return $parts === [] ? null : mb_substr(implode(' | ', $parts), 0, Attempt::DETAIL_LIMIT);
+    }
+
+    /**
+     * The names of the fields a 422 answer says failed validation (the keys of `errors`; never a value or a message):
+     * what the next request is built from. At most 20, each a plain field name (`items.0.sku`).
+     *
+     * @return list<string>
+     */
+    public static function errorKeysOf(int $status, string $content): array
+    {
+        if ($status !== 422) {
+            return [];
+        }
+        $data = json_decode($content, true);
+        if (! is_array($data) || ! isset($data['errors']) || ! is_array($data['errors'])) {
+            return [];
+        }
+        $keys = [];
+        foreach (array_keys($data['errors']) as $key) {
+            $key = (string) $key;
+            if (preg_match('/^[A-Za-z0-9_.*-]{1,100}$/D', $key) === 1) {
+                $keys[] = $key;
+            }
+            if (count($keys) >= 20) {
+                break;
+            }
+        }
+
+        return $keys;
     }
 
     /**
