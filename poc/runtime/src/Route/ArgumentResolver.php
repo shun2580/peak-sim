@@ -11,8 +11,10 @@ namespace PeakSim\Runtime\Route;
  *  1. an implicit model binding: the route key (or the binding field) of the first row of the model's table; a
  *     scoped child takes the first row whose foreign key points at the parent row already chosen
  *  2. a name ending in `id` (`orderId`, `category_id`): the primary key of the first row of the table the prefix names
- *  3. the `where` constraint: its first alternative when it is a list of literals, else the first sample it matches
- *  4. a declared `int` type: 1
+ *  3. a name that is itself a table (`category`, `piggyBank`, `orders`; singular or plural): the primary key of its first
+ *     row, when that value does not break the parameter's `where` constraint
+ *  4. the `where` constraint: its first alternative when it is a list of literals, else the first sample it matches
+ *  5. a declared `int` type: 1
  *
  * An app profile (`arguments`, `unfillable`; see `profiles/`) adds what the rules cannot reach:
  *  - `arguments`: a parameter name => where its value comes from, the first row of a table's column (`table`,
@@ -105,6 +107,18 @@ final class ArgumentResolver
                         return [$value, ''];
                     }
                 }
+            }
+        }
+
+        // The name is itself a table (`{category}`, `{piggyBank}`, `{orders}`): the first row's primary key. A row whose key
+        // breaks the `where` constraint is not used, and the constraint's own rule below gets its turn.
+        foreach (self::tableCandidates($name) as $table) {
+            if (!$this->lookup->hasTable($table)) {
+                continue;
+            }
+            $value = $this->lookup->firstValue($table, $this->lookup->primaryKey($table) ?? 'id');
+            if ($value !== null && ($p['where'] === null || self::matches($p['where'], (string) $value))) {
+                return [$value, ''];
             }
         }
 
