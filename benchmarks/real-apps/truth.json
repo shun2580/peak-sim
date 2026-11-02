@@ -1,0 +1,2162 @@
+{
+ "about": "Fixed answers for the routes of the real-app trials: how the number of queries (and the memory) of one request grows with the table named as the axis. Each answer was decided by reading the code; the apps are cloned read-only and the code is not copied here, only file:line references.",
+ "schema": "peak-sim-truth/1",
+ "apps": {
+  "firefly-iii": {
+   "name": "Firefly III",
+   "commit": "d65e916130c91d8f13ca808ca088d225ddd9a939",
+   "version": "v6.7.9"
+  },
+  "koel": {
+   "name": "Koel",
+   "commit": "da0e70f4b45f2366b2d40917df8d4bc895127513"
+  },
+  "bookstack": {
+   "name": "BookStack",
+   "commit": "045c6a98cac21ea86906674bb91d01f375460db6"
+  },
+  "snipe-it": {
+   "name": "Snipe-IT",
+   "commit": "e6dded3eac759353c90c05c7e32430c6dbaba93b"
+  }
+ },
+ "routes": [
+  {
+   "id": "firefly-iii GET /api/v1/rules/validate-expression",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/rules/validate-expression",
+   "sets": [
+    "settled",
+    "round1-control"
+   ],
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "routes/api.php",
+     "line": 562,
+     "note": "route definition"
+    },
+    {
+     "file": "app/Api/V1/Controllers/Models/Rule/ExpressionController.php",
+     "line": 42,
+     "note": "returns a constant JSON body"
+    },
+    {
+     "file": "app/Rules/IsValidActionExpression.php",
+     "line": 40,
+     "note": "one or two settings lookups; the expression check depends on the input length only"
+    },
+    {
+     "file": "app/Api/V1/Controllers/Models/Rule/ExpressionController.php",
+     "line": 44,
+     "note": "固定の JSON を返すだけ。DB 無し"
+    },
+    {
+     "file": "app/Rules/IsValidActionExpression.php",
+     "line": 45,
+     "note": "式の構文解析のみ(DB 無し)。設定の読み取りは定数"
+    }
+   ],
+   "notes": "Checked by reading the code and by running one request while the rows grew from 0 to 50,000: the query count did not change. A constant number of queries (2 to 14) comes from middleware and is not part of the growth."
+  },
+  {
+   "id": "firefly-iii GET /json/box/available",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/json/box/available",
+   "sets": [
+    "settled",
+    "round1-control"
+   ],
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "routes/web.php",
+     "line": 802,
+     "note": "route definition"
+    },
+    {
+     "file": "app/Http/Controllers/Json/BoxController.php",
+     "line": 51,
+     "note": "returns an empty JSON body"
+    },
+    {
+     "file": "app/Http/Middleware/Range.php",
+     "line": 121,
+     "note": "reads one row at most (first journal)"
+    },
+    {
+     "file": "app/Http/Controllers/Json/BoxController.php",
+     "line": 54,
+     "note": "return response()->json() だけ。DB 無し"
+    }
+   ],
+   "notes": "Checked by reading the code and by running one request while the rows grew from 0 to 50,000: the query count did not change. A constant number of queries (2 to 14) comes from middleware and is not part of the growth."
+  },
+  {
+   "id": "koel GET /rest/ping{format?}",
+   "app": "koel",
+   "method": "GET",
+   "uri": "/rest/ping{format?}",
+   "sets": [
+    "settled"
+   ],
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "routes/subsonic.php",
+     "line": 60,
+     "note": "route definition"
+    },
+    {
+     "file": "app/Http/Controllers/Subsonic/PingController.php",
+     "line": 10,
+     "note": "fixed response"
+    },
+    {
+     "file": "app/Repositories/UserRepository.php",
+     "line": 50,
+     "note": "authentication fetches one user"
+    }
+   ],
+   "notes": "Checked by reading the code and by running one request while 300 users were added: the query count (3 to 4) did not change."
+  },
+  {
+   "id": "koel GET /rest/getMusicFolders{format?}",
+   "app": "koel",
+   "method": "GET",
+   "uri": "/rest/getMusicFolders{format?}",
+   "sets": [
+    "settled"
+   ],
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Subsonic/GetMusicFoldersController.php",
+     "line": 12,
+     "note": "fixed one-element array"
+    }
+   ],
+   "notes": "Checked by reading the code and by running one request while 300 users were added: the query count (3 to 4) did not change."
+  },
+  {
+   "id": "koel GET /rest/getOpenSubsonicExtensions{format?}",
+   "app": "koel",
+   "method": "GET",
+   "uri": "/rest/getOpenSubsonicExtensions{format?}",
+   "sets": [
+    "settled"
+   ],
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the request touches a fixed number of rows"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Subsonic/GetOpenSubsonicExtensionsController.php",
+     "line": 14,
+     "note": "constant array"
+    }
+   ],
+   "notes": "Checked by reading the code and by running one request while 300 users were added: the query count (3 to 4) did not change."
+  },
+  {
+   "id": "firefly-iii GET /accounts/show/{account}/all",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/accounts/show/{account}/all",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL の口座に紐づく行。morphMany)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL の口座に紐づく行。morphMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Account/ShowController.php",
+     "line": 209,
+     "note": "getAttachments($account) を呼ぶ"
+    },
+    {
+     "file": "app/Repositories/Account/AccountRepository.php",
+     "line": 367,
+     "note": "$account->attachments()->get() で全件読む(件数制限なし)"
+    },
+    {
+     "file": "app/Repositories/Account/AccountRepository.php",
+     "line": 375,
+     "note": "添付ごとに notes()->first() = 添付1件につき1クエリ。1+A のクエリ"
+    },
+    {
+     "file": "app/Http/Controllers/Account/ShowController.php",
+     "line": 212,
+     "note": "取引一覧は setLimit($pageSize) で頁分(既定50)に限られ N に比例しない"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/bills/{bill}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/bills/{bill}/attachments",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL の請求=bill に紐づく行。morphMany)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL の請求=bill に紐づく行。morphMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Bill/ListController.php",
+     "line": 77,
+     "note": "getAttachments($bill) で全件取得してから slice(:80)。頁指定に関係なく全件を読む"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 189,
+     "note": "添付ごとに notes()->first() = 1+A クエリ"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 50,
+     "note": "頁分(limit件)ごとに $attachment->user を lazy load(+1)"
+    },
+    {
+     "file": "app/Repositories/Attachment/AttachmentRepository.php",
+     "line": 108,
+     "note": "頁分ごとに notes()->first()(+1)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/categories/{category}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/categories/{category}/attachments",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL のカテゴリに紐づく行。morphMany)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL のカテゴリに紐づく行。morphMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Category/ListController.php",
+     "line": 73,
+     "note": "getAttachments($category) で全件取得し、:76 で slice"
+    },
+    {
+     "file": "app/Repositories/Category/CategoryRepository.php",
+     "line": 170,
+     "note": "添付ごとに notes()->first() = 1+A クエリ"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 50,
+     "note": "頁分ごとに user を lazy load(+1)、:63 で notes(+1)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii PUT /api/v1/piggy-banks/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "PUT",
+   "uri": "/api/v1/piggy-banks/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "accounts(リクエスト本文の accounts[] の要素数 K。および貯金箱に紐づく口座 A)",
+     "condition": "本文に accounts[] を付けたとき K 比例(口座ごとに find+残高検査+sync)。target_amount < 現在額 のとき removeAmountFromAll が A 比例。本文が name 等だけなら定数",
+     "growth_if_condition_degree": 1,
+     "note": "O(K) または O(A)(いずれも 1 つの貯金箱の中の件数。accounts 表の総行数ではない)",
+     "memory_note": "O(1)〜O(A)(A=この貯金箱の口座数。小)"
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/PiggyBank/UpdateController.php",
+     "line": 67,
+     "note": "repository->update → :74 enrichSingle(1件)"
+    },
+    {
+     "file": "app/Support/JsonApi/Enrichments/PiggyBankEnrichment.php",
+     "line": 201,
+     "note": "Enrichment は whereIn で一括取得(:195,:201,:236,:249,:261,:278)= 1件なら定数クエリ"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/ModifiesPiggyBanks.php",
+     "line": 299,
+     "note": "linkToAccountIds($data[\"accounts\"] ?? []) — 空なら :186 の sync まで行かず定数"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 125,
+     "note": "accounts[] の要素ごとに accountRepository->find(= K クエリ)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/ModifiesPiggyBanks.php",
+     "line": 314,
+     "note": "removeAmountFromAll は現在額が目標額を超えるときだけ(:304 の条件)。中で口座ごとに :152 select・:164 save・:167 event"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 138,
+     "note": "getCurrentAmount は $piggyBank->accounts を回すが関係は1回読めば保持される(口座ごとのクエリは無い)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii DELETE /api/v1/rule-groups/{ruleGroup}",
+   "app": "firefly-iii",
+   "method": "DELETE",
+   "uri": "/api/v1/rule-groups/{ruleGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "rules(ユーザーの全ルール)+ rule_groups(ユーザーの全グループ)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "rules(ユーザーの全ルール)+ rule_groups(ユーザーの全グループ)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/RuleGroup/RuleGroupRepository.php",
+     "line": 75,
+     "note": "対象グループの rules を回し :77 で rule->delete()(Observer が rule_actions/rule_triggers を各1クエリで delete: DeletedRuleObserver.php:37-38)"
+    },
+    {
+     "file": "app/Repositories/RuleGroup/RuleGroupRepository.php",
+     "line": 88,
+     "note": "destroy の最後に resetOrder() — 対象外のグループも含むユーザーの全グループ"
+    },
+    {
+     "file": "app/Repositories/RuleGroup/RuleGroupRepository.php",
+     "line": 283,
+     "note": "resetOrder: 全グループを回し :290 で resetRuleOrder"
+    },
+    {
+     "file": "app/Repositories/RuleGroup/RuleGroupRepository.php",
+     "line": 304,
+     "note": "resetRuleOrder: グループの全ルールを回し :310-311 でルールごとに actions/triggers を select(2クエリ/ルール)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/tags/{tagOrId}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/tags/{tagOrId}/attachments",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL のタグに紐づく行。morphMany)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "attachments(URL のタグに紐づく行。morphMany)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Tag/ListController.php",
+     "line": 76,
+     "note": "getAttachments($tag) で全件取得し、:79 で slice"
+    },
+    {
+     "file": "app/Repositories/Tag/TagRepository.php",
+     "line": 123,
+     "note": "添付ごとに notes()->first() = 1+A クエリ"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 50,
+     "note": "頁分ごとに user を lazy load(+1)、:63 で notes(+1)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /api/v1/webhooks/{webhook}/submit",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/api/v1/webhooks/{webhook}/submit",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "webhook_messages(URL の webhook に紐づく、sent=0 かつ errored=0 の行)",
+     "condition": "設定 allow_webhooks が true のときだけ処理に入る(既定は false → 404)。入った後は、送信待ち(未送信・未エラー)メッセージ W 件で W 比例",
+     "growth_if_condition_degree": 1,
+     "note": "O(N)(W 件のそれぞれに webhook_attempts の COUNT クエリ。その後 3 件だけ dispatch)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "webhook_messages(URL の webhook に紐づく、sent=0 かつ errored=0 の行)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/config-gated"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Webhook/SubmitController.php",
+     "line": 60,
+     "note": "allow_webhooks が false なら NotFoundHttpException(既定はここで終わる)"
+    },
+    {
+     "file": "app/Repositories/Webhook/WebhookRepository.php",
+     "line": 87,
+     "note": "webhookMessages() を sent=0, errored=0 で全件取得"
+    },
+    {
+     "file": "app/Repositories/Webhook/WebhookRepository.php",
+     "line": 92,
+     "note": "全件それぞれに webhookAttempts()->count()(W クエリ)。:93 の splice(0,3) は取得・COUNT の後"
+    },
+    {
+     "file": "app/Api/V1/Controllers/Webhook/SubmitController.php",
+     "line": 75,
+     "note": "上位3件だけ dispatch(afterResponse)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /budgets/show/{budget}/{budgetLimit}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/budgets/show/{budget}/{budgetLimit}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "budget_limits(URL の予算の期間枠。範囲内)と attachments(URL の予算に紐づく行)。さらに負債口座(liability)との積"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "budget_limits(URL の予算の期間枠。範囲内)と attachments(URL の予算に紐づく行)。さらに負債口座(liability)との積"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Budget/ShowController.php",
+     "line": 251,
+     "note": "getAttachments($budget): 添付ごとに notes()->first()(BudgetRepository.php:348)= 1+A"
+    },
+    {
+     "file": "app/Http/Controllers/Budget/ShowController.php",
+     "line": 252,
+     "note": "getLimits($budget, $start, $end)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/AugumentData.php",
+     "line": 208,
+     "note": "範囲内の予算枠 $set を回し、:225 と :237 で枠ごとに sumExpenses を 2 回"
+    },
+    {
+     "file": "app/Repositories/Budget/OperationsRepository.php",
+     "line": 321,
+     "note": "sumExpenses が毎回 負債口座を取得 → :326 で口座ごとに getMetaValue"
+    },
+    {
+     "file": "app/Repositories/Budget/OperationsRepository.php",
+     "line": 353,
+     "note": "getExtractedJournals で範囲内の出金を全件読む(メモリは取引数に比例)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /groups/destroy/{objectGroup}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/groups/destroy/{objectGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "piggy_banks(URL の object group に属する貯金箱)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "piggy_banks(URL の object group に属する貯金箱)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/ObjectGroup/DeleteController.php",
+     "line": 80,
+     "note": "repository->destroy($objectGroup)"
+    },
+    {
+     "file": "app/Repositories/ObjectGroup/ObjectGroupRepository.php",
+     "line": 69,
+     "note": "$objectGroup->piggyBanks(1クエリ)を :72 で回し、:73 で貯金箱ごとに objectGroups()->sync([])(select+detach)"
+    },
+    {
+     "file": "app/Repositories/ObjectGroup/ObjectGroupRepository.php",
+     "line": 74,
+     "note": "$piggy->save()(未変更なら更新イベントは出ない。PiggyBankObserver は created/updated/deleting のみ)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /piggy-banks/remove/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/piggy-banks/remove/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "(クエリは表の件数に依らない)。メモリ・CPU は accounts(この貯金箱の口座 A)",
+     "memory_note": "O(N)(A 比例。CPU は A 二乗だが小さい A)"
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 249,
+     "note": "$piggyBank->accounts は1回だけ読み込まれる(口座ごとのクエリ無し)。ループ内の getCurrentAmount は保持済みの関係を回すだけ"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 138,
+     "note": "getCurrentAmount: $piggyBank->accounts を回す(読込済み)"
+    },
+    {
+     "file": "resources/views/piggy-banks/remove.blade.php",
+     "line": 15,
+     "note": "ループ内の $piggyBank->transactionCurrency は同じインスタンスの関係=最初の1回だけ読む(静的は :15,:17 を毎周 lazy_load と数えた)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /piggy-banks/update/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/piggy-banks/update/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "accounts(フォームの accounts[] の要素数 K。および貯金箱に紐づく口座 A)",
+     "condition": "accounts[] は required の配列(最低1件)。クエリは K 比例(検証で口座ごとに find+通貨+メタ+種別、更新で find+sync)。表の行数では増えない",
+     "growth_if_condition_degree": 1,
+     "note": "O(K)(1 つの貯金箱の中の件数。accounts 表の総行数ではない)",
+     "memory_note": "O(1)〜O(K)"
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Requests/PiggyBankUpdateRequest.php",
+     "line": 105,
+     "note": "検証後処理で accounts[] を回し、:107 find・:110 getAccountCurrency・:111 getMetaValue・種別(口座1件あたり数クエリ)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 125,
+     "note": "更新側も accounts[] ごとに find(K クエリ)。:186 で sync"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/EditController.php",
+     "line": 125,
+     "note": "piggyRepos->update($piggyBank, $data)(#4 と同じ update)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /recurring/show/{recurrence}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/recurring/show/{recurrence}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "journal_meta(この定期取引が作った仕訳=meta name=recurrence_id の行 J)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "journal_meta(この定期取引が作った仕訳=meta name=recurrence_id の行 J)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Recurring/ShowController.php",
+     "line": 108,
+     "note": "表示する各 occurrence(繰り返しごと 5 件、daily は 9 件: RecurringEnrichment.php:369)で createdPreviously と getJournalCount を呼ぶ"
+    },
+    {
+     "file": "app/Repositories/Recurring/RecurringRepository.php",
+     "line": 80,
+     "note": "createdPreviously: J 件の meta を回し、:81 で1件ごとに COUNT クエリ(一致で早期 return)"
+    },
+    {
+     "file": "app/Repositories/Recurring/RecurringRepository.php",
+     "line": 349,
+     "note": "getTransactions: J 仕訳を集めて collector で全件(頁なし)取得 = メモリ O(J)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /subscriptions/show/{bill?}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/subscriptions/show/{bill?}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "transaction_journals(この請求=bill に紐づく仕訳 J。bill_id)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "transaction_journals(この請求=bill に紐づく仕訳 J。bill_id)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 136,
+     "note": "getOverallAverage($bill): 請求の全仕訳を回す"
+    },
+    {
+     "file": "app/Repositories/Bill/BillRepository.php",
+     "line": 275,
+     "note": "仕訳ごとに transactions()->where()->first()(1クエリ)、:277 で transactionCurrency を lazy load(+1)= 2*J"
+    },
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 135,
+     "note": "getYearAverage: 今年の分だけ同じ形(BillRepository.php:438,:443)"
+    },
+    {
+     "file": "app/Http/Controllers/Bill/ShowController.php",
+     "line": 171,
+     "note": "取引一覧は setLimit($pageSize) で頁分に限られる"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /transactions/convert/{transactionType}/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/transactions/convert/{transactionType}/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "accounts(ユーザーの有効な口座: 4 つの選択肢リストで毎回全件を回す)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "accounts(ユーザーの有効な口座: 4 つの選択肢リストで毎回全件を回す)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/unreached-branch",
+    "axis/other-table"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 110,
+     "note": "選択肢リスト 4 本の構築(:110 入金元・:111 出金先・:112 負債・:113 資産)"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 280,
+     "note": "資産口座ごとに accountsBalancesOptimized(1口座)と :282 getAccountCurrency、:283 getMetaValue"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 317,
+     "note": "負債口座ごとに $account->accountType(lazy load)。入金元・出金先リストも口座ごとに accountType を読む"
+    },
+    {
+     "file": "app/Repositories/Account/AccountRepository.php",
+     "line": 346,
+     "note": "getActiveAccountsByType は口座を全件(頁なし)取得。with は accountmeta と attachments のみで accountType は eager でない"
+    },
+    {
+     "file": "app/Support/Http/Controllers/UserNavigation.php",
+     "line": 143,
+     "note": "静的が示した根拠はここ(非編集 group の redirect 枝。1仕訳の取引数=約2回)で、主経路ではない"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /transactions/edit/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/transactions/edit/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "(表の件数に依らない)"
+    },
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "(表の件数に依らない)"
+    }
+   },
+   "deviation_types": [
+    "conditional-event/unreached-branch",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/EditController.php",
+     "line": 81,
+     "note": "isEditableGroup でなければ redirectGroupToAccount"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/EditController.php",
+     "line": 96,
+     "note": "主経路は getCashAccount(定数)+ 設定の読み取りだけ。:91 は count と first(定数)"
+    },
+    {
+     "file": "resources/views/transactions/edit.blade.php",
+     "line": 1,
+     "note": "ビューは16行で、データ取得もループも無い(v2 は画面側 JS が API で読む)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/UserNavigation.php",
+     "line": 153,
+     "note": "静的の根拠はここ(redirect 枝で、1仕訳の取引を回す=定数)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii DELETE /api/v1/transactions/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "DELETE",
+   "uri": "/api/v1/transactions/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "transactions(削除した仕訳に触れた口座の、仕訳の日付以降の取引行。1 行ごとに UPDATE)"
+    }
+   },
+   "deviation_types": [
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent",
+    "untraced-call-hides-the-weight"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Transaction/DestroyController.php",
+     "line": 74,
+     "note": "destroy は groupRepository->destroy を呼ぶだけ"
+    },
+    {
+     "file": "app/Services/Internal/Destroy/TransactionGroupDestroyService.php",
+     "line": 42,
+     "note": "イベント用の対象を集め(仕訳 J 件 × 取引 2 件の入れ子)、46 行の仕訳ごとの削除、52-53 行で event を発火"
+    },
+    {
+     "file": "app/Events/Model/TransactionGroup/TransactionGroupEventObjects.php",
+     "line": 75,
+     "note": "静的の入れ子の出どころ。束縛した 1 グループの仕訳(J)と、各仕訳の取引(84 行)を回すだけで、表全体の件数ではない"
+    },
+    {
+     "file": "app/Listeners/Model/TransactionGroup/SupportsGroupProcessingTrait.php",
+     "line": 112,
+     "note": "recalculateRunningBalance が AccountBalanceCalculator::optimizedCalculation を呼ぶ(use_running_balance は 91 行)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 146,
+     "note": "132 行で触れた口座の日付以降の取引を全部読み、146 行のループで 1 行ずつ残高を計算し、168 行で saveQuietly(値が変わる行ごとに UPDATE)"
+    },
+    {
+     "file": "config/queue.php",
+     "line": 37,
+     "note": "QUEUE_CONNECTION の既定は sync(リスナーは同期で走る)"
+    }
+   ],
+   "earlier_records": [
+    {
+     "sample": "S06",
+     "axis": "query",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "correct",
+     "note": "recorded before the full trace; the answer above supersedes it"
+    },
+    {
+     "sample": "S06",
+     "axis": "memory",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "correct",
+     "note": "recorded before the full trace; the answer above supersedes it"
+    }
+   ],
+   "cross_check": {
+    "growth": "O(N)",
+    "agrees_on_growth": true,
+    "note": "an independent re-trace of this route; it differs only in the judgement of the static lower bound"
+   }
+  },
+  {
+   "id": "firefly-iii PUT /api/v1/transactions/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "PUT",
+   "uri": "/api/v1/transactions/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "transactions(触れた口座の、仕訳の日付以降の取引行)に、rules(update-journal 用の有効な規則)の件数が加わる"
+    }
+   },
+   "deviation_types": [
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent",
+    "untraced-call-hides-the-weight"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Transaction/UpdateController.php",
+     "line": 83,
+     "note": "イベント用の対象を集め、84 行で更新、99-100 行で UpdatedSingleTransactionGroup と webhook の event を発火(applyRules は 90 行で既定 true)"
+    },
+    {
+     "file": "app/Listeners/Model/TransactionGroup/ProcessesUpdatedTransactionGroup.php",
+     "line": 57,
+     "note": "規則の処理(processRules)。71 行で残高の再計算(unifyOnly が false の間は常に走る: 69 行)"
+    },
+    {
+     "file": "app/Listeners/Model/TransactionGroup/SupportsGroupProcessingTrait.php",
+     "line": 78,
+     "note": "仕訳ごとに規則エンジンを fire(82 行)"
+    },
+    {
+     "file": "app/TransactionRules/Engine/SearchRuleEngine.php",
+     "line": 386,
+     "note": "規則ごとに ruleTriggers を取得(214・310 行)、一致すれば ruleActions を取得(579 行)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 146,
+     "note": "残高の再計算(16 と共通)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/transactions/{transactionGroup}/attachments",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/transactions/{transactionGroup}/attachments",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "束縛した1グループの 仕訳数 J × 仕訳あたりの添付数 A_j(クエリ ≈ J + J×A_j + 頁分)。軸は表全体の件数ではなく、1件のレコードの子の件数"
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Transaction/ListController.php",
+     "line": 75,
+     "note": "束縛した 1 グループの仕訳を回して、仕訳ごとに getAttachments(80 行で頁を切り出す)"
+    },
+    {
+     "file": "app/Repositories/Journal/JournalAPIRepository.php",
+     "line": 68,
+     "note": "添付ごとに notes()->first()(1 クエリ)と、ファイルの存在確認(69 行)"
+    },
+    {
+     "file": "app/Transformers/AttachmentTransformer.php",
+     "line": 63,
+     "note": "頁に含まれる添付ごとに getNoteText"
+    },
+    {
+     "file": "app/Models/TransactionJournal.php",
+     "line": 120,
+     "note": "attachments は morphMany(attachable)"
+    }
+   ],
+   "cross_check": {
+    "growth": "O(N*M)",
+    "agrees_on_growth": true,
+    "note": "an independent re-trace of this route; it differs only in the judgement of the static lower bound"
+   }
+  },
+  {
+   "id": "firefly-iii GET /api/v1/transactions/{transactionGroup}/piggy-bank-events",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/transactions/{transactionGroup}/piggy-bank-events",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "束縛した1グループの 仕訳数 J × 仕訳あたりの貯金箱イベント数 E_j(クエリ ≈ J + J×E_j + 定数)。軸は1件のレコードの子の件数"
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Transaction/ListController.php",
+     "line": 105,
+     "note": "束縛した 1 グループの仕訳を回して、仕訳ごとに getPiggyBankEvents"
+    },
+    {
+     "file": "app/Repositories/Journal/JournalAPIRepository.php",
+     "line": 90,
+     "note": "イベントごとに PiggyBank::withTrashed()->find(イベント数ぶんの N+1)"
+    },
+    {
+     "file": "app/Support/JsonApi/Enrichments/PiggyBankEventEnrichment.php",
+     "line": 116,
+     "note": "頁の enrichment は whereIn でまとめて取得(116・124・133 行)。件数に依らず定数"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /piggy-banks",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/piggy-banks",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "piggy_banks(貯金箱 × 紐づく口座の組。account_piggy_bank の行数)。組あたり約 10 クエリ以上"
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/IndexController.php",
+     "line": 81,
+     "note": "resetOrder(81 行)と一覧の取得(82 行)"
+    },
+    {
+     "file": "app/Factory/PiggyBankFactory.php",
+     "line": 213,
+     "note": "resetOrder: 位置が違う貯金箱ごとに save(216 行)"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/IndexController.php",
+     "line": 127,
+     "note": "貯金箱ごと(127 行)に piggy->accounts(遅延読込 1 クエリ)、口座ごと(131 行)に enrichSingle(133 行)と transform(134 行)。重複する口座も組ごとにやり直す"
+    },
+    {
+     "file": "app/Http/Controllers/PiggyBank/IndexController.php",
+     "line": 174,
+     "note": "貯金箱ごとに getAttachments(添付ごとにメモ 1 クエリ)"
+    },
+    {
+     "file": "app/Support/JsonApi/Enrichments/AccountEnrichment.php",
+     "line": 115,
+     "note": "enrichSingle は collect* 系 9 種以上を 1 口座で実行(口座 1 件でも約 10 クエリ)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /piggy-banks/add-money/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/piggy-banks/add-money/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "piggy_banks(束縛した貯金箱の口座と同じ口座に紐づく貯金箱の件数 K)。貯金箱 1 つの口座数 M0 × (K + 定数)",
+     "condition": "同じ口座に多数の貯金箱が紐づいていること。口座を少数に固定して貯金箱だけ増やす形なら O(N)。口座も貯金箱も規模に比例して増える一様な紐づけなら K は一定で O(1)",
+     "growth_if_condition_degree": 1,
+     "note": "Heavy only when many piggy banks share the same accounts; under a uniform fill the per-account count stays flat."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 116,
+     "note": "貯金箱に紐づく口座ごとに leftOnAccount(口座数 M0 は 1 つの貯金箱の関係の大きさ)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 359,
+     "note": "leftOnAccount: account->piggyBanks で同じ口座の貯金箱を全部取得し、362 行で貯金箱ごとに getCurrentAmount(その貯金箱の accounts を遅延読込 1 クエリ)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 138,
+     "note": "getCurrentAmount は piggyBank->accounts を回す(読込済みなら追加クエリなし)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /piggy-banks/add/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/piggy-banks/add/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "piggy_banks(束縛した貯金箱の口座と同じ口座に紐づく貯金箱の件数 K)。貯金箱 1 つの口座数 M0 × (K + 定数)",
+     "condition": "同じ口座に多数の貯金箱が紐づいていること。口座を少数に固定して貯金箱だけ増やす形なら O(N)。口座も貯金箱も規模に比例して増える一様な紐づけなら K は一定で O(1)",
+     "growth_if_condition_degree": 1,
+     "note": "Same as the GET sibling."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 76,
+     "note": "貯金箱に紐づく口座ごとに leftOnAccount(口座数 M0 は 1 つの貯金箱の関係の大きさ)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 359,
+     "note": "leftOnAccount: account->piggyBanks で同じ口座の貯金箱を全部取得し、362 行で貯金箱ごとに getCurrentAmount(その貯金箱の accounts を遅延読込 1 クエリ)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 138,
+     "note": "getCurrentAmount は piggyBank->accounts を回す(読込済みなら追加クエリなし)"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /piggy-banks/add/{piggyBank}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/piggy-banks/add/{piggyBank}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "入力なしなら O(1)。入力ありなら 21・22 と同じ(同じ口座の貯金箱の件数 K × 口座数 M0)",
+     "condition": "本文に amount[<口座 id>] が 0 でない数値で入っていること。入っていない口座は continue で飛ばされ、貯金箱の口座の読込(1 クエリ)とエラーの flash・リダイレクトだけで終わる",
+     "growth_if_condition_degree": 1,
+     "note": "Heavy only when the body carries a non-zero amount for an account."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/PiggyBank/AmountController.php",
+     "line": 144,
+     "note": "貯金箱の口座ごとに、amount が空・0・非数なら continue"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/ModifiesPiggyBanks.php",
+     "line": 96,
+     "note": "canAddAmount は leftOnAccount を呼ぶ(21・22 と同じ K の項)"
+    },
+    {
+     "file": "app/Repositories/PiggyBank/PiggyBankRepository.php",
+     "line": 359,
+     "note": "leftOnAccount: 同じ口座の貯金箱ごとの遅延読込(K)"
+    }
+   ],
+   "cross_check": {
+    "growth": "条件つき",
+    "agrees_on_growth": true,
+    "note": "an independent re-trace of this route; it differs only in the judgement of the static lower bound"
+   }
+  },
+  {
+   "id": "firefly-iii POST /transactions/convert/{transactionType}/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/transactions/convert/{transactionType}/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "入力が有効なとき 17 と同じ(transactions と rules)。入力が無効なら O(1)",
+     "condition": "本文に、対象の種別で有効な source_id・destination_id(または名前)が、仕訳 id をキーにして入っていること。無効だと convertJournal が FireflyException を投げ、エラーを flash してリダイレクトする(O(1))",
+     "growth_if_condition_degree": 1,
+     "note": "Heavy only when the body carries valid source and destination for the journals; otherwise constant."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent",
+    "untraced-call-hides-the-weight"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 148,
+     "note": "postIndex: isEditableGroup の確認の後、153 行で束縛した 1 グループの仕訳を回して convertJournal"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 196,
+     "note": "validateSource(['id'=>..,'name'=>..]): 入力が無効だとここで例外の経路に入る"
+    },
+    {
+     "file": "app/Http/Controllers/Transaction/ConvertController.php",
+     "line": 169,
+     "note": "169-171 行: イベント対象の収集と UpdatedSingleTransactionGroup・webhook の event 発火(17 と共通のリスナー)"
+    },
+    {
+     "file": "app/Validation/Account/WithdrawalValidation.php",
+     "line": 54,
+     "note": "id・name・iban がすべて null で、種別を作れない場合は不正(早期の失敗)"
+    }
+   ],
+   "earlier_records": [
+    {
+     "sample": "S07",
+     "axis": "query",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "correct",
+     "note": "recorded before the full trace; the answer above supersedes it"
+    },
+    {
+     "sample": "S07",
+     "axis": "memory",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "correct",
+     "note": "recorded before the full trace; the answer above supersedes it"
+    }
+   ],
+   "cross_check": {
+    "growth": "条件つき",
+    "agrees_on_growth": true,
+    "note": "an independent re-trace of this route; it differs only in the judgement of the static lower bound"
+   }
+  },
+  {
+   "id": "firefly-iii POST /transactions/destroy/{transactionGroup}",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/transactions/destroy/{transactionGroup}",
+   "sets": [
+    "round1-target"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "transactions(削除した仕訳に触れた口座の、仕訳の日付以降の取引行。1 行ごとに UPDATE)"
+    }
+   },
+   "deviation_types": [
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent",
+    "untraced-call-hides-the-weight"
+   ],
+   "evidence": [
+    {
+     "file": "app/Http/Controllers/Transaction/DeleteController.php",
+     "line": 98,
+     "note": "destroy(98 行): 101 行で isEditableGroup を確認し、111 行で repository->destroy を呼ぶ(あとは 16 と同じ経路)"
+    },
+    {
+     "file": "app/Support/Http/Controllers/UserNavigation.php",
+     "line": 78,
+     "note": "isEditableGroup: 先頭の仕訳の種別で編集可否を決める(早期リダイレクトの条件)"
+    },
+    {
+     "file": "app/Services/Internal/Destroy/TransactionGroupDestroyService.php",
+     "line": 42,
+     "note": "以降は 16 と共通(イベント対象の収集・仕訳削除・event 発火)"
+    },
+    {
+     "file": "app/Support/Models/AccountBalanceCalculator.php",
+     "line": 146,
+     "note": "残高の再計算が日付以降の取引行を 1 行ずつ処理(16 と共通)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /api/pages/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/pages/{id}",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S01",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "inbound links to the page (one save per linking page)",
+     "condition": "the page name changes, so its slug (URL) changes",
+     "growth_if_condition_degree": 1
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "inbound links to the page, loaded with their bodies",
+     "note": "The types loop (page, chapter, book, shelf) is a constant 4, not a nesting. Each row is large (body text), which is not an N*M growth."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "references are updated only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 20,
+     "note": "one update per linking page"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 56,
+     "note": "loop over a constant number of entity types"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": "the path runs only when the slug changes"
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "over",
+     "note": "the nested loop does not exist"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /books/{slug}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/books/{slug}",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S02",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "children (chapters and pages) of the book",
+     "note": "Fetches per child are a constant number of queries; the update loop runs once per de-duplicated linking page. Confidence is medium."
+    },
+    "memory": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "children of the book times pages that link to each child",
+     "note": "The same linking page is loaded once per child it links to, with its body, before de-duplication."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "references are updated when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 81,
+     "note": "children fetched; references collected per child"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 92,
+     "note": "de-duplication happens after the loop"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": "O(N*M)",
+     "verdict": "over",
+     "note": "actual growth is O(N); the nesting counted a constant loop"
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "correct",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /api/content-permissions/{contentType}/{contentId}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/content-permissions/{contentType}/{contentId}",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S03",
+   "axes": {
+    "memory": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "children of the book times all roles",
+     "condition": "the target is a book (its permissions are rebuilt for every child and every role)",
+     "growth_if_condition_degree": 2,
+     "note": "The role lookup the static analysis cites reads only the role ids the request names (size of the request input), not all roles."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Tools/PermissionsUpdater.php",
+     "line": 124,
+     "note": "roles read are the ones named in the request"
+    },
+    {
+     "file": "app/Entities/Tools/PermissionsUpdater.php",
+     "line": 69,
+     "note": "rebuilds permissions for the entity"
+    },
+    {
+     "file": "app/Permissions/JointPermissionBuilder.php",
+     "line": 54,
+     "note": "rebuild entry point"
+    },
+    {
+     "file": "app/Permissions/JointPermissionBuilder.php",
+     "line": 202,
+     "note": "builds rows for every entity and every role, then inserts in chunks of 1000"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "over+under",
+     "note": "N meant roles, but the roles read depend on the request; the real heavy path (children times roles) is not in the output"
+    }
+   ],
+   "notes": "The query axis was not judged in the earlier trial: the rebuild also issues inserts proportional to children times roles, in chunks of 1000."
+  },
+  {
+   "id": "bookstack GET /books/{bookSlug}/page/{pageSlug}/edit",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{bookSlug}/page/{pageSlug}/edit",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S04",
+   "axes": {
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "comments of the page (all of them are read, without a limit)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Tools/PageEditActivity.php",
+     "line": 92,
+     "note": "the cited revisions are other people editing now, not the revision table size"
+    },
+    {
+     "file": "app/Activity/Tools/CommentTree.php",
+     "line": 148,
+     "note": "reads every comment of the page"
+    },
+    {
+     "file": "app/Entities/Tools/PageEditorData.php",
+     "line": 86,
+     "note": "builds the comment tree in the constructor"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "over+under",
+     "note": "the cited table is wrong (revisions) but the conclusion holds through comments"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /settings/roles/delete/{id}",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/settings/roles/delete/{id}",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S05",
+   "axes": {
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "roles (unlimited get) and the users of the role being deleted"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Permissions/PermissionsRepo.php",
+     "line": 34,
+     "note": "reads all other roles without a limit"
+    },
+    {
+     "file": "app/Users/Controllers/RoleController.php",
+     "line": 129,
+     "note": "controller action"
+    },
+    {
+     "file": "resources/views/settings/roles/delete.blade.php",
+     "line": 17,
+     "note": "loads the role users to count them"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": "the larger axis is the users of the role"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii GET /api/v1/budgets",
+   "app": "firefly-iii",
+   "method": "GET",
+   "uri": "/api/v1/budgets",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S08",
+   "axes": {
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "budgets of the user (all are read, then sliced in PHP)"
+    },
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "accounts (one lookup per account)",
+     "condition": "start and end dates are given",
+     "growth_if_condition_degree": 1
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Budget/ShowController.php",
+     "line": 78,
+     "note": "reads every budget"
+    },
+    {
+     "file": "app/Repositories/Budget/BudgetRepository.php",
+     "line": 362,
+     "note": "get() without a limit"
+    },
+    {
+     "file": "app/Support/JsonApi/Enrichments/BudgetEnrichment.php",
+     "line": 155,
+     "note": "collects expenses"
+    },
+    {
+     "file": "app/Repositories/Budget/OperationsRepository.php",
+     "line": 99,
+     "note": "per-account lookups"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": "the cited lines are page-sized; the real reason is the unlimited read behind an unresolved binding"
+    },
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "under",
+     "note": "no lower bound was given"
+    }
+   ]
+  },
+  {
+   "id": "firefly-iii POST /api/v1/recurrences/{recurrence}/trigger",
+   "app": "firefly-iii",
+   "method": "POST",
+   "uri": "/api/v1/recurrences/{recurrence}/trigger",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S09",
+   "axes": {
+    "memory": {
+     "growth": "O(1)",
+     "confidence": "medium",
+     "axis": "groups created by this one trigger (about the number of repetitions of the recurrence)",
+     "note": "The handler body was not fully read; the creation conditions and loops were."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Api/V1/Controllers/Models/Recurrence/TriggerController.php",
+     "line": 74,
+     "note": "creates groups for one day only"
+    },
+    {
+     "file": "app/Jobs/CreateRecurringTransactions.php",
+     "line": 272,
+     "note": "skips dates other than the requested one"
+    },
+    {
+     "file": "app/Jobs/CreateRecurringTransactions.php",
+     "line": 279,
+     "note": "skips groups that already exist"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "over",
+     "note": "N meant groups created now, which does not scale with the data"
+    }
+   ]
+  },
+  {
+   "id": "koel DELETE /api/duplicate-uploads",
+   "app": "koel",
+   "method": "DELETE",
+   "uri": "/api/duplicate-uploads",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S11",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "duplicate uploads of the user (one DELETE each)"
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "duplicate uploads of the user",
+     "note": "Only id, title and artist_name of the existing song are read; genres are not."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Services/Upload/DuplicateUploadService.php",
+     "line": 135,
+     "note": "one delete per upload"
+    },
+    {
+     "file": "app/Repositories/DuplicateUploadRepository.php",
+     "line": 14,
+     "note": "eager load of a three-column projection"
+    },
+    {
+     "file": "app/Models/DuplicateUpload.php",
+     "line": 35,
+     "note": "default eager load of the user"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": ""
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "over",
+     "note": "the M table (genres) is never read"
+    }
+   ]
+  },
+  {
+   "id": "koel GET /api/playlists",
+   "app": "koel",
+   "method": "GET",
+   "uri": "/api/playlists",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S12",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "playlists of the user (each one lazily loads its owner, folders and collaborators)"
+    },
+    "memory": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "playlists times members and folders of each playlist"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Resources/PlaylistResource.php",
+     "line": 52,
+     "note": "per-playlist lazy loads"
+    },
+    {
+     "file": "app/Models/Playlist.php",
+     "line": 79,
+     "note": "owner accessor loads the users relation"
+    },
+    {
+     "file": "app/Services/Playlist/PlaylistFolderService.php",
+     "line": 101,
+     "note": "loads the folders of the playlist"
+    },
+    {
+     "file": "app/Services/Playlist/PlaylistService.php",
+     "line": 197,
+     "note": "loads the collaborators of the playlist"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "under",
+     "note": "no lower bound was given although the query count grows with the playlists"
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "correct",
+     "note": "the cited eager load is not on this path; the conclusion still holds through lazy loads"
+    }
+   ]
+  },
+  {
+   "id": "koel POST /api/playlists/collaborators/accept",
+   "app": "koel",
+   "method": "POST",
+   "uri": "/api/playlists/collaborators/accept",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S13",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none inside the request: the song-publishing listener is queued",
+     "note": "The queued listener issues an UPDATE proportional to the songs of the playlist, outside the request."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "members and folders of the one playlist (not the number of playlists)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Services/Playlist/PlaylistCollaborationService.php",
+     "line": 27,
+     "note": "accepts the invite for one playlist"
+    },
+    {
+     "file": "app/Http/Controllers/API/PlaylistCollaboration/AcceptPlaylistCollaborationInviteController.php",
+     "line": 18,
+     "note": "controller action"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "correct",
+     "note": "no lower bound; the request is constant"
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "over",
+     "note": "N meant playlists, the real axis is the members of one playlist"
+    }
+   ]
+  },
+  {
+   "id": "koel POST /api/songs/by-folders",
+   "app": "koel",
+   "method": "POST",
+   "uri": "/api/songs/by-folders",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S14",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "medium",
+     "axis": "none: songs are capped at 500 per request",
+     "note": "The constant is large: up to about 1,500 extra queries from per-song lazy loads."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "folders named in the request (songs are capped at 500)"
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Repositories/SongRepository.php",
+     "line": 733,
+     "note": "default limit of 500"
+    },
+    {
+     "file": "app/Repositories/FolderRepository.php",
+     "line": 111,
+     "note": "folders read are the ones in the request"
+    },
+    {
+     "file": "app/Http/Controllers/API/MediaBrowser/FetchRecursiveFolderSongsController.php",
+     "line": 17,
+     "note": "controller action"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "correct",
+     "note": "no lower bound, and the growth is capped"
+    },
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "snipe-it GET /api/v1/hardware/bytag/{any}",
+   "app": "snipe-it",
+   "method": "GET",
+   "uri": "/api/v1/hardware/bytag/{any}",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S15",
+   "axes": {
+    "memory": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "assets times custom fields of each asset",
+     "condition": "the request has ?deleted=true or several assets share the tag (normally one asset)",
+     "growth_if_condition_degree": 2
+    },
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "assets (per-asset lazy loads; a constant number each)",
+     "condition": "same as memory",
+     "growth_if_condition_degree": 1,
+     "note": "No query inside the custom-field loop was found. O(N) was confirmed; the list of lazy loads per asset was not exhaustive."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Http/Transformers/AssetsTransformer.php",
+     "line": 142,
+     "note": "builds the custom-field array for each asset"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "correct",
+     "note": ""
+    },
+    {
+     "axis": "query",
+     "claimed": "O(N*M)",
+     "verdict": "over",
+     "note": "no query in the inner loop"
+    }
+   ]
+  },
+  {
+   "id": "snipe-it GET /locations/{locationId}/printassigned",
+   "app": "snipe-it",
+   "method": "GET",
+   "uri": "/locations/{locationId}/printassigned",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S16",
+   "axes": {
+    "memory": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "users of the location times their companies"
+    },
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "users and assets of the location (lazy loads inside the print view loops)",
+     "at_least": true,
+     "note": "At least O(N); the view loops were read, the rest was not."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "resources/views/locations/print.blade.php",
+     "line": 92,
+     "note": "per-user lazy load of the location"
+    },
+    {
+     "file": "resources/views/locations/print.blade.php",
+     "line": 176,
+     "note": "per-asset lazy loads of model, category, manufacturer, location, status"
+    },
+    {
+     "file": "app/Http/Controllers/LocationsController.php",
+     "line": 1,
+     "note": "controller (printPayload eager-loads the users companies)"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N*M)",
+     "verdict": "correct",
+     "note": ""
+    },
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "undetermined",
+     "note": "the static analysis gave no bound because it reported the existing view as missing; later fixed"
+    }
+   ]
+  },
+  {
+   "id": "snipe-it POST /api/v1/consumables/{consumable}/checkout",
+   "app": "snipe-it",
+   "method": "POST",
+   "uri": "/api/v1/consumables/{consumable}/checkout",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S17",
+   "axes": {
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "existing checkouts of the consumable (all are eager loaded)"
+    },
+    "query": {
+     "growth": null,
+     "confidence": "low",
+     "axis": "checkout_qty, capped by the remaining stock (a stored number, not a table size)",
+     "decided": false
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Models/Consumable.php",
+     "line": 533,
+     "note": "remaining count is a constant number of queries"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": ""
+    },
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "undetermined",
+     "note": "loop bound is the stock number, a different axis"
+    }
+   ]
+  },
+  {
+   "id": "snipe-it GET /hardware/quickscancheckin",
+   "app": "snipe-it",
+   "method": "GET",
+   "uri": "/hardware/quickscancheckin",
+   "sets": [
+    "lower-bound-sample"
+   ],
+   "sample": "S18",
+   "axes": {
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "status labels (all are read)"
+    },
+    "query": {
+     "growth": null,
+     "confidence": "low",
+     "axis": "reads as a constant number of queries (one pluck)",
+     "decided": false
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Helpers/Helper.php",
+     "line": 670,
+     "note": "reads every status label"
+    }
+   ],
+   "recorded_lower_bound_verdicts": [
+    {
+     "axis": "memory",
+     "claimed": "O(N)",
+     "verdict": "correct",
+     "note": ""
+    },
+    {
+     "axis": "query",
+     "claimed": null,
+     "verdict": "undetermined",
+     "note": "reads as constant, not confirmed"
+    }
+   ]
+  }
+ ]
+}
