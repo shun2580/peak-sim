@@ -308,6 +308,9 @@ final class Generator implements DataGenerator
             if ($keys === null) {
                 continue;
             }
+            if (self::pairsStayDistinctRoundRobin($keys, $rows, $rows[$table->name] ?? 0)) {
+                return []; // every key goes round its own parent: the rows are different pairs and every parent is used
+            }
             $out = [];
             $stride = 1;
             foreach ($keys as $fk) {
@@ -319,6 +322,42 @@ final class Generator implements DataGenerator
         }
 
         return [];
+    }
+
+    /**
+     * Keys that go round their own parents (key 1 at row i, key 2 at row i, ...) make different pairs for as many rows
+     * as the least common multiple of the parents' sizes. Up to that many rows this is enough, and it uses every row of
+     * every parent; the digits of a number (see radixKeys) would stay on the first rows of the later parents until the
+     * earlier ones were used up.
+     *
+     * @param list<ForeignKey>   $keys
+     * @param array<string, int> $rows
+     */
+    private static function pairsStayDistinctRoundRobin(array $keys, array $rows, int $planned): bool
+    {
+        if (count($keys) < 2 || $planned < 1) {
+            return false;
+        }
+        $common = 1;
+        foreach ($keys as $fk) {
+            $size = max(1, $rows[$fk->refTable] ?? 1);
+            $divisor = self::gcd($common, $size);
+            $common = intdiv($common, $divisor) * $size;
+            if ($common >= $planned) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function gcd(int $a, int $b): int
+    {
+        while ($b !== 0) {
+            [$a, $b] = [$b, $a % $b];
+        }
+
+        return $a;
     }
 
     /**

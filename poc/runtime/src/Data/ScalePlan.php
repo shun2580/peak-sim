@@ -111,6 +111,7 @@ final class ScalePlan
             $rows[$name] = $this->rowsFor($name);
         }
         self::emptyWhatNeedsEmptyTables($schema, $rows);
+        $this->growLinkTables($schema, $rows);
 
         for ($round = 0; $round < self::MAX_RESOLVE_ROUNDS; $round++) {
             $changed = false;
@@ -121,6 +122,13 @@ final class ScalePlan
                     $parents = array_values(array_unique(array_filter($parents, static fn (string $p): bool => $p !== $table->name && ($rows[$p] ?? 0) > 0)));
                     if ($parents === [] || $rows[$table->name] === 0) {
                         continue;
+                    }
+                    $reach = 1;
+                    foreach ($parents as $parent) {
+                        $reach = min(PHP_INT_MAX, $reach * max(1, $rows[$parent]));
+                    }
+                    if ($reach >= $rows[$table->name]) {
+                        continue; // the parents already hold enough distinct combinations
                     }
                     $need = self::smallestRoot($rows[$table->name], count($parents));
                     foreach ($parents as $parent) {
@@ -137,6 +145,45 @@ final class ScalePlan
         }
 
         return $rows;
+    }
+
+    /**
+     * A link table (its key is made of foreign keys to two or more other tables, like a pivot of a many-to-many
+     * relation) that the plan does not name holds one link per row of its largest parent, never fewer than it was
+     * given. Left at the base size it would tie only a handful of the grown rows to anything, and what is reached
+     * through it would not grow with the table that grows (a route that lists the children of one parent would read
+     * the same few rows at every scale). A table the plan names keeps its own count; an empty table stays empty.
+     * Repeated, so that a link table of link tables grows too.
+     *
+     * @param array<string, int> $rows
+     */
+    private function growLinkTables(DatabaseSchema $schema, array &$rows): void
+    {
+        for ($round = 0; $round < self::MAX_RESOLVE_ROUNDS; $round++) {
+            $changed = false;
+            foreach ($schema->tables() as $table) {
+                if (array_key_exists($table->name, $this->explicit) || ($rows[$table->name] ?? 0) === 0) {
+                    continue;
+                }
+                $largest = 0;
+                foreach (self::uniqueForeignKeyCoverers($table) as $parents) {
+                    $parents = array_values(array_unique(array_filter($parents, static fn (string $p): bool => $p !== $table->name)));
+                    if (count($parents) < 2) {
+                        continue;
+                    }
+                    foreach ($parents as $parent) {
+                        $largest = max($largest, $rows[$parent] ?? 0);
+                    }
+                }
+                if ($largest > $rows[$table->name]) {
+                    $rows[$table->name] = $largest;
+                    $changed = true;
+                }
+            }
+            if (!$changed) {
+                break;
+            }
+        }
     }
 
     /**
