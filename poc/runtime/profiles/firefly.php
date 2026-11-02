@@ -18,10 +18,10 @@ $profile = [
             // column, so every page stops at the password prompt instead of reaching its handler.
             'mfa_secret' => null,
         ],
-        // The time-zone columns. The app builds a time zone from them as soon as a row is shown (the range middleware,
-        // the show pages: app/Models/*, Carbon); a generated word is not a time zone and the page fails before or
-        // after its handler. All of them are given the one value, so that this entry does not have to be reopened for
-        // each route that reads another.
+        // The time-zone columns. The app reads a date column together with its `_tz` column and builds a time zone
+        // from it (app/Casts/SeparateTimezoneCaster.php:50); a generated word is not a time zone, and the page fails
+        // before or after its handler. All of them are given the one value, so that this entry does not have to be
+        // reopened for each route that reads another.
         'account_balances' => ['date_tz' => 'UTC'],
         'available_budgets' => ['end_date_tz' => 'UTC', 'start_date_tz' => 'UTC'],
         'bills' => ['date_tz' => 'UTC', 'end_date_tz' => 'UTC', 'extension_date_tz' => 'UTC'],
