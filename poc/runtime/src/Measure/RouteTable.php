@@ -22,12 +22,13 @@ final class RouteTable
     public static function rows(object $app): array
     {
         $rows = [];
-        foreach ($app['router']->getRoutes()->getRoutes() as $route) {
+        $router = $app['router'];
+        foreach ($router->getRoutes()->getRoutes() as $route) {
             $names = $route->parameterNames();
             $rows[] = [
                 'uri' => $route->uri(),
                 'methods' => $route->methods(),
-                'middleware' => array_values(array_filter($route->gatherMiddleware(), 'is_string')),
+                'middleware' => self::middleware($router, $route),
                 'action' => $route->getActionName(),
                 'wheres' => array_map('strval', $route->wheres),
                 'parameters' => $names === [] ? [] : self::parameters($route, $names),
@@ -35,6 +36,31 @@ final class RouteTable
         }
 
         return $rows;
+    }
+
+    /**
+     * The middleware a route passes, as the app's own router resolves it: a group the app defined (`user-full-auth`) or
+     * an alias is opened into the middleware it stands for, and what the route leaves out (`withoutMiddleware`) is gone.
+     * Nothing is written to the app; the router is only asked.
+     *
+     * The names the route declares stay, first and in their order, ahead of the expanded ones. The rules that read these
+     * names (what needs a login; a profile's `middleware` match such as `signed`) are written against the declared
+     * names, and opening an alias such as `auth.basic` must not make them stop matching. A name left out is not kept.
+     * A router that cannot expand (none of Laravel's, since 5.x) gives the declared names alone, as before.
+     *
+     * @return list<string>
+     */
+    private static function middleware(object $router, object $route): array
+    {
+        $declared = array_values(array_filter($route->gatherMiddleware(), 'is_string'));
+        if (!method_exists($router, 'gatherRouteMiddleware')) {
+            return $declared;
+        }
+
+        $excluded = method_exists($route, 'excludedMiddleware') ? array_values(array_filter($route->excludedMiddleware(), 'is_string')) : [];
+        $expanded = array_values(array_filter($router->gatherRouteMiddleware($route), 'is_string'));
+
+        return array_values(array_unique([...array_diff($declared, $excluded), ...$expanded]));
     }
 
     /**
