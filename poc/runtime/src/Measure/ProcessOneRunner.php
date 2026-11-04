@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Measure;
 
+use PeakSim\Runtime\Config\MeasureConfig;
+use PeakSim\Runtime\Guard\StatementKiller;
 use PeakSim\Runtime\Run\Attempt;
 use PeakSim\Runtime\Run\Requester;
 
@@ -36,6 +38,7 @@ final class ProcessOneRunner implements OneRunner
             [$this->php, $this->script, ...$request->toArguments()],
             ['PEAK_MEASURE_DB_TAG' => $request->tag] + $this->env,
             $this->timeoutSeconds,
+            fn (): string => $this->killLeftovers($request),
         );
 
         $attempts = [];
@@ -51,5 +54,25 @@ final class ProcessOneRunner implements OneRunner
         }
 
         return new OneResult($code, $attempts, $err);
+    }
+
+    /** Kills what the stopped child left running on its database, so the drop after it is not blocked. Returns a short note for stderr. */
+    private function killLeftovers(MeasureRequest $request): string
+    {
+        $config = MeasureConfig::fromEnv(['PEAK_MEASURE_DB_TAG' => $request->tag] + $this->env);
+        $result = StatementKiller::connect($config)->killOn($config->dbNameForScale($request->scale));
+        if ($result['killed'] === []) {
+            return '';
+        }
+        $first = $result['killed'][0];
+
+        return sprintf(
+            'killed %d statement(s) on the database%s; first, on %s after %d s: %s',
+            count($result['killed']),
+            $result['still_running'] > 0 ? sprintf(' (%d did not end)', $result['still_running']) : '',
+            $first['table'] ?? '(unknown table)',
+            $first['seconds'],
+            mb_substr($first['statement'], 0, 100),
+        );
     }
 }

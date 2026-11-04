@@ -17,6 +17,9 @@ use PeakSim\Runtime\Config\MeasureRefused;
  */
 final class MeasureDb
 {
+    /** Seconds a statement of this connection waits for a metadata lock before it fails. */
+    public const LOCK_WAIT_SECONDS = 120;
+
     public function __construct(private readonly DbExecutor $db)
     {
     }
@@ -30,6 +33,8 @@ final class MeasureDb
         $pdo = new PDO($dsn, $config->dbUser, $config->dbPassword, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_TIMEOUT => 5,
+            // A DROP DATABASE that waits for a lock a leftover statement holds gives up after this many seconds, not never.
+            PDO::MYSQL_ATTR_INIT_COMMAND => 'SET SESSION lock_wait_timeout = ' . self::LOCK_WAIT_SECONDS,
         ]);
 
         return new self(new PdoExecutor($pdo));

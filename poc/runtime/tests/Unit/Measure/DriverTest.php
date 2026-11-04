@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Unit\Measure;
 
 use PeakSim\Runtime\Measure\BuildFailure;
+use PeakSim\Runtime\Measure\BuildTimedOut;
 use PeakSim\Runtime\Measure\DatabaseBuilder;
 use PeakSim\Runtime\Measure\DatabasePoint;
 use PeakSim\Runtime\Measure\DataPlanner;
@@ -257,6 +258,52 @@ final class DriverTest extends PlannerTestCase
         $this->assertContains('drop ord:1000', $builder->log);
         $this->assertNotContains('build ord:10000', $builder->log);
         $this->assertCount(1, $result->report->rows());
+    }
+
+    public function test_a_build_that_went_over_its_limit_makes_that_scale_not_run_and_the_run_goes_on(): void
+    {
+        $killed = [['id' => 7, 'seconds' => 900, 'statement' => 'insert into `role_permissions` select 1 from entities cross join roles', 'table' => 'role_permissions']];
+        $builder = self::builder(static function (DatabasePoint $p, int $count) use ($killed): void {
+            if ($p->scale === 1000) {
+                throw new BuildTimedOut(900, $killed);
+            }
+        });
+        $runner = self::runner();
+        $result = (new Driver(new SeederPlanner(), $builder, $runner))->run([self::task('/a'), self::task('/b')], self::SCALES);
+
+        $this->assertSame(MeasureExit::OK, $result->exit, 'a build that timed out ends nothing: the scale is not_run and the run goes on');
+        $this->assertContains('build ord:10000', $builder->log);
+        $this->assertContains('drop ord:1000', $builder->log, 'the database of the scale that timed out is dropped');
+        $this->assertNotContains(1000, array_map(static fn (MeasureRequest $r): int => $r->scale, $runner->requests), 'nothing is measured on it');
+        $this->assertContains(10000, array_map(static fn (MeasureRequest $r): int => $r->scale, $runner->requests));
+
+        $notRun = array_values(array_filter($result->attempts, static fn (Attempt $a): bool => $a->class === 'not_run'));
+        $this->assertCount(2, $notRun, 'one per route that needed the database');
+        $this->assertSame(1000, $notRun[0]->scale);
+        $this->assertStringContainsString('role_permissions', (string) $notRun[0]->detail);
+
+        $build = array_values(array_filter($result->builds, static fn (array $b): bool => ($b['not_run'] ?? false) === true));
+        $this->assertCount(1, $build);
+        $this->assertSame('ord:1000', $build[0]['point']);
+        $this->assertSame('build_timeout', $build[0]['reason']);
+        $this->assertSame('role_permissions', $build[0]['table']);
+        $this->assertStringContainsString('cross join roles', $build[0]['statement']);
+        $this->assertSame(900, $build[0]['limit_seconds']);
+    }
+
+    public function test_when_every_scale_of_a_route_timed_out_the_row_says_not_run_and_why(): void
+    {
+        $builder = self::builder(static function (DatabasePoint $p, int $count): void {
+            if ($p->scale > 0) {
+                throw new BuildTimedOut(900, []);
+            }
+        });
+        $result = (new Driver(new SeederPlanner(), $builder, self::runner()))->run([self::task('/a')], self::SCALES);
+
+        $row = $result->report->rows()[0];
+        $this->assertSame('not_run', $row['class']);
+        $this->assertStringContainsString('900-second limit', (string) $row['reason_detail']);
+        $this->assertStringContainsString('no statement was running', (string) $row['reason_detail']);
     }
 
     public function test_an_app_that_does_not_start_stops_the_run_with_12(): void

@@ -13,10 +13,12 @@ final class Proc
     /**
      * @param list<string>          $command
      * @param array<string, string> $env
+     * @param \Closure|null         $onTimeout called once, after the child was stopped and reaped, when the limit was hit; what it
+     *                                         returns (a short note) is added to stderr. A failure inside it is noted, never thrown.
      *
      * @return array{int, string, string} [exit code, stdout, stderr]
      */
-    public static function run(array $command, array $env, int $timeoutSeconds): array
+    public static function run(array $command, array $env, int $timeoutSeconds, ?\Closure $onTimeout = null): array
     {
         $process = proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
         if (!is_resource($process)) {
@@ -68,6 +70,18 @@ final class Proc
         fclose($pipes[2]);
         $code = proc_close($process);
 
-        return $timedOut ? [self::TIMED_OUT, $out, $err . sprintf("\ntimed out after %d seconds", $timeoutSeconds)] : [$code, $out, $err];
+        if (!$timedOut) {
+            return [$code, $out, $err];
+        }
+        $note = '';
+        if ($onTimeout !== null) {
+            try {
+                $note = (string) $onTimeout();
+            } catch (\Throwable $e) {
+                $note = 'the cleanup after the time-out failed: ' . $e->getMessage();
+            }
+        }
+
+        return [self::TIMED_OUT, $out, $err . sprintf("\ntimed out after %d seconds", $timeoutSeconds) . ($note === '' ? '' : "\n" . $note)];
     }
 }

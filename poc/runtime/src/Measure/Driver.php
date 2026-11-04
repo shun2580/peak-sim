@@ -71,6 +71,11 @@ final class Driver
                 try {
                     $this->builds[] = ['point' => $point->key()] + $this->builder->build($point);
                     $built = true;
+                } catch (BuildTimedOut $e) {
+                    // The build was stopped and its statement killed: this scale is not run, and the run goes on to the next.
+                    $this->builds[] = ['point' => $point->key(), 'not_run' => true, 'reason' => 'build_timeout', 'limit_seconds' => $e->limitSeconds] + $e->stopped() + ['still_running' => $e->stillRunning];
+                    $this->recordNotRun($entry['items'], $tasks, $point, $e->getMessage(), $byTask, $all);
+                    continue;
                 } catch (BuildFailure $e) {
                     $exit = MeasureExit::DATA;
                     $message = sprintf('could not build the database %s: %s', $point->key(), $e->getMessage());
@@ -101,6 +106,25 @@ final class Driver
         }
 
         return new DriverResult($exit, $message, $this->report($tasks, $byTask, $exit === MeasureExit::OK ? null : (string) $message), $all, $timings, $this->builds);
+    }
+
+    /**
+     * Every route that needed this database gets one attempt of class `not_run` at its scale, with the reason: the verdict of
+     * the route is then judged on the scales that were measured, and says which scale was not.
+     *
+     * @param list<array{int, string}>    $items
+     * @param list<RouteTask>             $tasks
+     * @param array<int, list<Attempt>>   $byTask
+     * @param list<Attempt>               $all
+     */
+    private function recordNotRun(array $items, array $tasks, DatabasePoint $point, string $reason, array &$byTask, array &$all): void
+    {
+        foreach ($items as [$index, $axis]) {
+            $task = $tasks[$index];
+            $attempt = new Attempt($task->spec->uri, $task->spec->method, $point->scale, $axis, Attempt::COLD, null, null, [], [], null, null, false, 'not_run', $reason);
+            $byTask[$index][] = $attempt;
+            $all[] = $attempt;
+        }
     }
 
     /**
@@ -333,6 +357,17 @@ final class Driver
                 foreach ($attempts as $a) {
                     if ($a->class !== 'ok') {
                         $row['class'] = $a->class;
+                        $row['reason_detail'] = sprintf('scale %d (axis %s): %s', $a->scale, $a->axis, $a->detail ?? $a->class);
+
+                        break;
+                    }
+                }
+            }
+            if ($row['verdict'] === Verdict::NOT_MEASURED && ($row['reason_detail'] ?? null) === null) {
+                // A scale whose database could not be built in time is named with its reason, also when no scale was left.
+                foreach ($attempts as $a) {
+                    if ($a->class === 'not_run') {
+                        $row['class'] = 'not_run';
                         $row['reason_detail'] = sprintf('scale %d (axis %s): %s', $a->scale, $a->axis, $a->detail ?? $a->class);
 
                         break;
