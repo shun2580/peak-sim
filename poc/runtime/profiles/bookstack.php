@@ -49,8 +49,8 @@ $profile = [
         ],
         [
             'name' => 'joint_permissions_for_every_entity_and_role',
-            'why' => 'what the app\'s own builder writes when no entity has its own permission: one row per role and entity, status implicit-allow (app/Permissions/PermissionStatus.php:8, JointPermissionBuilder.php:281)',
-            'sql' => 'INSERT INTO joint_permissions (role_id, entity_type, entity_id, status, owner_id) SELECT r.id, e.type, e.id, 1, 1 FROM entities e CROSS JOIN roles r',
+            'why' => 'what the app\'s own builder writes when no entity has its own permission: one row per role and entity, status implicit-allow (app/Permissions/PermissionStatus.php:8, JointPermissionBuilder.php:281). The roles are the five of the lowest numbers (the base size of an unscaled table, with the admin role the migrations make): under a plan that grows every table the roles are N too, and one row per entity and role is N*N rows (100 million at N = 10000). The login holds the admin role, the first the migrations make (database/migrations/2015_08_29_105422_add_roles_and_permissions.php:72), so every entity stays visible to it (app/Permissions/PermissionApplicator.php:100-109, a permission row is looked up by the login\'s role numbers); a login holding more roles than the five finds fewer permission rows per entity than the app\'s own builder would write',
+            'sql' => 'INSERT INTO joint_permissions (role_id, entity_type, entity_id, status, owner_id) SELECT r.id, e.type, e.id, 1, 1 FROM entities e CROSS JOIN (SELECT id FROM roles ORDER BY id LIMIT 5) r',
         ],
         [
             'name' => 'page_data_one_row_per_page',
