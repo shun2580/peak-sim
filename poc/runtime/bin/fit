@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Makes the cost formulas of a measurement run: y = a + b*N^k per route and quantity (simulator-spec.md section 4).
+#
+#   bin/fit --from=<the --out directory of bin/measure> > fits.json
+#
+# Reads the record only (attempts.jsonl, routes.jsonl, tasks.json); touches no database and no app, and is not called
+# by bin/measure (the formulas are made as a separate step, so a prediction can be fixed before the next measurement).
+# Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built PHP image,
+# with no network and the record mounted read-only. The image is never pulled.
+# exit codes: 0 done / 2 wrong usage / 3 the record cannot be read / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+
+from=""
+for arg in "$@"; do
+  case "$arg" in
+    --from=*) from="${arg#--from=}" ;;
+    --help|-h) sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "bin/fit: unknown argument" >&2; echo "usage: bin/fit --from=<the --out directory of bin/measure> > fits.json" >&2; exit 2 ;;
+  esac
+done
+if [ -z "$from" ] || [ ! -d "$from" ]; then
+  echo "usage: bin/fit --from=<the --out directory of bin/measure> > fits.json" >&2
+  exit 2
+fi
+from="$(cd "$from" && pwd)"
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/inner/fit.php" --from="$from" --source="$(basename "$from")"
+fi
+
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "bin/fit: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only \
+  -v "$runtime:/runtime:ro" -v "$from:/record:ro" \
+  "$image" php /runtime/bin/inner/fit.php --from=/record --source="$(basename "$from")"
