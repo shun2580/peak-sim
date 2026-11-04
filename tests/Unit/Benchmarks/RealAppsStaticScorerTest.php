@@ -184,11 +184,11 @@ final class RealAppsStaticScorerTest extends TestCase
         $this->assertCount(111, $truth['routes']);
         $this->assertSame(154, $axes);
         $this->assertSame([
-            'lower-bound-sample' => 15,
+            'lower-bound-sample' => 13,
             'round1-control' => 2,
             'round1-target' => 25,
             'round2-new24' => 24,
-            'round3-bookstack' => 42,
+            'round3-bookstack' => 44,
             'settled' => 5,
         ], $perSet);
         $this->assertSame(['bookstack' => 47, 'firefly-iii' => 53, 'koel' => 7, 'snipe-it' => 4], $perApp);
@@ -232,18 +232,23 @@ final class RealAppsStaticScorerTest extends TestCase
         $this->assertFalse($found[0]['cross_check']['agrees_on_growth']);
     }
 
-    public function testTheBookstackAnswersAreInEnglishAndTwoOverlappingRoutesKeepTheirEarlierEntries(): void
+    public function testTheBookstackAnswersAreInEnglishAndTwoOverlappingRoutesAreAnsweredOnceWithTheirEarlierRecords(): void
     {
         $truth = Truth::load(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');
 
         $new = array_values(array_filter($truth['routes'], static fn (array $r): bool => in_array('round3-bookstack', $r['sets'], true)));
-        // 44 routes were answered; two of them were already answered in the earlier sample under the same id, which stays as it was
-        $this->assertCount(42, $new);
+        // 44 routes were answered; two of them were first answered in the earlier sample under the same id,
+        // and that answer moved into this set (the full trace is the answer, the earlier record is kept)
+        $this->assertCount(44, $new);
 
+        $overlapping = ['bookstack PUT /api/pages/{id}', 'bookstack PUT /books/{slug}'];
         $growth = [];
         foreach ($new as $route) {
             $this->assertSame('bookstack', $route['app']);
-            $this->assertSame(['query'], array_keys($route['axes']), $route['id']);
+            $this->assertArrayHasKey('query', $route['axes'], $route['id']);
+            if (!in_array($route['id'], $overlapping, true)) {
+                $this->assertSame(['query'], array_keys($route['axes']), $route['id']);
+            }
             $q = $route['axes']['query'];
             $growth[$q['growth']] = ($growth[$q['growth']] ?? 0) + 1;
             $this->assertContains($q['confidence'], ['high', 'medium'], $route['id']);
@@ -255,13 +260,23 @@ final class RealAppsStaticScorerTest extends TestCase
             $this->assertSame(0, preg_match('/[\x{3000}-\x{30ff}\x{3400}-\x{9fff}\x{ff00}-\x{ffef}]/u', (string) json_encode($route, JSON_UNESCAPED_UNICODE)), $route['id']);
         }
         ksort($growth);
-        $this->assertSame(['O(1)' => 13, 'O(N)' => 9, 'O(N*M)' => 1, 'conditional' => 19], $growth);
+        $this->assertSame(['O(1)' => 13, 'O(N)' => 9, 'O(N*M)' => 1, 'conditional' => 21], $growth);
 
-        // the two overlapping routes are still the earlier entries, in the earlier set only
-        foreach (['bookstack PUT /api/pages/{id}', 'bookstack PUT /books/{slug}'] as $id) {
+        // the two overlapping routes: one answer, in this set only, with the earlier sample record kept as information
+        $expected = [
+            'bookstack PUT /api/pages/{id}' => ['S01', true],
+            'bookstack PUT /books/{slug}' => ['S02', false],
+        ];
+        foreach ($expected as $id => [$sample, $agrees]) {
             $found = array_values(array_filter($truth['routes'], static fn (array $r): bool => $r['id'] === $id));
             $this->assertCount(1, $found, $id);
-            $this->assertSame(['lower-bound-sample'], $found[0]['sets'], $id);
+            $this->assertSame(['round3-bookstack'], $found[0]['sets'], $id . ': one answer, in one set');
+            $this->assertSame('conditional', $found[0]['axes']['query']['growth'], $id . ': the full trace is the answer');
+            $this->assertArrayHasKey('memory', $found[0]['axes'], $id . ': the memory answer of the sample is kept as it was');
+            $this->assertSame([$sample], array_values(array_unique(array_column($found[0]['earlier_records'], 'sample'))), $id);
+            $this->assertSame(['query', 'memory'], array_column($found[0]['earlier_records'], 'axis'), $id);
+            $this->assertSame($agrees, $found[0]['cross_check']['agrees_on_growth'], $id);
+            $this->assertArrayNotHasKey('recorded_lower_bound_verdicts', $found[0], $id);
         }
     }
 

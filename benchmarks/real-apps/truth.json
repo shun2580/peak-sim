@@ -1389,119 +1389,6 @@
    ]
   },
   {
-   "id": "bookstack PUT /api/pages/{id}",
-   "app": "bookstack",
-   "method": "PUT",
-   "uri": "/api/pages/{id}",
-   "sets": [
-    "lower-bound-sample"
-   ],
-   "sample": "S01",
-   "axes": {
-    "query": {
-     "growth": "conditional",
-     "confidence": "high",
-     "axis": "inbound links to the page (one save per linking page)",
-     "condition": "the page name changes, so its slug (URL) changes",
-     "growth_if_condition_degree": 1
-    },
-    "memory": {
-     "growth": "O(N)",
-     "confidence": "high",
-     "axis": "inbound links to the page, loaded with their bodies",
-     "note": "The types loop (page, chapter, book, shelf) is a constant 4, not a nesting. Each row is large (body text), which is not an N*M growth."
-    }
-   },
-   "deviation_types": [],
-   "evidence": [
-    {
-     "file": "app/Entities/Repos/BaseRepo.php",
-     "line": 103,
-     "note": "references are updated only when the URL changed"
-    },
-    {
-     "file": "app/References/ReferenceUpdater.php",
-     "line": 20,
-     "note": "one update per linking page"
-    },
-    {
-     "file": "app/Entities/Tools/MixedEntityListLoader.php",
-     "line": 56,
-     "note": "loop over a constant number of entity types"
-    }
-   ],
-   "recorded_lower_bound_verdicts": [
-    {
-     "axis": "query",
-     "claimed": "O(N)",
-     "verdict": "correct",
-     "note": "the path runs only when the slug changes"
-    },
-    {
-     "axis": "memory",
-     "claimed": "O(N*M)",
-     "verdict": "over",
-     "note": "the nested loop does not exist"
-    }
-   ]
-  },
-  {
-   "id": "bookstack PUT /books/{slug}",
-   "app": "bookstack",
-   "method": "PUT",
-   "uri": "/books/{slug}",
-   "sets": [
-    "lower-bound-sample"
-   ],
-   "sample": "S02",
-   "axes": {
-    "query": {
-     "growth": "O(N)",
-     "confidence": "medium",
-     "axis": "children (chapters and pages) of the book",
-     "note": "Fetches per child are a constant number of queries; the update loop runs once per de-duplicated linking page. Confidence is medium."
-    },
-    "memory": {
-     "growth": "O(N*M)",
-     "confidence": "high",
-     "axis": "children of the book times pages that link to each child",
-     "note": "The same linking page is loaded once per child it links to, with its body, before de-duplication."
-    }
-   },
-   "deviation_types": [],
-   "evidence": [
-    {
-     "file": "app/Entities/Repos/BaseRepo.php",
-     "line": 103,
-     "note": "references are updated when the URL changed"
-    },
-    {
-     "file": "app/References/ReferenceUpdater.php",
-     "line": 81,
-     "note": "children fetched; references collected per child"
-    },
-    {
-     "file": "app/References/ReferenceUpdater.php",
-     "line": 92,
-     "note": "de-duplication happens after the loop"
-    }
-   ],
-   "recorded_lower_bound_verdicts": [
-    {
-     "axis": "query",
-     "claimed": "O(N*M)",
-     "verdict": "over",
-     "note": "actual growth is O(N); the nesting counted a constant loop"
-    },
-    {
-     "axis": "memory",
-     "claimed": "O(N*M)",
-     "verdict": "correct",
-     "note": ""
-    }
-   ]
-  },
-  {
    "id": "bookstack PUT /api/content-permissions/{contentType}/{contentId}",
    "app": "bookstack",
    "method": "PUT",
@@ -3734,6 +3621,103 @@
    ]
   },
   {
+   "id": "bookstack PUT /api/pages/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/pages/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the references table that point at this page: K (links to the page in the text of other pages, chapters, books and shelves; per parent)",
+     "condition": "the request carries a name different from the current one, so the slug and the URL of the page change; with no name, or the same name, no reference is rewritten",
+     "growth_if_condition_degree": 1,
+     "note": "O(K), K being the references that point at the page: per referring page about 5 to 6 queries (re-read, UPDATE, INSERT of a new revision, SELECT of the old one). The static table name (references) is the right axis, but only the rows aimed at this page count and only when the URL changes. A measurement that does not change the name, or that creates no reference, sees a constant. A page update has a constant of about 20 queries for the revision, the search index and the reference re-read."
+    },
+    "memory": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "inbound links to the page, loaded with their bodies",
+     "note": "The types loop (page, chapter, book, shelf) is a constant 4, not a nesting. Each row is large (body text), which is not an N*M growth."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageApiController.php",
+     "line": 161,
+     "note": "update is called with the request data"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 119,
+     "note": "update saves through the base repository, stores a revision (line 142), records the activity (line 145) and sorts the parent (line 146)"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "the references are updated only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 25,
+     "note": "updates the referring items one by one"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 132,
+     "note": "a new revision is inserted for each referring page"
+    },
+    {
+     "file": "app/Activity/Notifications/Handlers/PageUpdateNotificationHandler.php",
+     "line": 39,
+     "note": "the watchers of the page, chapter and book are read in one query and each user is notified"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 36,
+     "note": "when the book has a sort rule, reads all children of the book and updates only those whose order changes"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 20,
+     "note": "one update per linking page"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 56,
+     "note": "loop over a constant number of entity types"
+    }
+   ],
+   "earlier_records": [
+    {
+     "sample": "S01",
+     "axis": "query",
+     "claimed_lower_bound": "O(N)",
+     "verdict": "correct",
+     "note": "the path runs only when the slug changes; recorded before the full trace; the answer above supersedes it"
+    },
+    {
+     "sample": "S01",
+     "axis": "memory",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "over",
+     "note": "the nested loop does not exist; the memory answer above is the one decided in that sample, kept as it was"
+    }
+   ],
+   "cross_check": {
+    "growth": "conditional",
+    "agrees_on_growth": true,
+    "note": "the earlier sample answer for the query axis is also conditional on the slug change, with the same degree; the full trace names the references table as the axis and counts the queries per referring page. Information only: the answer above is the judgement."
+   }
+  },
+  {
    "id": "bookstack DELETE /api/shelves/{id}",
    "app": "bookstack",
    "method": "DELETE",
@@ -5556,6 +5540,105 @@
      "note": "a referring page is refreshed, saved and given a revision"
     }
    ]
+  },
+  {
+   "id": "bookstack PUT /books/{slug}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/books/{slug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "the pages and chapters inside the book, C (a read of the references aimed at each child), and the rows of the references table aimed at the book and its children, R (a referring page is rewritten for each row)",
+     "condition": "the request changes the name so that the slug and the URL change; with the same name no reference is updated and the cost is constant (tags and default_template_id are a fixed number or the size of the body)",
+     "growth_if_condition_degree": 1,
+     "note": "The confidence is medium because the query count differs greatly with a rename and with the presence of references. The web form always sends the name, but a value equal to the current one leaves the slug unchanged and no update runs. The per-child read is not an unconditional term in C, but a term of the rename. The static N times M is too high: the cost is a sum, not a product. If the referring pages hold many references per child, R becomes C times the references per child and approaches a product."
+    },
+    "memory": {
+     "growth": "O(N*M)",
+     "confidence": "high",
+     "axis": "children of the book times pages that link to each child",
+     "note": "The same linking page is loaded once per child it links to, with its body, before de-duplication."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookController.php",
+     "line": 186,
+     "note": "calls the book repository update"
+    },
+    {
+     "file": "app/Entities/Repos/BookRepo.php",
+     "line": 54,
+     "note": "delegates to the base repository update"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 85,
+     "note": "the slug is rebuilt only when the name is dirty"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 104,
+     "note": "updateEntityReferences is called only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 85,
+     "note": "for a book update, getReferencesToEntity for each child (pages and chapters), 1 plus a load per type"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 122,
+     "note": "a referring page is refreshed, saved and given a revision"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "references are updated when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 81,
+     "note": "children fetched; references collected per child"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 92,
+     "note": "de-duplication happens after the loop"
+    }
+   ],
+   "earlier_records": [
+    {
+     "sample": "S02",
+     "axis": "query",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "over",
+     "note": "actual growth is O(N); the nesting counted a constant loop; recorded before the full trace; the answer above supersedes it"
+    },
+    {
+     "sample": "S02",
+     "axis": "memory",
+     "claimed_lower_bound": "O(N*M)",
+     "verdict": "correct",
+     "note": "the memory answer above is the one decided in that sample, kept as it was"
+    }
+   ],
+   "cross_check": {
+    "growth": "O(N)",
+    "agrees_on_growth": false,
+    "note": "the earlier sample answer took the query cost as O(N) in the children of the book without a condition; the full trace makes it conditional on a rename (degree 1 when it holds), puts the references on the axis and lowers the confidence to medium. Information only: the answer above is the judgement."
+   }
   }
  ]
 }

@@ -30,6 +30,8 @@
 
 18 本の抜き取りのうち、2 本(Firefly III の `DELETE /api/v1/transactions/{transactionGroup}` と `POST /transactions/convert/…`)は、`round1-target` でより深く追った答えがあるので、そちらを答えとし、抜き取りの時の判定は `earlier_records` に残した。もう 1 本(`POST /piggy-banks/remove/{piggyBank}`)は、新しい 24 本の一覧と重なるため、基準値の時点では `truth.json` に入れなかった(その 24 本の答えは、実測を見ずに決めて足す約束のため)。今は `round2-new24` の 1 本として、全体を追った答え(条件つき)を入れ、抜き取りの時の記録を `earlier_records` と `cross_check` に情報として残した(判定は全体を追った答え)。
 
+BookStack の `PUT /api/pages/{id}` と `PUT /books/{slug}` の 2 本も、`round3-bookstack` の 44 本に含まれるため、同じ扱いにした(2026-11-04)。全体を追った答えをクエリ軸の答えとして `round3-bookstack` に置き、抜き取りの時の記録を `earlier_records` と `cross_check` に情報として残した。抜き取りの時のメモリ軸の答えは、そのまま残した。このため `lower-bound-sample` は 13 本になった。以下の基準値の表は、この付け替えの前の値である。
+
 ### 答えの種類
 
 軸の増え方(`growth`)は、O(1)・O(N)・O(N*M)・条件つき(`conditional`)・未決。条件つきには、条件と、条件が成り立ったときの次数を付けた。「少なくとも O(N)」としか決められなかったものは `at_least`。答えの確度は high・medium・low。
