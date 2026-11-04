@@ -13,7 +13,10 @@ the growth. The static analysis says what the code can do; this measures what it
    to start (exit code 11) unless the network is internal and every outside address is unreachable from inside.
 2. **Only measurement databases.** Names must match `peak_sim_measure_[a-z0-9_]{8,47}`. The `measure` MySQL user can
    touch nothing else (`compose/mysql-init/10-measure-user.sql`), and `MeasureConfig`/`DbGuard`/`MeasureDb` check the
-   host, the user and every name before any SQL is sent (exit code 10).
+   host, the user and every name before any SQL is sent (exit code 10). One addition, for the comparison test only (D74):
+   `measure` also has SELECT on exactly two tables, `performance_schema.events_statements_history_long` and
+   `performance_schema.threads` (`compose/mysql-init/20-statement-history-grants.sql`), so the test can read the rows the
+   server itself examined per statement. No other `performance_schema` or `sys` table, and no PROCESS or SUPER, is granted.
 3. **Generated data only.** No existing database or dump is used.
 4. **The app is not modified.** It is mounted read-only; the container root is read-only; only `/tmp` and `/out` are writable.
 5. **Side effects are fakes** (done by the app booter, not by this directory's guards).
