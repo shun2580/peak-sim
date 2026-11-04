@@ -53,6 +53,38 @@ final class ProcessOneRunnerTest extends TestCase
         $this->assertSame("booted\n", $result->stderr);
     }
 
+    public function test_an_attempt_printed_straight_after_a_response_with_no_final_newline_is_still_read(): void
+    {
+        // A ZIP download is written to standard output by the app itself and ends with no newline.
+        $attempt = new Attempt('/books/{book}/export/zip', 'GET', 10, 'N', Attempt::COLD, 200, 18, ['mysql' => 18], ['entities'], 4000, 1000, false, 'ok', null);
+        $bootstrap = dirname(__DIR__, 3) . '/bootstrap.php';
+        $path = $this->script(
+            'require ' . var_export($bootstrap, true) . ';'
+            . 'echo "PK\x03\x04\x00\x0a\x0d" . random_bytes(64) . "PK\x05\x06\x00\x00";'
+            . '$a = \\PeakSim\\Runtime\\Run\\Attempt::fromArray(json_decode(' . var_export($attempt->toJson(), true) . ', true));'
+            . 'echo \\PeakSim\\Runtime\\Run\\MeasureOne::line($a);'
+            . 'echo "PK\x05\x06\x00\x00";'
+            . 'echo \\PeakSim\\Runtime\\Run\\MeasureOne::line($a);'
+        );
+
+        $result = (new ProcessOneRunner($path, ['PATH' => '/usr/bin:/bin']))->run(self::request());
+
+        $this->assertCount(2, $result->attempts);
+        $this->assertSame(18, $result->attempts[0]->queries);
+        $this->assertSame(200, $result->attempts[1]->status);
+    }
+
+    public function test_an_attempt_line_begins_and_ends_a_line_of_its_own(): void
+    {
+        $attempt = new Attempt('/ok/eager', 'GET', 100, 'N', Attempt::COLD, 200, 3, ['mysql' => 3], ['orders'], 10, 1000, false, 'ok', null);
+
+        $line = \PeakSim\Runtime\Run\MeasureOne::line($attempt);
+
+        $this->assertStringStartsWith("\n{", $line);
+        $this->assertStringEndsWith("}\n", $line);
+        $this->assertSame(1, substr_count(trim($line), "\n") + 1);
+    }
+
     public function test_it_passes_the_arguments_and_the_tag_to_the_child(): void
     {
         $path = $this->script('fwrite(STDERR, getenv("PEAK_MEASURE_DB_TAG") . " " . implode(" ", array_slice($argv, 1)));');

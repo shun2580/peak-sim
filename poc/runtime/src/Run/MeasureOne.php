@@ -277,7 +277,17 @@ final class MeasureOne
 
     private function emit(Attempt $attempt): void
     {
-        fwrite($this->out, $attempt->toJson() . "\n");
+        fwrite($this->out, self::line($attempt));
+    }
+
+    /**
+     * What is written for one attempt. The parent reads standard output line by line and keeps the lines that begin
+     * with `{`. A response that is not text (a ZIP download, say) can reach standard output on its own and end
+     * without a newline; the attempt must still begin a line of its own, so it starts with one.
+     */
+    public static function line(Attempt $attempt): string
+    {
+        return "\n" . $attempt->toJson() . "\n";
     }
 
     /**
