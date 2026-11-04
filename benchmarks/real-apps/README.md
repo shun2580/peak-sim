@@ -58,6 +58,7 @@ the size of the request itself, is not N.
 | `round1-target` | 25 | The 25 Firefly III routes of the first decisive runtime experiment, traced by reading the code before any measurement was seen. |
 | `round1-control` | 2 | The two controls of that experiment. They are the same two routes as 2 of `settled`. |
 | `round2-new24` | 24 | 24 further Firefly III routes: the controller routes whose static query lower bound is O(N) (39 in all) minus the 15 the first experiment used. Traced by reading the code; the answers were written down apart from any measurement of these routes. 16 are O(N), 6 are conditional (each with its `condition`), 2 are O(1). One of them, `POST /piggy-banks/remove/{piggyBank}`, is also one of the 18 sampled routes: the full trace is the answer, and the earlier record is kept in `earlier_records` and `cross_check`. |
+| `round3-bookstack` | 42 | The BookStack controller routes whose static query lower bound is O(N) or O(N*M): 44 in all, 42 of them here. Traced by reading the code; the answers were written down before any measurement of these routes. 13 are O(1), 9 are O(N), 1 is O(N*M), 19 are conditional (each with its `condition`). The other 2 of the 44, `PUT /api/pages/{id}` and `PUT /books/{slug}`, were already answered in `lower-bound-sample` under the same id (an id is unique), so they are not repeated: the earlier entries stay as they were. |
 
 The sets are small and picked by even spacing, not drawn at random. **A count here describes these routes; it does not
 estimate the rate over all routes of an app.**

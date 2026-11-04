@@ -3400,6 +3400,2162 @@
      "note": "per attachment getNoteText (notes()->first()); line 132 lazy-loads attachable->description: proportional to the attachments A"
     }
    ]
+  },
+  {
+   "id": "bookstack DELETE /api/books/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/api/books/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "pages and chapters under the book in the URL: N = P + C (hasMany; a soft delete issues one UPDATE per child)",
+     "note": "About a constant + P (one UPDATE per page) + 2C (one SELECT and one UPDATE per chapter). The pages of a book include those inside chapters and are deleted first, so the per-chapter read of pages comes back empty, but the SELECT is still issued once per chapter. Common extra term: autoClearOld runs at the end of every deletion: it reads the rows of the deletions table older than the retention period (30 days by default) and destroys each one for good on the spot (about 20 queries for a page, and the children for a book or chapter). With no such row it ends after one SELECT. A freshly made deletion record is never old, so this term depends on how the data was made. The static analysis names deletions as the table; that is not the main axis (it is right only for the extra term)."
+    }
+   },
+   "deviation_types": [
+    "axis/other-table",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookApiController.php",
+     "line": 120,
+     "note": "delete calls the book repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/BookRepo.php",
+     "line": 86,
+     "note": "softDestroyBook records the activity and then calls autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 54,
+     "note": "one softDestroyPage per page of the book, each an UPDATE"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 58,
+     "note": "one softDestroyChapter per chapter; each lazy-loads the chapter pages (one SELECT) and issues an UPDATE"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "autoClearOld reads every expired deletions row and destroys each one (the conditional extra term)"
+    },
+    {
+     "file": "app/Entities/Models/Book.php",
+     "line": 51,
+     "note": "pages() is a hasMany of all pages of the book, including those inside chapters"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /api/books/{id}/export/zip",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/api/books/{id}/export/zip",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "chapters and pages under the book in the URL: N = C + P (tags and attachments are read separately for each page and chapter)",
+     "note": "About a constant + 2P + 2C, plus a link lookup per page body, a find per attachment and a find per image. tags()->get() is one query and does not grow with the number of tags, so the static m_table (tags) is not an axis. When pages hold many links, attachments or images, a product term (pages times items) is added and the cost is in effect N*M. The lower bound O(N) is right."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Exports/Controllers/BookExportApiController.php",
+     "line": 75,
+     "note": "builds the export for the book"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportBook.php",
+     "line": 78,
+     "note": "walks every child of the book (pages and chapters)"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportPage.php",
+     "line": 51,
+     "note": "one tags()->get() per page"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportPage.php",
+     "line": 52,
+     "note": "one attachments()->get() per page"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportChapter.php",
+     "line": 45,
+     "note": "one tags()->get() per chapter, then the visible pages of the chapter"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipExportFiles.php",
+     "line": 90,
+     "note": "one Attachment::find per attachment (and one Image::find per image)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /api/chapters/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/api/chapters/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "pages under the chapter in the URL: N (a soft delete issues one UPDATE per page)",
+     "note": "About a constant + P (one UPDATE per page). It has the same shape as the chapter part of the book deletion. Common extra term: autoClearOld runs at the end of every deletion: it reads the rows of the deletions table older than the retention period (30 days by default) and destroys each one for good on the spot (about 20 queries for a page, and the children for a book or chapter). With no such row it ends after one SELECT. A freshly made deletion record is never old, so this term depends on how the data was made."
+    }
+   },
+   "deviation_types": [
+    "axis/other-table",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/ChapterApiController.php",
+     "line": 130,
+     "note": "delete calls the chapter repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/ChapterRepo.php",
+     "line": 75,
+     "note": "softDestroyChapter records the activity and then calls autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 77,
+     "note": "when the chapter has pages, softDestroyPage runs for each page"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 98,
+     "note": "each page gets an UPDATE through delete()"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 124,
+     "note": "ensureDeletable checks for a home page under the chapter with one exists() query (constant)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "autoClearOld reads every expired deletions row (the conditional extra term)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /api/chapters/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/chapters/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the references table that point at this chapter: K (links to the chapter in the text of other pages, chapters, books and shelves; the rows aimed at the one chapter in the URL)",
+     "condition": "the request carries a name different from the current one, so the slug and with it the URL of the chapter change; with no name, or the same name, no reference is rewritten",
+     "growth_if_condition_degree": 1,
+     "note": "O(K), K being the references that point at the chapter: per referring page about 5 to 6 queries (re-read, UPDATE, INSERT of a new revision, SELECT of the old one), per referring chapter, book or shelf description 1 to 2 queries. The static table name (references) is the right axis, but only the rows aimed at this chapter count and only when the URL changes. A measurement that does not change the name, or that creates no reference, sees a constant. Tags in the body add one INSERT per tag (the size of the request input). Updating a chapter does not trigger the activity notification handler (only a page update does)."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/ChapterApiController.php",
+     "line": 121,
+     "note": "update is called with the request data; a change of the parent book is a move handled at lines 107-111"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 85,
+     "note": "the slug is refreshed only when the name is dirty"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "the references are updated only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 20,
+     "note": "reads the referring items and updates them one by one"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 120,
+     "note": "a referring page is refreshed, saved and given a new revision"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 112,
+     "note": "a referring item with a description gets its description rewritten and saved"
+    },
+    {
+     "file": "app/References/ReferenceStore.php",
+     "line": 43,
+     "note": "re-reads the links of its own text (up to 5 lookups per link; a term of the text length, taken as constant)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /api/imports/{id}",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/api/imports/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "elements inside the uploaded ZIP that is imported (books, chapters, pages, attachments, images, tags): N; not a table size but the size of a file put in place beforehand",
+     "condition": "the pending import row points at a valid ZIP and passes validation and permission checks; a ZIP holding a book creates chapters, then pages, then attachments, images and tags; an invalid ZIP, a missing permission or a missing parent ends early with an exception at a constant cost",
+     "growth_if_condition_degree": 2,
+     "note": "The queries grow with the number of elements in the ZIP: a page costs several dozen queries plus a term for its tags, attachments and images, and a final pass over all pages grows with the page count. No term that grows with the size of a database table was found, so a measurement that only adds rows to tables can see a constant. The confidence is medium because the axis is an input file and it cannot be told from reading alone whether a measurement frame can feed one; the degree itself is high. This route and the web import route go through the same runner and are answered alike."
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Exports/Controllers/ImportApiController.php",
+     "line": 99,
+     "note": "runs the import with the parent"
+    },
+    {
+     "file": "app/Exports/ImportRepo.php",
+     "line": 131,
+     "note": "executes the importer inside a transaction"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 149,
+     "note": "for a book, imports the chapters and pages one by one"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 196,
+     "note": "each page is published with creation, tags, search index, permission rebuild and reference update"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 89,
+     "note": "at the end replaces references by updating and re-setting the content of all books, chapters and pages"
+    },
+    {
+     "file": "app/Activity/Tools/ActivityLogger.php",
+     "line": 95,
+     "note": "the completion activity fires every active webhook (none by default)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /api/pages/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/api/pages/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the deletions table older than the retention period: K (the whole table, not the page itself)",
+     "condition": "the deletions table holds rows past the retention period (30 days by default, when the setting is 0 or more); the page deletion itself is an INSERT, an UPDATE and the activity, a constant",
+     "growth_if_condition_degree": 1,
+     "note": "O(K), one permanent destruction per expired row (more than 20 queries for a page; for a book or chapter, per child). The static table name (deletions) is the right axis, but only expired rows count, not the row count. Unless the measurement creates old records, K is 0 and the cost looks constant."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageApiController.php",
+     "line": 170,
+     "note": "delete calls the page repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 219,
+     "note": "softDestroyPage records the activity and then calls autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 91,
+     "note": "softDestroyPage: ensureDeletable, a Deletion INSERT and a page UPDATE (no children, so constant)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 320,
+     "note": "autoClearOld returns at once when the retention is negative"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "reads every deletions row older than now minus the retention, then destroys each at line 328"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 205,
+     "note": "destroyPage: deletes from 14 related tables, updates revisions, attachments, templates and images, then forceDelete (over 20 queries for one page)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /api/shelves/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/api/shelves/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the deletions table older than the retention period: K (the whole table)",
+     "condition": "the deletions table holds rows past the retention period (30 days by default, when the setting is 0 or more); the shelf deletion itself is an INSERT, an UPDATE and the activity, a constant (the books of the shelf stay and are not walked)",
+     "growth_if_condition_degree": 1,
+     "note": "Same structure as the page deletion: the shelf itself is constant and only the expired deletion records add queries. The static table name (deletions) is the right axis, but only expired rows count."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookshelfApiController.php",
+     "line": 104,
+     "note": "delete calls the shelf repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/BookshelfRepo.php",
+     "line": 98,
+     "note": "softDestroyShelf records the activity and then calls autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 37,
+     "note": "softDestroyShelf: ensureDeletable, a Deletion INSERT and a shelf UPDATE (children are not walked)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "autoClearOld reads every expired deletions row and destroys each at line 328"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /api/shelves/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/shelves/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "(a) rows of the references table that point at this shelf: K, or (b) the books passed in the body plus the books already on the shelf: B; both aim at the one shelf in the URL",
+     "condition": "(a) the request carries a new name, so the slug and URL of the shelf change: proportional to K (1 to 6 queries per referring item); (b) the body carries books: one UPDATE of the pivot row for each book that stays on the shelf (how sync works), one INSERT for each book that is added, one DELETE for all removed books together; with neither, the cost is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The two conditions are independent; if both hold the costs add up (they do not multiply). A default update (same name, no books) is constant. The confidence is medium because there are two axes and it cannot be settled by reading alone which one the static analysis meant. The book synchronisation goes through the same repository method as the web shelf update."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/size-of-request-input"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookshelfApiController.php",
+     "line": 93,
+     "note": "update is called with the request data and the list of book ids"
+    },
+    {
+     "file": "app/Entities/Repos/BookshelfRepo.php",
+     "line": 61,
+     "note": "updateBooks: the pluck and whereIn calls are a constant number whatever the book count; the sync is at line 90"
+    },
+    {
+     "file": "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php",
+     "line": 250,
+     "note": "attachNew (line 233) issues one UPDATE per book already attached and, at line 242, one INSERT per new book"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "a name change that alters the URL triggers updateEntityReferences (proportional to K)"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 112,
+     "note": "a referring item with a description gets its description rewritten and saved"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /api/users",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/api/users",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "elements of roles[] in the request body: K (the roles are synced and each newly attached role costs one INSERT; the upper limit of K is the roles table, not a constant fixed by the code); the static table (images) is the avatar of one user, 0 or 1 rows, not a count axis",
+     "condition": "the body carries roles[] with K elements; with none (or zero elements) the number of queries is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The static analysis names images, but a user has at most one avatar. Growth of the users table does not matter: the slug collision check is one COUNT. A body with K roles costs one pivot INSERT per role. The validation only requires an array and does not cap its size. The confidence is medium because the axis is the size of the request input and not the rows a measurement adds to the database. The web create route goes through the same repository method."
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Users/Controllers/UserApiController.php",
+     "line": 98,
+     "note": "calls the user repository create once, inside a transaction"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 78,
+     "note": "createWithoutActivity: slug generation, INSERT, optional language, roles sync (line 315), avatar (line 98)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 315,
+     "note": "roles()->sync(roles): each newly attached role calls attach, one INSERT each"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 87,
+     "note": "destroyAllForUser: images of type user uploaded to the user (always 0 or 1; the previous one is removed at each import)"
+    },
+    {
+     "file": "app/Entities/Tools/SlugGenerator.php",
+     "line": 19,
+     "note": "a slug collision is settled with a random suffix in one step (constant)"
+    },
+    {
+     "file": "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php",
+     "line": 242,
+     "note": "attachNew issues one INSERT into the pivot for each id not yet present (sync calls it)"
+    },
+    {
+     "file": "app/Users/Controllers/UserApiController.php",
+     "line": 47,
+     "note": "the validation is only 'roles' => ['array']; no upper limit on the number of elements"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /api/users/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/api/users/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the number of queries is constant; there are UPDATE and DELETE statements over other tables, but each is one statement with a WHERE clause whatever the row count",
+     "note": "The number of queries does not depend on how many things the user owns (pages written, comments). A bulk UPDATE takes longer on a bigger table, but that is time, not statements. The static lower bound O(N) is too high. A measurement that looks at time should read this as \"constant statements, time that grows with the table\"."
+    }
+   },
+   "deviation_types": [
+    "axis/other-table"
+   ],
+   "evidence": [
+    {
+     "file": "app/Users/Controllers/UserApiController.php",
+     "line": 145,
+     "note": "destroy is called with the user and an optional new owner"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 192,
+     "note": "9 tables with 1 or 2 columns each, a fixed set of UPDATE statements (the foreach at line 238 walks a constant list of tables)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 211,
+     "note": "a fixed handful of DELETE statements"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 196,
+     "note": "the avatar is destroyed (0 or 1 images)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 264,
+     "note": "ownership migration is one bulk UPDATE over the entities table"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/books/{bookSlug}/chapter/{chapterSlug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "pages under the chapter in the URL: N (a soft delete issues one UPDATE per page)",
+     "note": "The web version of the chapter deletion; it goes through the same repository destroy and only the entry (slug lookup, redirect) differs. About a constant + P. Common extra term: autoClearOld runs at the end of every deletion: it reads the rows of the deletions table older than the retention period (30 days by default) and destroys each one for good on the spot (about 20 queries for a page, and the children for a book or chapter). With no such row it ends after one SELECT. A freshly made deletion record is never old, so this term depends on how the data was made."
+    }
+   },
+   "deviation_types": [
+    "axis/other-table",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/ChapterController.php",
+     "line": 162,
+     "note": "destroy calls the chapter repository destroy; the redirect at line 169 is constant"
+    },
+    {
+     "file": "app/Entities/Repos/ChapterRepo.php",
+     "line": 75,
+     "note": "the same softDestroyChapter and autoClearOld as the API version"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 78,
+     "note": "one softDestroyPage per page, each an UPDATE (line 98)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "autoClearOld reads every expired deletions row (the conditional extra term)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /books/{bookSlug}/chapter/{chapterSlug}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/books/{bookSlug}/chapter/{chapterSlug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the references table that point at this chapter: K (links in other items to the chapter; per parent)",
+     "condition": "the request carries a name (required on the web form) different from the current one, so the slug and URL of the chapter change; the same name rewrites no reference",
+     "growth_if_condition_degree": 1,
+     "note": "The web version of the chapter update; only the entry differs. The web version does not accept a parent book, so the move branch (a recursion per page) does not exist. The name is always present, but sending the same name looks constant."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/ChapterController.php",
+     "line": 136,
+     "note": "update is called with the validated data"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "the references are updated only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 25,
+     "note": "rewrites the referring items one by one"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the number of queries is constant; more referring items K do not change it, because the referring items are loaded in bulk with one whereIn per type",
+     "note": "About 1 SELECT of the references + one whereIn per type (at most 4) + a constant for authorisation and layout. One referring item or a thousand gives the same count. The size of the output and the memory grow with K, but those are not the query axis. The static lower bound O(N) (references) is too high."
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/References/ReferenceController.php",
+     "line": 36,
+     "note": "asks for the references to the chapter"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 27,
+     "note": "one get() for the references, then loadIntoRelations attaches the referring items in bulk"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 49,
+     "note": "whereHas on the referring item is a sub-query inside the one statement"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 52,
+     "note": "one whereIn(id) get() per type (at most 4 types)"
+    },
+    {
+     "file": "app/Entities/Queries/EntityQueries.php",
+     "line": 77,
+     "note": "the visible-for-list query includes the book slug as a sub-query in the same SELECT, so no per-row book read is needed"
+    },
+    {
+     "file": "resources/views/entities/list-item.blade.php",
+     "line": 1,
+     "note": "the view calls only getUrl and getExcerpt per row (loaded attributes, no query)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /books/{bookSlug}/copy",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/books/{bookSlug}/copy",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N*M)",
+     "confidence": "medium",
+     "axis": "N = chapters and pages under the book in the URL (each is created again one by one), M = tags of each element (one INSERT per tag); both are children bound to the one book in the URL",
+     "note": "About a constant + N x (20 to 30 queries to copy one element) + N x M (tag INSERTs) + N (the references of each new element are read again after the copy) + the rewrite of references inside the copy. It grows with the page and chapter count and, with many tags per element, as N times M. The confidence is medium because the per-element constant is larger than a tag INSERT, so for small M it looks like O(N), and because references inside the copy add a rewrite term. The lower bound O(N) is right: the static analysis names the N part of the real N times M."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookController.php",
+     "line": 252,
+     "note": "cloneBook is called with the book and the new name"
+    },
+    {
+     "file": "app/Entities/Tools/Cloner.php",
+     "line": 114,
+     "note": "createChapterClone for each chapter; inside it (line 80) createPageClone for each page of the chapter"
+    },
+    {
+     "file": "app/Entities/Tools/Cloner.php",
+     "line": 118,
+     "note": "createPageClone for each page directly under the book, which ends in publishDraft (line 53)"
+    },
+    {
+     "file": "app/Entities/Tools/Cloner.php",
+     "line": 143,
+     "note": "the tags of each element are read in one statement and queued as input"
+    },
+    {
+     "file": "app/Activity/TagRepo.php",
+     "line": 142,
+     "note": "saveTagsToEntity: tags()->saveMany issues one INSERT per tag"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 53,
+     "note": "after the copy, referencesFrom is read once per new element (N statements)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /books/{bookSlug}/draft/{pageId}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/books/{bookSlug}/draft/{pageId}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the deletions table older than the retention period: K (the whole table, not a parent in the URL)",
+     "condition": "the recycle bin holds expired deletion records; the draft page deletion itself is a constant (one Deletion INSERT, one soft-delete UPDATE and the activity record), and then autoClearOld destroys the K expired records for good; with K = 0 the cost is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The static table name (deletions) is the right axis, but the expired rows count, not the row count. With no expired record (data made fresh) autoClearOld ends after one SELECT. With K of them the cost is proportional to K (a dozen to several dozen queries each; more for a book or chapter, which also walks its children). One run consumes the K records, so the same state cannot be repeated. In passing: the webhook dispatch at the end of the activity record runs once for each of W active webhooks (a fast constant, not a scale axis)."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageController.php",
+     "line": 351,
+     "note": "destroyDraft calls the page repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 221,
+     "note": "softDestroyPage (to the recycle bin, a constant), then the activity record, then autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 91,
+     "note": "softDestroyPage: one Deletion INSERT and one soft-delete UPDATE; there is no loop over children"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 223,
+     "note": "destroy ends with autoClearOld (the same for page and book)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "reads every deletions row older than now minus the retention (30 days by default; returns at once when it is negative)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 328,
+     "note": "destroyFromDeletion for each such row: finds the target and destroys it in a transaction (destroyPage: about 12 deletes over related tables plus a file delete per attachment; more for a book or chapter)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /books/{bookSlug}/export/zip",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{bookSlug}/export/zip",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "pages and chapters of the book in the URL: N (per parent); tags and attachments are read once for each page",
+     "note": "Roughly 2 to 3 queries per page, 2 per chapter, 1 per attachment. The links in the page bodies (L) and the attachments (A) add terms inside each page. With one book holding many pages N matters, but with many links in the bodies the L term can dominate first. The static m_table (tags) is not added as an axis: tags are read with one query per page, so it is not N times M (the inner part is constant)."
+    }
+   },
+   "deviation_types": [
+    "constant-loop-counted-as-nested"
+   ],
+   "evidence": [
+    {
+     "file": "app/Exports/Controllers/BookExportController.php",
+     "line": 78,
+     "note": "builds the export for the one book"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportBook.php",
+     "line": 69,
+     "note": "getDirectVisibleChildren: one query for the pages directly under the book and one for the chapters; after that fromModel runs for each child"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportPage.php",
+     "line": 51,
+     "note": "one tags()->get() per page"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportPage.php",
+     "line": 52,
+     "note": "one attachments()->get() per page (page content rendering is at line 44 as well)"
+    },
+    {
+     "file": "app/Exports/ZipExports/Models/ZipExportChapter.php",
+     "line": 45,
+     "note": "per chapter: one tags query and one getVisiblePages (line 47)"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipExportFiles.php",
+     "line": 90,
+     "note": "when the files are taken out, Attachment::find once per attachment; the same for images (line 99)"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipReferenceParser.php",
+     "line": 46,
+     "note": "for each link in a body, up to 5 resolvers are tried (proportional to the link count L, a term set by the body text)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /books/{bookSlug}/page/{pageSlug}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/books/{bookSlug}/page/{pageSlug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the deletions table older than the retention period: K (the whole table); a soft delete of one page is constant",
+     "condition": "the recycle bin holds expired deletion records (the same autoClearOld as the draft deletion); with K = 0 the cost is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The same shape as the draft deletion. Only a soft delete is done, so the attachments, revisions, tags and references of the page do not affect the number of queries (their permanent deletion happens only when an expired record is processed). With no expired record autoClearOld ends after one SELECT. With K of them it is proportional to K (a dozen to several dozen queries each). One run consumes the K records. In passing: the webhook dispatch at the end of the activity record runs once for each of W active webhooks (a fast constant, not a scale axis)."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageController.php",
+     "line": 331,
+     "note": "destroy calls the page repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 221,
+     "note": "softDestroyPage, the activity record, then autoClearOld"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 91,
+     "note": "softDestroyPage does not count children (one Deletion INSERT and one soft-delete UPDATE)"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 223,
+     "note": "destroy ends with autoClearOld (the same for page and book)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "reads every deletions row older than now minus the retention (30 days by default; returns at once when it is negative)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 328,
+     "note": "destroyFromDeletion for each such row, in a transaction (destroyPage: about 12 deletes plus a file delete per attachment; more for a book or chapter)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /books/{bookSlug}/page/{pageSlug}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/books/{bookSlug}/page/{pageSlug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the references table that point at this page: R (links to the page in the text of other books, chapters and pages); the rows aimed at the one page, not the whole table, though the writer is another entity",
+     "condition": "the request changes the name so that the slug and the URL of the page change; for each of the R referring items the code re-reads it, replaces the link in its text, saves it and stores a revision; with no name change, or an unchanged slug, the cost is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The main term is R. For a referring page it is about 5 to 6 queries each; for a chapter, book or shelf one save. Further conditional terms: the number of items of the book when it has a sort rule, the number of links L in the new body, the number of tags[] (one INSERT per tag), and the update notification (one lookup per watcher; a repeated update by the same user within 15 minutes returns early). The revision store is a constant when something changed. The axis is the references row aimed at this page, not the static entities table."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/other-table"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageController.php",
+     "line": 225,
+     "note": "update is called with all request fields"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 85,
+     "note": "a changed name refreshes the slug (a duplicate check and a history INSERT, a constant)"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 103,
+     "note": "when the old URL differs from the new one, updateEntityReferences is called"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 25,
+     "note": "reads all references aimed at the page and updates each referring item"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 122,
+     "note": "a referring page is refreshed, saved (line 129) and given a revision (line 132: an INSERT and a clean-up SELECT)"
+    },
+    {
+     "file": "app/Entities/Repos/RevisionRepo.php",
+     "line": 67,
+     "note": "storeNewForPage ends with deleteOldRevisions (a constant)"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 101,
+     "note": "updateForEntity: for each link of this page body up to 5 resolvers (the link count L is set by the request body)"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 61,
+     "note": "with a sort rule on the book, direct children and chapter pages are re-ordered and only changed rows are saved (the book item count; one SELECT with no rule)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /books/{bookSlug}/page/{pageSlug}/references",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{bookSlug}/page/{pageSlug}/references",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: with R referring items, the reading is one whereIn per type; the number of queries does not depend on R",
+     "note": "The static analysis took references and entities as a lower bound of O(N), but the referring items are read with one query per type. About 1 (references) + up to 4 (per type) + the common layout + a constant. Rows, response size and rendering time grow with R, but they are not the query axis. It may look like N+1 but is not a lazy load."
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/References/ReferenceController.php",
+     "line": 22,
+     "note": "asks for the references to the page once"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 26,
+     "note": "all references in one query (including whereHas on the source and the permission filter)"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 27,
+     "note": "loadIntoRelations loads the referring items together"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 56,
+     "note": "one whereIn(id) query per type (page, chapter, book, shelf): at most 4, independent of R"
+    },
+    {
+     "file": "app/Entities/Queries/PageQueries.php",
+     "line": 82,
+     "note": "the list select includes the book slug as a sub-query, so getUrl does not lazy-load the book"
+    },
+    {
+     "file": "resources/views/entities/list-item.blade.php",
+     "line": 14,
+     "note": "the path display only branches on relationLoaded; no relation is lazy-loaded in the loop"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the references table that point at this page: R; it matters only when the name of the revision being restored gives a different slug from the current name",
+     "condition": "the name of the revision differs from the current name, so the slug and the URL change (refreshSlug at line 247; updateEntityReferences when the old URL differs, line 256); restoring a revision with the same name is constant",
+     "growth_if_condition_degree": 1,
+     "note": "The same rewrite as the page update route; the entry is the name of the revision to restore, not a name in the body. A restore carries no body input, so the terms for tags and for links in the input do not exist (the link term is the link count L of the revision text). When the book has a sort rule, sortParent (line 262) can add a term in the book item count."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/other-table"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/PageRevisionController.php",
+     "line": 141,
+     "note": "restoreRevision is called"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 240,
+     "note": "the page is filled from the revision (the fillable fields are name and priority, so the name goes back to the revision name)"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 247,
+     "note": "refreshSlug regenerates the slug from the name"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 256,
+     "note": "when the old URL differs from the new one, updateEntityReferences is called"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 25,
+     "note": "each referring item is re-read, saved and given a revision (as in the page update)"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 259,
+     "note": "two activity records (page restore and revision restore): a constant"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 250,
+     "note": "updateForEntity: for each link of the restored text up to 5 resolvers (the link count L of the revision text)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /books/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/books/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "pages and chapters of the book in the URL: N (children of the book, per parent); the static table (deletions) is a different axis, only the conditional expired-record term",
+     "note": "About P + 2C + a constant, P being the pages and C the chapters of the book; not the size of any whole table. Added to it is the same autoClearOld term for expired deletion records (a conditional term that is used up). In passing: the webhook dispatch at the end of the activity record runs once for each of W active webhooks (a fast constant, not a scale axis)."
+    }
+   },
+   "deviation_types": [
+    "axis/other-table",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookController.php",
+     "line": 214,
+     "note": "destroy calls the book repository destroy"
+    },
+    {
+     "file": "app/Entities/Repos/BookRepo.php",
+     "line": 88,
+     "note": "softDestroyBook, the activity record, then autoClearOld (line 91)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 54,
+     "note": "one soft-delete UPDATE per page of the book (P statements for P pages)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 58,
+     "note": "per chapter, one SELECT of pages (line 78; the pages are already soft-deleted, so empty) and one UPDATE (2C statements for C chapters)"
+    },
+    {
+     "file": "app/Entities/Repos/PageRepo.php",
+     "line": 223,
+     "note": "destroy ends with autoClearOld (the same for page and book)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "reads every deletions row older than now minus the retention (30 days by default; returns at once when it is negative)"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 328,
+     "note": "destroyFromDeletion for each such row, in a transaction (destroyPage: about 12 deletes plus a file delete per attachment; more for a book or chapter)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /books/{slug}",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{slug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the children of the book are read in bulk with 1 or 2 queries; the number of pages and chapters does not show in the query count",
+     "note": "The static analysis took entities as a lower bound of O(N), but all the children are read with two queries. The common parts of the screen (header, view blocks, tag classes) do not depend on the child count either. The response size and rendering grow with N."
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookController.php",
+     "line": 132,
+     "note": "builds the tree of the book"
+    },
+    {
+     "file": "app/Entities/Tools/BookContents.php",
+     "line": 43,
+     "note": "getPages reads all pages of the book with one query (book_id = ...), and one query for the chapters (line 44); after that it is grouping and sorting in memory"
+    },
+    {
+     "file": "app/Entities/Tools/BookContents.php",
+     "line": 63,
+     "note": "the book is attached to each child with setRelation, so getUrl does not lazy-load the book"
+    },
+    {
+     "file": "resources/views/chapters/parts/list-item.blade.php",
+     "line": 1,
+     "note": "the pages inside a chapter use the visible_pages set by getTree (no query in the loop)"
+    },
+    {
+     "file": "app/Entities/Controllers/BookController.php",
+     "line": 134,
+     "note": "incrementing the view count is one upsert (a constant)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /books/{slug}/references",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/books/{slug}/references",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the referring items are loaded in bulk with one whereIn per type (the same reading as the page references route)",
+     "note": "The book version of the page references route. The list on the screen only branches on relationLoaded (the path is shown only when it was loaded in advance)."
+    }
+   },
+   "deviation_types": [
+    "lazy-load-cached-after-first-use"
+   ],
+   "evidence": [
+    {
+     "file": "app/References/ReferenceController.php",
+     "line": 50,
+     "note": "asks for the references to the book once"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 26,
+     "note": "one query for the references and loadIntoRelations for at most 4 queries, one per type"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 56,
+     "note": "one whereIn per type"
+    },
+    {
+     "file": "app/Entities/Models/Chapter.php",
+     "line": 43,
+     "note": "the chapter URL also uses the book slug column from a sub-query; no lazy load"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /images/edit/{id}",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/images/edit/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: even with ?delete the search for the pages that use the image is one LIKE query; the number of result rows does not show in the query count",
+     "note": "The static table (entities) counts what the LIKE scans, not the number of queries. A bigger table makes that one statement slower, but the query count stays the same."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Uploads/Controllers/ImageController.php",
+     "line": 98,
+     "note": "getById (one query) and checkImagePermission (line 165: getPage, one query)"
+    },
+    {
+     "file": "app/Uploads/Controllers/ImageController.php",
+     "line": 102,
+     "note": "getPagesUsingImage runs only with ?delete"
+    },
+    {
+     "file": "app/Uploads/ImageRepo.php",
+     "line": 241,
+     "note": "one visibleForList()->where(html like ...)->get() query; getUrl of each page row uses the book slug as a sub-query column, so there is no lazy load"
+    },
+    {
+     "file": "app/Uploads/ImageResizer.php",
+     "line": 42,
+     "note": "loadGalleryThumbnailsForImage builds thumbnail URLs (file system and cache; no extra database query)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /import/{id}",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/import/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "elements inside the uploaded ZIP that is imported: pages plus chapters N, and tags, attachments and images of each page M; the count of the uploaded import file, not of database rows (close to a request input)",
+     "condition": "the pending import row points at a valid ZIP and passes validation and permission checks; a ZIP holding a book creates chapters, then pages, then attachments, images and tags; an invalid ZIP, a missing permission or a missing parent ends early with an exception at a constant cost",
+     "growth_if_condition_degree": 2,
+     "note": "The confidence is medium because the weight is set by the content of the uploaded ZIP, not by the state of the database: depending on how the ZIP is made it is constant (one page) or N times M. The structure (chapter, page, then attachments, images and tags) was read and confirmed. The exact constant per page was not counted. The number of links L in the ZIP (reference replacement) is another term set by the text. This route and the API import route go through the same runner and are answered alike."
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input",
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Exports/Controllers/ImportController.php",
+     "line": 91,
+     "note": "runs the import with the parent"
+    },
+    {
+     "file": "app/Exports/ImportRepo.php",
+     "line": 131,
+     "note": "runs the importer inside a transaction (rolled back on failure)"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 149,
+     "note": "for a book: importChapter or importPage for each child (chapters and pages)"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 175,
+     "note": "for a chapter: importPage for each page inside it"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportRunner.php",
+     "line": 186,
+     "note": "for a page: create a draft, then save each attachment (line 188) and each image (line 192), then publishDraft (line 196: tags, search index, references, permission rebuild)"
+    },
+    {
+     "file": "app/Activity/TagRepo.php",
+     "line": 142,
+     "note": "tags()->saveMany: one INSERT per tag (part of M)"
+    },
+    {
+     "file": "app/Exports/ZipExports/ZipImportReferences.php",
+     "line": 152,
+     "note": "at the end, setContentFromInput for each page (reference replacement, search index, saving references again): a second pass proportional to the page count N"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /login/service/{socialDriver}/callback",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/login/service/{socialDriver}/callback",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: one SELECT of the social account plus the handling of one user; independent of the number of image rows",
+     "note": "The static table (images) comes from the loop that destroys avatar images. It covers the avatar of this one user (an invariant: only one at a time, and everything is cleared before a new one is assigned), and for a user just registered it is zero rows. It is not the whole table."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Access/Controllers/SocialController.php",
+     "line": 62,
+     "note": "the callback ends with an exception when the session holds no social-callback value"
+    },
+    {
+     "file": "app/Access/SocialAuthService.php",
+     "line": 111,
+     "note": "getSocialAccountById (one SELECT); an existing account logs in, otherwise an exception or the registration callback"
+    },
+    {
+     "file": "app/Access/RegistrationService.php",
+     "line": 97,
+     "note": "a registration calls createWithoutActivity, a constant number of queries (the same as the register route)"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 33,
+     "note": "destroyAllForUser looks for images of type user uploaded to the new user id; for a new user there are none (the loop does not run)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /my-account",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/my-account",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the updates and deletes over the related tables are single bulk statements (where user_id = ...); the row count grows but the number of statements is fixed",
+     "note": "A fixed number of statements: 13 updates, about 8 deletes of related rows, plus the administrator check, the settings delete, the ownership move and the activity record (the exact count was not made). A user who owns many entities still costs one UPDATE. The loop over images covers only the avatar of this user (normally 0 or 1), a constant inside."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent",
+    "constant-loop-counted-as-nested"
+   ],
+   "evidence": [
+    {
+     "file": "app/Users/Controllers/UserAccountController.php",
+     "line": 257,
+     "note": "destroy is called for the logged-in user with an optional new owner"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 192,
+     "note": "9 tables times columns (13 statements in all) of where ... update, as bulk statements independent of the row count"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 213,
+     "note": "bulk deletes over the related tables (a fixed number)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 206,
+     "note": "ownership of the entities is moved with one statement (bulk)"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 89,
+     "note": "destroyAllForUser: gets the images of type user uploaded to this user and loops (normally 0 or 1); each image costs one DELETE plus a file delete"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /oidc/callback",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/oidc/callback",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: after the token is verified, findOrRegister (1 to a few SELECTs), one bulk SELECT of the roles, and the login; the number of roles and images does not show in the query count",
+     "note": "The roles sync is a constant of 2 to 3 queries. With many roles the matching is done in memory."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Access/Controllers/OidcController.php",
+     "line": 58,
+     "note": "processAuthorizeResponse: an outside HTTP call and ID token verification"
+    },
+    {
+     "file": "app/Access/Oidc/OidcService.php",
+     "line": 222,
+     "note": "findOrRegister: a SELECT by the outside id; if none, registerUser (a constant, the same as the register route)"
+    },
+    {
+     "file": "app/Access/Oidc/OidcService.php",
+     "line": 232,
+     "note": "the avatar is fetched only when there is none and a picture is given (destroyAllForUser finds nothing for a new user)"
+    },
+    {
+     "file": "app/Access/Oidc/OidcService.php",
+     "line": 237,
+     "note": "with group sync enabled, syncUserWithFoundGroups runs"
+    },
+    {
+     "file": "app/Access/GroupSyncService.php",
+     "line": 62,
+     "note": "one Role::query()->get() reads all roles and they are matched in memory"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /register",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/register",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: creation of one user (uniqueness check, INSERT, default role, activity record); independent of table sizes",
+     "note": "Fetching the avatar (an outside HTTP call), if enabled, adds one image INSERT, still a constant. The webhook dispatch of the activity record adds W terms for W active webhooks (in passing)."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Access/Controllers/RegisterController.php",
+     "line": 54,
+     "note": "registerUser is called"
+    },
+    {
+     "file": "app/Access/RegistrationService.php",
+     "line": 85,
+     "note": "getByEmail (one SELECT) checks for an existing user, then createWithoutActivity (line 97), attachDefaultRole (line 98, one SELECT and one INSERT) and the activity record (line 105)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 98,
+     "note": "downloadAndAssignUserAvatar returns at once when the avatar URL does not start with http (line 28 of the avatar class)"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 33,
+     "note": "even when fetching is enabled, destroyAllForUser looks for the images of the new user, so there are none"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /saml2/acs",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/saml2/acs",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the queries do not depend on table sizes",
+     "note": "The static analysis took images as the axis, but the only place that touches images here is the avatar fetch for one new user. The login handling is a fixed number of statements. The route goes on only when the authentication method is saml2: with the default method (standard) the guard redirects at once, and even with saml2 enabled, with no ACS response in the cache the route redirects to the login page. A measurement that does not set the method to saml2 and prepare a valid response only sees the guard redirect (about one query)."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/config-gated",
+    "conditional-event/unreached-branch",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Access/Controllers/Saml2Controller.php",
+     "line": 15,
+     "note": "the constructor applies guard:saml2 (the default method does not pass)"
+    },
+    {
+     "file": "app/Http/Middleware/CheckGuard.php",
+     "line": 21,
+     "note": "the guard redirects to the root when the configured method is not among the allowed ones"
+    },
+    {
+     "file": "app/Access/Controllers/Saml2Controller.php",
+     "line": 113,
+     "note": "an empty id or response redirects to the login page early"
+    },
+    {
+     "file": "app/Access/GroupSyncService.php",
+     "line": 62,
+     "note": "group sync reads the roles once and filters in PHP (roles are the number of roles, not people; a small fixed scale)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 98,
+     "note": "creating a new user fetches the avatar (an outside HTTP call and a look at the images of that user; the whole table is not read)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /settings/maintenance/cleanup-images",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/settings/maintenance/cleanup-images",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "images of type gallery or drawio (a filter over the whole table, read in chunks of 1000)",
+     "note": "2 queries per image (1 when ignore_revisions is set), so 2N statements for N images plus one SELECT per chunk. The run time of each query also grows with the size of the page-data and revisions tables (a full LIKE scan), but that is time and not the query-count axis. The lower bound O(N) on images is right."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Uploads/ImageService.php",
+     "line": 183,
+     "note": "only images of type gallery and drawio are considered"
+    },
+    {
+     "file": "app/Uploads/ImageService.php",
+     "line": 184,
+     "note": "chunk(1000): one SELECT per 1000 images (ceil(N/1000))"
+    },
+    {
+     "file": "app/Uploads/ImageService.php",
+     "line": 188,
+     "note": "one count with LIKE over the page-data table for each image"
+    },
+    {
+     "file": "app/Uploads/ImageService.php",
+     "line": 193,
+     "note": "unless ignore_revisions is set, another count with LIKE over the revisions table for each image"
+    },
+    {
+     "file": "app/Uploads/ImageService.php",
+     "line": 200,
+     "note": "with confirm, each unused image is destroyed (file delete and row delete)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /settings/maintenance/regenerate-references",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/settings/maintenance/regenerate-references",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "medium",
+     "axis": "entities: all rows of pages, chapters, books and shelves (read in chunks of 100 per kind)",
+     "note": "The queries are the sum of a chunk term (proportional to N/100) and the total number of internal links; the share of the second depends on the data. With no link in any body the cost is N/100 times a few statements (SELECT, DELETE); with a dense set of links the link term dominates. Both grow in proportion to N, so the degree is O(N). Writing N times M (M = links per element) is right only when the link density M is raised independently of N. In passing: a body with internal links costs one lookup per link; the link count is set by the body text, not an axis independent of the row count. The confidence is medium because the share of the link term is data dependent."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Settings/MaintenanceController.php",
+     "line": 89,
+     "note": "calls updateForAll"
+    },
+    {
+     "file": "app/References/ReferenceStore.php",
+     "line": 29,
+     "note": "first deletes every row of the references table (one query)"
+    },
+    {
+     "file": "app/References/ReferenceStore.php",
+     "line": 32,
+     "note": "for each kind of entity, chunk(100): one SELECT per 100 rows, then updateForEntities"
+    },
+    {
+     "file": "app/References/ReferenceStore.php",
+     "line": 55,
+     "note": "for each entity, takes the links out of the body and resolves the model one link at a time (the cross-link parser)"
+    },
+    {
+     "file": "app/References/ModelResolvers/PageLinkModelResolver.php",
+     "line": 29,
+     "note": "a link to a page costs one query (a slug lookup with first())"
+    },
+    {
+     "file": "app/References/ReferenceStore.php",
+     "line": 67,
+     "note": "the inserts are batched in groups of 1000"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /settings/recycle-bin/empty",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/settings/recycle-bin/empty",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(N)",
+     "confidence": "high",
+     "axis": "deletions (the rows of the recycle bin; one row is one top-level item put in the bin)",
+     "note": "Proportional to the row count of deletions. A book put in the bin gets heavier in proportion to the number of its pages P (the pages are part of the book row and do not get a deletions row of their own), so the weight is proportional to the total number of items in the bin. Writing N times M applies when the deleted items are books or chapters with much content (M = pages inside). The lower bound O(N) on deletions is right."
+    }
+   },
+   "deviation_types": [],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/RecycleBinController.php",
+     "line": 122,
+     "note": "calls TrashCan::empty"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 256,
+     "note": "Deletion::all() reads every row and the loop at line 259 destroys them one by one"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 274,
+     "note": "one deletable()->first() query per row"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 205,
+     "note": "destroying a page: deletes over a fixed number of relations, a file delete for each attachment (line 212) and re-pointing of images"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 157,
+     "note": "destroying a book or chapter calls destroyPage for each page inside (the loops at lines 161 and 189)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /settings/sorting/rules/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/settings/sorting/rules/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "the books assigned to the sort rule in the URL (the container rows whose sort rule is that one), and the pages and chapters inside each of those books whose position changes",
+     "condition": "the request carries a sequence different from the current value (isDirty on sequence) and at least one book uses the rule; if only the name changes, the cost is one UPDATE of the rule row and the activity record, a constant",
+     "growth_if_condition_degree": 2,
+     "note": "N is the number of books that use the rule (not the rows of the sort rules table); M is the pages and chapters of each book whose position changes: per book a few SELECTs, plus one priority UPDATE per item that moves. The number of UPDATEs depends on how the data is ordered (when it is already in the order of the rule, none are issued). The confidence is medium for that reason. The static table name (sort_rules) is the wrong axis; the static m_table (entities) is reasonable."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Sorting/SortRuleController.php",
+     "line": 63,
+     "note": "findOrFail of the one rule row in the URL"
+    },
+    {
+     "file": "app/Sorting/SortRuleController.php",
+     "line": 71,
+     "note": "only a changed sequence goes on to re-ordering"
+    },
+    {
+     "file": "app/Sorting/SortRuleController.php",
+     "line": 77,
+     "note": "calls runBookAutoSortForAllWithSet"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 24,
+     "note": "reads the books that belong to the rule in chunks of 50"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 38,
+     "note": "for each book: the sort rule first(), an eager load of chapters and pages, a SELECT of the direct pages"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 63,
+     "note": "assigns a priority to each top-level item and saves it (an UPDATE only when dirty)"
+    },
+    {
+     "file": "app/Sorting/BookSorter.php",
+     "line": 74,
+     "note": "a priority save for each page inside a chapter (the same)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /settings/users/create",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/settings/users/create",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "elements of roles[] in the request body: K (the roles are synced and each newly attached role costs one INSERT; the upper limit of K is the roles table, not a constant fixed by the code); the static table (images) is the avatar fetch, for the new user only",
+     "condition": "the body carries roles[] with K elements; with none (or zero elements) the number of queries is constant",
+     "growth_if_condition_degree": 1,
+     "note": "Creating a user costs a fixed number of statements, and each role passed adds one attach. Because the upper limit of K is the number of rows of the roles table and not a constant in the code, the answer is conditional with medium confidence. It goes through the same repository create method as the API user creation. The static analysis took images because it picked up the avatar handling; the only images read here are those of the new user own avatar (0 rows)."
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Users/Controllers/UserController.php",
+     "line": 99,
+     "note": "calls the user repository create inside DB::transaction"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 98,
+     "note": "avatar fetch: fetchAndAssignToUser (an outside HTTP call; looks only at the images of that user)"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 87,
+     "note": "destroyAllForUser: only images of type user uploaded to the new user (0 rows, since the user is new)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 315,
+     "note": "roles()->sync(roles): one attach for each of the K roles in the body (called from lines 94-95; the upper limit of K is the roles table)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /settings/users/{id}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/settings/users/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the queries do not depend on table sizes; destroy runs for the A avatar images of the user, and A is normally 0 or 1 (the previous one is removed at each fetch)",
+     "note": "Even if the user created a very large number of entities, each UPDATE is one statement per table, so the count does not change (the run time grows with the rows, but that is not the query axis). A is about 0 to 1 unless a measurement ties many images of type user to this user."
+    }
+   },
+   "deviation_types": [
+    "axis/children-of-one-bound-parent",
+    "constant-loop-counted-as-nested"
+   ],
+   "evidence": [
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 191,
+     "note": "removeUserDependantRelations: one delete statement per table (a fixed number)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 192,
+     "note": "nullifyUserNonDependantRelations: UPDATE over 9 tables times columns (one statement each; not growing with rows)"
+    },
+    {
+     "file": "app/Uploads/UserAvatars.php",
+     "line": 89,
+     "note": "gets the images of type user uploaded to the user and destroys them (A rows)"
+    },
+    {
+     "file": "app/Users/UserRepo.php",
+     "line": 206,
+     "note": "migrateOwnership: one UPDATE over the entities table"
+    }
+   ]
+  },
+  {
+   "id": "bookstack POST /settings/{category}",
+   "app": "bookstack",
+   "method": "POST",
+   "uri": "/settings/{category}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "setting-* items in the request body: K (storeSimpleSettings saves every name that starts with setting-, two queries for each item: firstOrNew and save; the code does not fix the names, so K depends on the body); the icon sizes (4 plus the original) are a constant",
+     "condition": "the body carries K setting-* items",
+     "growth_if_condition_degree": 1,
+     "note": "The number of queries is set by how many items are sent and not by database rows. All names that start with setting- in the whole request are saved, so K depends on the body (conditional, medium confidence). The static analysis named images because the logo and icon storage and deletion go through the image repository; that is a fixed number of calls."
+    }
+   },
+   "deviation_types": [
+    "axis/size-of-request-input",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Settings/SettingController.php",
+     "line": 51,
+     "note": "calls storeFromUpdateRequest"
+    },
+    {
+     "file": "app/Settings/AppSettingsStore.php",
+     "line": 78,
+     "note": "storeSimpleSettings saves every name starting with setting- found in all the request fields (the names are not fixed by the code); one put per item"
+    },
+    {
+     "file": "app/Settings/SettingService.php",
+     "line": 185,
+     "note": "put: Setting::firstOrNew (one query) and save (one query)"
+    },
+    {
+     "file": "app/Settings/AppSettingsStore.php",
+     "line": 37,
+     "note": "the icon is saved in 4 fixed sizes plus the original (a constant number of times)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack DELETE /shelves/{slug}",
+   "app": "bookstack",
+   "method": "DELETE",
+   "uri": "/shelves/{slug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "high",
+     "axis": "rows of the deletions table older than the retention period (expired rows)",
+     "condition": "the recycle bin holds expired rows; the default retention is 30 days, so freshly made data has none; setting the retention to 0 makes everything in the bin expired and it is destroyed at each call",
+     "growth_if_condition_degree": 1,
+     "note": "The static table (deletions) is the right axis, but the number of expired rows counts, not the row count. Rows that only sit in the bin do not add queries. Per expired row the destruction costs a few dozen queries (a page: per attachment and so on; a book adds its pages). Other routes of the same shape that delete a book or a shelf call the same autoClearOld."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Repos/BookshelfRepo.php",
+     "line": 100,
+     "note": "softDestroyShelf: one Deletion row and a soft delete of the shelf (a fixed number)"
+    },
+    {
+     "file": "app/Entities/Repos/BookshelfRepo.php",
+     "line": 102,
+     "note": "autoClearOld is called after the deletion"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 327,
+     "note": "Deletion::query()->where(created_at < ...)->get(): only the expired rows"
+    },
+    {
+     "file": "app/Entities/Tools/TrashCan.php",
+     "line": 329,
+     "note": "destroyFromDeletion for each expired row (a lookup of the deletable, the destruction, the row delete)"
+    },
+    {
+     "file": "app/Config/app.php",
+     "line": 35,
+     "note": "the default recycle_bin_lifetime is 30"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /shelves/{slug}",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/shelves/{slug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "the visible books of the shelf that have a cover image set (image_id not NULL)",
+     "condition": "the books of the shelf have cover images: for each book a query looks for the image (the grid view runs one exists query, and getUrl one more first(), so at most 2 per book); with books that have no cover the count is constant whatever the number of books",
+     "growth_if_condition_degree": 1,
+     "note": "The confidence is medium because the display type (the view setting of shelves) and the presence of a cover change the cost per book between 0 and 2 queries; the list view does not call exists, so at most 1. The list of books itself is one query. The static table (entities) lacks the filter \"books of the shelf\", but the degree O(N) fits."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookshelfController.php",
+     "line": 119,
+     "note": "visibleBooks() is one SELECT, whatever the number of books"
+    },
+    {
+     "file": "resources/views/shelves/show.blade.php",
+     "line": 41,
+     "note": "renders a grid item or a list item for each book"
+    },
+    {
+     "file": "resources/views/entities/grid-item.blade.php",
+     "line": 4,
+     "note": "coverInfo()->exists() and getUrl() for each book"
+    },
+    {
+     "file": "app/Entities/Tools/EntityCover.php",
+     "line": 28,
+     "note": "when image_id is not NULL, an exists query on images (one query)"
+    },
+    {
+     "file": "app/Entities/Tools/EntityCover.php",
+     "line": 40,
+     "note": "getUrl takes the image with first() through getImage (one more query)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /shelves/{slug}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/shelves/{slug}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "books tied to the shelf in the URL (the pivot rows; children of the shelf) and the elements of the books list in the body: K; and, on a rename, the rows of the references table that point at this shelf: R",
+     "condition": "(a) the body lists books: the sync issues one INSERT or one UPDATE for each book, in proportion to the books named plus the books already on the shelf (the sync updates the order of each existing book); with no books on the shelf and none in the body it is constant; (b) the name changes and the URL changes: for each reference row R aimed at this shelf a page is rewritten and a revision stored",
+     "growth_if_condition_degree": 1,
+     "note": "The confidence is medium because the count of (a) depends on the books in the request and the existing ties, and (b) on a rename and on the presence of references. The static table (references) fits (b) but only on a rename. The static m_table (entities) is more the referring page than an axis. A measurement that neither renames the shelf nor attaches books sees a constant. The book synchronisation goes through the same repository method as the API shelf update."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "axis/size-of-request-input",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Repos/BookshelfRepo.php",
+     "line": 90,
+     "note": "books()->sync(syncData): an attach (INSERT) or updateExistingPivot (UPDATE) for each book"
+    },
+    {
+     "file": "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php",
+     "line": 250,
+     "note": "an existing id with attributes always gets an updateExistingPivot, one query each"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 86,
+     "note": "a changed name rebuilds the slug (the URL changes)"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 104,
+     "note": "a changed URL calls ReferenceUpdater::updateEntityReferences"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 22,
+     "note": "reads the references aimed at this shelf (1 plus a load per type) and rewrites each referring item"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 122,
+     "note": "a referring page is refreshed, saved and given a revision (a few queries per page)"
+    }
+   ]
+  },
+  {
+   "id": "bookstack GET /shelves/{slug}/references",
+   "app": "bookstack",
+   "method": "GET",
+   "uri": "/shelves/{slug}/references",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N)",
+   "axes": {
+    "query": {
+     "growth": "O(1)",
+     "confidence": "high",
+     "axis": "none: the queries do not depend on the number of references rows; memory and response size grow with the references aimed at the shelf",
+     "note": "There is no N+1. The book slug needed for a page URL is selected by the list query itself as a sub-query (the column list of the page queries), so no book is fetched for each reference. The static lower bound O(N) (references) is too high."
+    }
+   },
+   "deviation_types": [
+    "constant-loop-counted-as-nested"
+   ],
+   "evidence": [
+    {
+     "file": "app/References/ReferenceController.php",
+     "line": 64,
+     "note": "asks for the references to the shelf once"
+    },
+    {
+     "file": "app/References/ReferenceFetcher.php",
+     "line": 27,
+     "note": "the references in one query, and loadIntoRelations loads the referring items together by kind"
+    },
+    {
+     "file": "app/Entities/Tools/MixedEntityListLoader.php",
+     "line": 52,
+     "note": "idsByTypeToModelMap: one whereIn per kind of entity"
+    },
+    {
+     "file": "resources/views/entities/list-item.blade.php",
+     "line": 12,
+     "note": "the view checks relationLoaded, so there is no lazy load for each reference"
+    }
+   ]
+  },
+  {
+   "id": "bookstack PUT /api/books/{id}",
+   "app": "bookstack",
+   "method": "PUT",
+   "uri": "/api/books/{id}",
+   "sets": [
+    "round3-bookstack"
+   ],
+   "layer": "lower-bound-O(N*M)",
+   "axes": {
+    "query": {
+     "growth": "conditional",
+     "confidence": "medium",
+     "axis": "the pages and chapters inside the book, C (a read of the references aimed at each child), and the rows of the references table aimed at the book and its children, R (a referring page is rewritten for each row)",
+     "condition": "the request changes the name so that the slug and the URL change; with no name (optional in the API) or the same name no reference is updated and the cost is constant (tags and default_template_id are a fixed number or the size of the body)",
+     "growth_if_condition_degree": 1,
+     "note": "The confidence is medium because the query count differs greatly with a rename and with the presence of references. The per-child read is not an unconditional term in C, but a term of the rename. The static N times M is too high: the cost is a sum, not a product. If the referring pages hold many references per child, R becomes C times the references per child and approaches a product."
+    }
+   },
+   "deviation_types": [
+    "conditional-event/valid-input-only",
+    "constant-loop-counted-as-nested",
+    "axis/children-of-one-bound-parent"
+   ],
+   "evidence": [
+    {
+     "file": "app/Entities/Controllers/BookApiController.php",
+     "line": 109,
+     "note": "calls the book repository update"
+    },
+    {
+     "file": "app/Entities/Repos/BookRepo.php",
+     "line": 54,
+     "note": "delegates to the base repository update"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 85,
+     "note": "the slug is rebuilt only when the name is dirty"
+    },
+    {
+     "file": "app/Entities/Repos/BaseRepo.php",
+     "line": 104,
+     "note": "updateEntityReferences is called only when the URL changed"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 85,
+     "note": "for a book update, getReferencesToEntity for each child (pages and chapters), 1 plus a load per type"
+    },
+    {
+     "file": "app/References/ReferenceUpdater.php",
+     "line": 122,
+     "note": "a referring page is refreshed, saved and given a revision"
+    }
+   ]
   }
  ]
 }

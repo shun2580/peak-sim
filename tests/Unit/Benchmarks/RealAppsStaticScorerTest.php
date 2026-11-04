@@ -181,16 +181,17 @@ final class RealAppsStaticScorerTest extends TestCase
         ksort($perSet);
         ksort($perApp);
 
-        $this->assertCount(69, $truth['routes']);
-        $this->assertSame(112, $axes);
+        $this->assertCount(111, $truth['routes']);
+        $this->assertSame(154, $axes);
         $this->assertSame([
             'lower-bound-sample' => 15,
             'round1-control' => 2,
             'round1-target' => 25,
             'round2-new24' => 24,
+            'round3-bookstack' => 42,
             'settled' => 5,
         ], $perSet);
-        $this->assertSame(['bookstack' => 5, 'firefly-iii' => 53, 'koel' => 7, 'snipe-it' => 4], $perApp);
+        $this->assertSame(['bookstack' => 47, 'firefly-iii' => 53, 'koel' => 7, 'snipe-it' => 4], $perApp);
     }
 
     public function testTheNewTwentyFourAreAnsweredInEnglishWithTheirConditionsAndEvidence(): void
@@ -229,6 +230,39 @@ final class RealAppsStaticScorerTest extends TestCase
         $this->assertSame('conditional', $found[0]['axes']['query']['growth'], 'the full trace is the answer');
         $this->assertSame(['S10'], array_values(array_unique(array_column($found[0]['earlier_records'], 'sample'))));
         $this->assertFalse($found[0]['cross_check']['agrees_on_growth']);
+    }
+
+    public function testTheBookstackAnswersAreInEnglishAndTwoOverlappingRoutesKeepTheirEarlierEntries(): void
+    {
+        $truth = Truth::load(dirname(__DIR__, 3) . '/benchmarks/real-apps/truth.json');
+
+        $new = array_values(array_filter($truth['routes'], static fn (array $r): bool => in_array('round3-bookstack', $r['sets'], true)));
+        // 44 routes were answered; two of them were already answered in the earlier sample under the same id, which stays as it was
+        $this->assertCount(42, $new);
+
+        $growth = [];
+        foreach ($new as $route) {
+            $this->assertSame('bookstack', $route['app']);
+            $this->assertSame(['query'], array_keys($route['axes']), $route['id']);
+            $q = $route['axes']['query'];
+            $growth[$q['growth']] = ($growth[$q['growth']] ?? 0) + 1;
+            $this->assertContains($q['confidence'], ['high', 'medium'], $route['id']);
+            $this->assertNotEmpty($route['evidence'], $route['id']);
+            if ($q['growth'] === 'conditional') {
+                $this->assertNotSame('', trim((string) ($q['condition'] ?? '')), $route['id'] . ' needs the condition in words');
+                $this->assertContains($q['growth_if_condition_degree'], [1, 2], $route['id']);
+            }
+            $this->assertSame(0, preg_match('/[\x{3000}-\x{30ff}\x{3400}-\x{9fff}\x{ff00}-\x{ffef}]/u', (string) json_encode($route, JSON_UNESCAPED_UNICODE)), $route['id']);
+        }
+        ksort($growth);
+        $this->assertSame(['O(1)' => 13, 'O(N)' => 9, 'O(N*M)' => 1, 'conditional' => 19], $growth);
+
+        // the two overlapping routes are still the earlier entries, in the earlier set only
+        foreach (['bookstack PUT /api/pages/{id}', 'bookstack PUT /books/{slug}'] as $id) {
+            $found = array_values(array_filter($truth['routes'], static fn (array $r): bool => $r['id'] === $id));
+            $this->assertCount(1, $found, $id);
+            $this->assertSame(['lower-bound-sample'], $found[0]['sets'], $id);
+        }
     }
 
     public function testTheCommittedAnswersCarryNoEnvironmentDetailsAndNoQuotedCode(): void
