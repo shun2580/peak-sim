@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Tests\Docker;
 
 use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
 use PeakSim\Runtime\Tests\Docker\Support\ExcludedStatementTypes;
+use PeakSim\Runtime\Tests\Docker\Support\RowsExaminedVerdict;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -24,14 +25,16 @@ use PHPUnit\Framework\Attributes\Group;
  * name (see `Support/ExcludedStatementTypes`). A fourth type is handled the other way round: a scan of a whole table or
  * index (access type ALL or index) whose handler count is 1 to 3 rows above the server's keeps its place in the comparison,
  * and only that small difference (the read that finds the end of the scan) is taken off the app's count. The cap of 3 is
- * fixed. The figure is accepted when every route is within 10% of the server's count on what is left. The limit is not
- * moved to make a route pass.
+ * fixed, and a scan statement over it fails the route whatever the total looks like. The figure is accepted when every
+ * route is within 10% of the server's count on what is left. The limit is not moved to make a route pass. The verdict
+ * itself is `Support/RowsExaminedVerdict`, bound by a unit test with expectations written by hand.
  *
  * It runs `bin/measure-one` for the cold attempt of every route of the verification app (so the real wiring is what is
  * checked), then finds that process's thread and the window between its two snapshots in the server's history. What
  * each statement said and read on the app's side is not visible from there, so the same request is sent once more
  * through `Support/tap_statements.php`, which reads the counters statement by statement; the reads of the left-out
- * statements are taken off the figure of the run that is checked, and the figure must equal the sum of the tap's.
+ * statements are taken off the figure of the run that is checked, and the figure must equal the sum of the tap's (a
+ * route whose figure has a remainder that the tap does not explain fails).
  */
 #[Group('in-stack')]
 final class RowsExaminedMatchesServerTest extends DockerCase
@@ -303,7 +306,7 @@ final class RowsExaminedMatchesServerTest extends DockerCase
         $row['server'] = $sum;
 
         $row['diff'] = $leftServer === 0 ? ($leftApp === 0 ? 0.0 : INF) : abs($leftApp - $leftServer) / $leftServer;
-        $row['verdict'] = $row['diff'] > self::LIMIT ? sprintf('differs by %s', is_infinite($row['diff']) ? 'an unbounded share (server counted 0)' : round($row['diff'] * 100, 1) . '%') : 'ok';
+        $row['verdict'] = RowsExaminedVerdict::of($scanOverCap, (int) $row['unaccounted'], $row['diff'], self::LIMIT);
 
         return $row;
     }
