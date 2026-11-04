@@ -26,6 +26,7 @@ services:
       MYSQL_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by bin/_stack.sh}
     volumes:
       - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-init:/docker-entrypoint-initdb.d:ro
+      - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-conf:/etc/mysql/conf.d:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 3s

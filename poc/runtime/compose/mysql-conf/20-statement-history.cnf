@@ -1,0 +1,8 @@
+# Lets a test compare the app's "rows examined" figure with what the server itself counted per statement.
+# performance_schema is on by default in MySQL 8.4; the long statement history is the one consumer that is off.
+# The history is a ring buffer: the size must hold every statement of the busiest request of a check, or the oldest
+# statements are overwritten and the sum comes out low. 100,000 rows (a few hundred MB at most inside the DB container)
+# is far above the busiest request of a check at the small scales used; the test fails if the buffer lost any statement.
+[mysqld]
+performance_schema_consumer_events_statements_history_long = ON
+performance_schema_events_statements_history_long_size = 100000
