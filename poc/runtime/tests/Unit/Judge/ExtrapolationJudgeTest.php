@@ -87,6 +87,42 @@ final class ExtrapolationJudgeTest extends TestCase
         $this->assertSame('mismatch', ExtrapolationJudge::compare(130.5, 100.0, 30)['outcome']);
     }
 
+    /**
+     * Through judge(), so that the tolerance the judge itself uses is what is pinned (not a value handed to compare()).
+     * One route measured at 100 queries, 1000 rows and 5000 bytes; the prediction is moved to the edge and just past it.
+     * Predicted values are written by hand: +-5% of 100, +-20% of 1000, +-30% of 5000.
+     *
+     * @return array<string, array{0: string, 1: float, 2: string}>
+     */
+    public static function toleranceEdges(): array
+    {
+        return [
+            'queries +5%' => ['queries', 105.0, 'match'],
+            'queries +5.1%' => ['queries', 105.1, 'mismatch'],
+            'queries -5%' => ['queries', 95.0, 'match'],
+            'queries -5.1%' => ['queries', 94.9, 'mismatch'],
+            'rows_examined +20%' => ['rows_examined', 1200.0, 'match'],
+            'rows_examined +20.1%' => ['rows_examined', 1201.0, 'mismatch'],
+            'rows_examined -20%' => ['rows_examined', 800.0, 'match'],
+            'rows_examined -20.1%' => ['rows_examined', 799.0, 'mismatch'],
+            'peak_memory +30%' => ['peak_memory', 6500.0, 'match'],
+            'peak_memory +30.1%' => ['peak_memory', 6505.0, 'mismatch'],
+            'peak_memory -30%' => ['peak_memory', 3500.0, 'match'],
+            'peak_memory -30.1%' => ['peak_memory', 3495.0, 'mismatch'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('toleranceEdges')]
+    public function test_judge_uses_five_twenty_and_thirty_percent_as_its_own_tolerance(string $quantity, float $predicted, string $outcome): void
+    {
+        $route = self::route('GET /edge', $quantity === 'queries' ? self::ok($predicted) : null, $quantity === 'rows_examined' ? self::ok($predicted) : null, $quantity === 'peak_memory' ? self::ok($predicted) : null);
+
+        $r = ExtrapolationJudge::judge(self::predictions([$route]), [self::cold('GET /edge')]);
+
+        $this->assertSame($outcome, $r['routes'][0]['quantities'][$quantity]['outcome']);
+        $this->assertSame(['queries' => 5, 'rows_examined' => 20, 'peak_memory' => 30][$quantity], $r['quantities'][$quantity]['tolerance_percent']);
+    }
+
     public function test_the_relative_error_is_divided_by_the_measured_value(): void
     {
         // |150 - 100| / 100 = 0.5, not 50/150
