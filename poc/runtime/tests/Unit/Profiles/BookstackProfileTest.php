@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Unit\Profiles;
 
 use PDO;
-use PeakSim\Runtime\Measure\GeneratorPlanner;
 use PeakSim\Runtime\Measure\Profile;
 use PHPUnit\Framework\TestCase;
 
@@ -30,36 +29,67 @@ final class BookstackProfileTest extends TestCase
         $this->assertIsCallable($this->profile['after_generation']);
     }
 
-    public function test_the_permission_rows_do_not_grow_with_the_square_of_the_scale(): void
+    public function test_a_plan_that_grows_only_the_entities_keeps_one_row_per_entity_and_role(): void
     {
-        // Under a plan that grows every table, roles and entities are both N, and one row per entity and role is N*N
-        // rows: 100 million at N = 10000, a statement the database kept running for hours after the measurer's own
-        // limit had killed the process that sent it.
-        $pdo = $this->database(roles: 40, entities: 7);
+        // the targeted plan of one table: roles stay at their nine (the four the migrations make and the five of the
+        // base size), so each of the 200 entities has nine rows, as the app's own builder writes
+        $pdo = $this->database(roles: 9, entities: 200);
 
         $pdo->exec($this->fixup(self::FIXUP));
 
-        $this->assertSame(7 * GeneratorPlanner::BASE, (int) $pdo->query('SELECT COUNT(*) FROM joint_permissions')->fetchColumn());
+        $this->assertSame(200 * 9, $this->rowCount($pdo));
     }
 
-    public function test_the_permission_rows_name_the_lowest_roles_and_so_the_admin_role_of_the_migrations(): void
+    public function test_a_plan_that_grows_only_the_roles_keeps_one_row_per_role_for_each_base_entity(): void
     {
-        $pdo = $this->database(roles: 40, entities: 3);
+        // the targeted plan of the roles table: the five entities of the base size, each with a row for every one of
+        // the 200 roles
+        $pdo = $this->database(roles: 200, entities: 5);
 
         $pdo->exec($this->fixup(self::FIXUP));
 
-        $roles = $pdo->query('SELECT DISTINCT role_id FROM joint_permissions ORDER BY role_id')->fetchAll(PDO::FETCH_COLUMN);
-        $this->assertSame(range(1, GeneratorPlanner::BASE), array_map('intval', $roles));
+        $this->assertSame(5 * 200, $this->rowCount($pdo));
+    }
+
+    public function test_a_plan_that_grows_every_table_does_not_grow_with_the_square_of_the_scale(): void
+    {
+        // Roles and entities both grow with N, and one row per entity and role is N*N rows: 100 million at N = 10000,
+        // a statement the database kept running for hours after the measurer's own limit had killed the process that
+        // sent it. Hand-counted: the rows with a role of the nine lowest numbers or an entity of the five lowest.
+        // N = 100: 9*100 + 5*104 - 9*5 = 1375;  N = 1000: 9*1000 + 5*1004 - 9*5 = 13975.
+        $small = $this->database(roles: 104, entities: 100);
+        $small->exec($this->fixup(self::FIXUP));
+        $large = $this->database(roles: 1004, entities: 1000);
+        $large->exec($this->fixup(self::FIXUP));
+
+        $this->assertSame(1375, $this->rowCount($small));
+        $this->assertSame(13975, $this->rowCount($large));
+        $this->assertLessThan(11 * $this->rowCount($small), $this->rowCount($large), 'ten times the scale must be about ten times the rows');
+    }
+
+    public function test_the_admin_role_of_the_migrations_has_a_row_for_every_entity_in_each_shape(): void
+    {
+        // the login holds the admin role (id 1), so every entity must stay visible to it
+        foreach ([[9, 200], [200, 5], [104, 100], [3, 100]] as [$roles, $entities]) {
+            $pdo = $this->database(roles: $roles, entities: $entities);
+
+            $pdo->exec($this->fixup(self::FIXUP));
+
+            $this->assertSame(
+                $entities,
+                (int) $pdo->query('SELECT COUNT(DISTINCT entity_id) FROM joint_permissions WHERE role_id = 1')->fetchColumn(),
+                sprintf('roles %d, entities %d', $roles, $entities),
+            );
+        }
     }
 
     public function test_with_fewer_roles_than_the_bound_every_role_still_gets_a_row_per_entity(): void
     {
-        // the targeted plans leave roles at the base size (and fewer, where a plan says so): nothing is lost there
         $pdo = $this->database(roles: 3, entities: 100);
 
         $pdo->exec($this->fixup(self::FIXUP));
 
-        $this->assertSame(100 * 3, (int) $pdo->query('SELECT COUNT(*) FROM joint_permissions')->fetchColumn());
+        $this->assertSame(100 * 3, $this->rowCount($pdo));
     }
 
     public function test_the_fixup_still_says_why_and_names_the_bound(): void
@@ -68,6 +98,12 @@ final class BookstackProfileTest extends TestCase
 
         $this->assertMatchesRegularExpression('/\.php:\d+/', $why);
         $this->assertStringContainsString('N*N', $why);
+        $this->assertStringContainsString('from 1', $why, 'the bound reads the numbers as running from 1');
+    }
+
+    private function rowCount(PDO $pdo): int
+    {
+        return (int) $pdo->query('SELECT COUNT(*) FROM joint_permissions')->fetchColumn();
     }
 
     private function database(int $roles, int $entities): PDO
