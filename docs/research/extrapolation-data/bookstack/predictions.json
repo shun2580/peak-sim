@@ -1,0 +1,1630 @@
+{
+    "schema_version": "0.1",
+    "source": "s1b",
+    "at": 100000,
+    "routes": [
+        {
+            "route": "DELETE /api/books/{id}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /api/chapters/{id}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /api/imports/{id}",
+            "axis": "N",
+            "table": "imports",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /api/pages/{id}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /api/shelves/{id}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /api/users/{id}",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 196005.22966599837,
+                    "a": 51.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832784.3850776893,
+                    "a": 326.569252293,
+                    "b": 9.34033031784,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121718207.35184003,
+                    "a": 41246.051611,
+                    "b": 54351.1021556,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 196003.22966599837,
+                    "a": 49.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832774.8672018519,
+                    "a": 320.929659369,
+                    "b": 9.34028680279,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121741395.8353097,
+                    "a": 40054.8253905,
+                    "b": 54361.9921719,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 196004.22966599837,
+                    "a": 50.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832772.8314483942,
+                    "a": 326.650473521,
+                    "b": 9.34019977267,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121732622.01301205,
+                    "a": 44181.2624739,
+                    "b": 54356.2298377,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "DELETE /books/{id}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 196009.22966599837,
+                    "a": 55.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832812.4565837142,
+                    "a": 339.12762399,
+                    "b": 9.34050437807,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121769582.54943547,
+                    "a": 45371.2096463,
+                    "b": 54372.207973,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "DELETE /import/{id}",
+            "axis": "N",
+            "table": "imports",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /settings/maintenance/cleanup-images",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 200104.34543987745,
+                    "a": 3.96442687747,
+                    "b": 2.00100381013,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2568984.5213696244,
+                    "a": 358.664438481,
+                    "b": 6.45209643765,
+                    "k": 1.12
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 4988433.297241846,
+                    "a": 0,
+                    "b": 176996.292516,
+                    "k": 0.29
+                }
+            }
+        },
+        {
+            "route": "DELETE /settings/sorting/rules/{id}",
+            "axis": "N",
+            "table": "sort_rules",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /settings/users/{id}",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "DELETE /shelves/{slug}",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 196002.22966599837,
+                    "a": 48.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832866.6279120278,
+                    "a": 320.556798476,
+                    "b": 9.34132055846,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121762234.99600972,
+                    "a": 35310.5661915,
+                    "b": 54373.4198658,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "GET /api/books/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/books/{id}/export/zip",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/chapters/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/imports/{id}",
+            "axis": "N",
+            "table": "imports",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/pages/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/shelves/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/users",
+            "axis": "N",
+            "table": null,
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /api/users/{id}",
+            "axis": "N",
+            "table": "users",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 34479.949021724846,
+                    "a": 207.840729956,
+                    "b": 0.384539379712,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 31279464.549318153,
+                    "a": 272077.551966,
+                    "b": 55.1397978565,
+                    "k": 1.15
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/copy",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/draft/{pageId}",
+            "axis": "N",
+            "table": "page_revisions",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 13,
+                    "a": 13,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 211,
+                    "a": 211,
+                    "b": 0,
+                    "k": 0
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1260792,
+                    "a": 1260792,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 39372.413647544476,
+                    "a": 210.384331069,
+                    "b": 0.43940519601,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 30009592.233584195,
+                    "a": 272288.335575,
+                    "b": 52.8812352319,
+                    "k": 1.15
+                }
+            }
+        },
+        {
+            "route": "GET /books/{slug}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 34471.431145263436,
+                    "a": 203.201137032,
+                    "b": 0.384495864655,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 30543560.624499742,
+                    "a": 269031.399706,
+                    "b": 42.7639091758,
+                    "k": 1.17
+                }
+            }
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 199,
+                    "a": 199,
+                    "b": 0,
+                    "k": 0
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 4019104,
+                    "a": 4019104,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "GET /import/{id}",
+            "axis": "N",
+            "table": "imports",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /login/service/{socialDriver}/callback",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /oidc/callback",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 0,
+                    "a": 0,
+                    "b": 0,
+                    "k": 0
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 25632,
+                    "a": 25632,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "GET /register",
+            "axis": "N",
+            "table": null,
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /settings/sorting/rules/{id}",
+            "axis": "N",
+            "table": "sort_rules",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /settings/users/create",
+            "axis": "N",
+            "table": "roles",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 4,
+                    "a": 4,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 100202,
+                    "a": 202,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 339282189.9308714,
+                    "a": 261084.084184,
+                    "b": 3021.52878633,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /settings/users/{id}",
+            "axis": "N",
+            "table": "roles",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 8,
+                    "a": 8,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 100210,
+                    "a": 210,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 339485399.4882097,
+                    "a": 297680.92265,
+                    "b": 3023.01372375,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "GET /shelves/{slug}/references",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 34471.431145263436,
+                    "a": 203.201137032,
+                    "b": 0.384495864655,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 36657458.02923339,
+                    "a": 267641.605947,
+                    "b": 45.8120646258,
+                    "k": 1.18
+                }
+            }
+        },
+        {
+            "route": "POST /api/imports/{id}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "POST /api/users",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "POST /books/{bookSlug}/copy",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "POST /books/{bookSlug}/draft/{pageId}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "POST /import/{id}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 191,
+                    "a": 191,
+                    "b": 0,
+                    "k": 0
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 91456,
+                    "a": 91456,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "POST /register",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "POST /settings/maintenance/regenerate-references",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2046.1582330920264,
+                    "a": 8.88833378391,
+                    "b": 0.0181571870899,
+                    "k": 1.01
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 15325810.46353234,
+                    "a": 304.550420125,
+                    "b": 0.0610119379637,
+                    "k": 1.68
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 308828.337867905,
+                    "a": 92859.9668969,
+                    "b": 24232.0497775,
+                    "k": 0.19
+                }
+            }
+        },
+        {
+            "route": "POST /settings/recycle-bin/empty",
+            "axis": "N",
+            "table": "deletions",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 195998.22966599837,
+                    "a": 44.5865935386,
+                    "b": 2.19863603715,
+                    "k": 0.99
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 832821.4848999789,
+                    "a": 306.440055083,
+                    "b": 9.340972438,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 121718546.04108869,
+                    "a": 24264.0327881,
+                    "b": 54358.8390317,
+                    "k": 0.67
+                }
+            }
+        },
+        {
+            "route": "POST /settings/users/create",
+            "axis": "N",
+            "table": "images",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /api/books/{id}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N*M)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /api/chapters/{id}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /api/pages/{id}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /api/shelves/{id}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /api/users/{id}",
+            "axis": "N",
+            "table": "users",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 34480.87751596831,
+                    "a": 224.28235826,
+                    "b": 0.384365319485,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 132861.67431683157,
+                    "a": 109903.249983,
+                    "b": 20461.7172256,
+                    "k": 0.01
+                }
+            }
+        },
+        {
+            "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 34505.87751596831,
+                    "a": 249.28235826,
+                    "b": 0.384365319485,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 133181.81889934887,
+                    "a": 113635.794248,
+                    "b": 17420.4128073,
+                    "k": 0.01
+                }
+            }
+        },
+        {
+            "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 113012.1838619594,
+                    "a": 203.046545457,
+                    "b": 1.26573933883,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1266976,
+                    "a": 1266976,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "PUT /books/{slug}",
+            "axis": "N",
+            "table": "entities",
+            "static_lower_bound": "O(N*M)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /settings/sorting/rules/{id}",
+            "axis": "N",
+            "table": "sort_rules",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "rows_examined": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                },
+                "peak_memory": {
+                    "status": "not_predicted",
+                    "fit_status": "insufficient_scales",
+                    "reason": "scale 0: not measured"
+                }
+            }
+        },
+        {
+            "route": "PUT /settings/users/{id}",
+            "axis": "N",
+            "table": "users",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 4,
+                    "a": 4,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 193,
+                    "a": 193,
+                    "b": 0,
+                    "k": 0
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 90624,
+                    "a": 90624,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "PUT /shelves/{slug}",
+            "axis": "N",
+            "table": "references",
+            "static_lower_bound": "O(N)",
+            "quantities": {
+                "queries": {
+                    "status": "not_predicted",
+                    "fit_status": "contradicts_static",
+                    "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)"
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 112998.1838619594,
+                    "a": 189.046545457,
+                    "b": 1.26573933883,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 130195.68624109594,
+                    "a": 102428.120198,
+                    "b": 24747.8692856,
+                    "k": 0.01
+                }
+            }
+        }
+    ]
+}
