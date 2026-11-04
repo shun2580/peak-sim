@@ -76,7 +76,8 @@ final class ExtrapolationCommandsTest extends TestCase
         $result = json_decode($out, true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('pass', $result['verdict']);
         $this->assertSame('run', $result['measured_source']);
-        $this->assertSame(5, $result['summary']['denominator']);
+        $this->assertSame(5, $result['quantities']['queries']['denominator']);
+        $this->assertSame(5, $result['quantities']['rows_examined']['denominator']);
 
         [, $again] = self::exec(new CompareExtrapolationCommand(STDOUT, STDERR), ['--predictions=' . $this->dir . '/predictions.json', '--measured=' . $this->dir . '/run/attempts.jsonl']);
         $this->assertSame(json_decode($again, true)['routes'], $result['routes']);

@@ -9,20 +9,22 @@ namespace PeakSim\Runtime\Judge;
  * extrapolation test (docs/simulator-spec.md 7.4, A). The numbers below are those of the spec and are not changed
  * here.
  *
- * Which routes count (the denominator): the `fit_status` of the two quantities that decide the test (the query count
- * and the examined rows) is `ok`, and the cold attempt at the predicted size was measured (class `ok`, both values
- * present). A route that the static analysis contradicts, or that had too few scales for a formula, is not in the
- * denominator; it is counted and listed in the same result so that it is never dropped silently. A route with a
- * formula that could not be measured at the predicted size (timeout, failure) is listed as `unmeasured`.
+ * Which routes count (the denominator) is decided per quantity, not per route. For a quantity, a route is in the
+ * denominator when the `fit_status` of that quantity is `ok` and the cold attempt at the predicted size was measured
+ * (class `ok`, a value present for that quantity). A route that the static analysis contradicts for that quantity, or
+ * that had too few scales for its formula, is not in that quantity's denominator; it is counted and listed, by
+ * quantity, in the same result so that it is never dropped silently. A route with a formula for that quantity that
+ * could not be measured at the predicted size (timeout, failure, value missing) is `unmeasured` for it.
  *
  * Per quantity: the share of denominator routes whose relative error |predicted - measured| / measured stays in the
  * tolerance (the edge counts as inside). A measured value of 0 has no relative error: the prediction is a match when
  * it is below 0.5, and a mismatch otherwise.
  *
- * Verdict: `pass` when the query count and the examined rows are both inside for at least 80% of the denominator;
- * `fail` when not; `indeterminate` (never a pass) when the denominator has fewer than 5 routes, or when the routes
- * that could not be measured are more than 20% of the routes with a formula. Peak memory does not decide the test;
- * the routes whose peak memory is inside the tolerance are listed.
+ * Verdict: `pass` when the query count and the examined rows are each inside for at least 80% of their own
+ * denominator; `fail` when not; `indeterminate` (never a pass) when, for either of the two, the denominator has fewer
+ * than 5 routes, or the routes that could not be measured are more than 20% of the routes with a formula for it.
+ * Peak memory does not decide the test; it is counted the same way and the routes whose peak memory is inside the
+ * tolerance are listed.
  */
 final class ExtrapolationJudge
 {
@@ -80,37 +82,34 @@ final class ExtrapolationJudge
         }
         usort($routes, static fn (array $x, array $y): int => strcmp($x['route'], $y['route']));
 
-        $counts = [self::IN_DENOMINATOR => 0, self::UNMEASURED => 0, self::CONTRADICTS_STATIC => 0, self::INSUFFICIENT_SCALES => 0];
         $quantities = [];
         foreach (Predictor::QUANTITIES as $q) {
-            $quantities[$q] = ['denominator' => 0, 'within' => 0];
+            $quantities[$q] = ['denominator' => 0, 'within' => 0, self::UNMEASURED => 0, self::CONTRADICTS_STATIC => 0, self::INSUFFICIENT_SCALES => 0];
         }
         $memoryWithin = [];
         foreach ($routes as $r) {
-            ++$counts[$r['category']];
-            if ($r['category'] !== self::IN_DENOMINATOR) {
-                continue;
-            }
             foreach (Predictor::QUANTITIES as $q) {
-                $outcome = $r['quantities'][$q]['outcome'] ?? null;
-                if ($outcome === 'match' || $outcome === 'mismatch') {
-                    ++$quantities[$q]['denominator'];
-                    if ($outcome === 'match') {
-                        ++$quantities[$q]['within'];
+                $category = $r['quantities'][$q]['category'];
+                if ($category !== self::IN_DENOMINATOR) {
+                    ++$quantities[$q][$category];
+                    continue;
+                }
+                ++$quantities[$q]['denominator'];
+                if ($r['quantities'][$q]['outcome'] === 'match') {
+                    ++$quantities[$q]['within'];
+                    if ($q === 'peak_memory') {
+                        $memoryWithin[] = $r['route'];
                     }
                 }
             }
-            if (($r['quantities']['peak_memory']['outcome'] ?? null) === 'match') {
-                $memoryWithin[] = $r['route'];
-            }
         }
         foreach ($quantities as $q => $c) {
+            $quantities[$q]['with_formula'] = $c['denominator'] + $c[self::UNMEASURED];
             $quantities[$q]['percent'] = $c['denominator'] === 0 ? null : round($c['within'] * 100 / $c['denominator'], 2);
             $quantities[$q]['tolerance_percent'] = self::TOLERANCE_PERCENT[$q];
         }
 
-        $withFormula = $counts[self::IN_DENOMINATOR] + $counts[self::UNMEASURED];
-        [$verdict, $reasons] = self::verdict($counts, $quantities, $withFormula);
+        [$verdict, $reasons] = self::verdict($quantities);
 
         return [
             'schema_version' => self::SCHEMA_VERSION,
@@ -119,14 +118,7 @@ final class ExtrapolationJudge
             'measured_source' => $measuredName,
             'verdict' => $verdict,
             'reasons' => $reasons,
-            'summary' => [
-                'routes' => count($routes),
-                'with_formula' => $withFormula,
-                'denominator' => $counts[self::IN_DENOMINATOR],
-                'unmeasured' => $counts[self::UNMEASURED],
-                'contradicts_static' => $counts[self::CONTRADICTS_STATIC],
-                'insufficient_scales' => $counts[self::INSUFFICIENT_SCALES],
-            ],
+            'summary' => ['routes' => count($routes)],
             'quantities' => $quantities,
             'peak_memory_within_tolerance' => $memoryWithin,
             'routes' => $routes,
@@ -134,21 +126,23 @@ final class ExtrapolationJudge
     }
 
     /**
-     * @param array<string, int>                                  $counts
-     * @param array<string, array{denominator: int, within: int}> $quantities
+     * Each of the two deciding quantities is judged on its own denominator; if either cannot be judged, the test cannot.
+     *
+     * @param array<string, array<string, mixed>> $quantities
      *
      * @return array{0: string, 1: list<string>}
      */
-    private static function verdict(array $counts, array $quantities, int $withFormula): array
+    private static function verdict(array $quantities): array
     {
-        $den = $counts[self::IN_DENOMINATOR];
-        $unmeasured = $counts[self::UNMEASURED];
         $reasons = [];
-        if ($den < self::MIN_DENOMINATOR) {
-            $reasons[] = sprintf('the denominator has %d routes, fewer than %d', $den, self::MIN_DENOMINATOR);
-        }
-        if ($unmeasured * 100 > self::MAX_UNMEASURED_PERCENT * $withFormula) {
-            $reasons[] = sprintf('%d of %d routes with a formula could not be measured at the predicted size, more than %d%%', $unmeasured, $withFormula, self::MAX_UNMEASURED_PERCENT);
+        foreach (self::GATING as $q) {
+            $c = $quantities[$q];
+            if ($c['denominator'] < self::MIN_DENOMINATOR) {
+                $reasons[] = sprintf('%s: the denominator has %d routes, fewer than %d', $q, $c['denominator'], self::MIN_DENOMINATOR);
+            }
+            if ($c[self::UNMEASURED] * 100 > self::MAX_UNMEASURED_PERCENT * $c['with_formula']) {
+                $reasons[] = sprintf('%s: %d of %d routes with a formula could not be measured at the predicted size, more than %d%%', $q, $c[self::UNMEASURED], $c['with_formula'], self::MAX_UNMEASURED_PERCENT);
+            }
         }
         if ($reasons !== []) {
             return [self::INDETERMINATE, $reasons];
@@ -157,7 +151,7 @@ final class ExtrapolationJudge
         $verdict = self::PASS;
         foreach (self::GATING as $q) {
             $c = $quantities[$q];
-            $inside = $c['denominator'] > 0 && $c['within'] * 100 >= self::PASS_SHARE_PERCENT * $c['denominator'];
+            $inside = $c['within'] * 100 >= self::PASS_SHARE_PERCENT * $c['denominator'];
             $reasons[] = sprintf('%s: %d of %d inside +-%d%% (%s), needs %d%%', $q, $c['within'], $c['denominator'], self::TOLERANCE_PERCENT[$q], $inside ? 'enough' : 'not enough', self::PASS_SHARE_PERCENT);
             if (!$inside) {
                 $verdict = self::FAIL;
@@ -189,6 +183,8 @@ final class ExtrapolationJudge
     }
 
     /**
+     * One row per route; every quantity carries its own `category` (and a `reason` when it is not in the denominator).
+     *
      * @param array<string, mixed>               $route
      * @param array<string, array<string, mixed>> $cold
      *
@@ -198,67 +194,46 @@ final class ExtrapolationJudge
     {
         $name = (string) $route['route'];
         $quantities = (array) ($route['quantities'] ?? []);
-        $row = ['route' => $name, 'axis' => $route['axis'] ?? null, 'category' => self::IN_DENOMINATOR, 'quantities' => []];
-
-        // Statuses of the quantities that decide the test. contradicts_static outranks insufficient_scales.
-        $gatingStatus = [];
-        foreach (self::GATING as $q) {
-            $gatingStatus[$q] = (string) ($quantities[$q]['fit_status'] ?? 'missing');
-        }
-        foreach ([self::CONTRADICTS_STATIC, self::INSUFFICIENT_SCALES] as $excluded) {
-            foreach (self::GATING as $q) {
-                if ($gatingStatus[$q] === $excluded) {
-                    $row['category'] = $excluded;
-                    $row['reason'] = sprintf('%s: %s', $q, (string) ($quantities[$q]['reason'] ?? $excluded));
-
-                    return $row;
-                }
-            }
-        }
-        foreach (self::GATING as $q) {
-            if ($gatingStatus[$q] !== 'ok') {
-                $row['category'] = self::INSUFFICIENT_SCALES;
-                $row['reason'] = sprintf('%s: fit_status %s', $q, $gatingStatus[$q]);
-
-                return $row;
-            }
-        }
+        $row = ['route' => $name, 'axis' => $route['axis'] ?? null, 'quantities' => []];
 
         $key = $name . "\0" . ((string) ($route['axis'] ?? ''));
         $a = $cold[$key] ?? null;
-        $problem = null;
+        // Why the cold attempt as a whole cannot be used (the same for every quantity); null when it can.
+        $attemptProblem = null;
         if ($a === null) {
-            $problem = 'no cold attempt at the predicted size';
+            $attemptProblem = 'no cold attempt at the predicted size';
         } elseif (($a['class'] ?? null) !== 'ok') {
-            $problem = 'cold attempt class ' . (string) ($a['class'] ?? 'unknown');
-        } else {
-            foreach (self::GATING as $q) {
-                if (!isset($a[self::ATTEMPT_FIELD[$q]])) {
-                    $problem = $q . ' was not measured';
-                    break;
-                }
-            }
-        }
-        if ($problem !== null) {
-            $row['category'] = self::UNMEASURED;
-            $row['reason'] = $problem;
-
-            return $row;
+            $attemptProblem = 'cold attempt class ' . (string) ($a['class'] ?? 'unknown');
         }
 
         foreach (Predictor::QUANTITIES as $q) {
             $p = (array) ($quantities[$q] ?? []);
+            $fit = (string) ($p['fit_status'] ?? 'missing');
             $measured = $a[self::ATTEMPT_FIELD[$q]] ?? null;
+
+            // contradicts_static and insufficient_scales leave this quantity's denominator, and are listed.
+            if ($fit === self::CONTRADICTS_STATIC || $fit === self::INSUFFICIENT_SCALES) {
+                $row['quantities'][$q] = ['category' => $fit, 'reason' => (string) ($p['reason'] ?? $fit), 'outcome' => 'no_prediction', 'measured' => $measured];
+                continue;
+            }
+            if ($fit !== 'ok') {
+                $row['quantities'][$q] = ['category' => self::INSUFFICIENT_SCALES, 'reason' => 'fit_status ' . $fit, 'outcome' => 'no_prediction', 'measured' => $measured];
+                continue;
+            }
             if (($p['status'] ?? null) !== Predictor::PREDICTED) {
-                $row['quantities'][$q] = ['outcome' => 'no_prediction', 'measured' => $measured, 'reason' => (string) ($p['reason'] ?? ($p['fit_status'] ?? 'no prediction'))];
+                $row['quantities'][$q] = ['category' => self::INSUFFICIENT_SCALES, 'reason' => (string) ($p['reason'] ?? 'no prediction'), 'outcome' => 'no_prediction', 'measured' => $measured];
                 continue;
             }
-            if ($measured === null) {
-                $row['quantities'][$q] = ['outcome' => 'not_measured', 'predicted' => $p['value']];
+
+            // The formula is ok: the quantity is in the denominator when it was measured, and unmeasured when not.
+            $problem = $attemptProblem ?? ($measured === null ? $q . ' was not measured' : null);
+            if ($problem !== null) {
+                $row['quantities'][$q] = ['category' => self::UNMEASURED, 'reason' => $problem, 'outcome' => 'not_measured', 'predicted' => $p['value']];
                 continue;
             }
-            $row['quantities'][$q] = self::compare((float) $p['value'], (float) $measured, self::TOLERANCE_PERCENT[$q]);
-            $row['quantities'][$q] += ['a' => $p['a'], 'b' => $p['b'], 'k' => $p['k']];
+            $row['quantities'][$q] = ['category' => self::IN_DENOMINATOR]
+                + self::compare((float) $p['value'], (float) $measured, self::TOLERANCE_PERCENT[$q])
+                + ['a' => $p['a'], 'b' => $p['b'], 'k' => $p['k']];
         }
 
         return $row;
@@ -280,49 +255,43 @@ final class ExtrapolationJudge
     }
 
     /**
-     * The result for reading: the verdict, the table of shares, and the routes left out of the denominator.
+     * The result for reading: the verdict, the table of shares, and the routes left out of each denominator.
      *
      * @param array<string, mixed> $result
      */
     public static function toMarkdown(array $result): string
     {
-        $s = $result['summary'];
         $md = sprintf("# Extrapolation test at N = %d\n\n", $result['at']);
         $md .= sprintf("Verdict: **%s**\n\n", $result['verdict']);
         foreach ($result['reasons'] as $reason) {
             $md .= '- ' . $reason . "\n";
         }
-        $md .= "\n| quantity | inside | denominator | share | tolerance | decides the test |\n| --- | --- | --- | --- | --- | --- |\n";
+        $md .= "\n| quantity | inside | denominator | unmeasured | contradicts_static | insufficient_scales | share | tolerance | decides the test |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n";
         foreach ($result['quantities'] as $q => $c) {
             $md .= sprintf(
-                "| %s | %d | %d | %s | +-%d%% | %s |\n",
+                "| %s | %d | %d | %d | %d | %d | %s | +-%d%% | %s |\n",
                 $q,
                 $c['within'],
                 $c['denominator'],
+                $c[self::UNMEASURED],
+                $c[self::CONTRADICTS_STATIC],
+                $c[self::INSUFFICIENT_SCALES],
                 $c['percent'] === null ? 'n/a' : $c['percent'] . '%',
                 $c['tolerance_percent'],
                 in_array($q, self::GATING, true) ? 'yes' : 'no',
             );
         }
-        $md .= sprintf(
-            "\nRoutes: %d; with a formula: %d (denominator %d, unmeasured %d); contradicts_static: %d; insufficient_scales: %d\n",
-            $s['routes'],
-            $s['with_formula'],
-            $s['denominator'],
-            $s['unmeasured'],
-            $s['contradicts_static'],
-            $s['insufficient_scales'],
-        );
-        $md .= "\n## Left out of the denominator\n\n";
-        $left = array_filter($result['routes'], static fn (array $r): bool => $r['category'] !== self::IN_DENOMINATOR);
-        if ($left === []) {
-            $md .= "none\n";
-        } else {
-            $md .= "| route | category | reason |\n| --- | --- | --- |\n";
-            foreach ($left as $r) {
-                $md .= sprintf("| %s | %s | %s |\n", $r['route'], $r['category'], $r['reason'] ?? '');
+        $md .= sprintf("\nRoutes: %d. The denominator is counted per quantity (the query count and the examined rows each have their own).\n", $result['summary']['routes']);
+        $md .= "\n## Left out of a denominator\n\n";
+        $left = [];
+        foreach ($result['routes'] as $r) {
+            foreach ($r['quantities'] as $q => $c) {
+                if ($c['category'] !== self::IN_DENOMINATOR) {
+                    $left[] = sprintf("| %s | %s | %s | %s |\n", $r['route'], $q, $c['category'], $c['reason'] ?? '');
+                }
             }
         }
+        $md .= $left === [] ? "none\n" : "| route | quantity | category | reason |\n| --- | --- | --- | --- |\n" . implode('', $left);
         $md .= "\n## Peak memory inside the tolerance\n\n";
         $md .= $result['peak_memory_within_tolerance'] === [] ? "none\n" : implode("\n", array_map(static fn (string $r): string => '- ' . $r, $result['peak_memory_within_tolerance'])) . "\n";
 

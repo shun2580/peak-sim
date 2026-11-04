@@ -10,7 +10,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Every expected number is written by hand from the rules of docs/simulator-spec.md 7.4 (A). The routes are built so
  * that each predicts 100 queries, 1000 rows and 5000 bytes; a measured value of exactly that is "inside", and a
- * measured value far away (x2) is "outside".
+ * measured value far away (x2) is "outside". The denominator is counted per quantity (the query count and the examined
+ * rows each have their own), so every count is read from `quantities[<q>]`.
  */
 final class ExtrapolationJudgeTest extends TestCase
 {
@@ -148,7 +149,8 @@ final class ExtrapolationJudgeTest extends TestCase
         $r = ExtrapolationJudge::judge($p, $a);
 
         $this->assertSame('pass', $r['verdict']);
-        $this->assertSame(5, $r['summary']['denominator']);
+        $this->assertSame(5, $r['quantities']['queries']['denominator']);
+        $this->assertSame(5, $r['quantities']['rows_examined']['denominator']);
         $this->assertSame(4, $r['quantities']['queries']['within']);
         $this->assertSame(80.0, $r['quantities']['queries']['percent']);
     }
@@ -187,7 +189,8 @@ final class ExtrapolationJudgeTest extends TestCase
         $r = ExtrapolationJudge::judge($p, $a);
 
         $this->assertSame('indeterminate', $r['verdict']);
-        $this->assertSame(4, $r['summary']['denominator']);
+        $this->assertSame(4, $r['quantities']['queries']['denominator']);
+        $this->assertSame(4, $r['quantities']['rows_examined']['denominator']);
     }
 
     public function test_both_the_query_count_and_the_examined_rows_must_reach_eighty_percent(): void
@@ -215,8 +218,10 @@ final class ExtrapolationJudgeTest extends TestCase
 
         $r = ExtrapolationJudge::judge($p, $a);
 
-        $this->assertSame(2, $r['summary']['unmeasured']);
-        $this->assertSame(8, $r['summary']['denominator']);
+        foreach (['queries', 'rows_examined'] as $q) {
+            $this->assertSame(2, $r['quantities'][$q]['unmeasured']);
+            $this->assertSame(8, $r['quantities'][$q]['denominator']);
+        }
         $this->assertSame('pass', $r['verdict']);
     }
 
@@ -227,15 +232,18 @@ final class ExtrapolationJudgeTest extends TestCase
 
         $r = ExtrapolationJudge::judge($p, $a);
 
-        $this->assertSame(3, $r['summary']['unmeasured']);
-        $this->assertSame(7, $r['summary']['denominator']);
+        foreach (['queries', 'rows_examined'] as $q) {
+            $this->assertSame(3, $r['quantities'][$q]['unmeasured']);
+            $this->assertSame(7, $r['quantities'][$q]['denominator']);
+        }
         $this->assertSame('indeterminate', $r['verdict']);
     }
 
     public function test_routes_without_a_formula_are_not_in_the_base_of_the_twenty_percent_line(): void
     {
-        // 7 measured + 3 unmeasured = 10 routes with a formula: 3 of 10 is 30%, over the line. Ten more routes have
-        // no formula (insufficient_scales); counting them in the base would make it 3 of 20 = 15% and hide the 30%.
+        // For the examined rows: 7 measured + 3 unmeasured = 10 routes with a formula: 3 of 10 is 30%, over the line.
+        // Ten more routes have no formula for the examined rows (insufficient_scales); counting them in the base would
+        // make it 3 of 20 = 15% and hide the 30%.
         [$p, $a] = self::series(10, 10);
         $a = array_slice($a, 0, 7);
         for ($i = 0; $i < 10; ++$i) {
@@ -246,9 +254,9 @@ final class ExtrapolationJudgeTest extends TestCase
 
         $r = ExtrapolationJudge::judge($p, $a);
 
-        $this->assertSame(10, $r['summary']['insufficient_scales']);
-        $this->assertSame(10, $r['summary']['with_formula']);
-        $this->assertSame(3, $r['summary']['unmeasured']);
+        $this->assertSame(10, $r['quantities']['rows_examined']['insufficient_scales']);
+        $this->assertSame(10, $r['quantities']['rows_examined']['with_formula']);
+        $this->assertSame(3, $r['quantities']['rows_examined']['unmeasured']);
         $this->assertSame('indeterminate', $r['verdict']);
 
         // And the other side: 2 of 10 with a formula is exactly 20%, so the same ten extra routes change nothing.
@@ -260,8 +268,8 @@ final class ExtrapolationJudgeTest extends TestCase
             $a[] = self::cold($name);
         }
         $r = ExtrapolationJudge::judge($p, $a);
-        $this->assertSame(10, $r['summary']['with_formula']);
-        $this->assertSame(8, $r['summary']['denominator']);
+        $this->assertSame(10, $r['quantities']['rows_examined']['with_formula']);
+        $this->assertSame(8, $r['quantities']['rows_examined']['denominator']);
         $this->assertSame('pass', $r['verdict']);
     }
 
@@ -273,12 +281,15 @@ final class ExtrapolationJudgeTest extends TestCase
         $r = ExtrapolationJudge::judge($p, $a);
 
         $last = end($r['routes']);
-        $this->assertSame('unmeasured', $last['category']);
-        $this->assertSame('cold attempt class timeout', $last['reason']);
-        $this->assertSame(9, $r['summary']['denominator']);
+        foreach (['queries', 'rows_examined', 'peak_memory'] as $q) {
+            $this->assertSame('unmeasured', $last['quantities'][$q]['category']);
+            $this->assertSame('cold attempt class timeout', $last['quantities'][$q]['reason']);
+        }
+        $this->assertSame(9, $r['quantities']['queries']['denominator']);
+        $this->assertSame(9, $r['quantities']['rows_examined']['denominator']);
     }
 
-    public function test_contradicts_static_and_insufficient_scales_are_left_out_of_the_denominator_but_counted_and_listed(): void
+    public function test_contradicts_static_and_insufficient_scales_are_left_out_of_that_quantitys_denominator_but_counted_and_listed(): void
     {
         [$p, $a] = self::series(5, 5);
         $p['routes'][] = self::route('GET /contra', ['status' => 'not_predicted', 'fit_status' => 'contradicts_static', 'reason' => 'k 0.1 under O(N)']);
@@ -289,16 +300,146 @@ final class ExtrapolationJudgeTest extends TestCase
         $r = ExtrapolationJudge::judge($p, $a);
 
         $this->assertSame('pass', $r['verdict']);
-        $this->assertSame(5, $r['summary']['denominator']);
-        $this->assertSame(1, $r['summary']['contradicts_static']);
-        $this->assertSame(1, $r['summary']['insufficient_scales']);
+        // 5 ordinary routes + /few for the query count (its examined rows have no formula); 5 + /contra for the examined rows.
+        $this->assertSame(6, $r['quantities']['queries']['denominator']);
+        $this->assertSame(1, $r['quantities']['queries']['contradicts_static']);
+        $this->assertSame(0, $r['quantities']['queries']['insufficient_scales']);
+        $this->assertSame(6, $r['quantities']['rows_examined']['denominator']);
+        $this->assertSame(0, $r['quantities']['rows_examined']['contradicts_static']);
+        $this->assertSame(1, $r['quantities']['rows_examined']['insufficient_scales']);
         $byName = array_column($r['routes'], null, 'route');
-        $this->assertSame('contradicts_static', $byName['GET /contra']['category']);
-        $this->assertSame('queries: k 0.1 under O(N)', $byName['GET /contra']['reason']);
-        $this->assertSame('insufficient_scales', $byName['GET /few']['category']);
-        $this->assertSame('rows_examined: scale 10000: timeout', $byName['GET /few']['reason']);
-        $this->assertStringContainsString('GET /contra', ExtrapolationJudge::toMarkdown($r));
-        $this->assertStringContainsString('GET /few', ExtrapolationJudge::toMarkdown($r));
+        $this->assertSame('contradicts_static', $byName['GET /contra']['quantities']['queries']['category']);
+        $this->assertSame('k 0.1 under O(N)', $byName['GET /contra']['quantities']['queries']['reason']);
+        $this->assertSame('in_denominator', $byName['GET /contra']['quantities']['rows_examined']['category']);
+        $this->assertSame('in_denominator', $byName['GET /few']['quantities']['queries']['category']);
+        $this->assertSame('insufficient_scales', $byName['GET /few']['quantities']['rows_examined']['category']);
+        $this->assertSame('scale 10000: timeout', $byName['GET /few']['quantities']['rows_examined']['reason']);
+        $md = ExtrapolationJudge::toMarkdown($r);
+        $this->assertStringContainsString('| GET /contra | queries | contradicts_static | k 0.1 under O(N) |', $md);
+        $this->assertStringContainsString('| GET /few | rows_examined | insufficient_scales | scale 10000: timeout |', $md);
+    }
+
+    public function test_a_route_the_static_analysis_contradicts_for_the_query_count_still_counts_for_the_examined_rows(): void
+    {
+        // 8 routes inside for both. 3 routes whose query count contradicts the static analysis, with the examined rows
+        // measured far outside (x2). If they were dropped from the examined rows, it would be 8 of 8 = 100%: a pass.
+        // Kept, it is 8 of 11 = 72.73%: a fail.
+        [$p, $a] = self::series(8, 8);
+        for ($i = 0; $i < 3; ++$i) {
+            $name = sprintf('GET /contra%d', $i);
+            $p['routes'][] = self::route($name, ['status' => 'not_predicted', 'fit_status' => 'contradicts_static', 'reason' => 'k 0.1 under O(N)']);
+            $a[] = self::cold($name, 100, 2000);
+        }
+
+        $r = ExtrapolationJudge::judge($p, $a);
+
+        $this->assertSame(8, $r['quantities']['queries']['denominator']);
+        $this->assertSame(3, $r['quantities']['queries']['contradicts_static']);
+        $this->assertSame(11, $r['quantities']['rows_examined']['denominator']);
+        $this->assertSame(8, $r['quantities']['rows_examined']['within']);
+        $this->assertSame(72.73, $r['quantities']['rows_examined']['percent']);
+        $this->assertSame('fail', $r['verdict']);
+    }
+
+    /**
+     * $n routes. The first $queryInside are measured as predicted for the query count and the first $rowsInside for the
+     * examined rows; the rest at double.
+     *
+     * @return array{0: array<string, mixed>, 1: list<array<string, mixed>>}
+     */
+    private static function mixedSeries(int $n, int $queryInside, int $rowsInside): array
+    {
+        $routes = [];
+        $attempts = [];
+        for ($i = 0; $i < $n; ++$i) {
+            $name = sprintf('GET /m%03d', $i);
+            $routes[] = self::route($name);
+            $attempts[] = self::cold($name, $i < $queryInside ? 100 : 200, $i < $rowsInside ? 1000 : 2000);
+        }
+
+        return [self::predictions($routes), $attempts];
+    }
+
+    public function test_the_pass_needs_eighty_percent_of_each_quantity_and_seventy_nine_of_either_fails(): void
+    {
+        [$p, $a] = self::mixedSeries(100, 80, 80);
+        $this->assertSame('pass', ExtrapolationJudge::judge($p, $a)['verdict']);
+
+        [$p, $a] = self::mixedSeries(100, 80, 79);
+        $r = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame(79.0, $r['quantities']['rows_examined']['percent']);
+        $this->assertSame('fail', $r['verdict']);
+
+        [$p, $a] = self::mixedSeries(100, 79, 80);
+        $r = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame(79.0, $r['quantities']['queries']['percent']);
+        $this->assertSame('fail', $r['verdict']);
+    }
+
+    public function test_the_rows_denominator_under_five_makes_it_indeterminate_while_the_query_count_has_enough(): void
+    {
+        // 6 routes; the examined rows of 2 of them have no formula (insufficient_scales) => 4 for the rows, 6 for the queries.
+        [$p, $a] = self::series(6, 6);
+        foreach ([4, 5] as $i) {
+            $p['routes'][$i]['quantities']['rows_examined'] = ['status' => 'not_predicted', 'fit_status' => 'insufficient_scales', 'reason' => 'scale 10000: timeout'];
+        }
+
+        $r = ExtrapolationJudge::judge($p, $a);
+
+        $this->assertSame(6, $r['quantities']['queries']['denominator']);
+        $this->assertSame(4, $r['quantities']['rows_examined']['denominator']);
+        $this->assertSame('indeterminate', $r['verdict']);
+        $this->assertSame(['rows_examined: the denominator has 4 routes, fewer than 5'], $r['reasons']);
+    }
+
+    public function test_the_query_denominator_under_five_makes_it_indeterminate_while_the_rows_have_enough(): void
+    {
+        [$p, $a] = self::series(6, 6);
+        foreach ([0, 1] as $i) {
+            $p['routes'][$i]['quantities']['queries'] = ['status' => 'not_predicted', 'fit_status' => 'contradicts_static', 'reason' => 'k 0.1 under O(N)'];
+        }
+
+        $r = ExtrapolationJudge::judge($p, $a);
+
+        $this->assertSame(4, $r['quantities']['queries']['denominator']);
+        $this->assertSame(6, $r['quantities']['rows_examined']['denominator']);
+        $this->assertSame('indeterminate', $r['verdict']);
+        $this->assertSame(['queries: the denominator has 4 routes, fewer than 5'], $r['reasons']);
+    }
+
+    public function test_more_than_twenty_percent_unmeasured_in_one_quantity_alone_makes_it_indeterminate(): void
+    {
+        // The examined rows were not collected for 3 of 10 routes (30% of the routes with a formula for it); the
+        // query count was collected for all 10. The denominators are 10 for the queries and 7 for the rows.
+        [$p, $a] = self::series(10, 10);
+        foreach ([0, 1, 2] as $i) {
+            $a[$i]['rows_examined'] = null;
+        }
+
+        $r = ExtrapolationJudge::judge($p, $a);
+
+        $this->assertSame(10, $r['quantities']['queries']['denominator']);
+        $this->assertSame(0, $r['quantities']['queries']['unmeasured']);
+        $this->assertSame(7, $r['quantities']['rows_examined']['denominator']);
+        $this->assertSame(3, $r['quantities']['rows_examined']['unmeasured']);
+        $this->assertSame('indeterminate', $r['verdict']);
+        $this->assertSame(['rows_examined: 3 of 10 routes with a formula could not be measured at the predicted size, more than 20%'], $r['reasons']);
+
+        // The same for the query count alone.
+        [$p, $a] = self::series(10, 10);
+        foreach ([0, 1, 2] as $i) {
+            $a[$i]['queries'] = null;
+        }
+        $r = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame('indeterminate', $r['verdict']);
+        $this->assertSame(['queries: 3 of 10 routes with a formula could not be measured at the predicted size, more than 20%'], $r['reasons']);
+
+        // Exactly 2 of 10 for one quantity is on the line, not over it.
+        [$p, $a] = self::series(10, 10);
+        foreach ([0, 1] as $i) {
+            $a[$i]['rows_examined'] = null;
+        }
+        $this->assertSame('pass', ExtrapolationJudge::judge($p, $a)['verdict']);
     }
 
     public function test_peak_memory_does_not_decide_the_test_and_its_routes_inside_thirty_percent_are_listed(): void
@@ -328,8 +469,10 @@ final class ExtrapolationJudgeTest extends TestCase
 
         $r = ExtrapolationJudge::judge($p, $a);
 
-        $this->assertSame(5, $r['summary']['denominator']);
+        $this->assertSame(5, $r['quantities']['queries']['denominator']);
+        $this->assertSame(5, $r['quantities']['rows_examined']['denominator']);
         $this->assertSame(4, $r['quantities']['peak_memory']['denominator']);
+        $this->assertSame(1, $r['quantities']['peak_memory']['insufficient_scales']);
         $this->assertSame('no_prediction', $r['routes'][0]['quantities']['peak_memory']['outcome']);
     }
 
@@ -345,15 +488,20 @@ final class ExtrapolationJudgeTest extends TestCase
         $this->assertSame(100.0, $r['quantities']['queries']['percent']);
     }
 
-    public function test_examined_rows_that_were_not_collected_make_the_route_unmeasured(): void
+    public function test_examined_rows_that_were_not_collected_make_only_that_quantity_unmeasured(): void
     {
         [$p, $a] = self::series(5, 5);
         $a[0]['rows_examined'] = null;
 
         $r = ExtrapolationJudge::judge($p, $a);
 
-        $this->assertSame('unmeasured', $r['routes'][0]['category']);
-        $this->assertSame('rows_examined was not measured', $r['routes'][0]['reason']);
+        $this->assertSame('unmeasured', $r['routes'][0]['quantities']['rows_examined']['category']);
+        $this->assertSame('rows_examined was not measured', $r['routes'][0]['quantities']['rows_examined']['reason']);
+        $this->assertSame('in_denominator', $r['routes'][0]['quantities']['queries']['category']);
+        $this->assertSame(5, $r['quantities']['queries']['denominator']);
+        $this->assertSame(4, $r['quantities']['rows_examined']['denominator']);
+        // 4 routes in the rows' denominator: it cannot be judged.
+        $this->assertSame('indeterminate', $r['verdict']);
     }
 
     public function test_the_same_input_gives_the_same_output_in_any_input_order(): void
