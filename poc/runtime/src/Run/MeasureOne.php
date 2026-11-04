@@ -131,6 +131,7 @@ final class MeasureOne
         $counter = new QueryCounter($booted->dbName, $default);
         $counter->listenTo($app['events']);
         $reads = self::countRows($app);
+        $examined = self::countExamined($app);
         $rows = RowCounter::connect($config, $booted->dbName);
         $requester = new Requester($booted);
         try {
@@ -169,11 +170,14 @@ final class MeasureOne
             $before = $rows->snapshot();
             $db->beginTransaction();
             $booted->externalCalls->clear();
+            // The examined-rows snapshots go on the PDO directly and sit outside the other counters' windows.
+            $examined->start();
             $counter->start();
             $reads->start();
             $result = $requester->send($spec);
             $counter->stop();
             $reads->stop();
+            $examined->stop();
             $level = $db->transactionLevel();
             for ($i = 0; $i < 50 && $db->transactionLevel() > 0; $i++) {
                 $db->rollBack();
@@ -213,6 +217,7 @@ final class MeasureOne
                 $decision->class,
                 $decision->detail,
                 $reads->rows(),
+                $examined,
             ));
 
             if ($problem !== null) {
@@ -238,6 +243,16 @@ final class MeasureOne
         }
     }
 
+    /** Counts the rows the database looks at, on the app's default connection (see RowsExamined). */
+    private static function countExamined(object $app): RowsExamined
+    {
+        try {
+            return RowsExamined::install($app['db']->connection()->getPdo());
+        } catch (\Throwable) {
+            return RowsExamined::unavailable();
+        }
+    }
+
     /** The path of the app's login page (route "login" when it exists, else /login). */
     private function loginPath(object $app): string
     {
@@ -253,7 +268,7 @@ final class MeasureOne
     }
 
     /** @param array<string, mixed> $args */
-    private function attempt(array $args, int $phase, ?int $status, ?RequestResult $result, ?QueryCounter $counter, string $class, ?string $detail, ?array $rowsRead = null): Attempt
+    private function attempt(array $args, int $phase, ?int $status, ?RequestResult $result, ?QueryCounter $counter, string $class, ?string $detail, ?array $rowsRead = null, ?RowsExamined $examined = null): Attempt
     {
         return new Attempt(
             route: $args['route'],
@@ -272,6 +287,8 @@ final class MeasureOne
             detail: $detail,
             errorKeys: $result?->errorKeys ?? [],
             rowsRead: $rowsRead,
+            rowsExamined: $examined?->rows(),
+            rowsExaminedBaseline: $examined?->baseline(),
         );
     }
 

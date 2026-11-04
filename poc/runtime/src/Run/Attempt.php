@@ -48,6 +48,10 @@ final class Attempt
         public readonly array $errorKeys = [],
         /** @var array<string, int>|null table => rows the statements returned (null: not counted) */
         public readonly ?array $rowsRead = null,
+        /** The rows the database looked at (the Handler_read_* growth, baseline taken off); null: not measured. Never 0 for "unknown". */
+        public readonly ?int $rowsExamined = null,
+        /** The reading cost of the two snapshots that was taken off `rowsExamined`; null: not measured. */
+        public readonly ?int $rowsExaminedBaseline = null,
     ) {
         $this->detail = $detail === null ? null : mb_substr($detail, 0, self::DETAIL_LIMIT);
     }
@@ -77,6 +81,9 @@ final class Attempt
         if ($this->rowsRead !== null) {
             $row['rows_read'] = $this->rowsRead;
         }
+        // Keys are always present, null when not measured: a reader can tell "not measured" from "not asked".
+        $row['rows_examined'] = $this->rowsExamined;
+        $row['rows_examined_baseline'] = $this->rowsExaminedBaseline;
 
         return $row;
     }
@@ -106,6 +113,8 @@ final class Attempt
             detail: isset($data['detail']) ? (string) $data['detail'] : null,
             errorKeys: array_values(array_map('strval', (array) ($data['error_keys'] ?? []))),
             rowsRead: isset($data['rows_read']) ? array_map('intval', (array) $data['rows_read']) : null,
+            rowsExamined: isset($data['rows_examined']) ? (int) $data['rows_examined'] : null,
+            rowsExaminedBaseline: isset($data['rows_examined_baseline']) ? (int) $data['rows_examined_baseline'] : null,
         );
     }
 }

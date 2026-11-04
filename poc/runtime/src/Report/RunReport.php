@@ -67,6 +67,7 @@ final class RunReport
         $bytes = [];
         $touched = [];
         $rowsRead = [];
+        $rowsByScale = [];
         $emptyBytes = null;
         $bypass = false;
         $scope = self::scopeOf($spec);
@@ -82,6 +83,12 @@ final class RunReport
 
                 continue;
             }
+            // Scale 0 is kept here although it is not a point of the sweep: the cost formula needs the empty system too.
+            $rowsByScale[$a->scale] = [
+                'returned' => $a->rowsRead === null ? null : array_sum($a->rowsRead),
+                'examined' => $a->rowsExamined,
+                'baseline' => $a->rowsExaminedBaseline,
+            ];
             if ($a->scale === 0) {
                 $emptyBytes = $a->bytes;
 
@@ -141,6 +148,7 @@ final class RunReport
             'relation' => $cmp['relation'],
             'note' => $cmp['note'],
             'statement' => $verdict->statement(),
+            'rows' => self::rowsOf($rowsByScale),
         ];
         if ($doubt !== null) {
             // An addition to the record, not a change to the verdict: the rule that judges is the same with or without it.
@@ -149,6 +157,27 @@ final class RunReport
         }
 
         return $row;
+    }
+
+    /**
+     * The rows of the cold attempts, per scale (scale 0 included), as parallel lists. `returned` is the rows the
+     * statements gave the app (`RowsRead`, summed over tables); `examined` is the rows the database looked at
+     * (`RowsExamined`, baseline taken off) and `examined_baseline` what was taken off. Null where not measured, never 0.
+     *
+     * @param array<int, array{returned: ?int, examined: ?int, baseline: ?int}> $byScale
+     *
+     * @return array{scales: list<int>, returned: list<?int>, examined: list<?int>, examined_baseline: list<?int>}
+     */
+    private static function rowsOf(array $byScale): array
+    {
+        ksort($byScale);
+
+        return [
+            'scales' => array_keys($byScale),
+            'returned' => array_column($byScale, 'returned'),
+            'examined' => array_column($byScale, 'examined'),
+            'examined_baseline' => array_column($byScale, 'baseline'),
+        ];
     }
 
     /**
@@ -330,7 +359,37 @@ final class RunReport
             );
         }
 
+        $md .= "\n## Rows per route (cold attempt)\n\n";
+        $md .= "Two different numbers, not to be mixed up. **Returned rows** are the rows the statements gave back to the app. ";
+        $md .= "**Examined rows** are the rows the database looked at to answer them (the growth of the session's `Handler_read_*` counters, ";
+        $md .= "with the cost of reading the counters taken off); a statement that scans a table to return one row examined the whole table. ";
+        $md .= "`scale: value`, `-` where it could not be measured.\n\n";
+        $md .= "| route | method | returned rows | examined rows |\n| --- | --- | --- | --- |\n";
+        foreach ($this->rows() as $r) {
+            $md .= sprintf(
+                "| %s | %s | %s | %s |\n",
+                self::cell($r['route']),
+                $r['method'],
+                self::cell(self::perScale($r['rows']['scales'], $r['rows']['returned'])),
+                self::cell(self::perScale($r['rows']['scales'], $r['rows']['examined'])),
+            );
+        }
+
         return $md;
+    }
+
+    /**
+     * @param list<int>  $scales
+     * @param list<?int> $values
+     */
+    private static function perScale(array $scales, array $values): string
+    {
+        $parts = [];
+        foreach ($scales as $i => $scale) {
+            $parts[] = $scale . ': ' . ($values[$i] ?? '-');
+        }
+
+        return implode(', ', $parts);
     }
 
     /**

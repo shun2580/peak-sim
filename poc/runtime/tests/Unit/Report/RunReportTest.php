@@ -312,6 +312,49 @@ final class RunReportTest extends TestCase
         $this->assertStringContainsString('not fitted', $md);
     }
 
+    /** @param array<string, int>|null $rowsRead */
+    private static function cold(int $scale, ?array $rowsRead, ?int $examined, ?int $baseline = 4): Attempt
+    {
+        return new Attempt('/ng/n-plus-one', 'GET', $scale, 'N', Attempt::COLD, 200, 3, ['mysql' => 3], ['orders'], 100 + $scale, 1000, false, 'ok', null, rowsRead: $rowsRead, rowsExamined: $examined, rowsExaminedBaseline: $baseline);
+    }
+
+    public function test_the_row_keeps_returned_rows_and_examined_rows_apart_per_scale_with_scale_zero_first(): void
+    {
+        $attempts = [
+            self::cold(0, ['orders' => 0], 6),
+            self::cold(100, ['orders' => 100, 'customers' => 2], 5000),
+            self::cold(1000, ['orders' => 1000, 'customers' => 2], null), // examined rows could not be read
+            self::attempt(1000, 3, Attempt::WARM),
+        ];
+
+        $rows = RunReport::rowFor(self::spec(), $attempts)['rows'];
+
+        $this->assertSame([0, 100, 1000], $rows['scales']);
+        $this->assertSame([0, 102, 1002], $rows['returned']);
+        $this->assertSame([6, 5000, null], $rows['examined'], 'not measured stays null, never 0');
+        $this->assertSame([4, 4, 4], $rows['examined_baseline']);
+    }
+
+    public function test_returned_rows_are_null_where_rows_read_was_not_counted(): void
+    {
+        $rows = RunReport::rowFor(self::spec(), [self::cold(10, null, 7)])['rows'];
+
+        $this->assertSame([null], $rows['returned']);
+        $this->assertSame([7], $rows['examined']);
+    }
+
+    public function test_the_markdown_names_returned_rows_and_examined_rows_in_separate_columns(): void
+    {
+        $report = new RunReport();
+        $report->add(RunReport::rowFor(self::spec('/a'), [self::cold(0, ['orders' => 0], 6), self::cold(100, ['orders' => 100], 5000), self::cold(1000, ['orders' => 1000], null)]));
+
+        $md = $report->toMarkdown();
+
+        $this->assertStringContainsString('## Rows per route (cold attempt)', $md);
+        $this->assertStringContainsString('| route | method | returned rows | examined rows |', $md);
+        $this->assertStringContainsString('| /a | GET | 0: 0, 100: 100, 1000: 1000 | 0: 6, 100: 5000, 1000: - |', $md);
+    }
+
     public function test_the_markdown_has_no_conflicts_section_text_when_there_is_none(): void
     {
         $report = new RunReport();
