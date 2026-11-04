@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Docker;
 
 use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
+use PeakSim\Runtime\Tests\Docker\Support\ExcludedStatementTypes;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -15,12 +16,22 @@ use PHPUnit\Framework\Attributes\Group;
  * its place between the transaction's START TRANSACTION and ROLLBACK).
  *
  * The server's side is read from a SEPARATE connection of this test, never from the app's connection. The two numbers
- * are counted by different mechanisms (storage-engine handler calls against the optimizer's per-statement count) and
- * need not be equal; the figure is accepted when every route is within 10% of the server's count. The limit is not
- * moved to make a route pass: a route over it is a finding, and which number to trust is for the owner to decide.
+ * are counted by different mechanisms (storage-engine handler calls against the optimizer's per-statement count). The
+ * handler's count is the one that is kept (it is what the database spends its CPU on). Three types of statement are
+ * known to differ for a reason, and are left out of BOTH sides before the two are compared: a `count(*)` over a whole
+ * table, the end-of-range read of a range read of an index, and a look-up by a unique index that finds nothing. Which
+ * statement is of which type is decided by a rule that reads the statement's text and its plan, never by the route's
+ * name (see `Support/ExcludedStatementTypes`). A fourth type is handled the other way round: a scan of a whole table or
+ * index (access type ALL or index) whose handler count is 1 to 3 rows above the server's keeps its place in the comparison,
+ * and only that small difference (the read that finds the end of the scan) is taken off the app's count. The cap of 3 is
+ * fixed. The figure is accepted when every route is within 10% of the server's count on what is left. The limit is not
+ * moved to make a route pass.
  *
  * It runs `bin/measure-one` for the cold attempt of every route of the verification app (so the real wiring is what is
- * checked), then finds that process's thread and the window between its two snapshots in the server's history.
+ * checked), then finds that process's thread and the window between its two snapshots in the server's history. What
+ * each statement said and read on the app's side is not visible from there, so the same request is sent once more
+ * through `Support/tap_statements.php`, which reads the counters statement by statement; the reads of the left-out
+ * statements are taken off the figure of the run that is checked, and the figure must equal the sum of the tap's.
  */
 #[Group('in-stack')]
 final class RowsExaminedMatchesServerTest extends DockerCase
@@ -82,6 +93,60 @@ final class RowsExaminedMatchesServerTest extends DockerCase
         }
     }
 
+    public function testTheRuleNamesTheTypeOfAStatementFromItsTextAndItsPlanOnly(): void
+    {
+        $plan = static fn (?string $type, ?string $extra = null): array => [['type' => $type, 'extra' => $extra]];
+
+        // count_all: the text, whatever the plan says
+        self::assertSame('count_all', ExcludedStatementTypes::of('select count(*) as `aggregate` from `orders`', $plan('index', 'Using index')));
+        self::assertNull(ExcludedStatementTypes::of('select count(*) as `aggregate` from `items` where `items`.`order_id` = ?', $plan('const')), 'a count with a WHERE is not a count of the whole table');
+        // range_end: a range read of an index, also inside a subquery of a statement
+        self::assertSame('range_end', ExcludedStatementTypes::of('select * from `items` where `order_id` = ?', $plan('ref')));
+        self::assertSame('range_end', ExcludedStatementTypes::of('select * from `items` where `qty` > ?', $plan('range', 'Using index condition')));
+        self::assertSame('range_end', ExcludedStatementTypes::of('select `orders`.*, (select count(*) from `items` where ...) from `orders`', [['type' => 'ALL', 'extra' => null], ['type' => 'ref', 'extra' => null]]));
+        // unique_miss: the server's own plan says the unique look-up finds nothing
+        self::assertSame('unique_miss', ExcludedStatementTypes::of('select * from `product_stats` where `product_id` = ? limit 1', $plan(null, 'no matching row in const table')));
+        self::assertSame('unique_miss', ExcludedStatementTypes::of('select * from `t` where `u` = ?', $plan(null, 'Impossible WHERE noticed after reading const tables')));
+        // compared: a look-up by a unique index that finds a row, a scan of the whole table or index, a write, a statement with no plan
+        self::assertNull(ExcludedStatementTypes::of('select * from `customers` where `id` = ? limit 1', $plan('const')));
+        self::assertNull(ExcludedStatementTypes::of('select * from `customers` where `id` = ?', $plan('eq_ref')));
+        self::assertNull(ExcludedStatementTypes::of('select * from `orders`', $plan('ALL')));
+        self::assertNull(ExcludedStatementTypes::of('select * from `orders` order by `id` limit 100', $plan('index')));
+        self::assertNull(ExcludedStatementTypes::of('update `customers` set `name` = ? where `id` = ?', null));
+        self::assertNull(ExcludedStatementTypes::of('select * from `orders` where `id` in (1,2)', ['error' => 'could not explain']));
+    }
+
+    public function testTheScanEndRuleTakesOffOneToThreeRowsOfAScanAndNothingElse(): void
+    {
+        $scan = static fn (string $type): array => [['type' => $type, 'extra' => null]];
+        $sql = 'select * from `orders` limit 15';
+        $surplus = static fn (?array $plan, int $handler, int $server, string $text = 'select * from `orders` limit 15'): int => ExcludedStatementTypes::scanEndSurplus($text, $plan, $handler, $server);
+
+        self::assertSame(3, ExcludedStatementTypes::SCAN_END_MAX, 'the cap is fixed by ruling');
+        // a scan (ALL or index): the surplus of 1, 2 and 3 is taken off; none when equal; 4 is not taken off (and is over the cap)
+        foreach (['ALL', 'index'] as $type) {
+            self::assertSame(0, $surplus($scan($type), 15, 15), $type . ': difference 0');
+            self::assertSame(1, $surplus($scan($type), 16, 15), $type . ': difference 1');
+            self::assertSame(2, $surplus($scan($type), 17, 15), $type . ': difference 2');
+            self::assertSame(3, $surplus($scan($type), 18, 15), $type . ': difference 3');
+            self::assertSame(0, $surplus($scan($type), 19, 15), $type . ': difference 4 is not taken off');
+            self::assertFalse(ExcludedStatementTypes::scanEndOverCap($sql, $scan($type), 18, 15), $type . ': difference 3 is within the cap');
+            self::assertTrue(ExcludedStatementTypes::scanEndOverCap($sql, $scan($type), 19, 15), $type . ': difference 4 is over the cap');
+            self::assertSame(0, $surplus($scan($type), 14, 15), $type . ': the server counted more than the engine: nothing is taken off');
+        }
+        // not a scan: a unique look-up, an eq_ref join, a statement with no plan, a plan that could not be taken
+        self::assertSame(0, $surplus($scan('const'), 17, 15));
+        self::assertSame(0, $surplus($scan('eq_ref'), 17, 15));
+        self::assertSame(0, $surplus(null, 17, 15));
+        self::assertSame(0, $surplus(['error' => 'could not explain'], 17, 15));
+        // a scan and a join by a unique key: the plan has a scan, so the rule applies
+        self::assertSame(2, $surplus([['type' => 'ALL', 'extra' => null], ['type' => 'eq_ref', 'extra' => null]], 17, 15));
+        // a statement of one of the three left-out types is never adjusted (it is left out whole)
+        self::assertSame(0, $surplus([['type' => 'ALL', 'extra' => null], ['type' => 'ref', 'extra' => null]], 17, 15), 'range_end first');
+        self::assertSame(0, $surplus($scan('index'), 17, 15, 'select count(*) as `aggregate` from `orders`'), 'count_all first');
+        self::assertFalse(ExcludedStatementTypes::scanEndOverCap('select count(*) as `aggregate` from `orders`', $scan('index'), 900, 0), 'a left-out statement is not counted as over the cap');
+    }
+
     public function testEveryRouteOfTheVerificationAppExaminesWhatTheServerCounted(): void
     {
         self::assertGreaterThanOrEqual(10, count(self::$routes), 'the verification app has more than ten routes without a parameter');
@@ -101,11 +166,11 @@ final class RowsExaminedMatchesServerTest extends DockerCase
     }
 
     /**
-     * @return array{route: string, class: ?string, queries: ?int, returned: ?int, examined: ?int, baseline: ?int, server: ?int, statements: ?int, diff: ?float, verdict: string}
+     * @return array{route: string, class: ?string, queries: ?int, returned: ?int, examined: ?int, baseline: ?int, server: ?int, statements: ?int, excluded: array<string, int>, scan_end: int, scan_end_rows: int, scan_over_cap: int, unaccounted: ?int, left_statements: ?int, left_examined: ?int, left_server: ?int, diff: ?float, verdict: string}
      */
     private function compare(string $method, string $uri): array
     {
-        $row = ['route' => $method . ' ' . $uri, 'class' => null, 'queries' => null, 'returned' => null, 'examined' => null, 'baseline' => null, 'server' => null, 'statements' => null, 'diff' => null, 'verdict' => ''];
+        $row = ['route' => $method . ' ' . $uri, 'class' => null, 'queries' => null, 'returned' => null, 'examined' => null, 'baseline' => null, 'server' => null, 'statements' => null, 'excluded' => [], 'scan_end' => 0, 'scan_end_rows' => 0, 'scan_over_cap' => 0, 'unaccounted' => null, 'left_statements' => null, 'left_examined' => null, 'left_server' => null, 'diff' => null, 'verdict' => ''];
 
         $server = self::server();
         $previous = (int) $server->query(
@@ -176,10 +241,68 @@ final class RowsExaminedMatchesServerTest extends DockerCase
         );
         $found->execute(['t' => $thread, 'a' => $first, 'b' => $last]);
         [$statements, $sum] = array_map('intval', $found->fetch(\PDO::FETCH_NUM));
+        $each = $server->prepare(
+            "select ROWS_EXAMINED from performance_schema.events_statements_history_long where THREAD_ID = :t and EVENT_NAME = 'statement/com/Execute'"
+            . ' and EVENT_ID > :a and EVENT_ID < :b order by EVENT_ID',
+        );
+        $each->execute(['t' => $thread, 'a' => $first, 'b' => $last]);
+        $serverRows = array_map('intval', $each->fetchAll(\PDO::FETCH_COLUMN));
+
+        // What each statement said and cost on the app's side: the same request, sent once more with a tap.
+        [$tapExit, $tapOut, $tapErr] = self::php(__DIR__ . '/Support/tap_statements.php', [(string) self::SCALE, $method, $uri, $method === 'GET' ? '0' : '1']);
+        $tap = $tapExit === 0 ? json_decode(trim($tapOut), true) : null;
+        if (!is_array($tap) || !isset($tap['statements'])) {
+            $row['verdict'] = 'the statement tap failed: ' . substr($tapErr, 0, 200);
+
+            return $row;
+        }
+        $statementsOfTap = $tap['statements'];
+        if (count($statementsOfTap) !== count($serverRows)) {
+            $row['verdict'] = sprintf('the tap saw %d statements and the server ran %d in the window: they cannot be paired', count($statementsOfTap), count($serverRows));
+
+            return $row;
+        }
+        $tapReads = array_sum(array_column($statementsOfTap, 'read'));
+
+        // Left out of both sides: the statements of the three types (by the rule, never by the route).
+        $row['excluded'] = array_fill_keys(ExcludedStatementTypes::ALL, 0);
+        $leftApp = $row['examined'] - $tapReads; // what the statements do not account for stays on the app's side
+        $leftServer = $sum;
+        $leftStatements = 0;
+        $scanEnd = 0;
+        $scanEndRows = 0;
+        $scanOverCap = 0;
+        foreach ($statementsOfTap as $i => $statement) {
+            $type = ExcludedStatementTypes::of((string) $statement['sql'], $statement['plan']);
+            if ($type !== null) {
+                $row['excluded'][$type]++;
+                $leftServer -= $serverRows[$i];
+
+                continue;
+            }
+            // The fourth type is not left out: the scan's end read is taken off the app's count, the statement stays compared.
+            $surplus = ExcludedStatementTypes::scanEndSurplus((string) $statement['sql'], $statement['plan'], (int) $statement['read'], $serverRows[$i]);
+            if ($surplus > 0) {
+                $scanEnd++;
+                $scanEndRows += $surplus;
+            }
+            if (ExcludedStatementTypes::scanEndOverCap((string) $statement['sql'], $statement['plan'], (int) $statement['read'], $serverRows[$i])) {
+                $scanOverCap++;
+            }
+            $leftApp += (int) $statement['read'] - $surplus;
+            $leftStatements++;
+        }
+        $row['scan_end'] = $scanEnd;
+        $row['scan_end_rows'] = $scanEndRows;
+        $row['scan_over_cap'] = $scanOverCap;
+        $row['unaccounted'] = $row['examined'] - $tapReads;
+        $row['left_statements'] = $leftStatements;
+        $row['left_examined'] = $leftApp;
+        $row['left_server'] = $leftServer;
         $row['statements'] = $statements;
         $row['server'] = $sum;
 
-        $row['diff'] = $sum === 0 ? ($row['examined'] === 0 ? 0.0 : INF) : abs($row['examined'] - $sum) / $sum;
+        $row['diff'] = $leftServer === 0 ? ($leftApp === 0 ? 0.0 : INF) : abs($leftApp - $leftServer) / $leftServer;
         $row['verdict'] = $row['diff'] > self::LIMIT ? sprintf('differs by %s', is_infinite($row['diff']) ? 'an unbounded share (server counted 0)' : round($row['diff'] * 100, 1) . '%') : 'ok';
 
         return $row;
@@ -188,20 +311,27 @@ final class RowsExaminedMatchesServerTest extends DockerCase
     /** @param list<array<string, mixed>> $table */
     private static function render(array $table): string
     {
-        $lines = [sprintf('%-34s %-8s %7s %9s %9s %9s %8s %s', 'route', 'class', 'queries', 'returned', 'examined', 'server', 'diff', 'verdict')];
+        $lines = [sprintf('%-34s %-8s %7s %9s %9s  %-18s %-9s %6s %9s %9s %8s %s', 'route', 'class', 'queries', 'examined', 'server', 'left out (c/r/u)', 'scan end', 'left', 'left app', 'left srv', 'diff', 'verdict')];
         foreach ($table as $r) {
             $lines[] = sprintf(
-                '%-34s %-8s %7s %9s %9s %9s %8s %s',
+                '%-34s %-8s %7s %9s %9s  %-18s %-9s %6s %9s %9s %8s %s',
                 $r['route'],
                 (string) $r['class'],
                 (string) $r['queries'],
-                (string) $r['returned'],
                 (string) $r['examined'],
                 (string) $r['server'],
+                $r['excluded'] === [] ? '-' : implode('/', array_map(static fn (string $t): string => (string) $r['excluded'][$t], ExcludedStatementTypes::ALL)),
+                sprintf('%d/-%d/%d%s', $r['scan_end'], $r['scan_end_rows'], $r['scan_over_cap'], $r['scan_over_cap'] > 0 ? '!' : ''),
+                (string) $r['left_statements'],
+                (string) $r['left_examined'],
+                (string) $r['left_server'],
                 $r['diff'] === null ? '-' : (is_infinite($r['diff']) ? 'inf' : round($r['diff'] * 100, 1) . '%'),
                 $r['verdict'],
             );
         }
+        $lines[] = '';
+        $lines[] = 'left out: c = count_all, r = range_end, u = unique_miss (statements); "left" = statements still compared';
+        $lines[] = 'scan end: statements adjusted / rows taken off / statements over the cap of 3 (not taken off; "!" marks a route that has one); the adjusted statements stay compared';
 
         return implode("\n", $lines);
     }
