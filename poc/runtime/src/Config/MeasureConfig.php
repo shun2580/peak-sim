@@ -16,7 +16,7 @@ use PeakSim\Runtime\Guard\DbGuard;
  *   PEAK_MEASURE_RUN_ID        6-24 chars of [a-z0-9]; see generateRunId()
  *   PEAK_MEASURE_APP_ROOT      absolute path of the target app (mounted read-only)
  *   PEAK_MEASURE_STATIC_JSON   optional absolute path of the static analysis output
- *   PEAK_MEASURE_SCALES        optional, default "100,1000,10000"; at least 3 ascending points
+ *   PEAK_MEASURE_SCALES        optional, default "100,1000,10000"; one or more ascending points
  *   PEAK_MEASURE_OUT_DIR       optional, default /out
  *   PEAK_MEASURE_DB_TAG        optional, 1-8 chars [a-z][a-z0-9]*; names the data plan a database belongs to
  *
@@ -172,8 +172,8 @@ final class MeasureConfig
         if ($sorted !== $scales || count(array_unique($scales)) !== count($scales)) {
             throw new MeasureRefused('refused: PEAK_MEASURE_SCALES must be strictly ascending');
         }
-        if (count($scales) < 3) {
-            throw new MeasureRefused('refused: PEAK_MEASURE_SCALES needs at least 3 points');
+        if ($scales === []) {
+            throw new MeasureRefused('refused: PEAK_MEASURE_SCALES needs at least 1 point');
         }
 
         return $scales;

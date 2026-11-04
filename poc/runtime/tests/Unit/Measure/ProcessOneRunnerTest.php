@@ -27,6 +27,13 @@ final class ProcessOneRunnerTest extends TestCase
         rmdir($this->dir);
     }
 
+    public function test_the_time_a_measurement_may_take_is_three_requests_and_120_seconds_to_start(): void
+    {
+        $this->assertSame(180, ProcessOneRunner::timeoutFor(20));
+        $this->assertSame(123, ProcessOneRunner::timeoutFor(1));
+        $this->assertSame(1920, ProcessOneRunner::timeoutFor(600));
+    }
+
     private function script(string $body): string
     {
         $path = $this->dir . '/stub.php';

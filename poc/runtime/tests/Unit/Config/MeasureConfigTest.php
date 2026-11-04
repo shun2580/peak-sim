@@ -52,6 +52,16 @@ final class MeasureConfigTest extends TestCase
         $this->assertSame('/out/run1', $config->outDir);
     }
 
+    public function testASingleScaleIsEnough(): void
+    {
+        $this->assertSame([100000], MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_SCALES' => '100000'])->scales);
+    }
+
+    public function testTwoScalesAreEnough(): void
+    {
+        $this->assertSame([100, 1000], MeasureConfig::fromEnv(self::validEnv() + ['PEAK_MEASURE_SCALES' => '100,1000'])->scales);
+    }
+
     public function testBuildsDatabaseNameFromRunIdAndScale(): void
     {
         $config = MeasureConfig::fromEnv(self::validEnv());
@@ -117,7 +127,7 @@ final class MeasureConfigTest extends TestCase
             'scales zero' => [['PEAK_MEASURE_SCALES' => '0,10,100']],
             'scales descending' => [['PEAK_MEASURE_SCALES' => '1000,100,10']],
             'scales repeated' => [['PEAK_MEASURE_SCALES' => '10,10,100']],
-            'scales only two points' => [['PEAK_MEASURE_SCALES' => '100,1000']],
+            'scales empty' => [['PEAK_MEASURE_SCALES' => ',']],
             'scales too large' => [['PEAK_MEASURE_SCALES' => '10,100,10000000']],
         ];
     }

@@ -17,6 +17,7 @@ final class Options
         public readonly int $base,
         public readonly ?string $profile = null,
         public readonly bool $gateBypass = true,
+        public readonly bool $warm = true,
     ) {
     }
 
@@ -33,7 +34,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -75,7 +76,12 @@ final class Options
             throw new \InvalidArgumentException('--gate-bypass takes on or off');
         }
 
-        return new self($data, $only, $expected, $base, $profile, $gate === 'on');
+        $warm = $values['warm'] ?? 'on';
+        if (!in_array($warm, ['on', 'off'], true)) {
+            throw new \InvalidArgumentException('--warm takes on or off');
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on');
     }
 
     /**

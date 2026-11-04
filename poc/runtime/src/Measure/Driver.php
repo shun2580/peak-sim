@@ -40,6 +40,7 @@ final class Driver
         private readonly DatabaseBuilder $builder,
         private readonly OneRunner $runner,
         private readonly bool $gateBypass = true,
+        private readonly bool $warm = true,
     ) {
     }
 
@@ -155,7 +156,8 @@ final class Driver
             $task->csrf,
             $task->headers,
             false,
-            $point->scale === 0 ? [Attempt::WARMUP, Attempt::COLD] : [Attempt::WARMUP, Attempt::COLD, Attempt::WARM],
+            // The empty system, and a run that asked for it (`--warm=off`), leave out the warm request: the cold one decides.
+            $point->scale === 0 || !$this->warm ? [Attempt::WARMUP, Attempt::COLD] : [Attempt::WARMUP, Attempt::COLD, Attempt::WARM],
             $task->query,
         );
 

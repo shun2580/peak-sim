@@ -19,6 +19,9 @@ final class Requester
     /** Longest a single request may run, in seconds (needs ext-pcntl; without it the limit is the caller's). */
     public const TIME_LIMIT = 20;
 
+    /** Longest limit a run may ask for (seconds): a route that runs a hundred thousand queries needs minutes. */
+    public const MAX_TIME_LIMIT = 600;
+
     /** Lets a test shorten the limit (1 to 60 seconds). */
     public const TIME_LIMIT_ENV = 'PEAK_MEASURE_REQUEST_TIMEOUT';
 
@@ -234,7 +237,7 @@ final class Requester
     public static function timeLimit(?string $override = null): int
     {
         $override ??= (string) getenv(self::TIME_LIMIT_ENV);
-        if (preg_match('/^[0-9]{1,2}$/D', $override) === 1 && (int) $override >= 1 && (int) $override <= 60) {
+        if (preg_match('/^[0-9]{1,3}$/D', $override) === 1 && (int) $override >= 1 && (int) $override <= self::MAX_TIME_LIMIT) {
             return (int) $override;
         }
 

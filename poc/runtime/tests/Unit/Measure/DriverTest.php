@@ -138,6 +138,30 @@ final class DriverTest extends PlannerTestCase
         $this->assertSame([Attempt::WARMUP, Attempt::COLD, Attempt::WARM], $runner->requests[1]->phases);
     }
 
+    public function test_a_run_that_asks_for_it_leaves_the_warm_attempt_out_at_every_scale(): void
+    {
+        $runner = self::runner();
+        (new Driver(new SeederPlanner(), self::builder(), $runner, warm: false))->run([self::task()], self::SCALES);
+
+        $this->assertNotSame([], $runner->requests);
+        foreach ($runner->requests as $request) {
+            $this->assertSame([Attempt::WARMUP, Attempt::COLD], $request->phases, 'scale ' . $request->scale);
+        }
+    }
+
+    public function test_a_single_scale_is_measured_and_its_cold_value_is_kept(): void
+    {
+        $runner = self::runner();
+        $result = (new Driver(new SeederPlanner(), self::builder(), $runner, warm: false))->run([self::task()], [100000]);
+
+        $this->assertSame(0, $result->exit);
+        $scales = array_map(static fn (MeasureRequest $r): int => $r->scale, $runner->requests);
+        $this->assertSame([0, 100000], array_values(array_unique($scales)));
+        $cold = array_values(array_filter($result->attempts, static fn (Attempt $a): bool => $a->attempt === Attempt::COLD && $a->scale === 100000));
+        $this->assertCount(1, $cold);
+        $this->assertSame(1 + 0 * 100000, $cold[0]->queries, 'the stub answers base 1, per 0');
+    }
+
     public function test_the_children_per_parent_sweep_goes_to_the_judge_as_the_m_axis(): void
     {
         $runner = self::runner(static function (MeasureRequest $r, int $n): OneResult {

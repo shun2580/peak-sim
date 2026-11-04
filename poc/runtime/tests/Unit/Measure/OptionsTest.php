@@ -34,6 +34,19 @@ final class OptionsTest extends TestCase
         Options::parse(['--gate-bypass=maybe']);
     }
 
+    public function test_the_warm_request_is_made_unless_the_run_says_off(): void
+    {
+        $this->assertTrue(Options::parse([])->warm);
+        $this->assertTrue(Options::parse(['--warm=on'])->warm);
+        $this->assertFalse(Options::parse(['--warm=off'])->warm);
+    }
+
+    public function test_the_warm_switch_takes_on_or_off_only(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse(['--warm=sometimes']);
+    }
+
     public function test_a_profile_is_named_not_pathed(): void
     {
         $this->assertSame('fixtures', Options::parse(['--profile=fixtures'])->profile);

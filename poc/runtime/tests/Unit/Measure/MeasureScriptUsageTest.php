@@ -42,9 +42,14 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'no app' => [['--static=/y']];
         yield 'relative app' => [['--app=x', '--static=/y']];
         yield 'bad data kind' => [['--app=/x', '--static=/y', '--data=dump']];
-        yield 'bad scales' => [['--app=/x', '--static=/y', '--scales=1,2']];
+        yield 'scales descending' => [['--app=/x', '--static=/y', '--scales=2,1']];
+        yield 'scales repeated' => [['--app=/x', '--static=/y', '--scales=5,5']];
+        yield 'scales not numbers' => [['--app=/x', '--static=/y', '--scales=a']];
+        yield 'scales empty' => [['--app=/x', '--static=/y', '--scales=']];
         yield 'timeout of zero' => [['--app=/x', '--static=/y', '--request-timeout=0']];
-        yield 'timeout over a minute' => [['--app=/x', '--static=/y', '--request-timeout=61']];
+        yield 'timeout over ten minutes' => [['--app=/x', '--static=/y', '--request-timeout=601']];
+        yield 'timeout of four digits' => [['--app=/x', '--static=/y', '--request-timeout=1000']];
+        yield 'warm maybe' => [['--app=/x', '--static=/y', '--warm=maybe']];
         yield 'profile with a path' => [['--app=/x', '--static=/y', '--profile=../x']];
         yield 'profile with a dot' => [['--app=/x', '--static=/y', '--profile=a.php']];
         yield 'empty profile' => [['--app=/x', '--static=/y', '--profile=']];
@@ -62,6 +67,32 @@ final class MeasureScriptUsageTest extends TestCase
         $this->assertStringContainsString('usage: bin/measure', $err);
     }
 
+    /** @return iterable<string, array{list<string>}> */
+    public static function accepted(): iterable
+    {
+        yield 'one scale' => [['--scales=100000']];
+        yield 'two scales' => [['--scales=100,1000']];
+        yield 'ten minutes' => [['--request-timeout=600']];
+        yield 'three digits' => [['--request-timeout=100']];
+        yield 'warm off' => [['--warm=off']];
+        yield 'all three' => [['--scales=100000', '--request-timeout=600', '--warm=off']];
+    }
+
+    /**
+     * The options pass the checks of the script itself: it stops only at the next one (the app is not a directory),
+     * long before it touches Docker.
+     *
+     * @param list<string> $args
+     */
+    #[DataProvider('accepted')]
+    public function test_a_single_scale_a_long_timeout_and_no_warm_request_are_accepted(array $args): void
+    {
+        [$code, , $err] = self::invoke(['--app=/nonexistent-app-dir', '--static=/y', ...$args]);
+
+        $this->assertSame(2, $code, $err);
+        $this->assertStringContainsString('--app is not a directory', $err);
+    }
+
     public function test_help_prints_the_usage_and_the_exit_codes_and_exits_0(): void
     {
         [$code, $out] = self::invoke(['--help']);
@@ -73,6 +104,7 @@ final class MeasureScriptUsageTest extends TestCase
         }
         $this->assertStringContainsString('--request-timeout', $out);
         $this->assertStringContainsString('--gate-bypass', $out);
+        $this->assertStringContainsString('--warm', $out);
     }
 
     public function test_help_names_the_variable_that_runs_the_stack_in_another_image(): void

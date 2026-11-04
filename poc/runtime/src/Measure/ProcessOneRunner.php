@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Measure;
 
 use PeakSim\Runtime\Run\Attempt;
+use PeakSim\Runtime\Run\Requester;
 
 /** Runs `bin/measure-one` as a child process: one route, one database, one fresh PHP process. */
 final class ProcessOneRunner implements OneRunner
 {
-    /** Longest a whole measurement (boot and three requests, each limited to 20 seconds) may take. */
-    public const TIMEOUT = 150;
+    /** Seconds a measurement may take on top of its requests: the start of the app (and a slow first query). */
+    public const BOOT_ALLOWANCE = 120;
+
+    /** Longest a whole measurement may take: the start of the app and three requests, each within `$requestLimit`. */
+    public static function timeoutFor(int $requestLimit): int
+    {
+        return 3 * $requestLimit + self::BOOT_ALLOWANCE;
+    }
 
     /**
      * @param array<string, string> $env the environment of the children (PEAK_MEASURE_* inputs)
@@ -18,7 +25,7 @@ final class ProcessOneRunner implements OneRunner
     public function __construct(
         private readonly string $script,
         private readonly array $env,
-        private readonly int $timeoutSeconds = self::TIMEOUT,
+        private readonly int $timeoutSeconds = 3 * Requester::TIME_LIMIT + self::BOOT_ALLOWANCE,
         private readonly string $php = PHP_BINARY,
     ) {
     }
