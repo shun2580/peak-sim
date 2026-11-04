@@ -124,6 +124,26 @@ final class ExtrapolationJudgeTest extends TestCase
         $this->assertSame('fail', ExtrapolationJudge::judge($p, $a)['verdict']);
     }
 
+    public function test_the_pass_line_is_eighty_percent_not_a_looser_one(): void
+    {
+        // 79 of 100 is 79%: below the line even though 75% would be enough. 80 of 100 is exactly the line.
+        [$p, $a] = self::series(100, 79);
+        $below = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame(79.0, $below['quantities']['queries']['percent']);
+        $this->assertSame('fail', $below['verdict']);
+
+        [$p, $a] = self::series(100, 80);
+        $on = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame(80.0, $on['quantities']['queries']['percent']);
+        $this->assertSame('pass', $on['verdict']);
+
+        // 15 of 19 is 78.9%: also below the line. 16 of 20 is 80%.
+        [$p, $a] = self::series(19, 15);
+        $this->assertSame('fail', ExtrapolationJudge::judge($p, $a)['verdict']);
+        [$p, $a] = self::series(20, 16);
+        $this->assertSame('pass', ExtrapolationJudge::judge($p, $a)['verdict']);
+    }
+
     public function test_four_in_the_denominator_is_indeterminate_even_when_all_are_inside(): void
     {
         [$p, $a] = self::series(4, 4);
@@ -174,6 +194,39 @@ final class ExtrapolationJudgeTest extends TestCase
         $this->assertSame(3, $r['summary']['unmeasured']);
         $this->assertSame(7, $r['summary']['denominator']);
         $this->assertSame('indeterminate', $r['verdict']);
+    }
+
+    public function test_routes_without_a_formula_are_not_in_the_base_of_the_twenty_percent_line(): void
+    {
+        // 7 measured + 3 unmeasured = 10 routes with a formula: 3 of 10 is 30%, over the line. Ten more routes have
+        // no formula (insufficient_scales); counting them in the base would make it 3 of 20 = 15% and hide the 30%.
+        [$p, $a] = self::series(10, 10);
+        $a = array_slice($a, 0, 7);
+        for ($i = 0; $i < 10; ++$i) {
+            $name = sprintf('GET /few%02d', $i);
+            $p['routes'][] = self::route($name, self::ok(100.0), ['status' => 'not_predicted', 'fit_status' => 'insufficient_scales', 'reason' => 'scale 10000: timeout']);
+            $a[] = self::cold($name);
+        }
+
+        $r = ExtrapolationJudge::judge($p, $a);
+
+        $this->assertSame(10, $r['summary']['insufficient_scales']);
+        $this->assertSame(10, $r['summary']['with_formula']);
+        $this->assertSame(3, $r['summary']['unmeasured']);
+        $this->assertSame('indeterminate', $r['verdict']);
+
+        // And the other side: 2 of 10 with a formula is exactly 20%, so the same ten extra routes change nothing.
+        [$p, $a] = self::series(10, 10);
+        $a = array_slice($a, 0, 8);
+        for ($i = 0; $i < 10; ++$i) {
+            $name = sprintf('GET /few%02d', $i);
+            $p['routes'][] = self::route($name, self::ok(100.0), ['status' => 'not_predicted', 'fit_status' => 'insufficient_scales', 'reason' => 'scale 10000: timeout']);
+            $a[] = self::cold($name);
+        }
+        $r = ExtrapolationJudge::judge($p, $a);
+        $this->assertSame(10, $r['summary']['with_formula']);
+        $this->assertSame(8, $r['summary']['denominator']);
+        $this->assertSame('pass', $r['verdict']);
     }
 
     public function test_a_timeout_at_the_predicted_size_counts_as_unmeasured_with_its_class(): void

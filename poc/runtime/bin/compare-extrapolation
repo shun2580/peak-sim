@@ -1,13 +1,61 @@
-#!/usr/bin/env php
-<?php
+#!/usr/bin/env bash
+# Checks recorded predictions against a measurement at the predicted size and prints the extrapolation test result
+# (simulator-spec.md section 7.4).
+#
+#   bin/compare-extrapolation --predictions=<predictions.json from bin/predict> \
+#                             --measured=<the --out directory of bin/measure, or its attempts.jsonl> \
+#                             [--format=json|markdown] > result
+#
+# Reads the two inputs only; touches no database and no app; the same inputs always give the same output. Uses the PHP
+# on this machine if there is one; otherwise a throwaway container of the already built PHP image, with no network
+# and the inputs mounted read-only. The image is never pulled.
+# exit codes: 0 done (whatever the verdict) / 2 wrong usage or an unreadable input / 11 no PHP and no image
+set -uo pipefail
 
-declare(strict_types=1);
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+usage="usage: bin/compare-extrapolation --predictions=<predictions.json> --measured=<dir> [--format=json|markdown]"
 
-// Checks recorded predictions against a measurement at the predicted size and prints the extrapolation test result.
-// Needs no Docker and no database; the same inputs always give the same output.
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
 
-use PeakSim\Runtime\Judge\CompareExtrapolationCommand;
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/inner/compare-extrapolation.php" "$@"
+fi
 
-require dirname(__DIR__) . '/bootstrap.php';
+predictions=""
+measured=""
+format="json"
+for arg in "$@"; do
+  case "$arg" in
+    --predictions=*) predictions="${arg#--predictions=}" ;;
+    --measured=*) measured="${arg#--measured=}" ;;
+    --format=*) format="${arg#--format=}" ;;
+    *) echo "bin/compare-extrapolation: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+if [ -z "$predictions" ] || [ -z "$measured" ]; then
+  echo "bin/compare-extrapolation: --predictions and --measured are required" >&2; echo "$usage" >&2; exit 2
+fi
+if [ "$format" != "json" ] && [ "$format" != "markdown" ]; then
+  echo "bin/compare-extrapolation: --format takes json or markdown" >&2; echo "$usage" >&2; exit 2
+fi
+if [ ! -f "$predictions" ]; then echo "bin/compare-extrapolation: --predictions is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+if [ ! -d "$measured" ] && [ ! -f "$measured" ]; then
+  echo "bin/compare-extrapolation: --measured has no readable attempts.jsonl" >&2; echo "$usage" >&2; exit 2
+fi
+predictions="$(cd "$(dirname "$predictions")" && pwd)/$(basename "$predictions")"
+measured_name="$(basename "$measured")"
+measured="$(cd "$(dirname "$measured")" && pwd)/$measured_name"   # keep the name: it is written as `measured_source`
 
-exit((new CompareExtrapolationCommand(STDOUT, STDERR))->run(array_slice($argv, 1)));
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "bin/compare-extrapolation: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only \
+  -v "$runtime:/runtime:ro" -v "$predictions:/input/predictions.json:ro" -v "$measured:/record/$measured_name:ro" \
+  "$image" php /runtime/bin/inner/compare-extrapolation.php \
+  --predictions=/input/predictions.json --measured="/record/$measured_name" --format="$format"
