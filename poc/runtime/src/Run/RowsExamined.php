@@ -149,8 +149,11 @@ final class RowsExamined
         return $sum;
     }
 
-    /** @return array<string, int>|null the Handler_read_* counters of this session, or null when they cannot be read */
-    private static function read(PDO $pdo): ?array
+    /**
+     * @return array<string, int>|null the Handler_read_* counters of this session, or null when they cannot be read
+     *                                 (public so that `StatementTap` reads them in exactly this way)
+     */
+    public static function read(PDO $pdo): ?array
     {
         try {
             $statement = $pdo->query(self::SQL);

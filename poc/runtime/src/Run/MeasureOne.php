@@ -43,6 +43,9 @@ final class MeasureOne
           --act-as=Model:key[:guard]   log this user in (before every request)
           --gate-bypass           let every Gate check pass (recorded as gate_bypass=true)
           --phases=warmup,cold,warm    default: all three
+          --tap-out=<file>        write what each statement of the cold attempt read, and its plan, to this file (JSON).
+                                  Nothing else changes: the attempt lines on standard output are the same, but the cold
+                                  attempt is slower and its peak_mem no longer compares with an untapped run.
         Input (database host, user, password, run id, app root, scales) comes from PEAK_MEASURE_* variables only.
 
         TXT;
@@ -132,6 +135,16 @@ final class MeasureOne
         $counter->listenTo($app['events']);
         $reads = self::countRows($app);
         $examined = self::countExamined($app);
+        $tap = null;
+        if ($args['tapOut'] !== null) {
+            $tap = new StatementTap(
+                $examined->available() ? $app['db']->connection()->getPdo() : null,
+                $examined->baseline(),
+                $default,
+            );
+            $tap->listenTo($app['events']);
+        }
+        $tapped = false;
         $rows = RowCounter::connect($config, $booted->dbName);
         $requester = new Requester($booted);
         try {
@@ -172,12 +185,21 @@ final class MeasureOne
             $booted->externalCalls->clear();
             // The examined-rows snapshots go on the PDO directly and sit outside the other counters' windows.
             $examined->start();
+            $tapping = $tap !== null && $phase === Attempt::COLD;
+            if ($tapping) {
+                $tap->start();
+            }
             $counter->start();
             $reads->start();
             $result = $requester->send($spec);
             $counter->stop();
             $reads->stop();
+            if ($tapping) {
+                $tap->stop();
+            }
             $examined->stop();
+            // The plans are asked for once the window is closed (in no figure), still in this session and before the rollback.
+            $explains = $tapping ? $tap->explainAll() : [];
             $level = $db->transactionLevel();
             for ($i = 0; $i < 50 && $db->transactionLevel() > 0; $i++) {
                 $db->rollBack();
@@ -219,6 +241,17 @@ final class MeasureOne
                 $reads->rows(),
                 $examined,
             ));
+            if ($tapping) {
+                $tapped = true;
+                $failure = StatementTap::write($args['tapOut'], $tap->document(
+                    ['route' => $args['route'], 'method' => $args['method'], 'uri' => $args['uri'], 'scale' => $args['scale'], 'axis' => $args['axis'], 'status' => $result->status, 'class' => $decision->class],
+                    $examined->rows(),
+                    $explains,
+                ));
+                if ($failure !== null) {
+                    fwrite($this->err, $failure . "\n");
+                }
+            }
 
             if ($problem !== null) {
                 fwrite($this->err, "the database can no longer be trusted ($problem); build it again\n");
@@ -228,6 +261,10 @@ final class MeasureOne
             if (!$measured && $phase === Attempt::WARMUP) {
                 break; // the same request will fail the same way; the caller changes the request and asks again
             }
+        }
+
+        if ($tap !== null && !$tapped) {
+            fwrite($this->err, "tap: no cold attempt was made, so nothing was written to the tap file\n");
         }
 
         return self::EXIT_OK;
@@ -310,7 +347,7 @@ final class MeasureOne
     /**
      * @param list<string> $argv
      *
-     * @return array{scale: int, uri: string, method: string, route: string, axis: string, headers: array<string, string>, query: array<string, string>, body: ?array<string, mixed>, json: bool, csrf: bool, actAs: ?string, gateBypass: bool, phases: list<int>}
+     * @return array{scale: int, uri: string, method: string, route: string, axis: string, headers: array<string, string>, query: array<string, string>, body: ?array<string, mixed>, json: bool, csrf: bool, actAs: ?string, gateBypass: bool, phases: list<int>, tapOut: ?string}
      */
     public static function parseArguments(array $argv): array
     {
@@ -330,7 +367,7 @@ final class MeasureOne
                 $opts[$name] = $value ?? true;
             }
         }
-        $known = ['scale', 'uri', 'method', 'route', 'axis', 'header', 'query', 'body-json', 'form', 'html', 'csrf', 'act-as', 'gate-bypass', 'phases'];
+        $known = ['scale', 'uri', 'method', 'route', 'axis', 'header', 'query', 'body-json', 'form', 'html', 'csrf', 'act-as', 'gate-bypass', 'phases', 'tap-out'];
         foreach (array_keys($opts) as $name) {
             if (!in_array($name, $known, true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
@@ -392,6 +429,11 @@ final class MeasureOne
             ActingAs::parse($actAs);
         }
 
+        $tapOut = $opts['tap-out'] ?? null;
+        if ($tapOut !== null && (!is_string($tapOut) || $tapOut === '')) {
+            throw new \InvalidArgumentException('--tap-out needs a file name');
+        }
+
         return [
             'scale' => (int) $scale,
             'uri' => $uri,
@@ -406,6 +448,7 @@ final class MeasureOne
             'actAs' => $actAs,
             'gateBypass' => isset($opts['gate-bypass']),
             'phases' => $phases,
+            'tapOut' => $tapOut,
         ];
     }
 }

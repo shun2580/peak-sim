@@ -25,6 +25,29 @@ final class MeasureOneArgumentsTest extends TestCase
         self::assertNull($a['actAs']);
         self::assertFalse($a['gateBypass']);
         self::assertSame([Attempt::WARMUP, Attempt::COLD, Attempt::WARM], $a['phases']);
+        self::assertNull($a['tapOut'], 'no tap unless it is asked for');
+    }
+
+    public function testTheTapFileIsGivenByTapOut(): void
+    {
+        $a = MeasureOne::parseArguments(['--scale=100', '--uri=/x', '--tap-out=/out/tap-1.json']);
+
+        self::assertSame('/out/tap-1.json', $a['tapOut']);
+    }
+
+    /** @return iterable<string, array{list<string>}> */
+    public static function badTapOut(): iterable
+    {
+        yield 'no value' => [['--scale=100', '--uri=/x', '--tap-out']];
+        yield 'an empty value' => [['--scale=100', '--uri=/x', '--tap-out=']];
+    }
+
+    /** @param list<string> $argv */
+    #[DataProvider('badTapOut')]
+    public function testATapOutWithNoNameIsAUsageError(array $argv): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        MeasureOne::parseArguments($argv);
     }
 
     public function testEverythingGiven(): void
