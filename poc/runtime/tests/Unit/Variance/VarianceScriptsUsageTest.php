@@ -58,6 +58,24 @@ final class VarianceScriptsUsageTest extends TestCase
         return [proc_close($process), $out, $err];
     }
 
+    /**
+     * @param list<string> $args
+     *
+     * @return array{int, string, string}
+     */
+    private static function invoke_at(string $path, array $args): array
+    {
+        $process = proc_open(['bash', $path, ...$args], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [
+            'PATH' => '/usr/bin:/bin', 'HOME' => sys_get_temp_dir(),
+        ]);
+        $out = (string) stream_get_contents($pipes[1]);
+        $err = (string) stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        return [proc_close($process), $out, $err];
+    }
+
     /** @return list<string> the arguments that are fine, so a test can spoil one */
     private static function good(): array
     {
@@ -118,6 +136,99 @@ final class VarianceScriptsUsageTest extends TestCase
 
         $this->assertSame(2, $code, $err);
         $this->assertStringContainsString('bin/variance-run', $err);
+    }
+
+    /**
+     * Makes a throwaway git checkout holding a copy of the runner under bin/, with one commit.
+     *
+     * @return string the checkout's directory
+     */
+    private static function checkoutWithRunner(): string
+    {
+        $root = self::$dir . '/checkout-' . bin2hex(random_bytes(4));
+        mkdir($root . '/bin', 0775, true);
+        copy(self::script('variance-run'), $root . '/bin/variance-run');
+        foreach ([['init', '-q'], ['add', 'bin/variance-run'], ['-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '-m', 'init']] as $git) {
+            $process = proc_open(['git', '-C', $root, ...$git], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+            stream_get_contents($pipes[1]);
+            stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            self::assertSame(0, proc_close($process), 'git ' . implode(' ', $git));
+        }
+
+        return $root;
+    }
+
+    private static function removeCheckout(string $root): void
+    {
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($it as $entry) {
+            $entry->isDir() && !$entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+        }
+        rmdir($root);
+    }
+
+    public function test_a_tree_with_uncommitted_changes_is_refused_when_no_source_commit_is_given(): void
+    {
+        $root = self::checkoutWithRunner();
+        try {
+            file_put_contents($root . '/bin/variance-run', "\n# uncommitted\n", FILE_APPEND);
+
+            [$code, , $err] = self::invoke_at($root . '/bin/variance-run', [...self::good(), '--label=taken']);
+
+            $this->assertSame(2, $code, $err);
+            $this->assertStringContainsString('uncommitted changes', $err);
+            $this->assertStringNotContainsString('already exists', $err, 'it must stop before it looks at the record');
+        } finally {
+            self::removeCheckout($root);
+        }
+    }
+
+    public function test_an_untracked_file_in_the_tree_also_counts_as_uncommitted(): void
+    {
+        $root = self::checkoutWithRunner();
+        try {
+            file_put_contents($root . '/bin/new-file', 'x');
+
+            [$code, , $err] = self::invoke_at($root . '/bin/variance-run', [...self::good(), '--label=taken']);
+
+            $this->assertSame(2, $code, $err);
+            $this->assertStringContainsString('uncommitted changes', $err);
+        } finally {
+            self::removeCheckout($root);
+        }
+    }
+
+    public function test_a_given_source_commit_is_not_held_up_by_a_dirty_tree(): void
+    {
+        $root = self::checkoutWithRunner();
+        try {
+            file_put_contents($root . '/bin/variance-run', "\n# uncommitted\n", FILE_APPEND);
+
+            // it gets past the check and meets the record that already exists, which is the next thing it looks at
+            [$code, , $err] = self::invoke_at($root . '/bin/variance-run', [...self::good(), '--label=taken', '--source-commit=abc1234']);
+
+            $this->assertSame(2, $code, $err);
+            $this->assertStringContainsString('already exists', $err);
+            $this->assertStringNotContainsString('uncommitted changes', $err);
+        } finally {
+            self::removeCheckout($root);
+        }
+    }
+
+    public function test_a_clean_tree_is_not_refused_for_being_dirty(): void
+    {
+        $root = self::checkoutWithRunner();
+        try {
+            [$code, , $err] = self::invoke_at($root . '/bin/variance-run', [...self::good(), '--label=taken']);
+
+            $this->assertSame(2, $code, $err);
+            $this->assertStringContainsString('already exists', $err);
+            $this->assertStringNotContainsString('uncommitted changes', $err);
+        } finally {
+            self::removeCheckout($root);
+        }
     }
 
     public function test_the_help_exits_0_and_names_the_options(): void

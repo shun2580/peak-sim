@@ -63,7 +63,7 @@ usage: bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [
   --watch-interval=N     seconds between two looks of the watch (default 30)
   --watch-statement-seconds=N   a statement on the database this long is said (default 900)
   --watch-idle-seconds=N        no database statement and no output this long is said (default 1800)
-  --source-commit=<hash> the commit the copy of the measurer was made from (recorded; default: git HEAD of the copy, or unknown)
+  --source-commit=<hash> the commit the copy of the measurer was made from (recorded; default: git HEAD of the copy, or unknown; without it a tree with uncommitted changes is refused)
   --project-prefix=<p>   compose project prefix (default peak-var)
   --keep-stack           leave the stacks up afterwards (tear them down with PEAK_COMPOSE_PROJECT=<project> bin/stack down)
   --help                 this text
@@ -152,6 +152,14 @@ done
 if [ -n "$notify" ]; then [ -x "$notify" ] || fail_usage "--notify is not an executable file: $notify"; fi
 if [ "$parallel" = 1 ] && [ -z "$image" ]; then fail_usage "--parallel needs --php-image (two stacks building one image would race)"; fi
 if [ -z "$source_commit" ]; then
+  # No hash was given, so the record would name this checkout's HEAD. That is true only if nothing here differs from it:
+  # a measurement run from a tree with uncommitted changes must not be recorded under a commit that lacks them.
+  dirty="$(git -C "$here/.." status --porcelain -- . 2>/dev/null || true)"
+  if [ -n "$dirty" ]; then
+    echo "bin/variance-run: the working tree has uncommitted changes, so HEAD would be recorded for code that is not HEAD." >&2
+    echo "  Commit them, or run from a clean copy of a commit (git archive) and pass --source-commit=<hash>." >&2
+    exit 2
+  fi
   source_commit="$(git -C "$here" rev-parse HEAD 2>/dev/null || echo unknown)"
 fi
 
