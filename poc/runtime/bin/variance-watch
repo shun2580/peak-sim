@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# Watches one measurement database from outside and says so when it looks stuck. It reads; it never stops anything.
+#
+#   bin/variance-watch --db-name=<peak_sim_measure_...> --out-dir=<dir> --done-file=<file> [options]
+#
+# Output is not watched on its own (a request that runs for minutes writes nothing). The watch reads the database's own
+# statements (SHOW FULL PROCESSLIST) and says so, once per episode, when
+#   (i)  a statement on the database has been running for --statement-seconds or more (default 900), or
+#   (ii) the database changed no row counter, started or ended no statement, AND nothing was written under --out-dir for --idle-seconds
+#        (default 1800).
+# The message names the statement and the seconds it has run. With --notify=<executable>, that executable is called with
+# the message as its one argument; every message is also appended to <out-dir>/alerts.log.
+# The watch ends by itself: when --done-file exists, or when the database server cannot be asked 10 times in a row.
+# It uses no kill of any kind. Needs the same environment as bin/stack (compose project, root password of the throwaway DB).
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_stack.sh"
+set +e
+
+usage() {
+  cat <<'TXT'
+usage: bin/variance-watch --db-name=<name> --out-dir=<dir> --done-file=<file> [--notify=<executable>] [--label=<text>]
+         [--interval=30] [--statement-seconds=900] [--idle-seconds=1800]
+TXT
+}
+
+db="" out="" done_file="" notify="" label="watch" interval=30 stmt_limit=900 idle_limit=1800
+for arg in "$@"; do
+  case "$arg" in
+    --db-name=*) db="${arg#--db-name=}" ;;
+    --out-dir=*) out="${arg#--out-dir=}" ;;
+    --done-file=*) done_file="${arg#--done-file=}" ;;
+    --notify=*) notify="${arg#--notify=}" ;;
+    --label=*) label="${arg#--label=}" ;;
+    --interval=*) interval="${arg#--interval=}" ;;
+    --statement-seconds=*) stmt_limit="${arg#--statement-seconds=}" ;;
+    --idle-seconds=*) idle_limit="${arg#--idle-seconds=}" ;;
+    --help|-h) usage; exit 0 ;;
+    *) echo "bin/variance-watch: unknown argument: $arg" >&2; usage >&2; exit 2 ;;
+  esac
+done
+[[ "$db" =~ ^peak_sim_measure_[a-z0-9_]+$ ]] || { echo "bin/variance-watch: --db-name must be a measurement database name" >&2; exit 2; }
+[ -d "$out" ] || { echo "bin/variance-watch: --out-dir is not a directory" >&2; exit 2; }
+[ -n "$done_file" ] || { echo "bin/variance-watch: --done-file is required" >&2; exit 2; }
+for n in "$interval" "$stmt_limit" "$idle_limit"; do
+  [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] || { echo "bin/variance-watch: the intervals and limits are whole seconds, 1 or more" >&2; exit 2; }
+done
+
+log="$out/watch.log"
+alerts="$out/alerts.log"
+
+say() { # the message goes to alerts.log and to the notifier (a failure of the notifier is logged, not fatal)
+  local msg="$1"
+  printf '%s %s\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$msg" >> "$alerts"
+  if [ -n "$notify" ]; then
+    "$notify" "$msg" >> "$log" 2>&1 || printf '%s notifier failed\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" >> "$log"
+  fi
+}
+
+root_sql() { MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" compose exec -T -e MYSQL_PWD measure-db mysql -uroot -N -B -e "$1" 2>/dev/null; }
+
+# Waits up to $1 seconds, in slices, so the end of the measurement is seen within a few seconds.
+nap() {
+  local left="$1" step
+  while [ "$left" -gt 0 ] && [ ! -e "$done_file" ]; do
+    step=$(( left < 5 ? left : 5 ))
+    sleep "$step"
+    left=$(( left - step ))
+  done
+}
+
+last_move=$(date +%s)
+prev_sig=""
+idle_said=0
+stmt_said=""
+failures=0
+
+while [ ! -e "$done_file" ]; do
+  now=$(date +%s)
+  # Id, Time and statement of every running statement on this database (the watch's own SHOW is left out).
+  procs="$(root_sql 'SHOW FULL PROCESSLIST')"
+  status=$?
+  # Not Com_select: the server counts the watch's own SHOW STATUS as a select, so it would move on every look.
+  counters="$(root_sql "SHOW GLOBAL STATUS WHERE Variable_name IN ('Com_insert','Com_update','Com_delete','Com_replace','Innodb_rows_read','Innodb_rows_inserted','Innodb_rows_updated','Innodb_rows_deleted')")"
+  if [ "$status" -ne 0 ] || [ -z "$counters" ]; then
+    failures=$(( failures + 1 ))
+    printf '%s server not answering (%d)\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$failures" >> "$log"
+    if [ "$failures" -ge 10 ]; then
+      printf '%s the server is gone: the watch ends\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" >> "$log"
+      exit 0
+    fi
+    nap "$interval"
+    continue
+  fi
+  failures=0
+
+  # Longest running statement on this database: "<seconds>\t<id>\t<statement>".
+  longest="$(printf '%s\n' "$procs" | awk -F'\t' -v db="$db" '$4 == db && $5 == "Query" && $8 !~ /SHOW FULL PROCESSLIST/ { if ($6 + 0 >= best) { best = $6 + 0; line = $6 "\t" $1 "\t" $8 } } END { if (line != "") print line }')"
+  secs=0 id="" text=""
+  if [ -n "$longest" ]; then
+    IFS=$'\t' read -r secs id text <<< "$longest"
+  fi
+
+  bytes="$(find "$out" -type f ! -name watch.log ! -name alerts.log -printf '%s\n' 2>/dev/null | awk '{ n += $1; c++ } END { print n + 0 "/" c + 0 }')"
+  # Which statements are running now counts as movement too (a new one has started, or one has ended).
+  running="$(printf '%s\n' "$procs" | awk -F'\t' -v db="$db" '$4 == db && $5 == "Query" && $8 !~ /SHOW FULL PROCESSLIST/ { printf "%s,", $1 }')"
+  sig="$(printf '%s|%s|%s' "$(printf '%s' "$counters" | tr '\n\t' ' |')" "$running" "$bytes")"
+  printf '%s longest=%ss counters/bytes-changed=%s bytes_files=%s\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$secs" "$([ "$sig" != "$prev_sig" ] && echo yes || echo no)" "$bytes" >> "$log"
+
+  # (i) one statement over the limit: said once for that statement; said again for another one.
+  if [ -n "$id" ] && [ "$secs" -ge "$stmt_limit" ]; then
+    if [ "$stmt_said" != "$id" ]; then
+      say "info: $label: a statement on $db has run ${secs}s (limit ${stmt_limit}s): ${text:0:200}"
+      stmt_said="$id"
+    fi
+  else
+    stmt_said=""
+  fi
+
+  # (ii) nothing moved in the database and nothing was written: said once per stall.
+  if [ "$sig" != "$prev_sig" ]; then
+    last_move=$now
+    idle_said=0
+    prev_sig="$sig"
+  elif [ $(( now - last_move )) -ge "$idle_limit" ] && [ "$idle_said" = 0 ]; then
+    say "info: $label: no database statement and no output for $(( now - last_move ))s on $db (limit ${idle_limit}s); longest running statement: ${secs}s ${text:0:200}"
+    idle_said=1
+  fi
+
+  nap "$interval"
+done
+exit 0

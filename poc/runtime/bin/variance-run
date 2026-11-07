@@ -1,0 +1,427 @@
+#!/usr/bin/env bash
+# Repeats one measurement on the SAME database, from outside the driver. Needs Docker; PHP is not needed on the host.
+#
+#   bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [options]
+#
+# The driver (bin/measure) builds a database, measures every route on it once and drops it. To see what changes between
+# repeats of the same request on the same database, and between two databases built the same way, this script does what
+# the driver does and nothing else, in the same way:
+#
+#   for each database (own compose project, own run id; the databases may run at the same time):
+#     bring the sealed stack up, preflight, build the database ONCE (bin/inner/build-db.php),
+#     record its row counts and a checksum of every table,
+#     for each lap: for each route, in the order of the task list: bin/measure-one --phases=warmup,cold
+#
+# The measurer's rules are not touched: the same measure-one, the same arguments (taken from the recorded task list through
+# Variance\TrialPlan, so they are the driver's own), the same phases as a run with --warm=off. A request that cannot be
+# rolled back (exit 14) stops the database's run: nothing is rebuilt, because that would end "the same database".
+# Before and after every trial the table statistics are read and written down (mysql.innodb_table_stats and the index
+# cardinalities); nothing is changed by that. A watch (bin/variance-watch) says so when a statement runs too long or nothing moves.
+#
+# Everything is written under <out>/<label>/db<k>/ (see the usage text). Exit codes: 0 done / 2 usage / 11 stack or preflight /
+# 12 app did not start / 13 build failed / 14 a request could not be rolled back / 15 another measure-one failure.
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# >>> app-key
+# The same function as bin/measure: one APP_KEY per database, made from its run id, so the process that builds the database
+# and the ones that measure share it. Made up inside the sealed stack and protects nothing.
+peak_app_key_for_run() {
+  local digest
+  digest="$(printf 'peak-sim-measure-app-key:%s' "$1" | sha256sum | cut -c1-32)"
+  printf 'base64:%s' "$(printf '%s' "$digest" | base64 | tr -d '\n')"
+}
+# <<< app-key
+
+T1_ROUTES='DELETE /books/{bookSlug}/chapter/{chapterSlug},DELETE /books/{bookSlug}/draft/{pageId},DELETE /books/{bookSlug}/page/{pageSlug},DELETE /books/{id},POST /settings/recycle-bin/empty,DELETE /shelves/{slug}'
+
+usage() {
+  cat <<'TXT'
+usage: bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [options]
+  --app=<dir>            the target app (absolute path; mounted read-only; its vendor/ must exist)
+  --tasks=<file>         the task list of a recorded run (tasks.json), the source of every request's arguments
+  --scale=N              the size of each database (rows of the scaled table)
+  --out=<dir>            where the record goes (absolute path); the record is <out>/<label>/db<k>/
+  --label=<name>         name of this run (default: variance)
+  --routes='M /a,M /b'   the routes to repeat, "METHOD uri" each, comma separated, measured in the order of the task list
+                         (default: the six delete/empty routes of the BookStack variance study)
+  --dbs=N                how many databases to build and measure (default 2)
+  --laps=N               how many times the whole route list is measured on one database (default 3)
+  --parallel             measure the databases at the same time (needs --php-image: two builds of one image would race)
+  --php-image=<name>     run the stack in this already built PHP image (never built or pulled here)
+  --profile=<name>       app profile (default bookstack; "none" for no profile)
+  --data=generator|seeder  how the databases are filled (default generator)
+  --base=N               generator only: rows of every table that is not scaled
+  --request-timeout=N    seconds one request may run, 1 to 600 (default 600)
+  --tap=on|off           on (default): give measure-one --tap-out=<file> so each trial leaves its per-statement record;
+                         off: leave the flag out (for a measure-one that does not have it)
+  --analyze=none|before|rerun
+                         none (default); before: ANALYZE TABLE once, right after the build, then all laps;
+                         rerun: all laps, then ANALYZE TABLE once, then all laps again on the same database
+  --notify=<executable>  called with one message argument when the watch says a measurement looks stuck
+  --watch-interval=N     seconds between two looks of the watch (default 30)
+  --watch-statement-seconds=N   a statement on the database this long is said (default 900)
+  --watch-idle-seconds=N        no database statement and no output this long is said (default 1800)
+  --source-commit=<hash> the commit the copy of the measurer was made from (recorded; default: git HEAD of the copy, or unknown)
+  --project-prefix=<p>   compose project prefix (default peak-var)
+  --keep-stack           leave the stacks up afterwards (tear them down with PEAK_COMPOSE_PROJECT=<project> bin/stack down)
+  --help                 this text
+record of one database, <out>/<label>/db<k>/:
+  run.log  watch.log  alerts.log  plan.json  tasks.json
+  g<G>/build.json  g<G>/content.tsv  g<G>/content.sha256     what was built, and row count + checksum of every table
+  g<G>/stats_after_build.tsv  [g<G>/analyze.log  stats_before_analyze.tsv  stats_after_analyze.tsv]
+  g<G>/<phase>_lap<L>/<seq>_<route>/attempt.jsonl stderr.log tap.jsonl trial.json stats_before.tsv stats_after.tsv
+  index.tsv                                                    one line per trial
+  <phase> is plain, or analyzed after an ANALYZE TABLE.
+exit codes:
+   0  done
+   2  wrong usage
+  11  preflight failed, or the stack could not be brought up
+  12  the app could not be started
+  13  a database could not be built
+  14  a request could not be rolled back (the database is no longer the same)
+  15  another failure of measure-one
+TXT
+}
+
+fail_usage() {
+  echo "bin/variance-run: $1" >&2
+  usage >&2
+  exit 2
+}
+
+app="" tasks="" scale="" out="" label="variance" routes="$T1_ROUTES" dbs=2 laps=3 parallel=0 image="" profile="bookstack"
+data="generator" base="" req_timeout=600 tap=on analyze=none notify="" w_interval=30 w_stmt=900 w_idle=1800 source_commit=""
+prefix="peak-var" keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h) usage; exit 0 ;;
+    --app=*) app="${arg#--app=}" ;;
+    --tasks=*) tasks="${arg#--tasks=}" ;;
+    --scale=*) scale="${arg#--scale=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --label=*) label="${arg#--label=}" ;;
+    --routes=*) routes="${arg#--routes=}" ;;
+    --dbs=*) dbs="${arg#--dbs=}" ;;
+    --laps=*) laps="${arg#--laps=}" ;;
+    --parallel) parallel=1 ;;
+    --php-image=*) image="${arg#--php-image=}" ;;
+    --profile=*) profile="${arg#--profile=}" ;;
+    --data=*) data="${arg#--data=}" ;;
+    --base=*) base="${arg#--base=}" ;;
+    --request-timeout=*) req_timeout="${arg#--request-timeout=}" ;;
+    --tap=*) tap="${arg#--tap=}" ;;
+    --analyze=*) analyze="${arg#--analyze=}" ;;
+    --notify=*) notify="${arg#--notify=}" ;;
+    --watch-interval=*) w_interval="${arg#--watch-interval=}" ;;
+    --watch-statement-seconds=*) w_stmt="${arg#--watch-statement-seconds=}" ;;
+    --watch-idle-seconds=*) w_idle="${arg#--watch-idle-seconds=}" ;;
+    --source-commit=*) source_commit="${arg#--source-commit=}" ;;
+    --project-prefix=*) prefix="${arg#--project-prefix=}" ;;
+    --keep-stack) keep=1 ;;
+    *) fail_usage "unknown argument: $arg" ;;
+  esac
+done
+
+[ -n "$app" ] || fail_usage "--app is required"
+[ -n "$tasks" ] || fail_usage "--tasks is required"
+[ -n "$scale" ] || fail_usage "--scale is required"
+[ -n "$out" ] || fail_usage "--out is required"
+case "$app" in /*) ;; *) fail_usage "--app must be an absolute path" ;; esac
+case "$tasks" in /*) ;; *) fail_usage "--tasks must be an absolute path" ;; esac
+case "$out" in /*) ;; *) fail_usage "--out must be an absolute path" ;; esac
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$((10#$scale))" -ge 1 ] || fail_usage "--scale must be a positive integer"
+[[ "$dbs" =~ ^[1-9][0-9]?$ ]] || fail_usage "--dbs must be a positive integer"
+[[ "$laps" =~ ^[1-9][0-9]?$ ]] || fail_usage "--laps must be a positive integer"
+[[ "$label" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$ ]] || fail_usage "--label is letters, digits, - and _"
+[[ "$prefix" =~ ^[a-z0-9][a-z0-9_-]{0,20}$ ]] || fail_usage "--project-prefix is lowercase letters, digits, - and _"
+[[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"
+case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac
+if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+[[ "$req_timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$req_timeout))" -ge 1 ] && [ "$((10#$req_timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"
+case "$tap" in on|off) ;; *) fail_usage "--tap takes on or off" ;; esac
+case "$analyze" in none|before|rerun) ;; *) fail_usage "--analyze takes none, before or rerun" ;; esac
+for n in "$w_interval" "$w_stmt" "$w_idle"; do
+  [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] || fail_usage "the --watch-* values are whole seconds, 1 or more"
+done
+[[ "$routes" =~ ^[A-Z]+\ /[^,]*(,[A-Z]+\ /[^,]*)*$ ]] || fail_usage "--routes is \"METHOD /uri\" entries separated by commas"
+[ -d "$app" ] || fail_usage "--app is not a directory: $app"
+[ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
+[ -f "$tasks" ] || fail_usage "--tasks is not a file: $tasks"
+if [ -n "$notify" ]; then [ -x "$notify" ] || fail_usage "--notify is not an executable file: $notify"; fi
+if [ "$parallel" = 1 ] && [ -z "$image" ]; then fail_usage "--parallel needs --php-image (two stacks building one image would race)"; fi
+if [ -z "$source_commit" ]; then
+  source_commit="$(git -C "$here" rev-parse HEAD 2>/dev/null || echo unknown)"
+fi
+
+run_root="$out/$label"
+if [ -e "$run_root" ]; then
+  echo "bin/variance-run: $run_root already exists; a record is never written over. Choose another --label or --out." >&2
+  exit 2
+fi
+mkdir -p "$run_root" || { echo "bin/variance-run: cannot write to $run_root" >&2; exit 2; }
+{
+  echo "label=$label"
+  echo "started=$(date +%Y-%m-%dT%H:%M:%S%z)"
+  echo "source_commit=$source_commit"
+  echo "scale=$scale dbs=$dbs laps=$laps parallel=$parallel tap=$tap analyze=$analyze data=$data profile=$profile request_timeout=$req_timeout"
+  echo "routes=$routes"
+  echo "php_image=${image:-default}"
+} > "$run_root/run.txt"
+
+json() { # json key=value ... -> one JSON object; a value of only digits is a number, anything else a string
+  local out="{" sep="" pair k v
+  for pair in "$@"; do
+    k="${pair%%=*}"; v="${pair#*=}"
+    if [[ "$v" =~ ^-?[0-9]{1,15}$ ]]; then
+      out+="$sep\"$k\": $v"
+    else
+      v="${v//\\/\\\\}"; v="${v//\"/\\\"}"
+      out+="$sep\"$k\": \"$v\""
+    fi
+    sep=", "
+  done
+  printf '%s}\n' "$out"
+}
+
+now_iso() { date +%Y-%m-%dT%H:%M:%S%z; }
+
+# Runs the whole of one database: $1 = its number. Everything it needs is set in this (sub)shell.
+run_db() {
+  local k="$1" db_dir project run_id app_key
+  db_dir="$run_root/db$k"
+  project="$prefix-$(printf '%s' "$label" | tr 'A-Z_' 'a-z-')-db$k"
+  mkdir -p "$db_dir"
+  # This database's whole story goes to its own run.log (the databases may run at the same time, so nothing is printed here).
+  exec >> "$db_dir/run.log" 2>&1
+
+  export PEAK_COMPOSE_PROJECT="$project" PEAK_OUT_DIR="$db_dir" PEAK_APP_ROOT="$app"
+  [ -n "$image" ] && export PEAK_PHP_IMAGE="$image"
+  # The run id, the passwords and the APP_KEY are decided once here and used for every process of this database.
+  run_id="$(head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  export PEAK_MEASURE_RUN_ID="$run_id"
+  # shellcheck source=_stack.sh
+  source "$here/_stack.sh"
+  set +e
+  app_key="$(peak_app_key_for_run "$run_id")"
+  export PEAK_MEASURE_APP_KEY="$app_key"
+  # Passed by name: the key is on no command line and never printed.
+  local exec_env=(-e PEAK_MEASURE_APP_KEY -e "PEAK_MEASURE_REQUEST_TIMEOUT=$req_timeout")
+  [ "$profile" != none ] && exec_env+=(-e "PEAK_MEASURE_PROFILE=$profile")
+  local profile_arg=() base_arg=()
+  [ "$profile" != none ] && profile_arg=("--profile=$profile")
+  [ -n "$base" ] && base_arg=("--base=$base")
+
+  teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+  trap teardown EXIT
+
+  echo "[$(now_iso)] db$k: project $project, run id $run_id"
+  if ! compose up -d --build --wait; then
+    echo "[$(now_iso)] db$k: the stack could not be brought up" >&2
+    return 11
+  fi
+  if ! bash "$here/preflight"; then
+    echo "[$(now_iso)] db$k: preflight failed; nothing was measured" >&2
+    return 11
+  fi
+
+  cp "$tasks" "$db_dir/tasks.json" || return 2
+  # The plan is made inside the container (it needs the measurer's own classes) and written as plain files under /out.
+  if ! in_php /peak-sim/poc/runtime/bin/inner/variance-plan.php --tasks=/out/tasks.json "--routes=$routes" "--scale=$scale" "--data=$data" --out-dir=/out "${profile_arg[@]}" "${base_arg[@]}"; then
+    echo "[$(now_iso)] db$k: the plan could not be made" >&2
+    return 2
+  fi
+  local groups
+  groups="$(cat "$db_dir/plan.groups")"
+
+  local g code=0
+  for g in $(seq 1 "$groups"); do
+    run_group "$k" "$g" "$db_dir" "$run_id"
+    code=$?
+    [ "$code" -ne 0 ] && break
+  done
+  echo "[$(now_iso)] db$k: finished with exit $code"
+  return "$code"
+}
+
+mysql_root() { MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" compose exec -T -e MYSQL_PWD measure-db mysql -uroot -N -B "$@"; }
+
+# What the optimizer holds about the tables of one database: the persistent table statistics and the index cardinalities.
+# Read only. information_schema_stats_expiry=0 is set for this connection only, so the cardinalities are read now, not
+# from the 24 hours cache of the server.
+snapshot_stats() { # $1 database, $2 output file
+  {
+    echo "# at $(now_iso)"
+    mysql_root -e "SET SESSION information_schema_stats_expiry=0;
+      SELECT 'innodb_table_stats', table_name, n_rows, clustered_index_size, sum_of_other_index_sizes, last_update FROM mysql.innodb_table_stats WHERE database_name='$1' ORDER BY table_name;
+      SELECT 'cardinality', table_name, index_name, seq_in_index, column_name, cardinality FROM information_schema.STATISTICS WHERE table_schema='$1' ORDER BY table_name, index_name, seq_in_index;"
+  } > "$2" 2>&1
+}
+
+# Row count and checksum of every table, and one digest of all of them: two databases with the same digest hold the same data.
+snapshot_content() { # $1 database, $2 output tsv, $3 output digest file
+  local tables sql="" t
+  tables="$(mysql_root -e "SELECT table_name FROM information_schema.TABLES WHERE table_schema='$1' AND table_type='BASE TABLE' ORDER BY table_name")" || return 1
+  for t in $tables; do
+    [[ "$t" =~ ^[A-Za-z0-9_]+$ ]] || continue
+    sql+="SELECT '$t', COUNT(*) FROM \`$1\`.\`$t\`;"$'\n'
+  done
+  {
+    mysql_root -e "$sql" | awk -F'\t' '{ print "rows\t" $1 "\t" $2 }'
+    # CHECKSUM TABLE returns "<db>.<table>\t<checksum>"
+    local list=""
+    for t in $tables; do [[ "$t" =~ ^[A-Za-z0-9_]+$ ]] && list+="\`$1\`.\`$t\`,"; done
+    mysql_root -e "CHECKSUM TABLE ${list%,}" | awk -F'\t' '{ n = split($1, p, "."); print "checksum\t" p[n] "\t" $2 }'
+  } | sort > "$2"
+  sha256sum < "$2" | cut -d' ' -f1 > "$3"
+}
+
+analyze_tables() { # $1 database, $2 log file
+  local tables list="" t
+  tables="$(mysql_root -e "SELECT table_name FROM information_schema.TABLES WHERE table_schema='$1' AND table_type='BASE TABLE' ORDER BY table_name")" || return 1
+  for t in $tables; do [[ "$t" =~ ^[A-Za-z0-9_]+$ ]] && list+="\`$1\`.\`$t\`,"; done
+  { echo "# at $(now_iso)"; mysql_root -e "ANALYZE TABLE ${list%,}"; } > "$2" 2>&1
+}
+
+# One database of the plan: build it once, then the laps. $1 db number, $2 group number, $3 db dir, $4 run id
+run_group() {
+  local k="$1" g="$2" db_dir="$3" run_id="$4"
+  local gd="$db_dir/g$g" key tag gscale dbname
+  IFS=$'\t' read -r key tag gscale < "$gd/plan.meta"
+  dbname="peak_sim_measure_${run_id}_${tag}_${gscale}"
+  local -a build_args
+  mapfile -t build_args < "$gd/plan.build_args"
+
+  local r_idx=() r_method=() r_route=() r_uri=() r_slug=() r
+  while IFS=$'\t' read -r r m route uri slug; do
+    r_idx+=("$r"); r_method+=("$m"); r_route+=("$route"); r_uri+=("$uri"); r_slug+=("$slug")
+  done < "$gd/plan.routes"
+
+  # The watch: reads the database's own statements, ends by itself when the done file appears.
+  local done_file="$db_dir/.done.g$g" watch_pid
+  local watch_args=(--db-name="$dbname" --out-dir="$db_dir" --done-file="$done_file" --label="db$k g$g $key" --interval="$w_interval" --statement-seconds="$w_stmt" --idle-seconds="$w_idle")
+  [ -n "$notify" ] && watch_args+=(--notify="$notify")
+  bash "$here/variance-watch" "${watch_args[@]}" &
+  watch_pid=$!
+  local code=0
+  group_body "$k" "$g" "$db_dir" "$gd" "$key" "$tag" "$gscale" "$dbname"
+  code=$?
+  : > "$done_file"
+  wait "$watch_pid" 2>/dev/null
+  return "$code"
+}
+
+group_body() {
+  local k="$1" g="$2" db_dir="$3" gd="$4" key="$5" tag="$6" gscale="$7" dbname="$8"
+  local began ended
+  began="$(date +%s)"
+  echo "[$(now_iso)] db$k g$g: building $key as $dbname"
+  compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/inner/build-db.php "${build_args[@]}" > "$gd/build.stdout" 2> "$gd/build.stderr"
+  local bcode=$?
+  ended="$(date +%s)"
+  if [ "$bcode" -ne 0 ]; then
+    echo "[$(now_iso)] db$k g$g: the build failed (exit $bcode): $(tail -c 400 "$gd/build.stderr")" >&2
+    return 13
+  fi
+  tail -n 1 "$gd/build.stdout" > "$gd/build.json"
+  echo "$((ended - began))" > "$gd/build.seconds"
+  snapshot_content "$dbname" "$gd/content.tsv" "$gd/content.sha256" || { echo "could not read the content of $dbname" >&2; return 13; }
+  snapshot_stats "$dbname" "$gd/stats_after_build.tsv"
+  echo "[$(now_iso)] db$k g$g: built in $((ended - began)) s; content digest $(cat "$gd/content.sha256")"
+
+  local phase="plain" lap code
+  if [ "$analyze" = before ]; then
+    run_analyze "$k" "$g" "$gd" "$dbname" || return 15
+    phase="analyzed"
+  fi
+  for lap in $(seq 1 "$laps"); do
+    run_lap "$k" "$g" "$db_dir" "$gd" "$tag" "$gscale" "$dbname" "$phase" "$lap"
+    code=$?
+    [ "$code" -ne 0 ] && return "$code"
+  done
+  if [ "$analyze" = rerun ]; then
+    run_analyze "$k" "$g" "$gd" "$dbname" || return 15
+    for lap in $(seq 1 "$laps"); do
+      run_lap "$k" "$g" "$db_dir" "$gd" "$tag" "$gscale" "$dbname" "analyzed" "$lap"
+      code=$?
+      [ "$code" -ne 0 ] && return "$code"
+    done
+  fi
+  return 0
+}
+
+run_analyze() {
+  local k="$1" g="$2" gd="$3" dbname="$4"
+  snapshot_stats "$dbname" "$gd/stats_before_analyze.tsv"
+  echo "[$(now_iso)] db$k g$g: ANALYZE TABLE (once, outside any request)"
+  analyze_tables "$dbname" "$gd/analyze.log" || { echo "ANALYZE TABLE failed" >&2; return 1; }
+  snapshot_stats "$dbname" "$gd/stats_after_analyze.tsv"
+}
+
+# trial_no counts the trials of the database across its laps; it lives in this shell, so the laps share it.
+trial_no=0
+run_lap() {
+  local k="$1" g="$2" db_dir="$3" gd="$4" tag="$5" gscale="$6" dbname="$7" phase="$8" lap="$9" i
+  for i in "${!r_idx[@]}"; do
+    trial_no=$((trial_no + 1))
+    run_trial "$k" "$g" "$db_dir" "$gd" "$tag" "$dbname" "$phase" "$lap" "$trial_no" "$i" || return $?
+  done
+}
+
+run_trial() {
+  local k="$1" g="$2" db_dir="$3" gd="$4" tag="$5" dbname="$6" phase="$7" lap="$8" n="$9" i="${10}"
+  local num dir rel started ended started_epoch ended_epoch code
+  num="$(printf '%02d' "$n")"
+  dir="$gd/${phase}_lap${lap}/${num}_${r_slug[$i]}"
+  mkdir -p "$dir" && chmod a+rwx "$dir"   # the container's user writes the tap file here
+  rel="${dir#"$db_dir"}"
+  local -a margs
+  mapfile -t margs < "$gd/plan.r${r_idx[$i]}.args"
+  local tap_args=()
+  [ "$tap" = on ] && tap_args=("--tap-out=/out$rel/tap.jsonl")
+
+  snapshot_stats "$dbname" "$dir/stats_before.tsv"
+  started="$(now_iso)"; started_epoch="$(date +%s)"
+  compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/measure-one "${margs[@]}" ${tap_args[@]+"${tap_args[@]}"} > "$dir/attempt.jsonl" 2> "$dir/stderr.log"
+  code=$?
+  ended="$(now_iso)"; ended_epoch="$(date +%s)"
+  snapshot_stats "$dbname" "$dir/stats_after.tsv"
+
+  local attempts oks tap_file=absent
+  attempts="$(grep -c '^{' "$dir/attempt.jsonl")"
+  oks="$(grep -c '"class":"ok"' "$dir/attempt.jsonl")"
+  [ -s "$dir/tap.jsonl" ] && tap_file=present
+  json db="$k" group="$g" database="$dbname" phase="$phase" lap="$lap" order="$n" route="${r_method[$i]} ${r_route[$i]}" uri="${r_uri[$i]}" \
+    started="$started" ended="$ended" started_epoch="$started_epoch" ended_epoch="$ended_epoch" seconds="$((ended_epoch - started_epoch))" \
+    exit="$code" attempts="$attempts" attempts_ok="$oks" tap="$tap_file" source_commit="$source_commit" > "$dir/trial.json"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "db$k" "g$g" "$phase" "$lap" "$n" "${r_method[$i]} ${r_route[$i]}" "$code" "$attempts/$oks" "${dir#"$run_root"/}" >> "$db_dir/index.tsv"
+  echo "[$ended] db$k g$g $phase lap$lap #$n ${r_method[$i]} ${r_route[$i]}: exit $code, $attempts attempts ($oks ok), $((ended_epoch - started_epoch)) s, tap $tap_file"
+
+  case "$code" in
+    0) return 0 ;;
+    12) echo "the app could not be started: $(tail -c 300 "$dir/stderr.log")" >&2; return 12 ;;
+    14) echo "a request could not be rolled back; the database is no longer the same, so this run stops here (nothing is rebuilt)" >&2; return 14 ;;
+    *) echo "measure-one failed with exit $code: $(tail -c 300 "$dir/stderr.log")" >&2; return 15 ;;
+  esac
+}
+
+pids=() worst=0
+for k in $(seq 1 "$dbs"); do
+  if [ "$parallel" = 1 ]; then
+    ( run_db "$k" ) &
+    pids+=($!)
+  else
+    ( run_db "$k" )
+    c=$?
+    [ "$c" -gt "$worst" ] && worst=$c
+    [ "$c" -ne 0 ] && break
+  fi
+done
+for p in ${pids[@]+"${pids[@]}"}; do
+  wait "$p"
+  c=$?
+  [ "$c" -gt "$worst" ] && worst=$c
+done
+echo "finished=$(now_iso) exit=$worst" >> "$run_root/run.txt"
+exit "$worst"
