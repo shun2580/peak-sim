@@ -15,6 +15,9 @@
 # The measurer's rules are not touched: the same measure-one, the same arguments (taken from the recorded task list through
 # Variance\TrialPlan, so they are the driver's own), the same phases as a run with --warm=off. A request that cannot be
 # rolled back (exit 14) stops the database's run: nothing is rebuilt, because that would end "the same database".
+# One more way to make the database exists, for finding out whether InnoDB's automatic recalculation of the persistent
+# statistics is what moves the rows read (--stats-auto-recalc=off): right after the build ANALYZE TABLE is run once, then
+# STATS_AUTO_RECALC=0 is set on the tables the routes touch, then the laps are measured. The default (keep) does none of it.
 # Before and after every trial the table statistics are read and written down (mysql.innodb_table_stats and the index
 # cardinalities); nothing is changed by that. A watch (bin/variance-watch) says so when a statement runs too long or nothing moves.
 #
@@ -35,6 +38,10 @@ peak_app_key_for_run() {
 # <<< app-key
 
 T1_ROUTES='DELETE /books/{bookSlug}/chapter/{chapterSlug},DELETE /books/{bookSlug}/draft/{pageId},DELETE /books/{bookSlug}/page/{pageSlug},DELETE /books/{id},POST /settings/recycle-bin/empty,DELETE /shelves/{slug}'
+
+# The tables the six routes of T1 touch: every table named in a FROM / INTO / UPDATE / JOIN of the statements recorded by the tap
+# of the T1 stages (25 tables). Tables that do not exist in the built database are skipped, and the ones switched are recorded.
+T1_STATS_TABLES='activities,attachments,bookshelves_books,comments,deletions,entities,entity_container_data,entity_page_data,entity_permissions,favourites,images,joint_permissions,page_revisions,permission_role,references,role_permissions,role_user,roles,search_terms,slug_history,tags,views,watches,webhook_tracked_events,webhooks'
 
 usage() {
   cat <<'TXT'
@@ -59,6 +66,12 @@ usage: bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [
   --analyze=none|before|rerun
                          none (default); before: ANALYZE TABLE once, right after the build, then all laps;
                          rerun: all laps, then ANALYZE TABLE once, then all laps again on the same database
+  --stats-auto-recalc=keep|off
+                         keep (default): nothing is changed, the record is the same as without this option;
+                         off: right after the build, ANALYZE TABLE once on every table, then ALTER TABLE ... STATS_AUTO_RECALC=0
+                         on the tables of --stats-tables, then all laps (phase name "statsoff"). Not with --analyze.
+  --stats-tables=a,b     the tables STATS_AUTO_RECALC is switched off on (default: the 25 tables the six T1 routes touch;
+                         names that do not exist in the built database are skipped)
   --notify=<executable>  called with one message argument when the watch says a measurement looks stuck
   --watch-interval=N     seconds between two looks of the watch (default 30)
   --watch-statement-seconds=N   a statement on the database this long is said (default 900)
@@ -71,9 +84,10 @@ record of one database, <out>/<label>/db<k>/:
   run.log  watch.log  alerts.log  plan.json  tasks.json
   g<G>/build.json  g<G>/content.tsv  g<G>/content.sha256     what was built, and row count + checksum of every table
   g<G>/stats_after_build.tsv  [g<G>/analyze.log  stats_before_analyze.tsv  stats_after_analyze.tsv]
+  [g<G>/stats_off.log  stats_off_tables.txt  stats_after_off.tsv  table_options_before_off.tsv  table_options_after_off.tsv]   (--stats-auto-recalc=off)
   g<G>/<phase>_lap<L>/<seq>_<route>/attempt.jsonl stderr.log tap.jsonl trial.json stats_before.tsv stats_after.tsv
   index.tsv                                                    one line per trial
-  <phase> is plain, or analyzed after an ANALYZE TABLE.
+  <phase> is plain, analyzed after an ANALYZE TABLE, or statsoff after ANALYZE TABLE and STATS_AUTO_RECALC=0.
 exit codes:
    0  done
    2  wrong usage
@@ -93,7 +107,7 @@ fail_usage() {
 
 app="" tasks="" scale="" out="" label="variance" routes="$T1_ROUTES" dbs=2 laps=3 parallel=0 image="" profile="bookstack"
 data="generator" base="" req_timeout=600 tap=on analyze=none notify="" w_interval=30 w_stmt=900 w_idle=1800 source_commit=""
-prefix="peak-var" keep=0
+prefix="peak-var" keep=0 stats_auto=keep stats_tables="$T1_STATS_TABLES"
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -113,6 +127,8 @@ for arg in "$@"; do
     --request-timeout=*) req_timeout="${arg#--request-timeout=}" ;;
     --tap=*) tap="${arg#--tap=}" ;;
     --analyze=*) analyze="${arg#--analyze=}" ;;
+    --stats-auto-recalc=*) stats_auto="${arg#--stats-auto-recalc=}" ;;
+    --stats-tables=*) stats_tables="${arg#--stats-tables=}" ;;
     --notify=*) notify="${arg#--notify=}" ;;
     --watch-interval=*) w_interval="${arg#--watch-interval=}" ;;
     --watch-statement-seconds=*) w_stmt="${arg#--watch-statement-seconds=}" ;;
@@ -142,6 +158,9 @@ if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base
 [[ "$req_timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$req_timeout))" -ge 1 ] && [ "$((10#$req_timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"
 case "$tap" in on|off) ;; *) fail_usage "--tap takes on or off" ;; esac
 case "$analyze" in none|before|rerun) ;; *) fail_usage "--analyze takes none, before or rerun" ;; esac
+case "$stats_auto" in keep|off) ;; *) fail_usage "--stats-auto-recalc takes keep or off" ;; esac
+[[ "$stats_tables" =~ ^[A-Za-z0-9_]+(,[A-Za-z0-9_]+)*$ ]] || fail_usage "--stats-tables is table names separated by commas"
+if [ "$stats_auto" = off ] && [ "$analyze" != none ]; then fail_usage "--stats-auto-recalc=off runs its own ANALYZE TABLE; do not combine it with --analyze"; fi
 for n in "$w_interval" "$w_stmt" "$w_idle"; do
   [[ "$n" =~ ^[0-9]+$ ]] && [ "$n" -ge 1 ] || fail_usage "the --watch-* values are whole seconds, 1 or more"
 done
@@ -176,6 +195,8 @@ mkdir -p "$run_root" || { echo "bin/variance-run: cannot write to $run_root" >&2
   echo "scale=$scale dbs=$dbs laps=$laps parallel=$parallel tap=$tap analyze=$analyze data=$data profile=$profile request_timeout=$req_timeout"
   echo "routes=$routes"
   echo "php_image=${image:-default}"
+  # only when asked for: a run with the default (keep) writes exactly the record it wrote before this option existed
+  [ "$stats_auto" = off ] && echo "stats_auto_recalc=off stats_tables=$stats_tables"
 } > "$run_root/run.txt"
 
 json() { # json key=value ... -> one JSON object; a value of only digits is a number, anything else a string
@@ -343,6 +364,10 @@ group_body() {
     run_analyze "$k" "$g" "$gd" "$dbname" || return 15
     phase="analyzed"
   fi
+  if [ "$stats_auto" = off ]; then
+    run_stats_off "$k" "$g" "$gd" "$dbname" || return 15
+    phase="statsoff"
+  fi
   for lap in $(seq 1 "$laps"); do
     run_lap "$k" "$g" "$db_dir" "$gd" "$tag" "$gscale" "$dbname" "$phase" "$lap"
     code=$?
@@ -365,6 +390,36 @@ run_analyze() {
   echo "[$(now_iso)] db$k g$g: ANALYZE TABLE (once, outside any request)"
   analyze_tables "$dbname" "$gd/analyze.log" || { echo "ANALYZE TABLE failed" >&2; return 1; }
   snapshot_stats "$dbname" "$gd/stats_after_analyze.tsv"
+}
+
+# --stats-auto-recalc=off: ANALYZE TABLE once on every table, then STATS_AUTO_RECALC=0 on the tables of --stats-tables that exist
+# (the ones switched are written to stats_off_tables.txt). The table options and the statistics are written down after the
+# ANALYZE and after the ALTER, since the ALTER may itself change the statistics. Outside any request.
+run_stats_off() {
+  local k="$1" g="$2" gd="$3" dbname="$4" existing t sql="" list=()
+  run_analyze "$k" "$g" "$gd" "$dbname" || return 1
+  existing="$(mysql_root -e "SELECT table_name FROM information_schema.TABLES WHERE table_schema='$dbname' AND table_type='BASE TABLE' ORDER BY table_name")" || return 1
+  IFS=',' read -r -a list <<< "$stats_tables"
+  : > "$gd/stats_off_tables.txt"
+  for t in "${list[@]}"; do
+    if printf '%s\n' "$existing" | grep -qx -- "$t"; then
+      echo "$t" >> "$gd/stats_off_tables.txt"
+      sql+="ALTER TABLE \`$dbname\`.\`$t\` STATS_AUTO_RECALC=0;"$'\n'
+    fi
+  done
+  [ -s "$gd/stats_off_tables.txt" ] || { echo "none of --stats-tables exists in $dbname" >&2; return 1; }
+  table_options "$dbname" "$gd/table_options_before_off.tsv"
+  echo "[$(now_iso)] db$k g$g: STATS_AUTO_RECALC=0 on $(wc -l < "$gd/stats_off_tables.txt") tables (after ANALYZE TABLE, outside any request)"
+  { echo "# at $(now_iso)"; mysql_root -e "$sql" && echo "ok"; } > "$gd/stats_off.log" 2>&1 || { echo "ALTER TABLE ... STATS_AUTO_RECALC=0 failed: $(tail -c 300 "$gd/stats_off.log")" >&2; return 1; }
+  table_options "$dbname" "$gd/table_options_after_off.tsv"
+  snapshot_stats "$dbname" "$gd/stats_after_off.tsv"
+}
+
+table_options() { # $1 database, $2 output file: CREATE_OPTIONS of every table (it holds stats_auto_recalc=0 once switched)
+  {
+    echo "# at $(now_iso)"
+    mysql_root -e "SELECT table_name, create_options FROM information_schema.TABLES WHERE table_schema='$1' AND table_type='BASE TABLE' ORDER BY table_name"
+  } > "$2" 2>&1
 }
 
 # trial_no counts the trials of the database across its laps; it lives in this shell, so the laps share it.

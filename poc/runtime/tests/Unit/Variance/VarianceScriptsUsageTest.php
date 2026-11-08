@@ -116,6 +116,10 @@ final class VarianceScriptsUsageTest extends TestCase
         yield 'routes with an empty entry' => [['--routes=GET /a,,GET /b']];
         yield 'tap maybe' => [['--tap=maybe']];
         yield 'analyze sometimes' => [['--analyze=sometimes']];
+        yield 'stats auto recalc sometimes' => [['--stats-auto-recalc=sometimes']];
+        yield 'stats tables with a space' => [['--stats-tables=a b']];
+        yield 'stats tables with an empty entry' => [['--stats-tables=a,,b']];
+        yield 'stats off together with analyze' => [['--stats-auto-recalc=off', '--analyze=before']];
         yield 'timeout of zero' => [['--request-timeout=0']];
         yield 'timeout over ten minutes' => [['--request-timeout=601']];
         yield 'watch interval of zero' => [['--watch-interval=0']];
@@ -236,7 +240,7 @@ final class VarianceScriptsUsageTest extends TestCase
         [$code, $out] = self::invoke('variance-run', ['--help']);
 
         $this->assertSame(0, $code);
-        foreach (['--tasks', '--dbs', '--laps', '--parallel', '--tap', '--analyze', '--notify', '--watch-statement-seconds'] as $option) {
+        foreach (['--tasks', '--dbs', '--laps', '--parallel', '--tap', '--analyze', '--stats-auto-recalc', '--stats-tables', '--notify', '--watch-statement-seconds'] as $option) {
             $this->assertStringContainsString($option, $out);
         }
     }

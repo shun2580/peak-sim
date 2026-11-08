@@ -58,7 +58,7 @@ final class VarianceRunDockerTest extends StackTestCase
     {
         $result = self::bin('variance-run', [
             '--app=' . self::$repo . '/fixtures/laravel-app', '--tasks=' . self::$work . '/tasks.json', '--scale=20', '--out=' . self::$work,
-            '--label=' . $label, '--data=seeder', '--profile=none', '--tap=off', '--routes=' . self::ROUTE, '--watch-interval=2',
+            '--label=' . $label, '--source-commit=test', '--data=seeder', '--profile=none', '--tap=off', '--routes=' . self::ROUTE, '--watch-interval=2',
             '--project-prefix=' . ((string) getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev') . '-var', ...$options,
         ]);
         self::evidence('variance', $label . '.txt', self::transcript('bin/variance-run ' . implode(' ', $options), [$result[0], substr($result[1], -2000), substr($result[2], -2000)]) . self::tail(self::$work . '/' . $label . '/db1/run.log'));
@@ -116,7 +116,47 @@ final class VarianceRunDockerTest extends StackTestCase
         $this->assertStringContainsString("checksum\torders\t", (string) file_get_contents($db . '/g1/content.tsv'));
         $build = json_decode((string) file_get_contents($db . '/g1/build.json'), true);
         $this->assertSame(20, $build['scale'] ?? null);
+        foreach (['stats_off_tables.txt', 'stats_off.log', 'stats_after_off.tsv', 'table_options_before_off.tsv', 'table_options_after_off.tsv'] as $name) {
+            $this->assertFileDoesNotExist($db . '/g1/' . $name, 'the default (keep) leaves no trace of the statistics switch: ' . $name);
+        }
+        $this->assertDirectoryDoesNotExist($db . '/g1/statsoff_lap1');
+        $this->assertStringNotContainsString('stats_auto_recalc', (string) file_get_contents(self::$work . '/once/run.txt'), 'the record of a default run is the one it always was');
         $this->assertNoStackLeft('once');
+    }
+
+    public function testItSwitchesTheAutomaticStatisticsRecalculationOffAfterOneAnalyzeAndTheStatisticsStayPutDuringTheTrials(): void
+    {
+        $result = self::varianceRun('statsoff', ['--dbs=1', '--laps=2', '--stats-auto-recalc=off', '--stats-tables=orders,no_such_table']);
+        $this->assertSame(0, $result[0], $result[1] . $result[2] . self::tail(self::$work . '/statsoff/db1/run.log'));
+
+        $db = self::$work . '/statsoff/db1/g1';
+        $this->assertStringContainsString('stats_auto_recalc=off stats_tables=orders,no_such_table', (string) file_get_contents(self::$work . '/statsoff/run.txt'));
+        $this->assertSame("orders\n", (string) file_get_contents($db . '/stats_off_tables.txt'), 'only the tables that exist are switched, and they are written down');
+        $this->assertSame(1, preg_match_all('/: ANALYZE TABLE /', (string) file_get_contents(self::$work . '/statsoff/db1/run.log')), 'ANALYZE TABLE once');
+        $this->assertStringContainsString('OK', (string) file_get_contents($db . '/analyze.log'));
+        $this->assertStringNotContainsString('stats_auto_recalc=0', strtolower((string) file_get_contents($db . '/table_options_before_off.tsv')), 'the option is set after the ANALYZE, not before');
+        $this->assertMatchesRegularExpression('/^orders\t.*stats_auto_recalc=0/mi', (string) file_get_contents($db . '/table_options_after_off.tsv'));
+        $this->assertFileExists($db . '/stats_after_off.tsv');
+        $this->assertDirectoryDoesNotExist($db . '/plain_lap1', 'the trials are of the statsoff phase');
+        $trials = [...(glob($db . '/statsoff_lap1/*') ?: []), ...(glob($db . '/statsoff_lap2/*') ?: [])];
+        $this->assertCount(2, $trials);
+        foreach ($trials as $dir) {
+            $this->assertSame(0, self::trial($dir)['exit']);
+            $this->assertSame(
+                self::statsOf($db . '/stats_after_off.tsv', 'orders'),
+                self::statsOf($dir . '/stats_after.tsv', 'orders'),
+                'the statistics of orders did not move through the trial: ' . $dir,
+            );
+            $this->assertSame(self::statsOf($dir . '/stats_before.tsv', 'orders'), self::statsOf($dir . '/stats_after.tsv', 'orders'));
+        }
+        $this->assertNoStackLeft('statsoff');
+    }
+
+    private static function statsOf(string $file, string $table): string
+    {
+        $lines = array_filter(file($file, FILE_IGNORE_NEW_LINES) ?: [], static fn (string $l): bool => str_starts_with($l, "innodb_table_stats\t" . $table . "\t"));
+
+        return implode("\n", $lines);
     }
 
     public function testItRunsAnalyzeTableOnceBetweenTheLapsWhenAskedAndLapsRunBeforeAndAfter(): void
