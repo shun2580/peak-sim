@@ -130,6 +130,7 @@ measurement-only DB credentials are settings of the compose, not of the image, a
 | `src/Data/` | the data generator |
 | `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
+| `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
 | `tests/Unit/` | no Docker, no database |
