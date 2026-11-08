@@ -10,7 +10,8 @@ namespace PeakSim\Runtime\Explain;
  * for one scan (`rows_examined_per_scan`), the rows it expects to produce (`rows_produced_per_join`) and `filtered`.
  *
  * The plan's own words are kept: a table the server says nothing about (an INSERT's target) has null where a field is
- * absent, never a made-up value. The raw JSON is written next to the summary, so nothing is lost by summarising.
+ * absent, never a made-up value. The one change: the access type `ALL` the server writes for an INSERT's target is left out
+ * (null), since the target is written, not scanned. The raw JSON is written next to the summary, so nothing is lost by summarising.
  *
  * `signature()` is what is compared to decide whether two plans are the same plan: the tables in order, each with its
  * access type and key. A row estimate that moved without the type or the key moving is the same plan.
@@ -87,16 +88,18 @@ final class PlanSummary
     private static function tableEntry(array $t): array
     {
         $parts = $t['used_key_parts'] ?? null;
+        $insert = ($t['insert'] ?? false) === true;
 
         return [
             'table' => (string) $t['table_name'],
-            'access_type' => isset($t['access_type']) ? (string) $t['access_type'] : null,
+            // the server writes `ALL` for the target of an INSERT, which reads nothing: that is not an access type of a read
+            'access_type' => !$insert && isset($t['access_type']) ? (string) $t['access_type'] : null,
             'key' => isset($t['key']) ? (string) $t['key'] : null,
             'used_key_parts' => is_array($parts) ? array_values(array_map('strval', $parts)) : null,
             'rows_examined_per_scan' => self::number($t['rows_examined_per_scan'] ?? null),
             'rows_produced_per_join' => self::number($t['rows_produced_per_join'] ?? null),
             'filtered' => isset($t['filtered']) && is_numeric($t['filtered']) ? (float) $t['filtered'] : null,
-            'insert' => ($t['insert'] ?? false) === true,
+            'insert' => $insert,
         ];
     }
 

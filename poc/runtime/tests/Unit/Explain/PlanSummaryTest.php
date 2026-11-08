@@ -68,6 +68,17 @@ final class PlanSummaryTest extends TestCase
         $this->assertNull($s['scan_rows_sum'], 'no number was given, so none is added up');
     }
 
+    public function testTheAllTheServerWritesForAnInsertTargetIsNotAnAccessTypeOfARead(): void
+    {
+        // as MySQL 8.4 gives it for INSERT ... SELECT: the target says ALL, and the read of the SELECT is under insert_from
+        $plan = self::plan('{"query_block":{"select_id":1,"table":{"insert":true,"select_id":1,"table_name":"t","access_type":"ALL"},"insert_from":{"buffer_result":{"using_temporary_table":true,"table":{"table_name":"t","access_type":"range","key":"t_a","rows_examined_per_scan":2,"filtered":"100.00"}}}}}');
+
+        $s = PlanSummary::summarize($plan);
+
+        $this->assertSame('t|-|-;t|range|t_a', $s['signature']);
+        $this->assertSame(2, $s['scan_rows_sum']);
+    }
+
     public function testTablesInsideADerivedTableAreFound(): void
     {
         $s = PlanSummary::summarize(self::plan(self::DERIVED));
