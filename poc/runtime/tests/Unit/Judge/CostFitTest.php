@@ -427,6 +427,35 @@ final class CostFitTest extends TestCase
         self::assertCount(6, $r['quantities']['queries']['pairs']);
     }
 
+    public function testTheLastAttemptAtScaleZeroDecidesAndNeedsNoColdAttempt(): void
+    {
+        // as in a real record: the driver stops at attempt 1 when the empty system answers not_found, after a 422 for a missing body
+        $attempts = [
+            self::attempt('PUT /sorting', 0, ['attempt' => 1, 'class' => 'validation_422', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]),
+            self::attempt('PUT /sorting', 0, ['attempt' => 1, 'class' => 'not_found', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]),
+            ...array_map(static fn (int $s): array => self::attempt('PUT /sorting', $s), [10, 100, 1000, 10000]),
+        ];
+
+        $r = CostFit::fromRecords($attempts, [], [], 'run')['routes'][0];
+
+        self::assertSame('not_found', $r['empty_system']);
+        self::assertSame('ok', $r['quantities']['queries']['fit_status']);
+        self::assertSame([10, 100, 1000, 10000], $r['quantities']['queries']['scales']);
+    }
+
+    public function testAnEmptySystemThatAnsweredA422AndNothingElseIsNotTheException(): void
+    {
+        $attempts = [
+            self::attempt('PUT /sorting', 0, ['attempt' => 1, 'class' => 'validation_422', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]),
+            ...array_map(static fn (int $s): array => self::attempt('PUT /sorting', $s), [10, 100, 1000, 10000]),
+        ];
+
+        $r = CostFit::fromRecords($attempts, [], [], 'run')['routes'][0];
+
+        self::assertArrayNotHasKey('empty_system', $r);
+        self::assertSame('insufficient_scales', $r['quantities']['queries']['fit_status']);
+    }
+
     public function testTheRoutesWithAnEmptySystemPointAreFittedAsBefore(): void
     {
         $attempts = [...self::absentRecordSweep('absent'), ...self::sweep('GET present'), self::attempt('GET present', 10)];

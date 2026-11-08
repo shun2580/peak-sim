@@ -227,12 +227,18 @@ final class CostFit
         sort($expectedScales);
 
         // D105: a route whose empty-system request answered not_found has no scale-0 point; it is fitted without it.
+        // The driver stops at the first attempt when the empty system answers not_found, so there may be no cold attempt
+        // at scale 0: the last attempt recorded at scale 0 (a 422 for a missing body may come before it) decides.
         $noEmptyPoint = [];
         foreach ($byRoute as $key => $list) {
+            $last = null;
             foreach ($list as $a) {
-                if ((int) $a['scale'] === 0 && (int) ($a['attempt'] ?? 0) === 2 && ($a['class'] ?? null) === self::EMPTY_SYSTEM_NOT_FOUND) {
-                    $noEmptyPoint[$key] = true;
+                if ((int) $a['scale'] === 0) {
+                    $last = $a['class'] ?? null;
                 }
+            }
+            if ($last === self::EMPTY_SYSTEM_NOT_FOUND) {
+                $noEmptyPoint[$key] = true;
             }
         }
 
