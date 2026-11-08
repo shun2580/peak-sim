@@ -135,4 +135,44 @@ final class CaptureBuilderTest extends TestCase
         self::assertSame([], $never['statement_types']);
         self::assertSame('scale 100: auth (needs a login); scale 1000: no cold attempt; scale 10000: no cold attempt', $never['reason']);
     }
+
+    /**
+     * D105: a capture from N = 10. The empty system (scale 0) answered not_found, is not a captured scale, and the count
+     * formula of every type is made from 10, 100, 1,000 and 10,000 with `a` free.
+     */
+    public function testACaptureFromTenRowsFitsTheCountsOfFourScalesWithAFree(): void
+    {
+        $scales = [10, 100, 1000, 10000];
+        $attempts = [['route' => '/shelves/{slug}', 'method' => 'GET', 'scale' => 0, 'axis' => 'N', 'attempt' => 2, 'class' => 'not_found', 'detail' => null]];
+        $taps = [];
+        foreach ($scales as $n) {
+            $attempts[] = ['route' => '/shelves/{slug}', 'method' => 'GET', 'scale' => $n, 'axis' => 'N', 'attempt' => 2, 'class' => 'ok', 'detail' => null];
+            $taps['GET /shelves/{slug}'][$n] = [
+                'tap_version' => 1, 'route' => '/shelves/{slug}', 'method' => 'GET', 'uri' => '/shelves/1', 'scale' => $n, 'axis' => 'N', 'status' => 200,
+                'class' => 'ok', 'phase' => 'cold',
+                'window' => ['counters_available' => true, 'baseline' => 0, 'cold_rows_examined' => 7 + 3 * $n, 'statement_events' => 1 + $n, 'rows_sum' => 7 + 3 * $n, 'unaccounted' => 0, 'unread_events' => 0],
+                'statements' => [
+                    ['sql' => 'select * from `settings`', 'type' => 'select', 'count' => 1, 'rows_sum' => 7, 'rows_min' => 7, 'rows_max' => 7, 'unread' => 0, 'first_bindings' => [], 'last_bindings' => [], 'explain_first' => null, 'explain_last' => null],
+                    ['sql' => 'select * from `entities` where `id` = ?', 'type' => 'select', 'count' => $n, 'rows_sum' => 3 * $n, 'rows_min' => 3, 'rows_max' => 3, 'unread' => 0, 'first_bindings' => [1], 'last_bindings' => [$n], 'explain_first' => null, 'explain_last' => null],
+                ],
+            ];
+        }
+
+        $doc = CaptureBuilder::build(['app' => 'sample-app', 'profile' => null, 'data' => 'generator', 'scales' => $scales], $attempts, $taps);
+
+        $this->assertSame([10, 100, 1000, 10000], $doc['scales']);
+        $route = $doc['routes'][0];
+        $this->assertSame('captured', $route['status']);
+        $this->assertSame([10, 100, 1000, 10000], $route['captured_scales']);
+        $this->assertArrayNotHasKey('0', $route['totals']);
+        $byPattern = array_column($route['statement_types'], null, 'pattern');
+        $once = $byPattern['select * from `settings`']['count_fit'];
+        $linear = $byPattern['select * from `entities` where `id` = ?']['count_fit'];
+        $this->assertSame('ok', $once['fit_status']);
+        $this->assertEqualsWithDelta(1.0, $once['a'] + $once['b'], 1e-9);
+        $this->assertSame([10, 100, 1000, 10000], $linear['scales']);
+        $this->assertEqualsWithDelta(0.0, $linear['a'], 1e-6);
+        $this->assertEqualsWithDelta(1.0, $linear['b'], 1e-9);
+        $this->assertEqualsWithDelta(1.0, $linear['k'], 1e-9);
+    }
 }

@@ -107,12 +107,20 @@ final class Options
         ];
     }
 
-    public function wants(string $route): bool
+    public function wants(string $route, ?string $method = null): bool
     {
         if ($this->only === []) {
             return true;
         }
         foreach ($this->only as $needle) {
+            // A needle written "METHOD uri" (an upper-case method, a space, the whole uri) names one route: both must be equal.
+            if ($method !== null && preg_match('/^([A-Z]+) (\/.*)$/', $needle, $m) === 1) {
+                if ($m[1] === $method && $m[2] === $route) {
+                    return true;
+                }
+
+                continue;
+            }
             // A needle that starts with "=" must equal the whole uri; any other needle is a substring match.
             if (str_starts_with($needle, '=') ? $route === substr($needle, 1) : str_contains($route, $needle)) {
                 return true;

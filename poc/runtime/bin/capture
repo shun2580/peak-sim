@@ -37,7 +37,8 @@ usage: bin/capture --app=<dir> --static=<analysis.json> [options]
   --data=generator       how the databases are filled: the tool's generator (default; any app)
   --data=seeder          the verification app's own seeder (only for fixtures/laravel-app)
   --scales=100,1000,10000   the sizes of the sweep (default 100,1000,10000); three or more, strictly ascending
-  --only=<a>,<b>         capture only the routes whose uri contains one of these; a name that starts with = must equal the whole uri
+  --only=<a>,<b>         capture only the routes whose uri contains one of these; a name that starts with = must equal the whole uri;
+                         "GET /books/{slug}" (method, space, uri) names that one route
   --base=N               generator only: rows of every table that is not scaled (default 5)
   --profile=<name>       generator only: app knowledge from profiles/<name>.php (same as bin/measure)
   --gate-bypass=on|off   as in bin/measure (default on)

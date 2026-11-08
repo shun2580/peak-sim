@@ -131,6 +131,22 @@ final class OptionsTest extends TestCase
         $this->assertFalse($o->wants('/json/box/available/extra'));
     }
 
+    public function test_only_with_a_method_and_a_uri_names_one_route(): void
+    {
+        $o = Options::parse(['--only=GET /books/{slug},PUT /books/{slug}']);
+
+        $this->assertTrue($o->wants('/books/{slug}', 'GET'));
+        $this->assertTrue($o->wants('/books/{slug}', 'PUT'));
+        $this->assertFalse($o->wants('/books/{slug}', 'DELETE'));
+        $this->assertFalse($o->wants('/books/{slug}/copy', 'GET'));
+        // without a method there is nothing to compare: such a needle names no route
+        $this->assertFalse($o->wants('/books/{slug}'));
+        // the older forms are unchanged beside it
+        $mixed = Options::parse(['--only=GET /a/{id},/b/']);
+        $this->assertTrue($mixed->wants('/b/x', 'POST'));
+        $this->assertFalse($mixed->wants('/a/{id}', 'POST'));
+    }
+
     public function test_no_statement_records_are_asked_for_unless_the_run_names_a_directory(): void
     {
         $this->assertNull(Options::parse([])->tapDir);

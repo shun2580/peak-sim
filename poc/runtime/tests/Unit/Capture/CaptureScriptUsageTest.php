@@ -74,6 +74,15 @@ final class CaptureScriptUsageTest extends TestCase
         $this->assertStringContainsString('--app is not a directory', $err);
     }
 
+    public function test_a_sweep_may_start_at_ten_rows(): void
+    {
+        // D105: the routes with no empty-system point are captured from N = 10 (10, 100, 1,000, 10,000)
+        [$code, , $err] = self::invoke(['--app=/nonexistent-app-dir', '--static=/y', '--scales=10,100,1000,10000', '--app-name=sample.app_1']);
+
+        $this->assertSame(2, $code, $err);
+        $this->assertStringContainsString('--app is not a directory', $err);
+    }
+
     public function test_help_prints_the_usage_and_exits_0(): void
     {
         [$code, $out] = self::invoke(['--help']);

@@ -31,7 +31,7 @@ final class Inspection
 
         $tasks = [];
         foreach ($catalog->specs() as $spec) {
-            if ($options->wants($spec->uri)) {
+            if ($options->wants($spec->uri, $spec->method)) {
                 $tasks[] = $builder->build($spec)->toArray();
             }
         }
