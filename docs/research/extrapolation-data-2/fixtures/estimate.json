@@ -1,0 +1,1183 @@
+{
+    "schema_version": "1",
+    "candidate": "H1_RANGE",
+    "at": 200000,
+    "small_scale": 10000,
+    "app": "fixtures",
+    "totals": {
+        "routes": 24,
+        "complete": 24,
+        "ratio_used": 0,
+        "fell_back_to_h1": 0,
+        "fell_back_by_reason": [],
+        "fell_back_by_item": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0
+        },
+        "routes_with_fall_by_item": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0
+        },
+        "per_exec_held": 2
+    },
+    "routes": [
+        {
+            "route": "GET /hidden/appends",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 901107543.1544822
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /hidden/blade",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 710975356.4719776
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /hidden/cache",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 723162084.4354862
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /hidden/conditional-binding",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 723161148.4354862
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /hidden/cursor",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 200003.0,
+            "types": [
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 14663066.816089526
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "GET /hidden/model-with",
+            "status": "captured",
+            "complete": true,
+            "queries": 2.0,
+            "rows_examined": 200026.0,
+            "types": [
+                {
+                    "id": "sc008e7c9bc",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` in (?)",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 23.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 23.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 573928576.2031858
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2.0537961196065884
+            }
+        },
+        {
+            "route": "GET /hidden/resource",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 771764959.1820394
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/collection-filter",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 200003.0,
+            "types": [
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 268778973.7304777
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "GET /ng/count-in-loop",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 1000003.0,
+            "types": [
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "sb3e0a49b10",
+                    "kind": "select",
+                    "pattern": "select count(*) as `aggregate` from `items` where `items`.`order_id` = ? and `items`.`order_id` is not null",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 4.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 4.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 333015018.4505217
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/first-or-create-in-loop",
+            "status": "captured",
+            "complete": true,
+            "queries": 400001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s5d75fc9d10",
+                    "kind": "insert",
+                    "pattern": "insert into `product_stats` (`product_id`, `units_sold`, `updated_at`, `created_at`) values (?, ?, ?, ?)",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 0.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 0.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "sc167e31001",
+                    "kind": "select",
+                    "pattern": "select * from `product_stats` where (`product_id` = ?) limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s16ba29811d",
+                    "kind": "select",
+                    "pattern": "select * from `products`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 303211042.6948064
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 400001.0
+            }
+        },
+        {
+            "route": "GET /ng/get-then-count",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 200003.0,
+            "types": [
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 268778973.7304777
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "GET /ng/layered",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 713230078.1650513
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/n-plus-one",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 719754199.6073992
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/nested",
+            "status": "captured",
+            "complete": true,
+            "queries": 800001.0,
+            "rows_examined": 1600003.0,
+            "types": [
+                {
+                    "id": "sebeb488fb8",
+                    "kind": "select",
+                    "pattern": "select * from `items` where `items`.`order_id` = ? and `items`.`order_id` is not null",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 4.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 4.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s3e14ec6b69",
+                    "kind": "select",
+                    "pattern": "select * from `products` where `products`.`id` = ? limit ?",
+                    "count_at_n": 600000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 2301122835.8266406
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 800001.0
+            }
+        },
+        {
+            "route": "GET /ng/save-in-loop",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s4cb878eb40",
+                    "kind": "select",
+                    "pattern": "select * from `customers`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s83d9d31d99",
+                    "kind": "update",
+                    "pattern": "update `customers` set `name` = ? where `id` = ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 401973982.5123241
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/service",
+            "status": "captured",
+            "complete": true,
+            "queries": 200001.0,
+            "rows_examined": 400003.0,
+            "types": [
+                {
+                    "id": "s3c94139087",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` = ? limit ?",
+                    "count_at_n": 200000.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 714830009.8025218
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 200001.0
+            }
+        },
+        {
+            "route": "GET /ng/unbounded",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 200003.0,
+            "types": [
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 394346805.9427218
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "GET /ok/chunk",
+            "status": "captured",
+            "complete": true,
+            "queries": 2001.0,
+            "rows_examined": 179741996.95800474,
+            "types": [
+                {
+                    "id": "s4b4f12830f",
+                    "kind": "select",
+                    "pattern": "select * from `orders` order by `orders`.`id` asc limit ? offset ?",
+                    "count_at_n": 2001.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 89826.08543628424,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 89826.08543628424,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 159078.07260905902
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2001.0
+            }
+        },
+        {
+            "route": "GET /ok/eager",
+            "status": "captured",
+            "complete": true,
+            "queries": 2.0,
+            "rows_examined": 200026.0,
+            "types": [
+                {
+                    "id": "sc008e7c9bc",
+                    "kind": "select",
+                    "pattern": "select * from `customers` where `customers`.`id` in (?)",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 23.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 23.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s98b77cc77f",
+                    "kind": "select",
+                    "pattern": "select * from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200003.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200003.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 431299579.73959833
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2.0537961196065884
+            }
+        },
+        {
+            "route": "GET /ok/lazy",
+            "status": "captured",
+            "complete": true,
+            "queries": 2001.0,
+            "rows_examined": 179741996.95800474,
+            "types": [
+                {
+                    "id": "s4b4f12830f",
+                    "kind": "select",
+                    "pattern": "select * from `orders` order by `orders`.`id` asc limit ? offset ?",
+                    "count_at_n": 2001.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 89826.08543628424,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 89826.08543628424,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 160645.6175826059
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2001.0
+            }
+        },
+        {
+            "route": "GET /ok/paginate",
+            "status": "captured",
+            "complete": true,
+            "queries": 2.0,
+            "rows_examined": 200019.0,
+            "types": [
+                {
+                    "id": "s21deb72115",
+                    "kind": "select",
+                    "pattern": "select * from `orders` limit ? offset ?",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 17.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 17.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "sfea1ee4cad",
+                    "kind": "select",
+                    "pattern": "select count(*) as `aggregate` from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200002.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200002.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 68512.54511458098
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2.0537961196065884
+            }
+        },
+        {
+            "route": "GET /ok/with-count",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 1086007.8102302891,
+            "types": [
+                {
+                    "id": "s8bf474d007",
+                    "kind": "select",
+                    "pattern": "select `orders`.*, (select count(*) from `items` where `orders`.`id` = `items`.`order_id`) as `items_count`, (select sum(`items`.`quantity`) from `items` where ",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 1086007.8102302891,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 1086007.8102302891,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 356383157.8499752
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "GET /unknown/dynamic",
+            "status": "captured",
+            "complete": true,
+            "queries": 1.0,
+            "rows_examined": 200002.0,
+            "types": [
+                {
+                    "id": "sfea1ee4cad",
+                    "kind": "select",
+                    "pattern": "select count(*) as `aggregate` from `orders`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200002.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200002.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 0,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 59032.0
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 1.0
+            }
+        },
+        {
+            "route": "POST /ok/bulk",
+            "status": "captured",
+            "complete": true,
+            "queries": 8001.658666666667,
+            "rows_examined": 200002.0,
+            "types": [
+                {
+                    "id": "seef5320cd5",
+                    "kind": "insert",
+                    "pattern": "insert into `orders` (`created_at`, `customer_id`, `status`, `total`, `updated_at`) values (?, ?, ?, ?, ?)",
+                    "count_at_n": 0.666666666667,
+                    "per_exec_h1_basis": "held_from_largest_scale",
+                    "per_exec_h1": 0.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 0.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s1bdeb8f2b3",
+                    "kind": "insert",
+                    "pattern": "insert into `orders` (`created_at`, `customer_id`, `status`, `total`, `updated_at`) values (?, ?, ?, ?, ?), (?, ?, ?, ?, ?), (?, ?, ?, ?, ?), (?, ?, ?, ?, ?), (",
+                    "count_at_n": 7999.992,
+                    "per_exec_h1_basis": "held_from_largest_scale",
+                    "per_exec_h1": 0.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 0.0,
+                    "basis": "h1"
+                },
+                {
+                    "id": "s9983585965",
+                    "kind": "select",
+                    "pattern": "select `id` from `customers`",
+                    "count_at_n": 1.0,
+                    "per_exec_h1_basis": "fit",
+                    "per_exec_h1": 200002.0,
+                    "marks": {
+                        "plan_changes_at_scale": false,
+                        "plan_unstable": false
+                    },
+                    "per_exec": 200002.0,
+                    "basis": "h1"
+                }
+            ],
+            "unavailable": [],
+            "fallbacks": [],
+            "per_exec_held": 2,
+            "ratio_used": 0,
+            "marked": false,
+            "rows_examined_upper": null,
+            "peak_memory": {
+                "status": "predicted",
+                "value": 433747933.75103796
+            },
+            "queries_route_fit": {
+                "status": "predicted",
+                "value": 2.0537961196065884
+            }
+        }
+    ]
+}
