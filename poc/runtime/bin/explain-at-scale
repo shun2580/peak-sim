@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+# The plans the server makes for the statements of a capture, on a database of the target size. Needs Docker; PHP is not needed on the host.
+#
+#   bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=<dir> --scale=N --out=<dir> [options]
+#
+# Nothing of the app is run. For every data plan the routes of the capture need, the script builds one database of N rows with the
+# tool's generator (the same databases the driver builds for those routes, taken from the recorded task list), makes the optimizer's
+# statistics known, and asks the server for the plan of the representative statement of every statement type of the capture:
+#
+#   build the database  ->  ANALYZE TABLE on every table  ->  STATS_AUTO_RECALC=0 on the tables the statements name
+#   for each statistics state (default 20 pages, low 4, high 200):
+#     copy of mysql.innodb_table_stats / innodb_index_stats / table options
+#     STATS_SAMPLE_PAGES=<pages> and ANALYZE TABLE on those tables     (statements written in the tool)
+#     copy again
+#     EXPLAIN FORMAT=JSON of every statement type                      (statements of the capture; one statement each, EXPLAIN only)
+#     copy again                                                       (the three copies show the state came out as meant and did not move)
+#   drop the database
+#
+# and once more on a database of --small-scale rows (default 10,000) in the default state, to compare the plans (plan_changes_at_scale).
+#
+# The statements of the capture go through one door only: ExplainGate, which lets one `EXPLAIN FORMAT=JSON <data statement>` through and
+# refuses anything else with exit code 10 before it is sent. ANALYZE TABLE and ALTER TABLE ... STATS_* are written in the tool
+# (StatsStatements), take a table name only from the database's own list, and are never given a text from the capture. The copies of the
+# statistics are read-only, by the DB server's root account on the host side (the `measure` user cannot read the `mysql` schema; its
+# privileges are not widened), the way bin/variance-run reads them.
+#
+# Everything is written under <out>/<label>/ (see the usage text). Exit codes: 0 done / 2 usage / 10 a statement or name was refused /
+# 11 stack or preflight / 13 a database could not be built / 15 another failure of a step.
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# >>> app-key
+# The same function as bin/measure: one APP_KEY per run, made from its run id, so the process that builds the database and the
+# ones that follow share it. Made up inside the sealed stack and protects nothing.
+peak_app_key_for_run() {
+  local digest
+  digest="$(printf 'peak-sim-measure-app-key:%s' "$1" | sha256sum | cut -c1-32)"
+  printf 'base64:%s' "$(printf '%s' "$digest" | base64 | tr -d '\n')"
+}
+# <<< app-key
+
+usage() {
+  cat <<'TXT'
+usage: bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=<dir> --scale=N --out=<dir> [options]
+  --capture=<file>       capture.json made by bin/capture (absolute path)
+  --tasks=<file>         the task list (tasks.json) of the run the capture was taken from; it says which data plan each route is on
+  --app=<dir>            the target app (absolute path; mounted read-only; its vendor/ must exist)
+  --scale=N              the size of the target databases (rows of the scaled table)
+  --small-scale=N        the size of the small databases the plans are compared with (default 10000)
+  --out=<dir>            where the record goes (absolute path); the record is <out>/<label>/
+  --label=<name>         name of this run (default: explain)
+  --profile=<name>       app profile; default: the one the capture names ("none" for no profile)
+  --data=generator|seeder  how the databases are filled; default: the one the capture names
+  --base=N               generator only: rows of every table that is not scaled
+  --php-image=<name>     run the stack in this already built PHP image (never built or pulled here)
+  --project-prefix=<p>   compose project prefix (default peak-eas; PEAK_COMPOSE_PROJECT in the environment names the project itself)
+  --keep-db              do not drop each database after its plans are taken
+  --keep-stack           leave the stack up afterwards (tear it down with PEAK_COMPOSE_PROJECT=<project> bin/stack down)
+  --help                 this text
+record, <out>/<label>/:
+  run.txt  run.log  inputs/capture.json  inputs/tasks.json  plan.json  plan.groups  plan.profile  plan.data
+  g<G>/plan.meta  plan.build_args  plan.routes  build.json  prepare.json  state_<state>.json  explain_<state>.json
+  g<G>/stats_after_prepare.tsv  stats_<state>_before.tsv  stats_<state>_after_set.tsv  stats_<state>_after_explain.tsv
+  explain.json                                   the plans, the marks, the checks of the statistics (see ExplainReport)
+exit codes:
+   0  done
+   2  wrong usage
+  10  a statement that was not one EXPLAIN FORMAT=JSON of a data statement, or a name that is not a measurement database, was refused
+  11  preflight failed, or the stack could not be brought up
+  13  a database could not be built
+  15  another failure of a step
+TXT
+}
+
+fail_usage() {
+  echo "bin/explain-at-scale: $1" >&2
+  usage >&2
+  exit 2
+}
+
+capture="" tasks="" app="" scale="" small=10000 out="" label="explain" profile="" data="" base="" image="" prefix="peak-eas" keep_db=0 keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h) usage; exit 0 ;;
+    --capture=*) capture="${arg#--capture=}" ;;
+    --tasks=*) tasks="${arg#--tasks=}" ;;
+    --app=*) app="${arg#--app=}" ;;
+    --scale=*) scale="${arg#--scale=}" ;;
+    --small-scale=*) small="${arg#--small-scale=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --label=*) label="${arg#--label=}" ;;
+    --profile=*) profile="${arg#--profile=}" ;;
+    --data=*) data="${arg#--data=}" ;;
+    --base=*) base="${arg#--base=}" ;;
+    --php-image=*) image="${arg#--php-image=}" ;;
+    --project-prefix=*) prefix="${arg#--project-prefix=}" ;;
+    --keep-db) keep_db=1 ;;
+    --keep-stack) keep=1 ;;
+    *) fail_usage "unknown argument: $arg" ;;
+  esac
+done
+
+[ -n "$capture" ] || fail_usage "--capture is required"
+[ -n "$tasks" ] || fail_usage "--tasks is required"
+[ -n "$app" ] || fail_usage "--app is required"
+[ -n "$scale" ] || fail_usage "--scale is required"
+[ -n "$out" ] || fail_usage "--out is required"
+case "$capture" in /*) ;; *) fail_usage "--capture must be an absolute path" ;; esac
+case "$tasks" in /*) ;; *) fail_usage "--tasks must be an absolute path" ;; esac
+case "$app" in /*) ;; *) fail_usage "--app must be an absolute path" ;; esac
+case "$out" in /*) ;; *) fail_usage "--out must be an absolute path" ;; esac
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$((10#$scale))" -ge 1 ] || fail_usage "--scale must be a positive integer"
+[[ "$small" =~ ^[0-9]{1,7}$ ]] && [ "$((10#$small))" -ge 1 ] || fail_usage "--small-scale must be a positive integer"
+[ "$((10#$small))" -lt "$((10#$scale))" ] || fail_usage "--small-scale must be smaller than --scale"
+[[ "$label" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$ ]] || fail_usage "--label is letters, digits, - and _"
+[[ "$prefix" =~ ^[a-z0-9][a-z0-9_-]{0,20}$ ]] || fail_usage "--project-prefix is lowercase letters, digits, - and _"
+if [ -n "$profile" ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
+if [ -n "$data" ]; then case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac; fi
+if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+[ -d "$app" ] || fail_usage "--app is not a directory: $app"
+[ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
+[ -f "$capture" ] || fail_usage "--capture is not a file: $capture"
+[ -f "$tasks" ] || fail_usage "--tasks is not a file: $tasks"
+
+run_root="$out/$label"
+if [ -e "$run_root" ]; then
+  echo "bin/explain-at-scale: $run_root already exists; a record is never written over. Choose another --label or --out." >&2
+  exit 2
+fi
+mkdir -p "$run_root/inputs" || { echo "bin/explain-at-scale: cannot write to $run_root" >&2; exit 2; }
+chmod 0777 "$run_root"   # the container's user writes its step files here
+cp "$capture" "$run_root/inputs/capture.json" && cp "$tasks" "$run_root/inputs/tasks.json" || { echo "bin/explain-at-scale: cannot copy the inputs" >&2; exit 2; }
+chmod 0755 "$run_root/inputs"; chmod 0644 "$run_root/inputs/"*
+
+source_commit="$(git -C "$here/.." rev-parse HEAD 2>/dev/null || echo unknown)"
+source_dirty="$(git -C "$here/.." status --porcelain -- . 2>/dev/null | wc -l | tr -d ' ')"
+{
+  echo "label=$label"
+  echo "started=$(date +%Y-%m-%dT%H:%M:%S%z)"
+  echo "source_commit=$source_commit uncommitted_files_in_poc_runtime=$source_dirty"
+  echo "scale=$scale small_scale=$small"
+  echo "php_image=${image:-default}"
+} > "$run_root/run.txt"
+
+now_iso() { date +%Y-%m-%dT%H:%M:%S%z; }
+
+export PEAK_COMPOSE_PROJECT="${PEAK_COMPOSE_PROJECT:-$prefix-$(printf '%s' "$label" | tr 'A-Z_' 'a-z-')}" PEAK_OUT_DIR="$run_root" PEAK_APP_ROOT="$app"
+[ -n "$image" ] && export PEAK_PHP_IMAGE="$image"
+run_id="$(head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+export PEAK_MEASURE_RUN_ID="$run_id"
+# shellcheck source=_stack.sh
+source "$here/_stack.sh"
+export PEAK_MEASURE_APP_KEY="$(peak_app_key_for_run "$run_id")"   # passed by name below: on no command line, never printed
+
+exec > >(tee -a "$run_root/run.log") 2>&1
+
+teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+trap teardown EXIT
+
+mysql_root() { MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" compose exec -T -e MYSQL_PWD measure-db mysql -uroot -N -B "$@"; }
+
+# What the optimizer holds about the tables of one database. Read only; nothing is changed by it. Returns 1 when the copy is empty.
+snapshot_stats() { # $1 database, $2 output file
+  {
+    echo "# at $(now_iso)"
+    mysql_root -e "SELECT 'innodb_table_stats', table_name, n_rows, clustered_index_size, sum_of_other_index_sizes, last_update FROM mysql.innodb_table_stats WHERE database_name='$1' ORDER BY table_name;
+      SELECT 'innodb_index_stats', table_name, index_name, stat_name, stat_value, IFNULL(sample_size,''), last_update FROM mysql.innodb_index_stats WHERE database_name='$1' ORDER BY table_name, index_name, stat_name;
+      SELECT 'table_options', table_name, create_options FROM information_schema.TABLES WHERE table_schema='$1' AND table_type='BASE TABLE' ORDER BY table_name;"
+  } > "$2" 2>&1 && [ "$(grep -c '^innodb_table_stats' "$2")" -gt 0 ]
+}
+
+# One step of the inner script, in the sealed container, as the measure user.
+step() { compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/inner/explain-at-scale.php "$@"; }
+
+# Maps a step's exit code to this script's: 10 stays 10 (a refusal ends the run), 2 and the rest are a failure of a step.
+step_code() { case "$1" in 0) return 0 ;; 10) return 10 ;; *) return 15 ;; esac; }
+
+run_group() {
+  local g="$1" gd role gscale dbname states s code began ended
+  gd="$run_root/g$g"
+  IFS=$'\t' read -r role tag gscale < "$gd/plan.meta"
+  dbname="peak_sim_measure_${run_id}_${tag}_${gscale}"
+  local -a build_args
+  mapfile -t build_args < "$gd/plan.build_args"
+  if [ "$role" = target ]; then states="default low high"; else states="default"; fi
+
+  echo "[$(now_iso)] g$g ($role): building $dbname ($(wc -l < "$gd/plan.routes") routes)"
+  began="$(date +%s)"
+  compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/inner/build-db.php "${build_args[@]}" > "$gd/build.stdout" 2> "$gd/build.stderr"
+  code=$?
+  ended="$(date +%s)"
+  if [ "$code" -ne 0 ]; then
+    echo "[$(now_iso)] g$g: the build failed (exit $code): $(tail -c 400 "$gd/build.stderr")" >&2
+    return 13
+  fi
+  tail -n 1 "$gd/build.stdout" > "$gd/build.json"
+  echo "[$(now_iso)] g$g: built in $((ended - began)) s"
+
+  step --step=prepare "--group-dir=/out/g$g" --capture=/out/inputs/capture.json "--scale=$gscale"
+  step_code $? || return $?
+  snapshot_stats "$dbname" "$gd/stats_after_prepare.tsv" || { echo "g$g: could not copy the statistics" >&2; return 15; }
+
+  for s in $states; do
+    snapshot_stats "$dbname" "$gd/stats_${s}_before.tsv" || { echo "g$g: could not copy the statistics" >&2; return 15; }
+    step --step=set-state "--group-dir=/out/g$g" "--state=$s" "--scale=$gscale"
+    step_code $? || return $?
+    snapshot_stats "$dbname" "$gd/stats_${s}_after_set.tsv" || { echo "g$g: could not copy the statistics" >&2; return 15; }
+    step --step=explain "--group-dir=/out/g$g" --capture=/out/inputs/capture.json "--state=$s" "--scale=$gscale"
+    step_code $? || return $?
+    snapshot_stats "$dbname" "$gd/stats_${s}_after_explain.tsv" || { echo "g$g: could not copy the statistics" >&2; return 15; }
+  done
+
+  if [ "$keep_db" != 1 ]; then
+    step --step=drop "--scale=$gscale" || echo "[$(now_iso)] g$g: the database could not be dropped (the stack's teardown removes it)" >&2
+  fi
+  echo "[$(now_iso)] g$g: done"
+  return 0
+}
+
+finish() { # $1 exit code
+  echo "finished=$(now_iso) exit=$1" >> "$run_root/run.txt"
+  exit "$1"
+}
+
+echo "[$(now_iso)] project $PEAK_COMPOSE_PROJECT, run id $run_id"
+if ! compose up -d --build --wait; then
+  echo "[$(now_iso)] the stack could not be brought up" >&2
+  finish 11
+fi
+if ! bash "$here/preflight"; then
+  echo "[$(now_iso)] preflight failed; nothing was done" >&2
+  finish 11
+fi
+
+exec_env=(-e PEAK_MEASURE_APP_KEY)
+tag=""
+plan_args=(--step=plan --capture=/out/inputs/capture.json --tasks=/out/inputs/tasks.json "--scale=$scale" "--small-scale=$small" --out-dir=/out)
+[ -n "$profile" ] && plan_args+=("--profile=$profile")
+[ -n "$data" ] && plan_args+=("--data=$data")
+[ -n "$base" ] && plan_args+=("--base=$base")
+step "${plan_args[@]}"
+step_code $?
+code=$?
+[ "$code" -ne 0 ] && { echo "[$(now_iso)] the plan could not be made" >&2; finish "$code"; }
+profile_used="$(cat "$run_root/plan.profile")"
+[ "$profile_used" != none ] && exec_env+=(-e "PEAK_MEASURE_PROFILE=$profile_used")
+groups="$(cat "$run_root/plan.groups")"
+echo "[$(now_iso)] $groups databases to build"
+
+worst=0
+for g in $(seq 1 "$groups"); do
+  run_group "$g"
+  code=$?
+  if [ "$code" -ne 0 ]; then
+    worst="$code"
+    echo "[$(now_iso)] g$g stopped with exit $code; the plans taken so far are written below, the rest is not" >&2
+    break
+  fi
+done
+
+step --step=finalize --run-dir=/out --capture=/out/inputs/capture.json "--scale=$scale" "--small-scale=$small"
+fcode=$?
+[ "$worst" -eq 0 ] && [ "$fcode" -ne 0 ] && worst=15
+finish "$worst"

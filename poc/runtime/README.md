@@ -117,6 +117,41 @@ Nothing else changes: the read-only root, dropped capabilities, internal network
 measurement-only DB credentials are settings of the compose, not of the image, and the sealed-network check
 (`bin/preflight`) runs on the stack as before.
 
+## Plans at the target size (`bin/explain-at-scale`)
+
+A separate command, never called by `bin/measure`. It does not run the app. From a `capture.json` (see `CAPTURE_FORMAT.md`) and the
+task list of the run it came from, it builds a database of the target size with the tool's generator, makes the optimizer's statistics
+known, and asks the server for the plan (`EXPLAIN FORMAT=JSON`) of the representative statement of every statement type:
+
+```bash
+bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=<app dir> --scale=100000 --out=<dir> \
+                     [--small-scale=10000] [--label=<name>] [--profile=<name>] [--php-image=<name>] [--keep-db] [--keep-stack]
+```
+
+For each data plan the routes need: build the database, `ANALYZE TABLE` on every table, `STATS_AUTO_RECALC=0` on the tables the
+statements name, then for each statistics state (`STATS_SAMPLE_PAGES` 20 / 4 / 200, each followed by `ANALYZE TABLE`) one EXPLAIN of every
+statement type. A copy of `mysql.innodb_table_stats`, `mysql.innodb_index_stats` and the table options is taken before the state is made,
+after it, and after the plans were taken, so the record shows that the state came out as meant and did not move while the plans were taken.
+The same statements are explained on a small database (default 10,000 rows) in the default state. `explain.json` holds, per statement
+type and state, the server's own JSON and a summary (tables, access type, key, estimated rows, `filtered`), and the marks `plan_unstable`
+(the plan differs between the states), `plan_changes_at_scale` (small and target differ) and `explain_unavailable` (with the reason).
+
+Two doors, kept apart:
+
+- A statement that comes from the capture is sent through `ExplainSender` only, which puts `EXPLAIN FORMAT=JSON` in front and gives the
+  whole text to `ExplainGate` first. The gate lets ONE `EXPLAIN FORMAT=JSON` of a SELECT, WITH, INSERT, UPDATE, DELETE or REPLACE through;
+  anything else (a statement without EXPLAIN, a second statement, `EXPLAIN` of something else, a `/*!` comment) is refused before it is sent,
+  with exit code 10. The transport uses real prepared statements, so the server takes one statement even if the gate were walked around.
+- `ANALYZE TABLE` and `ALTER TABLE ... STATS_AUTO_RECALC / STATS_SAMPLE_PAGES` are written in `StatsStatements`. It has no method that takes a
+  statement, takes table names only from the database's own list, and takes the page count only from the three states. A text from the capture
+  is never sent through it.
+
+Exit codes of the command: 0 done, 2 usage, 10 refused (as above), 11 stack or preflight, 13 a database could not be built, 15 another failure of a step (`--help` lists them).
+
+The `measure` user's privileges are not widened: its `ALL` on the measurement databases covers `ANALYZE` and `ALTER`, and it cannot read the
+`mysql` schema. The copies of the statistics are therefore read, read-only, by the DB server's root account on the host side (as
+`bin/variance-run` does).
+
 ## Layout (this part)
 
 | Path | Role |
@@ -131,6 +166,8 @@ measurement-only DB credentials are settings of the compose, not of the image, a
 | `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
+| `bin/explain-at-scale` | a separate command: the plans of the statements of a `capture.json` on a database of the target size, in three statistics states (above); `bin/measure` never calls it. The steps run inside the container in `bin/inner/explain-at-scale.php` |
+| `src/Explain/` | the gate and the sender of the capture's statements, the fixed statistics statements, the summary and marks of plans, the report |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
 | `tests/Unit/` | no Docker, no database |
@@ -142,7 +179,7 @@ measurement-only DB credentials are settings of the compose, not of the image, a
 | --- | --- |
 | 0 | done (routes that could not be measured are in the record, not in the exit code) |
 | 2 | wrong usage |
-| 10 | start refused: host, user, database name or input is not allowed, or a statement named another schema |
+| 10 | start refused: host, user, database name or input is not allowed, or a statement named another schema, or a statement of a capture was not one `EXPLAIN FORMAT=JSON` of a data statement |
 | 11 | preflight failed (the container can leave the network, or cannot reach the DB service), or the stack could not be brought up |
 | 12 | the app could not be started |
 | 13 | a measurement database could not be built (migration, seeder, generator) |
