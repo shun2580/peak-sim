@@ -18,15 +18,19 @@ use PeakSim\Runtime\Judge\CostFit;
  *       scale x E(s, N) / E(s, that scale). E is `PlanReads::perExecution` of the plan on the database of that size.
  *   H3  every type uses the ratio of H2.
  *
- * E(s, N) is the largest over the statistics states of N's side (a type whose plan is unstable uses its heaviest state, D107);
- * E(s, small) is the largest over the states of the small side (the explain run makes the default state there).
+ * E(s, N) (section 9.3): a type marked plan_unstable takes the heaviest of the statistics states that were taken (D107); any other
+ * type takes the default state. E(s, small) is the default state at the small size.
  *
- * A type that cannot take the ratio falls back to H1, and the fall is counted with its reason (never a silent 0):
- *   no_explain_entry, explain_unavailable:<why>, unrecognised_plan:<why>, no_plan_state, e_small_zero (E(s, small) = 0),
- *   not_run_at_small_scale (no measured value at the largest capture scale).
+ * A type that cannot take the ratio falls back to H1, and the fall is counted with its reason (never a silent 0). The reasons, with the
+ * item of section 9.3 each one is, checked in this order:
+ *   explain_unavailable:<why>, e_small_not_taken, no_explain_entry          item 2 (E(s, small) could not be taken)
+ *   e_n_not_taken, e_not_taken_unrecognised_plan:<why>                       item 3 (E(s, N) could not be taken) / item 2 (an unrecognised shape)
+ *   e_small_zero                                                             item 1 (E(s, small) = 0)
+ *   per_exec_measured_undefined                                              item 4
+ * E(s, N) = 0 with E(s, small) above 0 is not a fall: the ratio is 0 and so is the estimate of the type.
  *
- * The fit of a type's rows per run needs three scales, as CostFit does. A type that ran at fewer scales than three keeps the value
- * of its largest scale (`held_from_largest_scale`), counted in `per_exec_held`. A type that read no rows anywhere in the capture
+ * The fit of a type's rows per run needs three scales, as CostFit does (coefficients rounded with CostFit::sig). A type that ran at fewer
+ * scales than three keeps the value of its largest scale (`held_from_largest_scale`), counted in `per_exec_held`. A type that read no rows anywhere in the capture
  * is unavailable and makes its route incomplete.
  */
 final class RowEstimator
@@ -72,6 +76,8 @@ final class RowEstimator
         $representative = (int) ($capture['representative_scale'] ?? 0);
         $routes = [];
         $fallbacks = [];
+        $byItem = [1 => 0, 2 => 0, 3 => 0, 4 => 0];
+        $routesByItem = [1 => 0, 2 => 0, 3 => 0, 4 => 0];
         $held = 0;
         $ratioUsed = 0;
         foreach ((array) ($capture['routes'] ?? []) as $cr) {
@@ -79,8 +85,14 @@ final class RowEstimator
                 continue;
             }
             $route = self::route($cr, $explainRoutes[(string) $cr['route']] ?? null, $candidate, $n, $representative);
+            $seen = [];
             foreach ($route['fallbacks'] as $reason => $count) {
                 $fallbacks[$reason] = ($fallbacks[$reason] ?? 0) + $count;
+                $byItem[self::item($reason)] += $count;
+                $seen[self::item($reason)] = true;
+            }
+            foreach (array_keys($seen) as $item) {
+                $routesByItem[$item]++;
             }
             $held += $route['per_exec_held'];
             $ratioUsed += $route['ratio_used'];
@@ -104,10 +116,23 @@ final class RowEstimator
                 'ratio_used' => $ratioUsed,
                 'fell_back_to_h1' => array_sum($fallbacks),
                 'fell_back_by_reason' => $fallbacks,
+                'fell_back_by_item' => $byItem,
+                'routes_with_fall_by_item' => $routesByItem,
                 'per_exec_held' => $held,
             ],
             'routes' => $routes,
         ];
+    }
+
+    /** The item of section 9.3 a fallback reason belongs to (1: E(small) = 0; 2: E(small) not taken; 3: E(N) not taken; 4: no measured value). */
+    private static function item(string $reason): int
+    {
+        return match (true) {
+            $reason === 'e_small_zero' => 1,
+            $reason === 'e_n_not_taken' => 3,
+            $reason === 'per_exec_measured_undefined' => 4,
+            default => 2,
+        };
     }
 
     /**
@@ -186,7 +211,7 @@ final class RowEstimator
         }
         if (count($series) >= CostFit::MIN_SCALES) {
             $f = CostFit::fit(array_keys($series), array_values($series));
-            $h1 = CostFit::evaluate($f['a'], $f['b'], $f['k'], $n);
+            $h1 = CostFit::evaluate(CostFit::sig($f['a']), CostFit::sig($f['b']), CostFit::sig($f['k']), $n);
             $rec['per_exec_h1_basis'] = 'fit';
         } else {
             $h1 = $series[max(array_keys($series))];
@@ -205,29 +230,34 @@ final class RowEstimator
             return $rec + ['per_exec' => $h1, 'basis' => 'h1'];
         }
 
-        // the ratio: measured rows per run at the largest capture scale x E(s, N) / E(s, that scale)
+        // the ratio: measured rows per run at the largest capture scale x E(s, N) / E(s, that scale)   (section 9.3)
         $fallback = null;
         $measuredSmall = $representative > 0 && isset($series[$representative]) ? $series[$representative] : null;
         $eN = null;
         $eSmall = null;
+        $unstable = $marks['plan_unstable'] ?? false;
         if (isset($marks['explain_unavailable']) && $marks['explain_unavailable'] !== null && $marks['explain_unavailable'] !== '') {
             $fallback = 'explain_unavailable:' . (string) $marks['explain_unavailable'];
         } else {
             try {
-                $eN = self::heaviest((array) ($explained['target_scale'] ?? []), (array) ($marks['unavailable_states'] ?? []));
-                $eSmall = self::heaviest((array) ($explained['small_scale'] ?? []), []);
-                if ($eN === null || $eSmall === null) {
-                    $fallback = 'no_plan_state';
+                $eSmall = self::stateReads((array) ($explained['small_scale'] ?? []), ['default']);
+                if ($eSmall === null) {
+                    $fallback = 'e_small_not_taken';
+                }
+                // N's side: a plan_unstable type takes the heaviest state that was taken (D107); any other type takes the default state
+                $eN = self::stateReads((array) ($explained['target_scale'] ?? []), $unstable === true ? null : ['default'], (array) ($marks['unavailable_states'] ?? []));
+                if ($fallback === null && $eN === null) {
+                    $fallback = 'e_n_not_taken';
                 }
             } catch (UnrecognisedPlan $e) {
-                $fallback = 'unrecognised_plan:' . $e->getMessage();
+                $fallback = 'e_not_taken_unrecognised_plan:' . $e->getMessage();
             }
         }
         if ($fallback === null && $eSmall !== null && $eSmall <= 0.0) {
             $fallback = 'e_small_zero';
         }
         if ($fallback === null && $measuredSmall === null) {
-            $fallback = 'not_run_at_small_scale';
+            $fallback = 'per_exec_measured_undefined';
         }
         if ($fallback !== null) {
             return $rec + ['per_exec' => $h1, 'basis' => 'h1', 'fallback' => $fallback];
@@ -264,17 +294,19 @@ final class RowEstimator
     }
 
     /**
-     * The largest E over the states that have a plan; null when none has.
+     * The largest E over the named states that have a plan; null when none of them has.
      *
      * @param array<string, mixed> $states      state name => {summary, raw}
-     * @param list<mixed>          $unavailable the states of N's side the explain run could not read
+     * @param list<string>|null    $take        the states to take the largest of; null: every state there is
+     * @param list<mixed>          $unavailable the states the explain run could not read (left out)
      *
      * @throws UnrecognisedPlan
      */
-    private static function heaviest(array $states, array $unavailable): ?float
+    private static function stateReads(array $states, ?array $take, array $unavailable = []): ?float
     {
         $best = null;
-        foreach ($states as $name => $state) {
+        foreach ($take ?? array_keys($states) as $name) {
+            $state = $states[$name] ?? null;
             if (in_array($name, $unavailable, true) || !is_array($state) || !isset($state['raw']) || !is_array($state['raw']) || $state['raw'] === []) {
                 continue;
             }

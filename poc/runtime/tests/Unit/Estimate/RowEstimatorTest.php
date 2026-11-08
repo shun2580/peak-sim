@@ -169,6 +169,8 @@ final class RowEstimatorTest extends TestCase
             $totals = RowEstimator::estimate(...self::args($candidate))['totals'];
             $this->assertSame(2, $totals['fell_back_to_h1'], $candidate);
             $this->assertSame(['e_small_zero' => 1, 'explain_unavailable:not_explainable_kind: begin' => 1], $totals['fell_back_by_reason'], $candidate);
+            $this->assertSame([1 => 1, 2 => 1, 3 => 0, 4 => 0], $totals['fell_back_by_item'], $candidate);
+            $this->assertSame([1 => 1, 2 => 1, 3 => 0, 4 => 0], $totals['routes_with_fall_by_item'], $candidate);
         }
         $this->assertSame(0, RowEstimator::estimate(...self::args('H1'))['totals']['fell_back_to_h1']);
     }
@@ -189,12 +191,51 @@ final class RowEstimatorTest extends TestCase
         $this->assertSame(1, $out['totals']['fell_back_by_reason']['no_explain_entry']);
     }
 
+    public function test_a_type_that_ran_but_read_nothing_at_a_scale_keeps_the_zero_in_its_series(): void
+    {
+        [$capture, $explain] = self::fixture();
+        $capture['routes'][0]['statement_types'][2]['per_scale']['100']['rows_sum'] = 0; // sC: 0 / 20 / 20 rows per run
+        $unread = $capture;
+        $unread['routes'][0]['statement_types'][2]['per_scale']['100'] = ['count' => 10, 'rows_sum' => null, 'unread' => 10];
+        // with the first scale undefined the series has two points: the value of the largest scale is kept
+        $this->assertSame('held_from_largest_scale', RowEstimator::estimate($unread, $explain, 'H1')['routes'][0]['types'][2]['per_exec_h1_basis']);
+        $this->assertSame('fit', RowEstimator::estimate($capture, $explain, 'H1')['routes'][0]['types'][2]['per_exec_h1_basis']);
+    }
+
+    public function test_an_unmarked_type_takes_the_default_state_and_not_the_heaviest(): void
+    {
+        [$capture, $explain] = self::fixture();
+        // sC is not plan_unstable: a heavier non-default state at N must not be used (H3: 20 x E(N) / E(small) = 20 x 9 / 6)
+        $explain['routes'][0]['statements'][2]['target_scale']['high'] = self::state(self::plan('ref', 800));
+        $this->assertEqualsWithDelta(30.0, RowEstimator::estimate($capture, $explain, 'H3')['routes'][0]['types'][2]['per_exec'], 1e-9);
+    }
+
+    public function test_the_default_state_missing_at_n_falls_back_for_a_type_that_is_not_unstable(): void
+    {
+        [$capture, $explain] = self::fixture();
+        unset($explain['routes'][0]['statements'][2]['target_scale']['default']);
+        $explain['routes'][0]['statements'][2]['target_scale']['high'] = self::state(self::plan('ref', 800));
+        $out = RowEstimator::estimate($capture, $explain, 'H3');
+        $this->assertSame('e_n_not_taken', $out['routes'][0]['types'][2]['fallback']);
+        $this->assertSame(1, $out['totals']['fell_back_by_item'][3]);
+    }
+
+    public function test_e_at_n_zero_with_e_small_above_zero_is_a_ratio_of_zero_not_a_fall(): void
+    {
+        [$capture, $explain] = self::fixture();
+        $explain['routes'][0]['statements'][1]['target_scale'] = ['default' => self::state(['query_block' => ['message' => 'Impossible WHERE']])]; // sB
+        $b = RowEstimator::estimate($capture, $explain, 'H2')['routes'][0]['types'][1];
+        $this->assertSame('ratio', $b['basis']);
+        $this->assertSame(0.0, $b['per_exec']);
+        $this->assertArrayNotHasKey('fallback', $b);
+    }
+
     public function test_a_type_that_did_not_run_at_the_largest_scale_falls_back(): void
     {
         [$capture, $explain] = self::fixture();
         unset($capture['routes'][0]['statement_types'][1]['per_scale']['10000']); // sB
         $out = RowEstimator::estimate($capture, $explain, 'H2');
-        $this->assertSame(1, $out['totals']['fell_back_by_reason']['not_run_at_small_scale']);
+        $this->assertSame(1, $out['totals']['fell_back_by_reason']['per_exec_measured_undefined']);
     }
 
     public function test_a_type_seen_at_fewer_than_three_scales_keeps_the_value_of_its_largest_and_is_counted(): void
