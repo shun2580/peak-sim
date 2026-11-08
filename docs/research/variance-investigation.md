@@ -9,7 +9,8 @@ This file is the record of an investigation that follows the first run of test A
 - **`ANALYZE TABLE` before the measurement (section 4.6) did not remove the movement, and it does not settle the cause.** On one database, with `ANALYZE TABLE` run once before the first trial, 4 of the 6 routes still varied inside the database (draft, page, `DELETE /books/{id}`, shelves), the level of about 850 thousand did not appear, and the recycle-bin route read about 775 thousand in all three laps. But the stored statistics of `deletions` were recalculated automatically inside the very first trial, and again inside every later one, so stage 3 is not a measurement with fixed statistics. A movement that remains does not show that the statistics are unrelated, and a movement that is smaller does not show that they are the cause. One database and 18 trials are also a smaller sample than stage 2.
 - **T2 (section 5):** for the two `PUT` routes, the extra rows between 10,000 and 100,000 come from two statements on `references`; the plan of one of them (a `delete`) changed from a range on an index to a full scan of the table. The stored statistics of `references` were the same at both scales.
 - **T3 (section 6):** the twelve routes with no empty-system point are left out because the record they address lives in the table that the plan empties at N = 0. Four options are set out; this file does not choose among them. Three of them need a ruling by the project owner.
-- **Not done here:** a test that stops the automatic recalculation of statistics (for example per table) was not run, because it changes the conditions of the measurement. Whether to run it is left to the maintainer (section 7).
+- **T4 (section 4.7): with the automatic recalculation of statistics stopped, the movement disappeared, on one database.** `ANALYZE TABLE` was run once, then `STATS_AUTO_RECALC=0` was set on the 25 tables that the six routes touch in the cold window, and the six routes were measured three times each (18 trials, one database of 100,000 rows, the tap on). In all 18 trials the cold rows examined of a route were the same in the three laps, at one level of about 520 thousand (520,498 to 520,531 over all 18; none of the six routes varies by the 5% rule), and the `deletions` delete read 120,001 to 120,003 rows over its 5 runs every time, with a range plan. The levels of about 595, 775 and 850 thousand did not appear in the recorded values. The reading is that the recalculation of the statistics inside the trials is the cause of the movement on this database. The limits are part of the reading: one database; only 15 of the 18 trials had statistics that did not move (the first three still had them move); the statistics that stood still were not the ones `ANALYZE TABLE` left but values recalculated inside the first trial (`n_rows` of `deletions` 48,667, index cardinality 0); a recalculation that was already queued ran after it was switched off; the stored index statistics were not read directly; and the 5 runs of the moving statement were not recorded one by one.
+- **Not done here:** a measurement on more than one database; a measurement in which the statistics that stand still are the ones `ANALYZE TABLE` produced (the queued recalculations would have to be drained first); a direct read of `mysql.innodb_index_stats`; a record of the plan of each of the 5 runs.
 
 ## 1. Question and scope
 
@@ -43,9 +44,9 @@ The measurer builds a database, measures each route once, and drops the database
 - Each database has its own compose project, run id, application key and passwords, decided once. The database is built once; `measure-one --phases=warmup,cold` then runs route 1 to 6, lap 1 to 3, on it. Nothing is rebuilt between trials. A request that cannot be rolled back (exit code 14) stops the run of that database.
 - The arguments of each route are those recorded for the step-5 run of test A (`tasks.json`), unchanged. The order of the routes within a lap is the order of that run: chapter, draft, page, `DELETE /books/{id}`, recycle-bin empty, shelves.
 - With `--parallel`, two databases run at once. Nothing in the stack publishes a port, and the compose project, run id and output directory are separate, so the two do not collide.
-- The measurer is started from a copy of HEAD made with `git archive` outside the repository, never from the working tree. The runner records the commit of that copy; commit `1d820f7` makes it refuse to record HEAD for a working tree with uncommitted changes. T1 and T2 used the copy of `1d820f7`.
+- The measurer is started from a copy of HEAD made with `git archive` outside the repository, never from the working tree. The runner records the commit of that copy; commit `1d820f7` makes it refuse to record HEAD for a working tree with uncommitted changes. T1 and T2 used the copy of `1d820f7`; the run of section 4.7 (T4) used the copy of `be36534`, which adds the option `--stats-auto-recalc=off` (the default is `keep`, the behaviour of the earlier copies).
 - The watcher reads `SHOW FULL PROCESSLIST` and the server's row counters. It writes an alert file and calls a notification program once when a statement has run for 900 s or more, or when there has been no statement and no output for 1,800 s. It never stops anything.
-- Between the commit of test A's measurer (`305c928`) and `c492cd8`, the code under `poc` and `src` is identical (the diff is empty). The runner (`d6557f2`), the tap flag (`e944520`) and the guard (`1d820f7`) were added after `c492cd8`.
+- Between the commit of test A's measurer (`305c928`) and `c492cd8`, the code under `poc` and `src` is identical (the diff is empty). The runner (`d6557f2`), the tap flag (`e944520`), the guard (`1d820f7`) and the option `--stats-auto-recalc=off` (`be36534`; it changes the runner and its tests only) were added after `c492cd8`.
 
 ### 2.2 What was not changed
 
@@ -70,7 +71,7 @@ To see which statement changes, `measure-one` has a flag `--tap-out=<file>` (com
 
 Before and after every trial, the runner records the stored statistics of InnoDB (`innodb_table_stats`: `n_rows`, `last_update`, index sizes) and the cardinality of every index (`stats_before.tsv`, `stats_after.tsv`). For each database it also records the row count and a checksum of every table (`content.tsv`, `content.sha256`); equal digests mean equal data. These are read-only observations.
 
-An `ANALYZE TABLE` stage exists in the runner (`--analyze=rerun`: laps, one `ANALYZE TABLE` outside any request, laps again, on the same database; `--analyze=before`: `ANALYZE TABLE` right after the build). It was to be run only if T1 read as "a change inside one database". T1 reads that way (section 4.7), so `--analyze=before` was run; its result is in section 4.6. `--analyze=rerun` was not run.
+An `ANALYZE TABLE` stage exists in the runner (`--analyze=rerun`: laps, one `ANALYZE TABLE` outside any request, laps again, on the same database; `--analyze=before`: `ANALYZE TABLE` right after the build). It was to be run only if T1 read as "a change inside one database". T1 reads that way (section 4.8), so `--analyze=before` was run; its result is in section 4.6. `--analyze=rerun` was not run. After that stage showed that the statistics were recalculated inside every trial, the option `--stats-auto-recalc=off` was added (commit `be36534`): right after the `ANALYZE TABLE`, it runs `ALTER TABLE … STATS_AUTO_RECALC=0` on the tables that the cold window of the routes touches, records the table options before and after, and then runs the laps. Its result is in section 4.7.
 
 Elapsed time is not one of the measured quantities (D97, note), and it is not used in any reading here. It is recorded in section 3 because it differs with the tap.
 
@@ -121,7 +122,7 @@ What this shows and does not show:
 
 Design (from section 2): 100,000 rows; two databases built separately; on each, the six routes in the order of section 2.1, three laps; 36 trials, each with the per-statement tap; the stored statistics and the content of each database recorded. The run took 99 minutes and ended with exit code 0 on both databases; all 36 trials have status 302 and class `ok`. The watcher raised no alert. The raw records are outside the repository; the figures below are taken from the aggregate tables made from the 36 tap files, and the sums and ranges in 4.2 and 4.3 were recomputed from the tap files themselves.
 
-**Conclusion in one line (details in 4.7): all six routes change value inside one database, by the tool's rule (a gap of more than 5%).** The next sections give the table that shows it, the statement that moves, and what the records say and do not say about why.
+**Conclusion in one line (details in 4.8): all six routes change value inside one database, by the tool's rule (a gap of more than 5%).** The next sections give the table that shows it, the statement that moves, and what the records say and do not say about why.
 
 ### 4.1 Cold rows examined per route, database and lap
 
@@ -271,17 +272,93 @@ Per statement, the axis statement is again `delete from deletions where deletabl
 1. That a movement remained after `ANALYZE TABLE` does not show that the stored statistics have no part in it.
 2. That the movement is smaller or different in shape (no L4; the recycle-bin route flat) does not show that the stored statistics are its cause.
 
-The data can say that the movement was there with the statistics recalculated inside every trial; it cannot say what it would be if the statistics were held fixed.
+The data can say that the movement was there with the statistics recalculated inside every trial; it cannot say what it would be if the statistics were held fixed. (A run that tried to hold them fixed is in section 4.7.)
 
 Records: `T1a_tables.md` sections 1 to 5 (the table of values, the smallest and largest run per trial, the statistics before and after `ANALYZE TABLE` and during each trial); `T1a_values.tsv` (the values); `analyze.log`, `stats_after_analyze.tsv`, and per trial `tap.jsonl`, `stats_before.tsv`, `stats_after.tsv`, `trial.json`.
 
-### 4.7 Conclusion: (a) a change inside one database
+### 4.7 Statistics held still (stage 4, T4)
+
+Stage 3 could not say what the movement is when the statistics stand still, because they were recalculated inside every trial. Stage 4 stops the automatic recalculation and measures again. Reading in advance: **with the recalculation stopped, the movement disappeared on this database, and the reading is that the recalculation of the statistics is its cause, within the limits below.**
+
+**Method.** One database of 100,000 rows, built as before; the six routes of section 2.1, three laps, so 18 trials; the tap on, the stored statistics and the content recorded before and after every trial. Right after the build, `ANALYZE TABLE` was run once on all 41 tables, and then `ALTER TABLE … STATS_AUTO_RECALC=0` on 25 tables (the option of section 2.4, commit `be36534`). The run ended with exit code 0; all 18 trials had two successful requests with status 302, `unaccounted` and `unread_events` 0, and a trial took 311 to 312 seconds. The cold definition, the steps of a trial, the formula, the fit, the pass line and the rule that two values differ when the gap is more than 5% are those of the earlier stages; nothing was changed.
+
+**The 25 tables.** The tables that the statements of the cold window of the six routes touch, except `settings` (below): `activities`, `attachments`, `bookshelves_books`, `comments`, `deletions`, `entities`, `entity_container_data`, `entity_page_data`, `entity_permissions`, `favourites`, `images`, `joint_permissions`, `page_revisions`, `permission_role`, `references`, `role_permissions`, `role_user`, `roles`, `search_terms`, `slug_history`, `tags`, `views`, `watches`, `webhook_tracked_events`, `webhooks`. The table options after the change show `stats_auto_recalc=0` on exactly these 25 and on none of the other 16. The change did not recalculate anything itself: for `deletions` the stored statistics right after it equal those right after `ANALYZE TABLE`.
+
+**Seven tables set aside.** `imports`, `migrations`, `settings`, `social_accounts`, `sort_rules`, `user_invites` and `users` are not among the 25 and are listed apart, outside the judgement of whether the statistics stood still. Six of them (all but `settings`) are read by no statement of any of the six routes: there is no hit in the 36 requests (18 trials of two requests) or in the 18 tap windows. `settings` is read by the first request of every trial (6 rows) and by no statement of the cold window, the request whose value is compared, so it cannot enter the cold figure; its stored `n_rows` stayed 6. Of the seven, six had their stored statistics recalculated once, inside trial 1 (all but `migrations`), and none again.
+
+**Cold rows examined.** The value of record is the cold request, the second request of the trial (its value equals `cold_rows_examined` of the tap window in all 18 trials).
+
+| Route | Lap 1 | Lap 2 | Lap 3 | Varies inside the database |
+| --- | ---: | ---: | ---: | --- |
+| `DELETE /books/{bookSlug}/chapter/{chapterSlug}` | 520,518 | 520,518 | 520,518 | no |
+| `DELETE /books/{bookSlug}/draft/{pageId}` | 520,514 | 520,514 | 520,514 | no |
+| `DELETE /books/{bookSlug}/page/{pageSlug}` | 520,519 | 520,519 | 520,519 | no |
+| `DELETE /books/{id}` | 520,531 | 520,531 | 520,531 | no |
+| `POST /settings/recycle-bin/empty` | 520,498 | 520,498 | 520,498 | no |
+| `DELETE /shelves/{slug}` | 520,511 | 520,511 | 520,511 | no |
+
+- All 18 values lie in one level, 520,498 to 520,531 (a gap of 0.0063% between the smallest and the largest). Inside a route the three laps are equal. By the 5% rule, 0 of the 6 routes vary inside the database; in stage 3, 4 of 6 did.
+- The levels of about 595, 775 and 850 thousand (L2 to L4) are in none of the 18 recorded values.
+- The first request of a trial (warm-up) is not the value of record. Its values are 520,499 to 520,542 in 17 trials and 850,431 in trial 1. That one value of about 850 thousand is in the first trial, in the trial whose statistics were still being recalculated (next part).
+
+**The moving statement.** `delete from deletions where deletable_type = ? and deletable_id = ? and …` ran 5 times in every request, as before. Over the 18 trials:
+
+| Quantity | Value in all 18 trials |
+| --- | --- |
+| Sum of the 5 runs | 120,001 to 120,003 |
+| Smallest run | 20,001 to 20,002 |
+| Largest run | 25,001 to 25,002 |
+| `EXPLAIN` right after the window (first and last binding, 36 plans) | type `range`, key `deletions_deletable_type_index`, in all 36; type `ALL` in none |
+
+The estimated rows of `EXPLAIN` are 128 in trial 1 and 1 in every other trial (estimates, not rows read). The sum, the smallest and the largest run are those of the lowest level of stage 2 (L1) and of the 520-thousand trials of stage 3 (sections 4.3 and 4.6), in the small form: all 5 runs of range size. In stage 2 the `EXPLAIN` showed a full scan (type `ALL`) in 16 of 72 plans; here it shows none.
+
+**Whether the statistics stood still.** The statistics were read before and after every trial in two views: `innodb_table_stats` (`n_rows`, sizes, `last_update`), and the cardinality of every index read from `information_schema.STATISTICS` with `information_schema_stats_expiry=0`. A trial counts as a trial with statistics held still only if none of the 25 tables changed in either view.
+
+| Trials | What changed in the 25 tables | Counted as held still |
+| --- | --- | --- |
+| 1 (chapter, lap 1) | stored table statistics of 23 of the 25 (and of 6 of the 16 others: 29 tables in all); index cardinality of 18 | no |
+| 2 (draft, lap 1) | table statistics none; index cardinality of 11 | no |
+| 3 (page, lap 1) | table statistics none; index cardinality of 8 | no |
+| 4 to 18 (15 trials) | nothing, in either view, in any of the 41 tables | yes |
+
+The 15 trials held still include all six routes (chapter 2, draft 2, page 2, `DELETE /books/{id}` 3, recycle-bin 3, shelves 3). Their cold values are 520,498 to 520,531. The cold values of the first three trials, which are not counted as held still, are 520,518, 520,514 and 520,519, so they do not change the reading either way.
+
+What the statistics of `deletions` went through (`n_rows`, then the cardinality of the primary key, `deletable_type`, `deletable_id` and `deleted_by`):
+
+| Moment | `n_rows` | Cardinality |
+| --- | ---: | --- |
+| After `ANALYZE TABLE`, before trial 1 | 99,900 | 99,900 / 3 / 4 / 99,900 |
+| After trial 1 | 48,667 | 256 / 1 / 1 / 256 |
+| After trial 2, and unchanged to the end of trial 18 | 48,667 | 0 / 0 / 0 / 0 |
+
+- **The statistics that stood still are not the ones `ANALYZE TABLE` left.** From trial 4 on, `deletions` stayed at the state of its recalculation inside trial 1 (`n_rows` 48,667, a value taken in the middle of that trial; index cardinality 0). Neither is the true count (100,000).
+- **The recalculation ran in trial 1 although it had been switched off.** In trial 1, 29 tables got a new `last_update`, one table about every 10 seconds, over about 4 minutes and 40 seconds; `deletions` was one of them. Twenty-three of the 29 are tables with `STATS_AUTO_RECALC=0`. The records can be read as follows: tables that the loading of the data had already put on the background list of recalculations were still processed after the option was set, one per 10 seconds, and the option did not take them off the list. This is a reading and was not verified; the list is not in the record. After trial 1 no table was recalculated again in any trial; `permission_role`, `role_permissions`, `migrations` and nine other small tables were not recalculated in any trial.
+- **The index statistics were not read directly.** The runner does not read `mysql.innodb_index_stats`; it reads the cardinality from `information_schema.STATISTICS` instead. Trials 2 and 3 are counted as not held still because that cardinality moved; whether the stored index statistics moved in them is not in the record. A copy of `mysql.innodb_index_stats` and `mysql.innodb_table_stats` was meant to be taken during and after the measurement. It was not: the measured database had been removed when the run ended.
+
+**Against the earlier stages.** In stage 2, 19 of the 36 cold values were not at the 520-thousand level (17 of 36 were). In stage 3, 3 of the 12 values of laps 2 and 3 were not (the recycle-bin route twice at 775 thousand, the shelves route once at 595 thousand). In stage 4, all 15 trials with statistics held still were at that level, and so were all 18 trials. As a rough estimate that treats the 15 trials as independent, the chance that all 15 land on the 520-thousand level is about 1.3 × 10⁻⁵ at the rate of stage 2 (17 of 36) and about 1.3% at the rate of the second half of stage 3 (9 of 12). Trials on one database are probably not independent, so these figures show how far the result is from what the earlier rates would give, and they are not probabilities of a hypothesis.
+
+**Reading.** The movement is gone, in every one of the 15 trials in which the statistics did not move and in the first three, and the form of the statement fits: in stage 2 the 5 runs split into part-table and whole-table reads and the plan changed between a range and a full scan; here all 5 runs are range-sized and all plans are ranges. The reading is that the recalculation of the statistics, which ran inside the trials of stages 2 and 3, is the cause of the movement on this database.
+
+**Limits of this reading.**
+
+1. One database, and 15 trials with the statistics held still (2 or 3 per route). The result is not shown for another database or another build.
+2. The statistics that stood still are the values recalculated inside trial 1 (`n_rows` 48,667, cardinality 0), not those of `ANALYZE TABLE` and not the true ones. The data say that the movement stops when the statistics stop moving; they do not say that any value of the statistics gives about 520 thousand, and they do not say that the statistics `ANALYZE TABLE` produces are stable.
+3. A recalculation that was already queued ran after `STATS_AUTO_RECALC=0` was set (23 of the 25 tables in trial 1; the queue is a reading, not verified). To hold the statistics fixed, the order would have to be: switch off, wait until the queued recalculations are done (or throw away one trial), then measure.
+4. The stored index statistics were not read directly (the cardinality from `information_schema.STATISTICS` stands for them), and no copy of `mysql.innodb_index_stats` was kept.
+5. The tap keeps the sum, the smallest and the largest run per statement, not each of the 5 runs, and `EXPLAIN` is taken after the window. The plan of each run is not in the record, so the account of why the runs differed in stages 2 and 3 is read from the form of the numbers.
+6. The one value of about 850 thousand (the warm-up request of trial 1) falls in a trial in which the statistics were being recalculated; the record does not say at which point of that request.
+
+Records: `T4_tables.md` (the tables: cold values, the moving statement and its plans, the statistics before and after every trial, the course of the statistics); `index.tsv`; per trial `attempt.jsonl`, `tap.jsonl`, `trial.json`, `stats_before.tsv`, `stats_after.tsv`; and, once for the database, `analyze.log`, `stats_after_analyze.tsv`, `stats_off.log`, `stats_after_off.tsv`, `table_options_before_off.tsv` and `table_options_after_off.tsv`.
+
+### 4.8 Conclusion: (a) a change inside one database
 
 By the rule of the tool (a gap of more than 5% inside one database), **all six routes change value inside one database: class (a) for every route** (4.1). On the same rows (the data are rolled back and their counts checked, section 2.2), with the same arguments, the cold rows examined of a route took values at four levels (about 520 thousand, 595 thousand, 775 thousand and 850 thousand), and both databases show all four. 11 of the 12 pairs of (route, database) vary inside; the twelfth (recycle-bin, db1) is flat. No route is only different between the two databases, and none is flat on both.
 
 What moves is one statement in every route, the `delete from deletions where deletable_type …` (5 runs per request); the rest of the request reads the same rows in every trial (4.2). Its rows read, by level, are about 120, 195, 375 and 450 thousand. The smallest and the largest run of the 5 give a form that can be read from the numbers: runs of about a fifth to a quarter of the table and runs of about the whole table inside one request (4.3). `EXPLAIN` after the window shows both a range and a full scan at the lowest and the highest level, so it does not tell the levels apart. The stored statistics of `deletions` are not the true count and are recalculated inside the trials (4.4); the times overlap with the trials.
 
-What is not concluded: why the 5 runs of one request differ in what they read; whether the stored statistics have a part in it; whether `ANALYZE TABLE` changes the picture (4.6: the movement remained in 4 of 6 routes and the highest level did not appear, but the statistics were recalculated inside every trial, so neither "unrelated" nor "the cause" can be said). The change of plan inside a request is a reading of sums, minima and maxima, not an observation of the plans.
+What stage 4 adds (4.7): with the automatic recalculation stopped, the movement disappeared on one database, and the reading is that the recalculation of the statistics is its cause, within the limits listed there (one database; the statistics that stood still were values recalculated inside the first trial, not those of `ANALYZE TABLE`; a queued recalculation ran after it was switched off; the index statistics were not read directly; the 5 runs were not recorded one by one).
+
+What is not concluded: why the 5 runs of one request differ in what they read (the account is read from sums, minima and maxima, not from the plans); whether the movement is the same on another database; whether the statistics that `ANALYZE TABLE` produces are stable (4.6: the movement remained in 4 of 6 routes, but the statistics were recalculated inside every trial; 4.7: the statistics that stood still were not those `ANALYZE TABLE` left).
 
 ## 5. T2: the two `PUT` routes at 10,000 and 100,000 rows
 
@@ -402,9 +479,9 @@ Whatever is chosen, the order of test A does not have to change. Each option cha
 
 ## 7. Limits and open items
 
-- **T1.** The conclusion (section 4.7) is that the six routes change value inside one database; it does not say why the runs of the moving statement inside one request read different numbers of rows, and it does not say whether the stored statistics have a part in it. The split of the 5 runs into part-table and whole-table reads is read from sums, minima and maxima: the tap keeps no figure per run, and the `EXPLAIN` is taken after the window (section 2.3), so the plan of each run was not observed. Two databases and three laps are a small sample of the levels (four levels were seen).
+- **T1.** The conclusion (section 4.8) is that the six routes change value inside one database; it does not say why the runs of the moving statement inside one request read different numbers of rows. Section 4.7 reads the recalculation of the statistics as the cause of the movement, within its limits. The split of the 5 runs into part-table and whole-table reads is read from sums, minima and maxima: the tap keeps no figure per run, and the `EXPLAIN` is taken after the window (section 2.3), so the plan of each run was not observed. Two databases and three laps are a small sample of the levels (four levels were seen).
 - **The `ANALYZE TABLE` stage (section 4.6) is not a measurement with fixed statistics.** The stored statistics of `deletions` were recalculated automatically inside the first trial and inside all 18 trials, so what remained (or changed) after `ANALYZE TABLE` can be neither read as "the statistics are unrelated" nor as "the statistics are the cause". It ran on one database and 18 trials, half the trials of stage 2, so the absence of the highest level (about 850 thousand) may be a matter of sample size. `--analyze=rerun` was not run.
-- **Not done, and left to the maintainer: a measurement with the automatic recalculation of statistics stopped** (for example `STATS_AUTO_RECALC=0` per table). It changes a condition of the measurement, so this investigation did not do it. Whether it is worth doing is the maintainer's judgment; this file does not recommend it.
+- **The measurement with the automatic recalculation stopped (section 4.7, stage 4) is one database, with limits.** 15 of its 18 trials had statistics that did not move (2 or 3 per route). The statistics that stood still are values recalculated inside the first trial (`n_rows` of `deletions` 48,667, index cardinality 0), not those of `ANALYZE TABLE` and not the true ones, so it does not show that any value of the statistics gives about 520 thousand, or that the statistics `ANALYZE TABLE` produces are stable. A recalculation that was queued before the option was set ran inside trial 1 (a reading, not verified), so holding the statistics fixed needs a wait for the queue (or one trial thrown away) before the first measured trial. The stored index statistics were not read directly (the cardinality from `information_schema.STATISTICS` stands for them) and no copy of `mysql.innodb_index_stats` was kept. The plan of each of the 5 runs is not in the record, so the mechanism is a reading of the numbers. Not done: another database; the statistics that `ANALYZE TABLE` produces held still.
 - **The two databases of T1 differ in three tables** (`settings`: the instance id; `users`: the password column; `role_permissions`: the creation times; section 4.5). That the routes do not read through the differing columns, and that the statements on these tables read the same rows in every trial, is shown in section 4.5; the column differences themselves were checked on two rebuilt databases of the same recipe at 10,000 rows, not on the measured databases of 100,000 rows, which were torn down when the run ended; for the measured ones only the digests and checksums exist.
 - **`EXPLAIN` is a plan after the window, not during it** (section 2.3). A statement whose plan changes during a request would show the later plan. Taking the first and the last binding is a partial check only.
 - **The tap slows the cold request** by a factor of about 2 on 10,000 rows (section 3, an estimate), so a tapped trial is not the same in elapsed time as a trial of test A. Rows examined are not measured by time (D97, note), and no reading here uses elapsed time. That the tap leaves the figure unchanged is shown on the verification app, not run by run on BookStack, where the figure moves by itself.
