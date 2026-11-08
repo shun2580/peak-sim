@@ -341,3 +341,91 @@ The gate reads the development comparison at 100,000 rows, which was seen before
 ### 9.6 What the results will have to report
 
 So that nothing is hidden among the totals: the number of types, and of routes, that fall back to H1 under each of the four items of section 9.3; the number of types for which `per_exec` could not be fitted (fewer than three scales) and was taken as a constant; the types that carry `plan_changes_at_scale` or `plan_unstable` and the value each candidate gives them; the tables of sections 7.1 and 7.2 in the same form with H1 to H3 beside C2 and version 0.1; and the six `deletions` routes of section 7.2 against the recorded minimum, maximum and the statistics-held-still value.
+
+
+## 10. Results of the 100,000-row comparison of H1 to H3
+
+Written after the comparison. Nothing in sections 0 to 9 was changed. This is a development check: it does not decide pass or fail of version 0.2 (section 9.5).
+
+### 10.0 What was run, in what order
+
+- Section 9 (candidates, picking rule, gate) was committed as `2d8e5b9` at 2026-11-09 03:16:07 +09:00, before any H1, H2 or H3 value was computed.
+- The estimator is `bin/estimate` (`poc/runtime/src/Estimate/`): `96b12f3` (03:18:52) and `d74562e` (03:20:00). It reads `capture.json` and `explain.json` and nothing else. It reuses `CostFit` for the fit of `per_exec` (coefficients rounded with `CostFit::sig`) and `CostFit::evaluate`; the only new reading is the C2 walk of `EXPLAIN` (`PlanReads`), written from sections 2 and 4 of this file. `d74562e` brought the first version in line with section 9.3 (the default state for an unmarked type at N; the fall-back items); both commits were made with synthetic test data only. The tests are in `poc/runtime/tests/Unit/Estimate/` (suite `RuntimeUnit`): ratio only for marked types under H2, for every type under H3, the heaviest state for `plan_unstable`, the fall to H1 when `E(s, 10,000)` is 0 or `EXPLAIN` is unavailable (counted by item), and a route estimate that is the sum of `per_exec × count`.
+- Before any value was computed, the shape of `explain.json` was looked at to write the reader (the first statement of the first route of the verification app: a `const` lookup on `customers`). No `per_exec` or route estimate of H1 to H3 had been seen.
+- The comparison started at 2026-11-09 03:21:08 +09:00, after a check that `2d8e5b9` is in `git log`. Inputs are not re-measured: the capture of each application, the `explain.json` of the 100,000-row run (it also holds the 10,000-row plans), and the measured values and version 0.1 predictions of the first test. The C2 column is that of section 7 (computed there).
+- The estimates, the comparison script and its output are kept with the run records, outside the repository. The rebuild is: for each application and candidate, `bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=<H1|H2|H3> --at=100000`, then the comparison script over the three outputs and the first test's `compare.json`.
+
+### 10.1 Error of each candidate, per target
+
+Error is `|estimate − measured| / measured` per route, over the 23 routes of each target. Every one of the 46 routes is complete under all three candidates, so the three medians are taken over the same routes (section 9.4).
+
+| Target | Candidate | Denominator | Complete | Median error | Within +-20% | Within +-10% | Worst error |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Verification app | H1 | 23 | 23 | 0.0% | 22 of 23 (95.7%) | 22 of 23 (95.7%) | 20.0% |
+| Verification app | H2 | 23 | 23 | 0.0% | 22 of 23 (95.7%) | 22 of 23 (95.7%) | 20.0% |
+| Verification app | H3 | 23 | 23 | 0.7% | 20 of 23 (87.0%) | 20 of 23 (87.0%) | 89.6% |
+| Verification app | C2 (section 7, absolute E) | 23 | 23 | 0.0% | 18 of 23 | 18 of 23 | 99.9% |
+| Verification app | Version 0.1 (first test) | 23 | 23 | 0.0% | 22 of 23 | 20 of 23 | 21.3% |
+| BookStack | H1 | 23 | 23 | 0.9% | 14 of 23 (60.9%) | 14 of 23 (60.9%) | 70.0% |
+| BookStack | H2 | 23 | 23 | 75.2% | 7 of 23 (30.4%) | 7 of 23 (30.4%) | 670.9% |
+| BookStack | H3 | 23 | 23 | 75.2% | 7 of 23 (30.4%) | 7 of 23 (30.4%) | 670.9% |
+| BookStack | C2 (section 7, absolute E) | 23 | 23 | 66.5% | 6 of 23 | 4 of 23 | 1139.7% |
+| BookStack | Version 0.1 (first test) | 23 | 23 | 2.1% | 15 of 23 | 15 of 23 | 76.4% |
+| both | H1 | 46 | 46 | 0.0% | 36 of 46 (78.3%) | 36 of 46 (78.3%) | 70.0% |
+| both | H2 | 46 | 46 | 0.0% | 29 of 46 (63.0%) | 29 of 46 (63.0%) | 670.9% |
+| both | H3 | 46 | 46 | 0.9% | 27 of 46 (58.7%) | 27 of 46 (58.7%) | 670.9% |
+| both | C2 (section 7, absolute E) | 46 | 46 | 11.7% | 24 of 46 | 22 of 46 | 1139.7% |
+| both | Version 0.1 (first test) | 46 | 46 | 0.0% | 37 of 46 | 35 of 46 | 76.4% |
+
+### 10.2 The choice and the gate
+
+- Section 9.4: the pooled medians are 0.0% (H1), 0.0% (H2) and 0.9% (H3); all three are within 0.01 of the best, so they are tied. Among them the larger share within ±20% is H1 (36 of 46, against 29 and 27), so **H1 is chosen**.
+- Section 9.5: H1 has **36 of 46** routes within ±20%. The gate is 37. **The gate is not reached: the work stops here and does not go on to the 200,000-row test.** Nothing was changed to get past it: the candidates, the rule, the denominator, the tolerance and the pass line are as in section 9.
+- Against version 0.1 on the same routes (37 of 46): exactly one route differs between the two in being inside or outside ±20%: `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore` (1.9% off under version 0.1, 69.4% off under H1). The one verification-app route outside ±20% is the same for both, `GET /ok/with-count` (21.3% under version 0.1, 20.02% under H1: outside by 0.02 points).
+
+### 10.3 The eight BookStack routes outside ±20% in the first test
+
+| Route | measured | v0.1 (err) | C2 (err) | H1 (err) | H2 (err) | H3 (err) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `DELETE /books/{bookSlug}/chapter/{chapterSlug}` | 520,510 | 832,784 (60.0%) | 949,723 (82.5%) | 850,513 (63.4%) | 2,647,429 (408.6%) | 2,649,365 (409.0%) |
+| `DELETE /books/{bookSlug}/draft/{pageId}` | 520,514 | 832,775 (60.0%) | 949,720 (82.5%) | 850,507 (63.4%) | 2,647,374 (408.6%) | 2,649,310 (409.0%) |
+| `DELETE /books/{bookSlug}/page/{pageSlug}` | 595,461 | 832,773 (39.9%) | 949,725 (59.5%) | 850,512 (42.8%) | 2,647,330 (344.6%) | 2,649,266 (344.9%) |
+| `DELETE /settings/maintenance/cleanup-images` | 6,450,294 | 2,568,985 (60.2%) | 3,105,783 (51.9%) | 4,547,712 (29.5%) | 4,547,712 (29.5%) | 2,517,121 (61.0%) |
+| `POST /settings/maintenance/regenerate-references` | 64,849,407 | 15,325,810 (76.4%) | 66,643,923 (2.8%) | 19,467,454 (70.0%) | 39,272,997 (39.4%) | 45,201,948 (30.3%) |
+| `POST /settings/recycle-bin/empty` | 520,467 | 832,821 (60.0%) | 949,711 (82.5%) | 850,491 (63.4%) | 2,647,261 (408.6%) | 2,649,187 (409.0%) |
+| `PUT /books/{bookSlug}/chapter/{chapterSlug}` | 115,232 | 34,481 (70.1%) | 481,815 (318.1%) | 35,230 (69.4%) | 201,916 (75.2%) | 201,915 (75.2%) |
+| `PUT /books/{bookSlug}/page/{pageSlug}` | 115,257 | 34,506 (70.1%) | 481,836 (318.1%) | 35,255 (69.4%) | 201,941 (75.2%) | 201,940 (75.2%) |
+
+Inside ±20% (the minimum line): **0 of the 8 under H1, 0 under H2 and 0 under H3** (version 0.1: 0 of 8 by construction, these are its misses). The nearest are `DELETE /settings/maintenance/cleanup-images` under H1 and H2 (29.5% off, from 60.2%) and `POST /settings/maintenance/regenerate-references` under H3 (30.3% off, from 76.4%). The four `deletions`-family routes stay 43% to 63% off under H1 (as under version 0.1) and become 344% to 409% too high under H2 and H3. The two `PUT` routes stay about 70% low under H1 (as under version 0.1) and become 75% too high under H2 and H3.
+
+### 10.4 The six `deletions` routes against the other recorded values
+
+| Route | first test | recorded min | recorded max | frozen | H1 | H2 | H3 | errors vs min / max / frozen: H1 ; H2 ; H3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `DELETE /books/{bookSlug}/chapter/{chapterSlug}` | 520,510 | 520,458 | 850,461 | 520,518 | 850,513 | 2,647,429 | 2,649,365 | 63.4% / 0.0% / 63.4% ; 408.7% / 211.3% / 408.6% ; 409.0% / 211.5% / 409.0% |
+| `DELETE /books/{bookSlug}/draft/{pageId}` | 520,514 | 520,454 | 850,515 | 520,514 | 850,507 | 2,647,374 | 2,649,310 | 63.4% / 0.0% / 63.4% ; 408.7% / 211.3% / 408.6% ; 409.0% / 211.5% / 409.0% |
+| `DELETE /books/{bookSlug}/page/{pageSlug}` | 595,461 | 520,459 | 850,460 | 520,519 | 850,512 | 2,647,330 | 2,649,266 | 63.4% / 0.0% / 63.4% ; 408.7% / 211.3% / 408.6% ; 409.0% / 211.5% / 409.0% |
+| `DELETE /books/{id}` | 850,504 | 520,500 | 850,535 | 520,531 | 850,527 | 2,647,492 | 2,649,428 | 63.4% / 0.0% / 63.4% ; 408.6% / 211.3% / 408.6% ; 409.0% / 211.5% / 409.0% |
+| `DELETE /shelves/{slug}` | 850,456 | 520,451 | 850,516 | 520,511 | 858,512 | 2,655,526 | 2,649,466 | 65.0% / 0.9% / 64.9% ; 410.2% / 212.2% / 410.2% ; 409.1% / 211.5% / 409.0% |
+| `POST /settings/recycle-bin/empty` | 520,467 | 520,438 | 595,440 | 520,498 | 850,491 | 2,647,261 | 2,649,187 | 63.4% / 42.8% / 63.4% ; 408.7% / 344.6% / 408.6% ; 409.0% / 344.9% / 409.0% |
+
+### 10.5 What fell back to H1, and the types fitted as constants
+
+Types are counted per route they appear in.
+
+| App | Candidate | ratio used (types in routes) | fell back, item 1 (E small = 0) | item 2 (E small not taken / not explainable / unrecognised) | item 3 (E at N not taken) | item 4 (no measured value) | routes with a fall (items 1/2/3/4) | held from largest scale |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| fixtures | H2 | 0 | 0 | 0 | 0 | 0 | 0/0/0/0 | 2 |
+| fixtures | H3 | 39 | 4 | 0 | 0 | 0 | 2/0/0/0 | 2 |
+| bookstack | H2 | 22 | 0 | 0 | 0 | 0 | 0/0/0/0 | 0 |
+| bookstack | H3 | 425 | 59 | 7 | 0 | 0 | 19/7/0/0 | 0 |
+
+The `e_small_zero` falls are statements for which `EXPLAIN` at 10,000 rows shows a read of 0 rows (the optimizer's figure for a lookup that finds nothing at that size); the `not_explainable_kind` falls are `SET` statements. Two statement types, each in one route of the verification app, were fitted as constants (their largest-scale value) because they ran at fewer than three scales; BookStack has none.
+
+### 10.6 What can and cannot be said
+
+- Under H1 alone, 36 of 46 routes are within ±20% (version 0.1: 37 of 46), with the median at 0.0%; the verification app is at 22 of 23 and BookStack at 14 of 23 (version 0.1: 22 and 15). H1 reproduces the first test where the cost per statement grows smoothly.
+- The ratio made things worse, not better, on this data. Where it applied (22 type-in-route entries under H2 on BookStack, all marked `plan_changes_at_scale` or `plan_unstable`), the `EXPLAIN` figure at 100,000 rows was several times the figure at 10,000 (for example 99,902 against 2,001 for a `delete from deletions …`), while the measured per-execution value of those statements grew by far less, so the product overshoots (the `deletions` routes at 2.6 million against 0.5 to 0.85 million measured; the `references` routes at 0.24 to 0.27 million against 35 thousand). This suggests that the optimizer's row figure at the larger size is not the rows the engine reads for these statements, and that the ratio carries that gap into the estimate; the cause is not examined here.
+- H3 additionally loses `GET /ok/chunk` and `GET /ok/lazy` (89.6% off, from 7.8% under H1); the cause is not examined here.
+- The gate is a gate on this development comparison. That H1 is one route short of version 0.1 says nothing about whether a version 0.2 built on H1 would pass at 200,000 rows; it says that, by the rule fixed in advance, this comparison does not allow the 200,000-row test to start.
+- This section does not say why `PUT … /revisions/{revId}/restore` is 69.4% low under H1 while its two sibling `PUT` routes were already 70% low under version 0.1 and the first test's fit gave 1.9% for this one; that is not examined here.
