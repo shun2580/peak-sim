@@ -166,6 +166,7 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
+| `bin/estimate` | a separate command: the rows each route reads at a size N by the candidates H1 to H3 of `docs/research/explain-estimate.md` (a fit per statement type, and the ratio of two EXPLAIN readings); reads `capture.json` and `explain.json` only, no database |
 | `bin/explain-at-scale` | a separate command: the plans of the statements of a `capture.json` on a database of the target size, in three statistics states (above); `bin/measure` never calls it. The steps run inside the container in `bin/inner/explain-at-scale.php` |
 | `src/Explain/` | the gate and the sender of the capture's statements, the fixed statistics statements, the summary and marks of plans, the report |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |

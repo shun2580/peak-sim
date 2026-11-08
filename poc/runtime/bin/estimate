@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Estimates the rows a route reads at a size N: per statement type, per_exec x count (candidates H1, H2, H3 of docs/research/explain-estimate.md).
+#
+#   bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3 [--at=<N>] [--predictions=<predictions.json>] > estimate.json
+#
+# Reads the files only; touches no database and no app; the same inputs always give the same output. The explain.json is the one of
+# bin/explain-at-scale at N (it also holds the plans of the small size). --at defaults to the size in explain.json. --predictions
+# (bin/predict at the same N) adds the route-level peak memory and query count of the route fits. Uses the PHP on this machine if there
+# is one; otherwise a throwaway container of the already built PHP image, with no network and the inputs mounted read-only. The image
+# is never pulled.
+# exit codes: 0 done / 2 wrong usage or an unreadable input / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+usage="usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3 [--at=<N>] [--predictions=<predictions.json>]"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/inner/estimate.php" "$@"
+fi
+
+capture=""
+explain=""
+candidate=""
+at=""
+predictions=""
+for arg in "$@"; do
+  case "$arg" in
+    --capture=*) capture="${arg#--capture=}" ;;
+    --explain=*) explain="${arg#--explain=}" ;;
+    --candidate=*) candidate="${arg#--candidate=}" ;;
+    --at=*) at="${arg#--at=}" ;;
+    --predictions=*) predictions="${arg#--predictions=}" ;;
+    *) echo "bin/estimate: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+for pair in "capture:$capture" "explain:$explain"; do
+  if [ ! -f "${pair#*:}" ]; then echo "bin/estimate: --${pair%%:*} is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+done
+case "$candidate" in H1|H2|H3) ;; *) echo "bin/estimate: --candidate must be H1, H2 or H3" >&2; echo "$usage" >&2; exit 2 ;; esac
+if [ -n "$at" ] && ! [[ "$at" =~ ^[1-9][0-9]*$ ]]; then echo "bin/estimate: --at must be a positive integer" >&2; echo "$usage" >&2; exit 2; fi
+capture="$(cd "$(dirname "$capture")" && pwd)/$(basename "$capture")"
+explain="$(cd "$(dirname "$explain")" && pwd)/$(basename "$explain")"
+
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "bin/estimate: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+args=(--capture=/input/capture.json --explain=/input/explain.json --candidate="$candidate")
+mounts=(-v "$capture:/input/capture.json:ro" -v "$explain:/input/explain.json:ro")
+[ -n "$at" ] && args+=(--at="$at")
+if [ -n "$predictions" ]; then
+  if [ ! -f "$predictions" ]; then echo "bin/estimate: --predictions is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+  predictions="$(cd "$(dirname "$predictions")" && pwd)/$(basename "$predictions")"
+  mounts+=(-v "$predictions:/input/predictions.json:ro")
+  args+=(--predictions=/input/predictions.json)
+fi
+exec docker run --rm --pull=never --network none --read-only \
+  -v "$runtime:/runtime:ro" "${mounts[@]}" \
+  "$image" php /runtime/bin/inner/estimate.php "${args[@]}"
