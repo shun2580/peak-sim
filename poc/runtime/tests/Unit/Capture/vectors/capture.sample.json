@@ -1,0 +1,380 @@
+{
+    "capture_version": 1,
+    "app": "sample-app",
+    "profile": null,
+    "data": "generator",
+    "scales": [
+        100,
+        1000,
+        10000
+    ],
+    "representative_scale": 10000,
+    "routes": [
+        {
+            "route": "GET /orders/{id}",
+            "method": "GET",
+            "uri": "/orders/{id}",
+            "status": "captured",
+            "reason": null,
+            "captured_scales": [
+                100,
+                1000,
+                10000
+            ],
+            "totals": {
+                "100": {
+                    "statements": 104,
+                    "rows_sum": 315,
+                    "cold_rows_examined": 315,
+                    "unaccounted": 0,
+                    "unread_events": 0
+                },
+                "1000": {
+                    "statements": 1004,
+                    "rows_sum": 3017,
+                    "cold_rows_examined": 3017,
+                    "unaccounted": 0,
+                    "unread_events": 0
+                },
+                "10000": {
+                    "statements": 10004,
+                    "rows_sum": 30014,
+                    "cold_rows_examined": 30014,
+                    "unaccounted": 0,
+                    "unread_events": 0
+                }
+            },
+            "statement_types": [
+                {
+                    "id": "seba30d72d4",
+                    "kind": "select",
+                    "pattern": "select * from `items` where `order_id` = ?",
+                    "representative": {
+                        "scale": 10000,
+                        "at_representative_scale": true,
+                        "sql": "select * from `items` where `order_id` = ?",
+                        "bindings": [
+                            7
+                        ]
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 100,
+                            "texts": 1,
+                            "rows_sum": 300,
+                            "rows_min": 3,
+                            "rows_max": 3,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1000,
+                            "texts": 1,
+                            "rows_sum": 3000,
+                            "rows_min": 3,
+                            "rows_max": 3,
+                            "unread": 0
+                        },
+                        "10000": {
+                            "count": 10000,
+                            "texts": 1,
+                            "rows_sum": 30000,
+                            "rows_min": 3,
+                            "rows_max": 3,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "ok",
+                        "a": 0.0,
+                        "b": 1.0,
+                        "k": 1.0,
+                        "sse": 0.0,
+                        "scales": [
+                            100,
+                            1000,
+                            10000
+                        ]
+                    }
+                },
+                {
+                    "id": "sf712478fbd",
+                    "kind": "select",
+                    "pattern": "select * from `logs` where `kind` = ? and `level` > ? limit ?",
+                    "representative": {
+                        "scale": 10000,
+                        "at_representative_scale": true,
+                        "sql": "select * from `logs` where `kind` = 'audit' and `level` > 3 limit 10",
+                        "bindings": []
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 10,
+                            "rows_min": 10,
+                            "rows_max": 10,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 10,
+                            "rows_min": 10,
+                            "rows_max": 10,
+                            "unread": 0
+                        },
+                        "10000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 10,
+                            "rows_min": 10,
+                            "rows_max": 10,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "ok",
+                        "a": 1.0,
+                        "b": 0.0,
+                        "k": 0.0,
+                        "sse": 0.0,
+                        "scales": [
+                            100,
+                            1000,
+                            10000
+                        ]
+                    }
+                },
+                {
+                    "id": "sace9c6b613",
+                    "kind": "select",
+                    "pattern": "select * from `tags` where `id` in (?)",
+                    "representative": {
+                        "scale": 10000,
+                        "at_representative_scale": true,
+                        "sql": "select * from `tags` where `id` in (?, ?)",
+                        "bindings": [
+                            1,
+                            2
+                        ]
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 3,
+                            "rows_min": 3,
+                            "rows_max": 3,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 5,
+                            "rows_min": 5,
+                            "rows_max": 5,
+                            "unread": 0
+                        },
+                        "10000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 2,
+                            "rows_min": 2,
+                            "rows_max": 2,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "ok",
+                        "a": 1.0,
+                        "b": 0.0,
+                        "k": 0.0,
+                        "sse": 0.0,
+                        "scales": [
+                            100,
+                            1000,
+                            10000
+                        ]
+                    }
+                },
+                {
+                    "id": "sd2199463be",
+                    "kind": "select",
+                    "pattern": "select * from `users` where `id` = ? limit ?",
+                    "representative": {
+                        "scale": 10000,
+                        "at_representative_scale": true,
+                        "sql": "select * from `users` where `id` = ? limit 1",
+                        "bindings": [
+                            7
+                        ]
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        },
+                        "10000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "ok",
+                        "a": 1.0,
+                        "b": 0.0,
+                        "k": 0.0,
+                        "sse": 0.0,
+                        "scales": [
+                            100,
+                            1000,
+                            10000
+                        ]
+                    }
+                },
+                {
+                    "id": "s8bf627a229",
+                    "kind": "update",
+                    "pattern": "update `users` set `remember_token` = ? where `id` = ?",
+                    "representative": {
+                        "scale": 10000,
+                        "at_representative_scale": true,
+                        "sql": "update `users` set `remember_token` = ? where `id` = ?",
+                        "bindings": [
+                            "[redacted]",
+                            7
+                        ]
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        },
+                        "10000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "ok",
+                        "a": 1.0,
+                        "b": 0.0,
+                        "k": 0.0,
+                        "sse": 0.0,
+                        "scales": [
+                            100,
+                            1000,
+                            10000
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "route": "GET /ping/{id}",
+            "method": "GET",
+            "uri": "/ping/{id}",
+            "status": "partial",
+            "reason": "scale 10000: timeout (request exceeded 20 s)",
+            "captured_scales": [
+                100,
+                1000
+            ],
+            "totals": {
+                "100": {
+                    "statements": 1,
+                    "rows_sum": 1,
+                    "cold_rows_examined": 1,
+                    "unaccounted": 0,
+                    "unread_events": 0
+                },
+                "1000": {
+                    "statements": 1,
+                    "rows_sum": 1,
+                    "cold_rows_examined": 1,
+                    "unaccounted": 0,
+                    "unread_events": 0
+                }
+            },
+            "statement_types": [
+                {
+                    "id": "sf7b2dcb397",
+                    "kind": "select",
+                    "pattern": "select * from `orders` where `id` = ?",
+                    "representative": {
+                        "scale": 1000,
+                        "at_representative_scale": false,
+                        "sql": "select * from `orders` where `id` = ?",
+                        "bindings": [
+                            7
+                        ]
+                    },
+                    "per_scale": {
+                        "100": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        },
+                        "1000": {
+                            "count": 1,
+                            "texts": 1,
+                            "rows_sum": 1,
+                            "rows_min": 1,
+                            "rows_max": 1,
+                            "unread": 0
+                        }
+                    },
+                    "count_fit": {
+                        "fit_status": "insufficient_scales",
+                        "reason": "2 scales captured, at least 3 are needed"
+                    }
+                }
+            ]
+        },
+        {
+            "route": "POST /never/{x}",
+            "method": "POST",
+            "uri": "/never/{x}",
+            "status": "not_captured",
+            "reason": "scale 100: auth (needs a login); scale 1000: no cold attempt; scale 10000: no cold attempt",
+            "captured_scales": [],
+            "totals": [],
+            "statement_types": []
+        }
+    ]
+}

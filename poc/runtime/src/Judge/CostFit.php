@@ -367,7 +367,7 @@ final class CostFit
     }
 
     /** 12 significant digits: the float noise of the arithmetic is not written down, a coefficient keeps its precision. */
-    private static function sig(float $v): float
+    public static function sig(float $v): float
     {
         return (float) sprintf('%.12G', $v);
     }
