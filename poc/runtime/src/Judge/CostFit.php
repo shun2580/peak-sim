@@ -20,6 +20,12 @@ namespace PeakSim\Runtime\Judge;
  *  - at N = 0 the term N^k is 0 for k > 0 and 1 for k = 0, as in the formula. The empty system therefore pins `a` for
  *    every k > 0.
  *
+ * One exception to the empty system (D105): a route whose request at scale 0 was answered `not_found` (the record its address
+ * names lives in the table the plan empties at N = 0) has no empty-system point. For that route only, scale 0 is left out,
+ * `a` is free, and the smallest scale (10 in the sweep of D105) is the first point. It needs at least
+ * ABSENT_RECORD_MIN_SCALES points: three free numbers on three points would fit exactly and could not disagree with
+ * their own data. Every other route is fitted as before (D79, D81).
+ *
  * With k = 0 the formula is the constant a + b: a and b cannot be told apart. The fit then reports the constant as
  * `a` and b = 0. The sum a + b is what is identified.
  */
@@ -45,6 +51,12 @@ final class CostFit
 
     /** Fewest scales, counting the empty system (scale 0), a formula is made from. */
     public const MIN_SCALES = 3;
+
+    /** Fewest points a route without an empty-system point is fitted on (D105: 10, 100, 1,000 and 10,000). */
+    public const ABSENT_RECORD_MIN_SCALES = 4;
+
+    /** The class of a scale-0 request that answered "the record is not there" (`Classification::NOT_FOUND`). */
+    public const EMPTY_SYSTEM_NOT_FOUND = 'not_found';
 
     /** The quantities and the field of an attempt each one is read from. */
     public const QUANTITIES = ['queries' => 'queries', 'rows_examined' => 'rows_examined', 'peak_memory' => 'peak_mem'];
@@ -121,10 +133,11 @@ final class CostFit
      * @param array<int, int|float|null> $series         scale => value (null: that scale could not be measured)
      * @param array<int, string>         $unmeasured     scale => why it could not be measured
      * @param list<int>                  $expectedScales every scale the run measured the routes at
+     * @param int                        $minScales      fewest scales the formula is made from
      *
      * @return array<string, mixed>
      */
-    public static function quantity(array $series, array $unmeasured, array $expectedScales, bool $isQueryCount, ?string $staticLowerBound): array
+    public static function quantity(array $series, array $unmeasured, array $expectedScales, bool $isQueryCount, ?string $staticLowerBound, int $minScales = self::MIN_SCALES): array
     {
         $reasons = [];
         foreach ($expectedScales as $scale) {
@@ -138,10 +151,12 @@ final class CostFit
         if ($reasons !== []) {
             return ['fit_status' => self::INSUFFICIENT_SCALES, 'reason' => implode('; ', $reasons)];
         }
-        if (count($scales) < self::MIN_SCALES) {
+        if (count($scales) < $minScales) {
             return [
                 'fit_status' => self::INSUFFICIENT_SCALES,
-                'reason' => sprintf('%d scales measured (counting scale 0), at least %d are needed', count($scales), self::MIN_SCALES),
+                'reason' => $minScales === self::MIN_SCALES
+                    ? sprintf('%d scales measured (counting scale 0), at least %d are needed', count($scales), $minScales)
+                    : sprintf('%d scales measured (scale 0 is left out), at least %d are needed', count($scales), $minScales),
             ];
         }
 
@@ -211,6 +226,16 @@ final class CostFit
         $expectedScales = array_keys($expected);
         sort($expectedScales);
 
+        // D105: a route whose empty-system request answered not_found has no scale-0 point; it is fitted without it.
+        $noEmptyPoint = [];
+        foreach ($byRoute as $key => $list) {
+            foreach ($list as $a) {
+                if ((int) $a['scale'] === 0 && (int) ($a['attempt'] ?? 0) === 2 && ($a['class'] ?? null) === self::EMPTY_SYSTEM_NOT_FOUND) {
+                    $noEmptyPoint[$key] = true;
+                }
+            }
+        }
+
         $out = [];
         foreach (array_unique([...array_keys($byRoute), ...array_keys($routeRow)]) as $key) {
             $quantities = [];
@@ -223,6 +248,19 @@ final class CostFit
                     continue;
                 }
                 [$series, $unmeasured] = self::coldSeries($byRoute[$key], $field);
+                if (isset($noEmptyPoint[$key])) {
+                    unset($series[0], $unmeasured[0]);
+                    $quantities[$name] = self::quantity(
+                        $series,
+                        $unmeasured,
+                        array_values(array_filter($expectedScales, static fn (int $s): bool => $s > 0)),
+                        $name === 'queries',
+                        $staticOf[$key] ?? null,
+                        self::ABSENT_RECORD_MIN_SCALES,
+                    );
+
+                    continue;
+                }
                 $quantities[$name] = self::quantity($series, $unmeasured, $expectedScales, $name === 'queries', $staticOf[$key] ?? null);
             }
             $out[$key] = [
@@ -231,7 +269,7 @@ final class CostFit
                 'table' => $tableOf[$key] ?? null,
                 'static_lower_bound' => $staticOf[$key] ?? null,
                 'quantities' => $quantities,
-            ];
+            ] + (isset($noEmptyPoint[$key]) ? ['empty_system' => self::EMPTY_SYSTEM_NOT_FOUND] : []);
         }
         ksort($out);
 

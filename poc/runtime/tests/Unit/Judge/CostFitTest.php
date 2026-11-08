@@ -393,4 +393,88 @@ final class CostFitTest extends TestCase
 
         self::assertSame('ok', CostFit::fromRecords($attempts, [], [], 'run')['routes'][0]['quantities']['rows_examined']['fit_status']);
     }
+
+    // ---------------------------------------------------------------- D105: a route with no empty-system point
+
+    /** @return list<array<string, mixed>> the request at scale 0 answered not_found; 10, 100, 1000, 10000 are fine */
+    private static function absentRecordSweep(string $route): array
+    {
+        $zero = self::attempt($route, 0, ['class' => 'not_found', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]);
+
+        return [$zero, ...array_map(static fn (int $s): array => self::attempt($route, $s), [10, 100, 1000, 10000])];
+    }
+
+    public function testARouteWhoseEmptySystemAnsweredNotFoundIsFittedFromTenWithAFree(): void
+    {
+        $attempts = [...self::absentRecordSweep('GET /shelves/{slug}'), ...self::sweep('GET /ok')];
+        // the other route was measured at 0, 100, 1000, 10000 only; give it 10 as well so every route has the same scales
+        $attempts[] = self::attempt('GET /ok', 10);
+
+        $by = array_column(CostFit::fromRecords($attempts, [], [], 'run')['routes'], null, 'route');
+        $r = $by['GET GET /shelves/{slug}'];
+
+        self::assertSame('not_found', $r['empty_system']);
+        foreach (['queries', 'rows_examined', 'peak_memory'] as $name) {
+            self::assertSame('ok', $r['quantities'][$name]['fit_status'], $name);
+            self::assertSame([10, 100, 1000, 10000], $r['quantities'][$name]['scales'], $name);
+        }
+        // y = 4 + N and y = 2 N were what the series were made from
+        self::assertEqualsWithDelta(4.0, $r['quantities']['queries']['a'], 1e-9);
+        self::assertEqualsWithDelta(1.0, $r['quantities']['queries']['b'], 1e-9);
+        self::assertEqualsWithDelta(1.0, $r['quantities']['queries']['k'], 1e-9);
+        self::assertEqualsWithDelta(2.0, $r['quantities']['rows_examined']['b'], 1e-9);
+        // the pairs never use scale 0, and now there are six of them (four points)
+        self::assertCount(6, $r['quantities']['queries']['pairs']);
+    }
+
+    public function testTheRoutesWithAnEmptySystemPointAreFittedAsBefore(): void
+    {
+        $attempts = [...self::absentRecordSweep('absent'), ...self::sweep('GET present'), self::attempt('GET present', 10)];
+
+        $by = array_column(CostFit::fromRecords($attempts, [], [], 'run')['routes'], null, 'route');
+        $r = $by['GET GET present'];
+
+        self::assertArrayNotHasKey('empty_system', $r);
+        self::assertSame([0, 10, 100, 1000, 10000], $r['quantities']['queries']['scales']);
+        // D79: scale 0 pins a for k > 0
+        self::assertEqualsWithDelta(4.0, $r['quantities']['queries']['a'], 1e-9);
+    }
+
+    public function testOnlyNotFoundAtTheEmptySystemTakesTheException(): void
+    {
+        $attempts = self::sweep('GET timed');
+        $attempts[0] = self::attempt('GET timed', 0, ['class' => 'timeout', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]);
+        $attempts[] = self::attempt('GET timed', 10);
+
+        $r = CostFit::fromRecords($attempts, [], [], 'run')['routes'][0];
+
+        self::assertArrayNotHasKey('empty_system', $r);
+        self::assertSame('insufficient_scales', $r['quantities']['queries']['fit_status']);
+        self::assertSame('scale 0: timeout', $r['quantities']['queries']['reason']);
+    }
+
+    public function testARouteWithoutAnEmptyPointNeedsFourScalesNotThree(): void
+    {
+        // no small scale: 100, 1000, 10000 would fit three free numbers on three points, exactly, with no residual
+        $attempts = [
+            self::attempt('GET gone', 0, ['class' => 'not_found', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]),
+            ...array_map(static fn (int $s): array => self::attempt('GET gone', $s), [100, 1000, 10000]),
+        ];
+
+        $q = CostFit::fromRecords($attempts, [], [], 'run')['routes'][0]['quantities']['queries'];
+
+        self::assertSame('insufficient_scales', $q['fit_status']);
+        self::assertSame('3 scales measured (scale 0 is left out), at least 4 are needed', $q['reason']);
+    }
+
+    public function testALargeScaleThatFailedStillMakesNoFormulaForAnAbsentRecordRoute(): void
+    {
+        $attempts = self::absentRecordSweep('GET slow');
+        $attempts[4] = self::attempt('GET slow', 10000, ['class' => 'timeout', 'queries' => null, 'rows_examined' => null, 'peak_mem' => null]);
+
+        $q = CostFit::fromRecords($attempts, [], [], 'run')['routes'][0]['quantities']['queries'];
+
+        self::assertSame('insufficient_scales', $q['fit_status']);
+        self::assertSame('scale 10000: timeout', $q['reason']);
+    }
 }
