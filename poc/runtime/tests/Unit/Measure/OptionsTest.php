@@ -130,4 +130,25 @@ final class OptionsTest extends TestCase
         $this->assertFalse($o->wants('/api/v1/transactions/{transactionGroup}/attachments'));
         $this->assertFalse($o->wants('/json/box/available/extra'));
     }
+
+    public function test_no_statement_records_are_asked_for_unless_the_run_names_a_directory(): void
+    {
+        $this->assertNull(Options::parse([])->tapDir);
+        $this->assertSame('/out/capture-taps', Options::parse(['--tap-dir=/out/capture-taps'])->tapDir);
+    }
+
+    #[DataProvider('badTapDirs')]
+    public function test_the_tap_directory_must_be_an_absolute_path_without_dots(string $arg): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse([$arg]);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badTapDirs(): iterable
+    {
+        yield 'relative' => ['--tap-dir=out/taps'];
+        yield 'with dots' => ['--tap-dir=/out/../etc'];
+        yield 'empty' => ['--tap-dir='];
+    }
 }

@@ -41,7 +41,14 @@ final class Driver
         private readonly OneRunner $runner,
         private readonly bool $gateBypass = true,
         private readonly bool $warm = true,
+        private readonly ?string $tapDir = null,
     ) {
+    }
+
+    /** Where the per-statement record of one (route, scale) goes: one file per route and scale, named from the route. */
+    public static function tapFile(string $dir, string $method, string $route, int $scale): string
+    {
+        return rtrim($dir, '/') . '/' . substr(sha1($method . ' ' . $route), 0, 12) . '-s' . $scale . '.jsonl';
     }
 
     /**
@@ -188,6 +195,15 @@ final class Driver
         $learned = $this->learnedBodies[self::bodyKey($task)] ?? null;
         if ($learned !== null) {
             $request = $request->withBody($learned);
+        }
+        if ($this->tapDir !== null && $axis === 'N' && $point->scale > 0) {
+            // A record left by an earlier try of this route and scale is removed first: only the last cold request counts.
+            $file = self::tapFile($this->tapDir, $task->spec->method, $task->spec->uri, $point->scale);
+            if (!is_dir($this->tapDir) && !@mkdir($this->tapDir, 0777, true) && !is_dir($this->tapDir)) {
+                throw new \RuntimeException('cannot create ' . $this->tapDir);
+            }
+            @unlink($file);
+            $request = $request->withTapOut($file);
         }
         $result = $this->runner->run($request);
         $stop = $this->take($result, $request, $point, $mine, $all);

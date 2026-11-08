@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# Captures, for every route of an app, the statements its cold request sends at 100 / 1,000 / 10,000 rows, and writes them
+# by type to capture.json (the shape is in CAPTURE_FORMAT.md). A separate command: bin/measure never calls it.
+# Needs Docker; PHP is not needed here.
+#
+#   bin/capture --app=<dir> --static=<analysis.json> [options]
+#
+# 1. brings the sealed stack up (bin/stack up)        2. bin/preflight must pass                  (exit 11 otherwise)
+# 3. runs the driver of bin/measure inside the container with a per-statement record for each cold request of the N axis
+# 4. makes capture.json from those records (bin/inner/capture-build.php)                           5. tears the stack down
+#
+# The measurer is the same one: same stack, same data, same requests, same safety conditions. The only difference is that
+# every cold request is also tapped (it is slower, and its peak memory is not comparable with an untapped run), and the
+# warm request is left out.
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# >>> app-key
+# The same function as bin/measure: one APP_KEY per run, made from the run id. Made up inside the sealed stack and
+# protects nothing.
+peak_app_key_for_run() {
+  local digest
+  digest="$(printf 'peak-sim-measure-app-key:%s' "$1" | sha256sum | cut -c1-32)"
+  printf 'base64:%s' "$(printf '%s' "$digest" | base64 | tr -d '\n')"
+}
+# <<< app-key
+
+usage() {
+  cat <<'TXT'
+usage: bin/capture --app=<dir> --static=<analysis.json> [options]
+  --app=<dir>            the target app (absolute path; mounted read-only, never modified; its vendor/ must exist)
+  --static=<file>        the static analysis output of the app (peak-sim analyze --format=json), the map of routes
+  --out=<dir>            where the record and capture.json are written (default: $PEAK_OUT_DIR, else ~/.cache/peak-measure/<project>);
+                         keep it outside the repository
+  --app-name=<name>      the name written to capture.json as "app" (default: the last part of --app); no path is written
+  --data=generator       how the databases are filled: the tool's generator (default; any app)
+  --data=seeder          the verification app's own seeder (only for fixtures/laravel-app)
+  --scales=100,1000,10000   the sizes of the sweep (default 100,1000,10000); three or more, strictly ascending
+  --only=<a>,<b>         capture only the routes whose uri contains one of these; a name that starts with = must equal the whole uri
+  --base=N               generator only: rows of every table that is not scaled (default 5)
+  --profile=<name>       generator only: app knowledge from profiles/<name>.php (same as bin/measure)
+  --gate-bypass=on|off   as in bin/measure (default on)
+  --request-timeout=N    seconds one request may run, 1 to 600 (default 20)
+  --keep-stack           leave the stack up afterwards (tear it down with bin/stack down)
+  --help                 this text
+environment: PEAK_COMPOSE_PROJECT (default peak-capture), PHP_VERSION (default 8.3), PEAK_PHP_IMAGE (an already built image)
+output (in --out): capture.json, capture-taps/ (one record per route and scale), and the usual record of bin/measure
+             (attempts.jsonl, routes.jsonl, report.md, summary.json, tasks.json)
+exit codes: as bin/measure (0 done / 2 usage / 10 refused / 11 preflight or stack / 12 app did not start / 13 build / 14 not rolled back);
+            3 capture.json could not be made (the record is still there)
+TXT
+}
+
+fail_usage() {
+  echo "bin/capture: $1" >&2
+  usage >&2
+  exit 2
+}
+
+app="" static="" out="" appname="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 gate="" timeout="" keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h) usage; exit 0 ;;
+    --app=*) app="${arg#--app=}" ;;
+    --static=*) static="${arg#--static=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --app-name=*) appname="${arg#--app-name=}" ;;
+    --data=*) data="${arg#--data=}" ;;
+    --scales=*) scales="${arg#--scales=}" ;;
+    --only=*) only="${arg#--only=}" ;;
+    --base=*) base="${arg#--base=}" ;;
+    --profile=*) profile="${arg#--profile=}"; profile_given=1 ;;
+    --gate-bypass=*) gate="${arg#--gate-bypass=}" ;;
+    --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
+    --keep-stack) keep=1 ;;
+    *) fail_usage "unknown argument: $arg" ;;
+  esac
+done
+
+[ -n "$app" ] || fail_usage "--app is required"
+[ -n "$static" ] || fail_usage "--static is required"
+case "$app" in /*) ;; *) fail_usage "--app must be an absolute path" ;; esac
+case "$static" in /*) ;; *) fail_usage "--static must be an absolute path" ;; esac
+case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac
+[[ "$scales" =~ ^[1-9][0-9]*(,[1-9][0-9]*){2,}$ ]] || fail_usage "--scales needs three or more comma-separated positive integers"
+prev=0
+IFS=',' read -r -a scale_list <<< "$scales"
+for s in "${scale_list[@]}"; do
+  [ "$s" -gt "$prev" ] 2>/dev/null || fail_usage "--scales must be strictly ascending"
+  prev="$s"
+done
+if [ -z "$appname" ]; then appname="$(basename "$app")"; fi
+[[ "$appname" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,60}$ ]] || fail_usage "--app-name is letters, digits, . - and _"
+if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
+if [ -n "$gate" ]; then case "$gate" in on|off) ;; *) fail_usage "--gate-bypass takes on or off" ;; esac; fi
+if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$timeout))" -ge 1 ] && [ "$((10#$timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"; fi
+if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
+[ -d "$app" ] || fail_usage "--app is not a directory: $app"
+[ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
+[ -f "$static" ] || fail_usage "--static is not a file: $static"
+
+: "${PEAK_COMPOSE_PROJECT:=peak-capture}"
+export PEAK_COMPOSE_PROJECT
+export PEAK_APP_ROOT="$app"
+[ -n "$out" ] && export PEAK_OUT_DIR="$out"
+# shellcheck source=_stack.sh
+source "$here/_stack.sh"
+set +e   # _stack.sh turns -e on; the exit codes below are read, not fatal
+
+cp "$static" "$PEAK_OUT_DIR/static.json" || { echo "bin/capture: cannot write to $PEAK_OUT_DIR" >&2; exit 2; }
+# The driver writes the records of the statements here (inside the container, /out is --out).
+inner=(--data="$data" --warm=off --tap-dir=/out/capture-taps)
+[ -n "$only" ] && inner+=(--only="$only")
+[ -n "$base" ] && inner+=(--base="$base")
+[ "$profile_given" = 1 ] && inner+=(--profile="$profile")
+[ -n "$gate" ] && inner+=(--gate-bypass="$gate")
+
+teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+trap teardown EXIT
+trap 'exit 130' INT TERM
+
+if ! compose up -d --build --wait; then
+  echo "bin/capture: the measurement stack could not be brought up" >&2
+  exit 11
+fi
+if ! bash "$here/preflight"; then
+  echo "bin/capture: preflight failed; nothing was captured" >&2
+  exit 11
+fi
+
+# One APP_KEY for every process of this run. Passed by name (the value is read from this environment, so it is on no
+# command line) and never printed.
+PEAK_MEASURE_APP_KEY="$(peak_app_key_for_run "$PEAK_MEASURE_RUN_ID")"
+export PEAK_MEASURE_APP_KEY
+exec_env=(-e PEAK_MEASURE_STATIC_JSON=/out/static.json -e PEAK_MEASURE_SCALES="$scales" -e PEAK_MEASURE_APP_KEY)
+[ -n "$timeout" ] && exec_env+=(-e PEAK_MEASURE_REQUEST_TIMEOUT="$timeout")
+compose exec -T "${exec_env[@]}" \
+  measure-php php /peak-sim/poc/runtime/bin/inner/measure.php "${inner[@]}"
+code=$?
+
+# capture.json is made from whatever was recorded, also when the driver stopped early (the routes it did not reach say so).
+compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/capture-build.php --from=/out --app="$appname"
+build=$?
+
+# Whatever the driver left behind (it drops its own databases; this covers a crash) is removed before the stack goes.
+compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+if [ "$build" -ne 0 ]; then
+  echo "bin/capture: capture.json could not be made (exit $build); the record is in $PEAK_OUT_DIR" >&2
+  [ "$code" -eq 0 ] && code=3
+fi
+exit "$code"

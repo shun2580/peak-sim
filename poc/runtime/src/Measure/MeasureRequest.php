@@ -32,18 +32,25 @@ final class MeasureRequest
         public readonly bool $gateBypass,
         public readonly array $phases,
         public readonly array $query = [],
+        public readonly ?string $tapOut = null,
     ) {
     }
 
     public function withGateBypass(): self
     {
-        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, true, $this->phases, $this->query);
+        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, true, $this->phases, $this->query, $this->tapOut);
     }
 
     /** @param array<string, mixed>|null $body */
     public function withBody(?array $body): self
     {
-        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $body, $this->form, $this->csrf, $this->headers, $this->gateBypass, $this->phases, $this->query);
+        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $body, $this->form, $this->csrf, $this->headers, $this->gateBypass, $this->phases, $this->query, $this->tapOut);
+    }
+
+    /** The same request, asking `bin/measure-one` to write the per-statement record of its cold attempt to this file. */
+    public function withTapOut(string $path): self
+    {
+        return new self($this->tag, $this->scale, $this->axis, $this->route, $this->uri, $this->method, $this->actAs, $this->body, $this->form, $this->csrf, $this->headers, $this->gateBypass, $this->phases, $this->query, $path);
     }
 
     /** @return list<string> the arguments of `bin/measure-one` */
@@ -70,6 +77,9 @@ final class MeasureRequest
         }
         if ($this->gateBypass) {
             $args[] = '--gate-bypass';
+        }
+        if ($this->tapOut !== null) {
+            $args[] = '--tap-out=' . $this->tapOut;
         }
         $args[] = '--phases=' . implode(',', array_map(static fn (int $p): string => self::PHASE_NAMES[$p], $this->phases));
 

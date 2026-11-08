@@ -6,7 +6,7 @@ declare(strict_types=1);
 // inspect the app, then for each database a route needs: build it, measure the routes on it, drop it. Writes the
 // record into PEAK_MEASURE_OUT_DIR (default /out) and prints a short summary.
 //
-//   php measure.php [--data=generator|seeder] [--only=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json]
+//   php measure.php [--data=generator|seeder] [--only=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>]
 //
 // Input comes from PEAK_MEASURE_* variables (MeasureConfig). Exit codes: see Measure\MeasureExit.
 
@@ -94,7 +94,7 @@ fwrite(STDERR, sprintf("inspected: %d routes (%d not controllers), Laravel %s\n"
 $requestLimit = Requester::timeLimit($env[Requester::TIME_LIMIT_ENV] ?? '');
 // A measurement is a warm-up, a cold and a warm request, each within the limit, plus the start of the app.
 $runner = new ProcessOneRunner($bin . '/measure-one', $env, ProcessOneRunner::timeoutFor($requestLimit));
-$driver = new Driver($planner, $builder, $runner, $options->gateBypass, $options->warm);
+$driver = new Driver($planner, $builder, $runner, $options->gateBypass, $options->warm, $options->tapDir);
 $result = $driver->run($tasks, $scales);
 
 // 3. Record.

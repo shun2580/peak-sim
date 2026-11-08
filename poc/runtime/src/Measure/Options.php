@@ -18,6 +18,7 @@ final class Options
         public readonly ?string $profile = null,
         public readonly bool $gateBypass = true,
         public readonly bool $warm = true,
+        public readonly ?string $tapDir = null,
     ) {
     }
 
@@ -34,7 +35,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -81,7 +82,14 @@ final class Options
             throw new \InvalidArgumentException('--warm takes on or off');
         }
 
-        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on');
+        // Set only by `bin/capture`: the directory (inside the container) where each cold request of the N axis leaves its
+        // per-statement record. `bin/measure` never passes it, and without it nothing is tapped.
+        $tapDir = $values['tap-dir'] ?? null;
+        if ($tapDir !== null && (!str_starts_with($tapDir, '/') || str_contains($tapDir, '..') || str_contains($tapDir, "\0"))) {
+            throw new \InvalidArgumentException('--tap-dir must be an absolute path without ".."');
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir);
     }
 
     /**

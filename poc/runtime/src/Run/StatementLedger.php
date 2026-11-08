@@ -134,15 +134,16 @@ final class StatementLedger
         foreach ($this->statements() as $s) {
             $explain = $explains[$s['sql']] ?? null;
             $statements[] = [
-                'sql' => $s['sql'],
+                'sql' => \PeakSim\Runtime\Capture\SecretBindings::redactSql($s['sql']),
                 'type' => $s['type'],
                 'count' => $s['count'],
                 'rows_sum' => $countersAvailable ? $s['rows_sum'] : null,
                 'rows_min' => $countersAvailable ? $s['rows_min'] : null,
                 'rows_max' => $countersAvailable ? $s['rows_max'] : null,
                 'unread' => $s['unread'],
-                'first_bindings' => array_map(static fn (mixed $v): mixed => self::showBinding($v), $s['first_bindings']),
-                'last_bindings' => array_map(static fn (mixed $v): mixed => self::showBinding($v), $s['last_bindings']),
+                // a value bound to a secret column never reaches the file (Capture\SecretBindings)
+                'first_bindings' => array_map(static fn (mixed $v): mixed => self::showBinding($v), \PeakSim\Runtime\Capture\SecretBindings::redactBindings($s['sql'], $s['first_bindings'])),
+                'last_bindings' => array_map(static fn (mixed $v): mixed => self::showBinding($v), \PeakSim\Runtime\Capture\SecretBindings::redactBindings($s['sql'], $s['last_bindings'])),
                 'explain_first' => $explain['first'] ?? null,
                 'explain_last' => $explain['last'] ?? null,
             ];

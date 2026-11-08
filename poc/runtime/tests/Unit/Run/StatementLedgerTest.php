@@ -200,4 +200,30 @@ final class StatementLedgerTest extends TestCase
         self::assertSame(0, $doc['window']['rows_sum']);
         self::assertSame(0, $doc['window']['unaccounted']);
     }
+
+    public function testASecretBindingNeverReachesTheDocumentAndTheRestDoes(): void
+    {
+        $ledger = new StatementLedger();
+        $ledger->record('update `users` set `remember_token` = ?, `name` = ? where `id` = ?', 1, ['s3cr3t-token', 'Alice', 7]);
+        $ledger->record('select * from `users` where `api_token` = ? limit 1', 1, ['another-secret']);
+        $ledger->record("insert into `users` (`name`, `password`) values ('bob', 'hunter2-literal')", 1, []);
+        $doc = $ledger->document(['route' => '/x', 'method' => 'POST', 'uri' => '/x', 'scale' => 100, 'axis' => 'N', 'status' => 200, 'class' => 'ok'], true, 0, 3, []);
+
+        $json = (string) json_encode($doc);
+        foreach (['s3cr3t-token', 'another-secret', 'hunter2-literal'] as $secret) {
+            self::assertStringNotContainsString($secret, $json);
+        }
+        self::assertSame(['[redacted]', 'Alice', 7], $doc['statements'][0]['first_bindings']);
+        self::assertSame(['[redacted]', 'Alice', 7], $doc['statements'][0]['last_bindings']);
+        self::assertSame(['[redacted]'], $doc['statements'][1]['first_bindings']);
+        self::assertSame("insert into `users` (`name`, `password`) values ('bob', '[redacted]')", $doc['statements'][2]['sql']);
+    }
+
+    public function testTheLedgerItselfStillHoldsTheRealValuesForThePlans(): void
+    {
+        $ledger = new StatementLedger();
+        $ledger->record('select * from `users` where `api_token` = ?', 1, ['another-secret']);
+
+        self::assertSame(['another-secret'], $ledger->statements()[0]['first_bindings'], 'redaction is at the file, not in memory: the EXPLAIN is asked with the real value');
+    }
 }

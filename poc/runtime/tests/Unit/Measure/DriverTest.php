@@ -523,4 +523,76 @@ final class DriverTest extends PlannerTestCase
 
         $this->assertArrayNotHasKey('request_credentials', $result->report->rows()[0]);
     }
+
+    public function test_without_a_tap_directory_no_request_asks_for_a_statement_record(): void
+    {
+        $runner = self::runner();
+        (new Driver(new SeederPlanner(), self::builder(), $runner))->run([self::task('/a')], self::SCALES);
+
+        foreach ($runner->requests as $r) {
+            $this->assertNull($r->tapOut);
+            foreach ($r->toArguments() as $arg) {
+                $this->assertStringStartsNotWith('--tap-out', $arg);
+            }
+        }
+    }
+
+    public function test_with_a_tap_directory_every_cold_request_of_the_n_axis_at_a_real_scale_gets_its_own_file(): void
+    {
+        $dir = sys_get_temp_dir() . '/peak-tap-driver-' . bin2hex(random_bytes(4));
+        try {
+            $runner = self::runner();
+            (new Driver(new SeederPlanner(), self::builder(), $runner, true, false, $dir))->run([self::task('/a'), self::task('/b')], self::SCALES);
+
+            $files = [];
+            foreach ($runner->requests as $r) {
+                if ($r->scale === 0) {
+                    $this->assertNull($r->tapOut, 'the empty system is not captured');
+
+                    continue;
+                }
+                $this->assertNotNull($r->tapOut);
+                $this->assertSame(Driver::tapFile($dir, $r->method, $r->route, $r->scale), $r->tapOut);
+                $this->assertContains('--tap-out=' . $r->tapOut, $r->toArguments());
+                $files[$r->tapOut] = true;
+            }
+            $this->assertCount(6, $files, 'two routes at three scales, six different files');
+            $this->assertDirectoryExists($dir);
+        } finally {
+            @rmdir($dir);
+        }
+    }
+
+    public function test_a_stale_record_of_an_earlier_try_is_removed_before_the_request_runs(): void
+    {
+        $dir = sys_get_temp_dir() . '/peak-tap-driver-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        $stale = Driver::tapFile($dir, 'GET', '/a', 100);
+        file_put_contents($stale, "{\"stale\":true}\n");
+        try {
+            $seen = null;
+            $runner = self::runner(static function (MeasureRequest $r, int $n) use ($stale, &$seen): OneResult {
+                if ($r->tapOut === $stale && $seen === null) {
+                    $seen = file_exists($stale);
+                }
+
+                return OneResult::ok(self::linearOf($r));
+            });
+            (new Driver(new SeederPlanner(), self::builder(), $runner, true, false, $dir))->run([self::task('/a')], self::SCALES);
+
+            $this->assertFalse($seen, 'the old file was gone when the request was handed over');
+        } finally {
+            foreach ((array) glob($dir . '/*') as $f) {
+                @unlink($f);
+            }
+            @rmdir($dir);
+        }
+    }
+
+    public function test_the_tap_file_follows_a_retry_with_the_gate_bypassed_and_a_rebuilt_body(): void
+    {
+        $r = new MeasureRequest('ord', 100, 'N', '/a', '/a', 'POST', null, ['x' => 1], false, false, [], false, [Attempt::COLD], [], '/t/f.jsonl');
+        $this->assertSame('/t/f.jsonl', $r->withGateBypass()->tapOut);
+        $this->assertSame('/t/f.jsonl', $r->withBody(['y' => 2])->tapOut);
+    }
 }
