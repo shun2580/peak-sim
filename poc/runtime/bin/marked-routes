@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Lists the marked routes of the 200,000-row test: a route with at least one statement marked plan_changes_at_scale or plan_unstable in
+# the EXPLAIN at the target size (simulator-spec.md section 7.1). Made by that rule alone; no measured value goes in and nothing is added
+# or dropped by hand.
+#
+#   bin/marked-routes --explain=<explain.json of bin/explain-at-scale at N> > marked-routes.json
+#
+# Reads the file only; touches no database and no app; the same input always gives the same output. Uses the PHP on this machine if
+# there is one; otherwise a throwaway container of the already built PHP image, with no network and the input mounted read-only.
+# The image is never pulled.
+# exit codes: 0 done / 2 wrong usage or an unreadable input / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+usage="usage: bin/marked-routes --explain=<explain.json>"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/inner/marked-routes.php" "$@"
+fi
+
+explain=""
+for arg in "$@"; do
+  case "$arg" in
+    --explain=*) explain="${arg#--explain=}" ;;
+    *) echo "bin/marked-routes: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+if [ ! -f "$explain" ]; then echo "bin/marked-routes: --explain is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+explain="$(cd "$(dirname "$explain")" && pwd)/$(basename "$explain")"
+
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "bin/marked-routes: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only \
+  -v "$runtime:/runtime:ro" -v "$explain:/input/explain.json:ro" \
+  "$image" php /runtime/bin/inner/marked-routes.php --explain=/input/explain.json

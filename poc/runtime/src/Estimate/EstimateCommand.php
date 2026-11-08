@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Estimate;
 
 /**
- * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3 [--at=<N>] [--predictions=<predictions.json>]
+ * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>]
  * prints the estimate of every route on standard output. Exit codes: 0 done; 2 wrong usage or an unreadable input.
  */
 final class EstimateCommand
 {
-    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3 [--at=<N>] [--predictions=<predictions.json>] > estimate.json';
+    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] > estimate.json';
 
     /**
      * @param resource $out

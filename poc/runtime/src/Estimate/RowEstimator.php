@@ -18,6 +18,10 @@ use PeakSim\Runtime\Judge\CostFit;
  *       scale x E(s, N) / E(s, that scale). E is `PlanReads::perExecution` of the plan on the database of that size.
  *   H3  every type uses the ratio of H2.
  *
+ *   H1_RANGE  H1 for the point, and for the upper side the value H2 gives to a marked type (the others keep their H1 value). A route
+ *       with no marked statement in its EXPLAIN has no upper side (`rows_examined_upper` is null); the point is H1 for every route. The
+ *       marked routes are those of `MarkedRoutes` (section 7.1), taken from every statement of the route's EXPLAIN.
+ *
  * E(s, N) (section 9.3): a type marked plan_unstable takes the heaviest of the statistics states that were taken (D107); any other
  * type takes the default state. E(s, small) is the default state at the small size.
  *
@@ -41,7 +45,10 @@ final class RowEstimator
 
     public const H3 = 'H3';
 
-    public const CANDIDATES = [self::H1, self::H2, self::H3];
+    /** H1 for the point and, for the types that are marked, the value H2 gives as the upper side (the form of the 200,000-row test, section 7.1). */
+    public const H1_RANGE = 'H1_RANGE';
+
+    public const CANDIDATES = [self::H1, self::H2, self::H3, self::H1_RANGE];
 
     public const SCHEMA_VERSION = '1';
 
@@ -170,7 +177,7 @@ final class RowEstimator
             } else {
                 $out['queries'] += $type['count_at_n'];
                 $out['rows_examined'] += $type['per_exec'] * $type['count_at_n'];
-                if ($type['basis'] === 'ratio') {
+                if ($type['basis'] === 'ratio' || ($type['upper_basis'] ?? null) === 'ratio') {
                     $out['ratio_used']++;
                 }
                 if (isset($type['fallback'])) {
@@ -184,6 +191,18 @@ final class RowEstimator
         }
         if ($status !== 'captured') {
             $out['complete'] = false;
+        }
+        if ($candidate === self::H1_RANGE) {
+            $out['marked'] = MarkedRoutes::isMarked($er);
+            $upper = 0.0;
+            foreach ($out['types'] as $t) {
+                if (isset($t['unavailable'])) {
+                    continue;
+                }
+                $upper += ($t['per_exec_upper'] ?? $t['per_exec']) * $t['count_at_n'];
+            }
+            // the upper side exists for a marked route only; a marked route whose statements are not all available has an incomplete upper side, like its point
+            $out['rows_examined_upper'] = $out['marked'] ? $upper : null;
         }
 
         return $out;
@@ -222,6 +241,24 @@ final class RowEstimator
         $marks = (array) ($explained['marks'] ?? []);
         $marked = ($marks['plan_changes_at_scale'] ?? false) === true || ($marks['plan_unstable'] ?? false) === true;
         $rec['marks'] = ['plan_changes_at_scale' => ($marks['plan_changes_at_scale'] ?? false) === true, 'plan_unstable' => ($marks['plan_unstable'] ?? false) === true];
+        if ($candidate === RowEstimator::H1_RANGE) {
+            if (!$marked) {
+                return $rec + ['per_exec' => $h1, 'basis' => 'h1'];
+            }
+            // a marked type: the point stays H1, the upper side is what H2 gives (its fall-back to H1 is counted, never silent)
+            $h2 = self::type($ty, $explained, RowEstimator::H2, $n, $representative);
+            $upper = ['per_exec' => $h1, 'basis' => 'h1', 'per_exec_upper' => $h2['per_exec'], 'upper_basis' => $h2['basis']];
+            if (isset($h2['fallback'])) {
+                $upper['fallback'] = $h2['fallback'];
+            }
+            foreach (['e_at_n', 'e_at_small', 'measured_small'] as $key) {
+                if (isset($h2[$key])) {
+                    $upper[$key] = $h2[$key];
+                }
+            }
+
+            return $rec + $upper;
+        }
         if ($candidate !== RowEstimator::H1 && $explained === null) {
             // no plan and no marks: whether the type would take the ratio is not known, so it is counted, not passed over
             return $rec + ['per_exec' => $h1, 'basis' => 'h1', 'fallback' => 'no_explain_entry'];

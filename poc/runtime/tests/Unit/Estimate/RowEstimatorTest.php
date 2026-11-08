@@ -279,6 +279,81 @@ final class RowEstimatorTest extends TestCase
         $this->assertSame('not_given', RowEstimator::estimate($capture, $explain, 'H1')['routes'][0]['peak_memory']['status']);
     }
 
+    public function test_h1_range_gives_the_h1_point_and_an_upper_side_with_h2_for_the_marked_types_only(): void
+    {
+        $route = self::route('H1_RANGE');
+        // the point is H1 exactly (20,329, as in test_h1_is_the_fit...)
+        $this->assertEqualsWithDelta(self::route('H1')['rows_examined'], $route['rows_examined'], 1e-9);
+        $this->assertSame(self::route('H1')['queries'], $route['queries']);
+        $this->assertTrue($route['marked']);
+        // upper: the marked types sB, sD take the ratio; sE (E(small) = 0) and sF (no EXPLAIN) fall back to H1; the unmarked sA, sC keep H1
+        $upper = 2 * 10000.0 + 3 * (50.0 * 100002 / 1002) + 4 * 20.0 + 5 * (10.0 * 402 / 102) + 6 * 7.0 + 7 * 1.0;
+        $this->assertEqualsWithDelta($upper, $route['rows_examined_upper'], 1e-6);
+        // and that is what H2 gives for the route
+        $this->assertEqualsWithDelta(self::route('H2')['rows_examined'], $route['rows_examined_upper'], 1e-6);
+        $this->assertGreaterThan($route['rows_examined'], $route['rows_examined_upper']);
+    }
+
+    public function test_h1_range_types_keep_the_h1_point_and_carry_the_upper_value_for_marked_types_only(): void
+    {
+        $t = self::types('H1_RANGE');
+        foreach (['sA', 'sC'] as $id) {
+            $this->assertArrayNotHasKey('per_exec_upper', $t[$id], $id);
+            $this->assertSame('h1', $t[$id]['basis'], $id);
+        }
+        $this->assertEqualsWithDelta(50.0, $t['sB']['per_exec'], 1e-9); // the point stays H1
+        $this->assertEqualsWithDelta(50.0 * 100002 / 1002, $t['sB']['per_exec_upper'], 1e-6);
+        $this->assertSame('ratio', $t['sB']['upper_basis']);
+        $this->assertEqualsWithDelta(10.0, $t['sD']['per_exec'], 1e-9);
+        $this->assertEqualsWithDelta(10.0 * 402 / 102, $t['sD']['per_exec_upper'], 1e-9);
+        // a marked type that cannot take the ratio: its upper side is its H1 value, and the fall is counted with its reason
+        $this->assertSame('h1', $t['sE']['upper_basis']);
+        $this->assertSame('e_small_zero', $t['sE']['fallback']);
+        $this->assertEqualsWithDelta(7.0, $t['sE']['per_exec_upper'], 1e-9);
+        $totals = RowEstimator::estimate(...self::args('H1_RANGE'))['totals'];
+        $this->assertSame(['e_small_zero' => 1, 'explain_unavailable:not_explainable_kind: begin' => 1], $totals['fell_back_by_reason']);
+        $this->assertSame(2, self::route('H1_RANGE')['ratio_used']); // sB, sD
+    }
+
+    public function test_h1_range_has_no_upper_side_for_a_route_with_no_marked_statement(): void
+    {
+        [$capture, $explain] = self::fixture();
+        foreach ($explain['routes'][0]['statements'] as $i => $s) {
+            $explain['routes'][0]['statements'][$i]['marks']['plan_changes_at_scale'] = false;
+            $explain['routes'][0]['statements'][$i]['marks']['plan_unstable'] = false;
+        }
+        $route = RowEstimator::estimate($capture, $explain, 'H1_RANGE')['routes'][0];
+        $this->assertFalse($route['marked']);
+        $this->assertNull($route['rows_examined_upper']);
+        $this->assertEqualsWithDelta(20329.0, $route['rows_examined'], 1e-6);
+        $this->assertSame(0, $route['ratio_used']);
+        $this->assertSame([], $route['fallbacks']);
+    }
+
+    public function test_h1_range_has_no_upper_side_and_no_fall_for_a_route_without_an_explain_entry(): void
+    {
+        [$capture, $explain] = self::fixture();
+        $explain['routes'] = [];
+        $out = RowEstimator::estimate($capture, $explain, 'H1_RANGE');
+        $this->assertFalse($out['routes'][0]['marked']);
+        $this->assertNull($out['routes'][0]['rows_examined_upper']);
+        $this->assertSame(0, $out['totals']['fell_back_to_h1']);
+    }
+
+    public function test_a_route_is_marked_by_a_statement_the_capture_does_not_list(): void
+    {
+        [$capture, $explain] = self::fixture();
+        foreach ($explain['routes'][0]['statements'] as $i => $s) {
+            $explain['routes'][0]['statements'][$i]['marks']['plan_changes_at_scale'] = false;
+            $explain['routes'][0]['statements'][$i]['marks']['plan_unstable'] = false;
+        }
+        $explain['routes'][0]['statements'][] = ['id' => 'sZ', 'marks' => ['plan_unstable' => true, 'plan_changes_at_scale' => false, 'explain_unavailable' => null, 'unavailable_states' => [], 'unstable_states' => []], 'small_scale' => [], 'target_scale' => []];
+        $route = RowEstimator::estimate($capture, $explain, 'H1_RANGE')['routes'][0];
+        $this->assertTrue($route['marked']);
+        // no captured type is marked, so the upper side equals the point
+        $this->assertEqualsWithDelta($route['rows_examined'], $route['rows_examined_upper'], 1e-9);
+    }
+
     public function test_the_same_inputs_give_the_same_output(): void
     {
         [$capture, $explain] = self::fixture();
