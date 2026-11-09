@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+# Checks how well the simulator's estimate holds on YOUR app: the same steps as the extrapolation test (docs/simulator-spec.md 7.1),
+# run by one command (section 8.1). Needs Docker; PHP is not needed on the host.
+#
+#   bin/selfcheck --app=<dir> --static=<analysis.json> --scale=N --out=<dir> [options]
+#
+# The steps, in this order, each an existing command (nothing of how they judge is changed here):
+#   1 capture        bin/capture            the statements of every route at small sizes
+#   2 plans          bin/explain-at-scale   the server's plan for each statement at N rows
+#   3 estimate       bin/fit, bin/predict, bin/estimate --candidate=H1_RANGE, bin/marked-routes
+#   4 seal           the estimate files are written, hashed (sha256) and sealed; the hashes go to estimate/seal.json and estimate/order.log
+#   5 gate           selfcheck gate: the measurement may start ONLY if the seal is there and every file still has its hash
+#   6 measure        bin/measure at N rows, every route cold once (--warm=off)
+#   7 extra cold     bin/variance-run: each marked route (a statement whose plan changes at N or is unstable) cold 3 more times
+#   8 judge          the sealed estimate against the measurement, rule B (a marked route against the largest of its cold values)
+# The estimate is compared with the measurement only after both exist, and the measurement is started only after the estimate is
+# sealed: the order is kept by the gate and checked again by the judge, which refuses a record whose order log does not say so.
+# The result is saved as <out>/<label>/selfcheck-result.json; `simulate` reads it as "accuracy on this app".
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+# Where the commands of steps 1-3, 6 and 7 are taken from (the directory of this script). Tests put stand-ins in another one.
+tools="${PEAK_SELFCHECK_TOOLS:-$here}"
+
+usage() {
+  cat <<'TXT'
+usage: bin/selfcheck --app=<dir> --static=<analysis.json> --scale=N --out=<dir> [options]
+  --app=<dir>            the target app (absolute path; mounted read-only, never modified; its vendor/ must exist)
+  --static=<file>        the static analysis output of the app (peak-sim analyze --format=json), the map of routes
+  --scale=N              the target size: the rows of the scaled table the estimate is made for and the measurement is taken at
+  --out=<dir>            where the record goes (absolute path); the record is <out>/<label>/; keep it outside the repository
+  --label=<name>         name of this run (default: selfcheck); a record is never written over
+  --routes='M /a,M /b'   the routes to check, "METHOD uri" each, comma separated (default: every route of the analysis).
+                         Measuring a route can take minutes at a large N: choose
+  --small-scale=N        the size the plans are compared with (default 10000); must be smaller than --scale
+  --capture-scales=a,b,c the sizes of the capture sweep (default 100,1000,10000); three or more, ascending, the last equal to --small-scale
+  --profile=<name>       app profile (profiles/<name>.php), as in bin/measure
+  --data=generator|seeder  how the databases are filled (default generator)
+  --base=N               generator only: rows of every table that is not scaled
+  --php-image=<name>     run the stacks in this already built PHP image (never built or pulled here)
+  --request-timeout=N    seconds one request may run, 1 to 600 (default 600)
+  --project=<name>       compose project name used by every step in turn (default peak-selfcheck; at most 21 characters)
+  --source-commit=<hash> passed to bin/variance-run (it refuses a copy with uncommitted changes without it)
+  --now=<iso time>       the time written into the result (default: now)
+  --help                 this text
+record, <out>/<label>/:
+  run.txt  run.log  steps.log  capture/  explain/  work/{fits,predictions}.json
+  estimate/{estimate.json,marked-routes.json,seal.json,order.log}   the sealed estimate and the order record
+  measure/  extra/                                                   the measurement and the extra cold tries of the marked routes
+  selfcheck-result.json                                               the result (shape: see selfcheck-format.md)
+exit codes:
+   0  done (the result says pass, fail or indeterminate; that is not the exit code)
+   2  wrong usage
+  15  a step failed (steps.log says which, and its exit code)
+  20  the order was not kept (the estimate is not sealed, or a sealed file changed): nothing was measured / nothing is judged
+TXT
+}
+
+fail_usage() {
+  echo "bin/selfcheck: $1" >&2
+  usage >&2
+  exit 2
+}
+
+app="" static="" scale="" out="" label="selfcheck" routes="" small=10000 cap_scales="100,1000,10000" profile="" data="" base="" image=""
+req_timeout=600 project="peak-selfcheck" source_commit="" now_arg="" keep=0
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h) usage; exit 0 ;;
+    --app=*) app="${arg#--app=}" ;;
+    --static=*) static="${arg#--static=}" ;;
+    --scale=*) scale="${arg#--scale=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --label=*) label="${arg#--label=}" ;;
+    --routes=*) routes="${arg#--routes=}" ;;
+    --small-scale=*) small="${arg#--small-scale=}" ;;
+    --capture-scales=*) cap_scales="${arg#--capture-scales=}" ;;
+    --profile=*) profile="${arg#--profile=}" ;;
+    --data=*) data="${arg#--data=}" ;;
+    --base=*) base="${arg#--base=}" ;;
+    --php-image=*) image="${arg#--php-image=}" ;;
+    --request-timeout=*) req_timeout="${arg#--request-timeout=}" ;;
+    --project=*) project="${arg#--project=}" ;;
+    --source-commit=*) source_commit="${arg#--source-commit=}" ;;
+    --now=*) now_arg="${arg#--now=}" ;;
+    *) fail_usage "unknown argument: $arg" ;;
+  esac
+done
+
+[ -n "$app" ] || fail_usage "--app is required"
+[ -n "$static" ] || fail_usage "--static is required"
+[ -n "$scale" ] || fail_usage "--scale is required"
+[ -n "$out" ] || fail_usage "--out is required"
+case "$app" in /*) ;; *) fail_usage "--app must be an absolute path" ;; esac
+case "$static" in /*) ;; *) fail_usage "--static must be an absolute path" ;; esac
+case "$out" in /*) ;; *) fail_usage "--out must be an absolute path" ;; esac
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$((10#$scale))" -ge 1 ] || fail_usage "--scale must be a positive integer"
+[[ "$small" =~ ^[0-9]{1,7}$ ]] && [ "$((10#$small))" -ge 1 ] || fail_usage "--small-scale must be a positive integer"
+[ "$((10#$small))" -lt "$((10#$scale))" ] || fail_usage "--small-scale ($small) must be smaller than --scale ($scale)"
+[[ "$cap_scales" =~ ^[0-9]+(,[0-9]+){2,}$ ]] || fail_usage "--capture-scales takes three or more sizes, comma separated"
+[ "${cap_scales##*,}" = "$small" ] || fail_usage "the last of --capture-scales (${cap_scales##*,}) must equal --small-scale ($small)"
+[[ "$label" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$ ]] || fail_usage "--label is letters, digits, - and _"
+[[ "$project" =~ ^[a-z0-9][a-z0-9_-]{0,20}$ ]] || fail_usage "--project is lowercase letters, digits, - and _, at most 21 characters"
+[[ "$req_timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$req_timeout))" -ge 1 ] && [ "$((10#$req_timeout))" -le 600 ] || fail_usage "--request-timeout is 1 to 600"
+if [ -n "$profile" ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/"; fi
+if [ -n "$data" ]; then case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac; fi
+if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+[ -d "$app" ] || fail_usage "--app is not a directory: $app"
+[ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
+[ -f "$static" ] || fail_usage "--static is not a file: $static"
+
+run="$out/$label"
+if [ -e "$run" ]; then
+  echo "bin/selfcheck: $run already exists; a record is never written over. Choose another --label or --out." >&2
+  exit 2
+fi
+mkdir -p "$run/work" "$run/estimate" || { echo "bin/selfcheck: cannot write to $run" >&2; exit 2; }
+
+now_iso() { date +%Y-%m-%dT%H:%M:%S%z; }
+exec > >(tee -a "$run/run.log") 2>&1
+
+{
+  echo "label=$label"
+  echo "started=$(now_iso)"
+  echo "source_commit=$(git -C "$here/.." rev-parse HEAD 2>/dev/null || echo unknown) uncommitted_files_in_poc_runtime=$(git -C "$here/.." status --porcelain -- . 2>/dev/null | wc -l | tr -d ' ')"
+  echo "scale=$scale small_scale=$small capture_scales=$cap_scales"
+  echo "routes=${routes:-all}"
+  echo "profile=${profile:-none} data=${data:-default} php_image=${image:-default}"
+} > "$run/run.txt"
+
+# The PHP half. Paths are relative to the record, so the same call works with PHP on the host and in a throwaway container
+# (no network, the record mounted writable, the code read-only; the image is never pulled).
+sc() {
+  if command -v php >/dev/null 2>&1; then
+    (cd "$run" && php "$runtime/bin/inner/selfcheck.php" "$@")
+    return $?
+  fi
+  local img="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+  [ -n "$image" ] && img="$image"
+  if ! docker image inspect "$img" >/dev/null 2>&1; then
+    echo "bin/selfcheck: no php on this machine and no image $img (build it with bin/stack build-image)" >&2
+    return 11
+  fi
+  docker run --rm --pull=never --network none --read-only -u "$(id -u):$(id -g)" \
+    -v "$runtime:/runtime:ro" -v "$run:/record" -w /record \
+    "$img" php /runtime/bin/inner/selfcheck.php "$@"
+}
+
+log_step() { echo "$(now_iso) $*" | tee -a "$run/steps.log"; }
+
+# One step: it must exit 0, or the whole run stops (exit 15) with the step's own code written to steps.log.
+step() {
+  local name="$1" rc
+  shift
+  log_step "begin $name"
+  "$@"
+  rc=$?
+  log_step "end $name exit=$rc"
+  if [ "$rc" -ne 0 ]; then
+    echo "bin/selfcheck: step '$name' failed with exit $rc; see $run/steps.log and the step's own record under $run" >&2
+    exit 15
+  fi
+}
+
+# Arguments handed on only when given.
+common=()
+[ -n "$profile" ] && common+=(--profile="$profile")
+[ -n "$data" ] && common+=(--data="$data")
+[ -n "$base" ] && common+=(--base="$base")
+image_args=()
+[ -n "$image" ] && image_args=(--php-image="$image")
+only_args=()
+[ -n "$routes" ] && only_args=(--only="$routes")
+export PEAK_COMPOSE_PROJECT="$project"
+[ -n "$image" ] && export PEAK_PHP_IMAGE="$image"
+
+# --- 1 capture -----------------------------------------------------------------------------------------------------------------
+step capture "$tools/capture" --app="$app" --static="$static" --out="$run/capture" --scales="$cap_scales" \
+  "${only_args[@]}" "${common[@]}"
+
+# --- 2 plans at the target size ------------------------------------------------------------------------------------------------
+step explain-at-scale "$tools/explain-at-scale" --capture="$run/capture/capture.json" --tasks="$run/capture/tasks.json" --app="$app" \
+  --scale="$scale" --small-scale="$small" --out="$run" --label=explain "${image_args[@]}" "${common[@]}"
+
+# --- 3 the estimate ------------------------------------------------------------------------------------------------------------
+do_fit() { "$tools/fit" --from="$run/capture" > "$run/work/fits.json"; }
+do_predict() { "$tools/predict" --fits="$run/work/fits.json" --at="$scale" > "$run/work/predictions.json"; }
+do_estimate() {
+  "$tools/estimate" --capture="$run/capture/capture.json" --explain="$run/explain/explain.json" --candidate=H1_RANGE --at="$scale" \
+    --predictions="$run/work/predictions.json" > "$run/estimate/estimate.json"
+}
+do_marked() { "$tools/marked-routes" --explain="$run/explain/explain.json" > "$run/estimate/marked-routes.json"; }
+step fit do_fit
+step predict do_predict
+step estimate do_estimate
+step marked-routes do_marked
+
+# --- 4 seal: the estimate is written; now it is hashed and sealed ---------------------------------------------------------------
+step seal sc seal --dir=estimate --files=estimate.json,marked-routes.json
+
+# --- 5 gate: the only door to the measurement ----------------------------------------------------------------------------------
+log_step "begin gate"
+if ! sc gate --dir=estimate; then
+  log_step "end gate exit=20 (refused: the estimate is not sealed or a sealed file changed; nothing was measured)"
+  echo "bin/selfcheck: the order was not kept; nothing was measured." >&2
+  exit 20
+fi
+log_step "end gate exit=0"
+
+# --- 6 measure -----------------------------------------------------------------------------------------------------------------
+step measure "$tools/measure" --app="$app" --static="$static" --out="$run/measure" --scales="$scale" --warm=off \
+  --request-timeout="$req_timeout" "${only_args[@]}" "${common[@]}"
+
+# --- 7 the marked routes, cold three more times ---------------------------------------------------------------------------------
+marked="$(sc marked --sealed=estimate)" || { echo "bin/selfcheck: cannot read the sealed list of marked routes" >&2; exit 20; }
+if [ -n "$marked" ]; then
+  extra_common=("${common[@]}")
+  # bin/variance-run takes the profile by name and defaults to one of its own, so say "none" when none was chosen.
+  [ -z "$profile" ] && extra_common+=(--profile=none)
+  vr_extra=()
+  [ -n "$source_commit" ] && vr_extra+=(--source-commit="$source_commit")
+  step extra-cold "$tools/variance-run" --app="$app" --tasks="$run/measure/tasks.json" --scale="$scale" --out="$run/extra" --label=cold3 \
+    --routes="$marked" --dbs=1 --laps=3 --request-timeout="$req_timeout" --project-prefix="$project" "${image_args[@]}" "${extra_common[@]}" "${vr_extra[@]}"
+else
+  log_step "skip extra-cold (no marked route)"
+fi
+
+# --- 8 judge -------------------------------------------------------------------------------------------------------------------
+judge_args=(--sealed=estimate --measured=measure --explain=explain/explain.json --out=selfcheck-result.json --app="$(basename "$app")")
+[ -n "$marked" ] && judge_args+=(--extra=extra)
+[ -n "$now_arg" ] && judge_args+=(--now="$now_arg")
+log_step "begin judge"
+sc judge "${judge_args[@]}"
+rc=$?
+log_step "end judge exit=$rc"
+if [ "$rc" -eq 20 ]; then exit 20; fi
+if [ "$rc" -ne 0 ]; then echo "bin/selfcheck: the judge failed with exit $rc" >&2; exit 15; fi
+echo "result: $run/selfcheck-result.json"
+exit 0
