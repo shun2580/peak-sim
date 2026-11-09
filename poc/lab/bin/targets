@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Writes the concrete paths of the route list's routes for the database of one scale: $PEAK_LAB_OUT_DIR/targets-<scale>.json
+# ({"base_url", "headers", "routes": {"GET /x/{id}": {"path": "/x/1"}, ...}}). The arguments are filled by the measurement's
+# own inspection with the `bookstack` profile (the same filling a measurement uses). Sends no request.
+#   poc/lab/bin/targets --static=<analysis.json> [--scale=N]
+# exit codes: 0 all routes filled / 1 some are not (the file says which) / 2 usage / 11 not sealed / others: those of the PHP script
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+static="" ; scale="$PEAK_LAB_SCALE"
+for arg in "$@"; do
+  case "$arg" in
+    --static=*) static="${arg#--static=}" ;;
+    --scale=*) scale="${arg#--scale=}" ;;
+    *) static="" ; break ;;
+  esac
+done
+[ -f "$static" ] && [[ "$scale" =~ ^[0-9]{1,7}$ ]] || { echo "usage: bin/targets --static=<analysis.json> [--scale=N]" >&2; exit 2; }
+"$(dirname "${BASH_SOURCE[0]}")/preflight" >/dev/null || { echo "lab: the closed-network check failed" >&2; exit 11; }
+cp "$static" "$PEAK_LAB_OUT_DIR/static.json"
+docker exec -e PEAK_MEASURE_STATIC_JSON=/out/static.json peak-lab-tools \
+  php /peak-sim/poc/lab/bin/inner/targets.php --scale="$scale"

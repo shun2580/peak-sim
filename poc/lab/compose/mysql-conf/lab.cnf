@@ -1,0 +1,6 @@
+# The lab's database server. Everything else is the server's default, on purpose: in particular the automatic
+# recalculation of the statistics stays on (docs/simulator-spec.md section 7.2).
+[mysqld]
+# The data must fit in memory: reading data that does not fit is something the lab cannot say anything about
+# (section 7.2, "ラボで言えないこと"), so the buffer pool is made larger than the largest database of the scenarios.
+innodb_buffer_pool_size = 2G

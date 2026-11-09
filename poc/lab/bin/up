@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Brings the lab up and requires the sealed-network check (bin/preflight) to pass. If it does not pass, the lab is taken
+# down again and this exits with 11: nothing is left running that can leave the network.
+#   poc/lab/bin/up              start (builds the PHP image on the first run; needs the internet once for that)
+# exit codes: 0 up and sealed / 2 usage or missing app / 11 the check failed, or the stack could not be started
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+[ $# -eq 0 ] || { echo "usage: bin/up" >&2; exit 2; }
+require_app
+
+if ! compose up -d --build --wait; then
+  echo "lab: the stack could not be started; taking it down" >&2
+  compose down --remove-orphans >/dev/null 2>&1 || true
+  exit 11
+fi
+if ! "$(dirname "${BASH_SOURCE[0]}")/preflight"; then
+  echo "lab: the closed-network check failed; taking the lab down (the database volume is kept)" >&2
+  compose down --remove-orphans >/dev/null 2>&1 || true
+  exit 11
+fi
+echo "lab is up and sealed. scale=$PEAK_LAB_SCALE  web (from inside the network only): http://lab-web:8080"
+exit 0

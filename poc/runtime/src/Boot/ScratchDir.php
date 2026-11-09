@@ -20,7 +20,29 @@ final class ScratchDir
     public static function create(string $runId, ?string $base = null): self
     {
         $base ??= sys_get_temp_dir();
-        $path = rtrim($base, '/') . '/' . self::PREFIX . $runId . '-' . getmypid() . '-' . bin2hex(random_bytes(3));
+
+        return self::make(rtrim($base, '/') . '/' . self::PREFIX . $runId . '-' . getmypid() . '-' . bin2hex(random_bytes(3)));
+    }
+
+    /**
+     * A scratch directory at a path the caller fixes, shared by every process that names the same path (the lab's
+     * php-fpm workers, which would otherwise compile the views again for every request). The caller owns it: nothing
+     * registers its removal. The path must be absolute, without "..", and its last part must start with the prefix
+     * `peak-measure-`, so `remove()` can never be pointed at anything else.
+     *
+     * @throws BootFailure
+     */
+    public static function fixed(string $path): self
+    {
+        if (!str_starts_with($path, '/') || str_contains($path, '..') || str_contains($path, "\0") || !str_starts_with(basename($path), self::PREFIX)) {
+            throw new BootFailure(sprintf('the fixed scratch directory must be an absolute path whose last part starts with %s: %s', self::PREFIX, $path));
+        }
+
+        return self::make(rtrim($path, '/'));
+    }
+
+    private static function make(string $path): self
+    {
         foreach (['', '/storage/framework/cache/data', '/storage/framework/sessions', '/storage/framework/views', '/storage/framework/testing', '/storage/logs', '/storage/app/public', '/bootstrap-cache', '/views'] as $sub) {
             if (!is_dir($path . $sub) && !mkdir($path . $sub, 0700, true) && !is_dir($path . $sub)) {
                 throw new BootFailure(sprintf('cannot create the scratch directory %s (is the temp dir writable?)', $path . $sub));

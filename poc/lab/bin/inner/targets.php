@@ -1,0 +1,113 @@
+<?php
+
+declare(strict_types=1);
+
+// Runs INSIDE the tools container (poc/lab/bin/targets). Starts BookStack on the lab database of one scale, lets the
+// measurement's own inspection (`Measure\Inspection`, with the `bookstack` profile) fill the arguments of every route
+// of the static analysis, and writes the concrete paths of the routes of the route list to /out/targets-<scale>.json.
+// Sends no request. Exit codes: 0 / 2 usage / 10 refused / 12 the app did not start / 13 the profile or route list cannot be used.
+
+use PeakSim\Runtime\Boot\AppBooter;
+use PeakSim\Runtime\Boot\BootFailure;
+use PeakSim\Runtime\Config\MeasureConfig;
+use PeakSim\Runtime\Config\MeasureRefused;
+use PeakSim\Runtime\Measure\BuildFailure;
+use PeakSim\Runtime\Measure\Inspection;
+use PeakSim\Runtime\Measure\MeasureExit;
+use PeakSim\Runtime\Measure\Options;
+use PeakSim\Runtime\Measure\Profile;
+
+require dirname(__DIR__, 3) . '/runtime/bootstrap.php';
+
+$scale = null;
+$routesFile = '/peak-sim/poc/lab/routes/route-list.json';
+foreach (array_slice($argv, 1) as $arg) {
+    if (preg_match('/^--scale=([0-9]{1,7})$/D', $arg, $m) === 1) {
+        $scale = (int) $m[1];
+    } elseif (preg_match('/^--routes=(\/[^\0]+)$/D', $arg, $m) === 1 && !str_contains($m[1], '..')) {
+        $routesFile = $m[1];
+    } else {
+        fwrite(STDERR, "usage: targets.php --scale=N [--routes=/path/route-list.json]\n");
+        exit(MeasureExit::USAGE);
+    }
+}
+if ($scale === null) {
+    fwrite(STDERR, "usage: targets.php --scale=N [--routes=/path/route-list.json]\n");
+    exit(MeasureExit::USAGE);
+}
+
+$list = json_decode((string) @file_get_contents($routesFile), true);
+if (!is_array($list) || !isset($list['selected']) || !is_array($list['selected'])) {
+    fwrite(STDERR, "the route list cannot be read: $routesFile\n");
+    exit(MeasureExit::DATA);
+}
+$wanted = [];
+foreach ($list['selected'] as $row) {
+    $wanted[] = (string) $row['route'];
+}
+
+try {
+    $profile = Profile::load('bookstack');
+    $config = MeasureConfig::fromEnv(getenv());
+    if ($config->staticJson === null || !is_file($config->staticJson)) {
+        fwrite(STDERR, "PEAK_MEASURE_STATIC_JSON must name the static analysis output\n");
+        exit(MeasureExit::USAGE);
+    }
+    $analysis = json_decode((string) file_get_contents($config->staticJson), true);
+    if (!is_array($analysis) || !isset($analysis['routes'])) {
+        fwrite(STDERR, "the static analysis file has no routes\n");
+        exit(MeasureExit::USAGE);
+    }
+    $booted = (new AppBooter())->boot($config, $scale);
+} catch (BuildFailure $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(MeasureExit::DATA);
+} catch (MeasureRefused $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(MeasureRefused::EXIT_CODE);
+} catch (BootFailure $e) {
+    fwrite(STDERR, 'cannot start the app: ' . $e->getMessage() . "\n");
+    exit(BootFailure::EXIT_CODE);
+}
+
+$inspected = Inspection::tasks($booted->app, $analysis, Options::parse(['--profile=bookstack']), $profile);
+
+$routes = [];
+$unfilled = [];
+foreach ($inspected['tasks'] as $task) {
+    $spec = $task['spec'] ?? [];
+    $key = ($spec['method'] ?? '') . ' ' . ($spec['uri'] ?? '');
+    if (!in_array($key, $wanted, true) || isset($routes[$key])) {
+        continue;
+    }
+    if (($task['fail_class'] ?? null) !== null || !is_string($task['uri'] ?? null)) {
+        $unfilled[$key] = ['fail_class' => $task['fail_class'] ?? null, 'detail' => $task['fail_detail'] ?? null];
+        continue;
+    }
+    $entry = ['path' => $task['uri']];
+    if (($task['query'] ?? []) !== []) {
+        $entry['query'] = $task['query'];
+    }
+    if (($task['credentials'] ?? null) !== null) {
+        $entry['credentials'] = 'a token in the query (not written here)';
+    }
+    if (($task['act_as'] ?? null) === null) {
+        // The measurement requested this route as a guest. The lab's entry logs the first user in unless told not to.
+        $entry['headers'] = ['X-Lab-Login' => 'none'];
+    }
+    $routes[$key] = $entry;
+}
+$missing = array_values(array_diff($wanted, array_keys($routes), array_keys($unfilled)));
+$document = [
+    'base_url' => 'http://lab-web:8080',
+    'headers' => new stdClass(),
+    'scale' => $scale,
+    'database' => $booted->dbName,
+    'routes' => $routes,
+    'unfilled' => $unfilled,
+    'not_in_static_analysis' => $missing,
+];
+$out = '/out/targets-' . $scale . '.json';
+file_put_contents($out, json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+printf("%d of %d routes filled; unfilled %d; not in the static analysis %d; written to %s\n", count($routes), count($wanted), count($unfilled), count($missing), $out);
+exit($unfilled === [] && $missing === [] ? 0 : 1);

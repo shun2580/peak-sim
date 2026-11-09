@@ -1,0 +1,169 @@
+# The lab: BookStack under php-fpm behind nginx, MySQL 8, and k6, all on ONE internal network. No port is published.
+# Read docs/simulator-spec.md section 7.2 and poc/runtime/README.md (safety conditions) first.
+#
+# Host values come from the environment, set by poc/lab/bin/_lab.sh:
+#   PEAK_REPO_ROOT       this repository (mounted read-only into the app and tools containers)
+#   PEAK_APP_ROOT        the BookStack checkout (mounted read-only; its vendor/ must be installed)
+#   PEAK_LAB_OUT_DIR     where records go (the only writable host mount; a `web/` directory in it gets nginx's access log)
+#   PEAK_LAB_LOAD_DIR    the k6 scripts (mounted read-only into the k6 container)
+#   PEAK_LAB_UID/GID     the user the containers run as (so the files they write in the out directory are the user's own)
+#   PEAK_MEASURE_DB_ROOT_PASSWORD / PEAK_MEASURE_DB_PASSWORD / PEAK_MEASURE_RUN_ID / PEAK_MEASURE_APP_KEY   throwaway values
+#   PEAK_LAB_SCALE       the scale of the database the app reads (database peak_sim_measure_<run id>_lab_<scale>)
+#
+# CPU: the database is pinned to 2 CPUs and the app side (php-fpm and nginx) to 6, on separate cores, so the app does not
+# run out of CPU before the database does (section 7.2). k6 and the tools container have cores of their own.
+name: peak-lab
+
+networks:
+  lab-internal:
+    internal: true
+
+volumes:
+  lab-dbdata:
+    name: peak-lab-dbdata
+
+x-lab-env: &lab-env
+  PEAK_MEASURE_DB_HOST: measure-db
+  PEAK_MEASURE_DB_USER: measure
+  PEAK_MEASURE_DB_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by poc/lab/bin/_lab.sh}
+  PEAK_MEASURE_RUN_ID: ${PEAK_MEASURE_RUN_ID:?set by poc/lab/bin/_lab.sh}
+  PEAK_MEASURE_DB_TAG: lab
+  PEAK_MEASURE_APP_ROOT: /app
+  PEAK_MEASURE_APP_KEY: ${PEAK_MEASURE_APP_KEY:?set by poc/lab/bin/_lab.sh}
+  PEAK_MEASURE_OUT_DIR: /out
+  HOME: /tmp
+
+services:
+  # The service name is `measure-db` because the guard (DbGuard) allows no other host name.
+  measure-db:
+    image: mysql:8.4.7
+    container_name: peak-lab-db
+    networks: [lab-internal]
+    cpus: 2
+    cpuset: ${PEAK_LAB_CPUSET_DB:-0-1}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PEAK_MEASURE_DB_ROOT_PASSWORD:?set by poc/lab/bin/_lab.sh}
+      # Creates the `measure` user with no privilege; 10-measure-user.sql grants it the measurement databases only.
+      MYSQL_USER: measure
+      MYSQL_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by poc/lab/bin/_lab.sh}
+    volumes:
+      - lab-dbdata:/var/lib/mysql
+      # The same file as the measurement stack: the grant on peak_sim_measure_* and nothing else. The performance_schema
+      # grants of 20-statement-history-grants.sql are for one test and are NOT given here.
+      - ${PEAK_REPO_ROOT:?set by poc/lab/bin/_lab.sh}/poc/runtime/compose/mysql-init/10-measure-user.sql:/docker-entrypoint-initdb.d/10-measure-user.sql:ro
+      - ${PEAK_REPO_ROOT}/poc/lab/compose/mysql-conf:/etc/mysql/conf.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+    # ports: none.
+
+  lab-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.fpm
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+    image: peak-lab-php:${PHP_VERSION:-8.3}
+    container_name: peak-lab-app
+    networks: [lab-internal]
+    cpus: 6
+    cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
+    # Safety condition 4: the app is not modified. Mounted read-only, the container's root is read-only, and only the
+    # temporary directories below are writable (storage, compiled views, cache: all of it lives in /scratch, a tmpfs).
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=512m,mode=1777
+      - /scratch:rw,size=1g,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "${PEAK_LAB_UID:-1000}:${PEAK_LAB_GID:-1000}"
+    working_dir: /peak-sim
+    volumes:
+      - ${PEAK_REPO_ROOT}:/peak-sim:ro
+      - ${PEAK_APP_ROOT:?set by poc/lab/bin/_lab.sh}:/app:ro
+      - ${PEAK_REPO_ROOT}/poc/lab/compose/php/zz-lab.ini:/usr/local/etc/php/conf.d/zz-lab.ini:ro
+      - ${PEAK_REPO_ROOT}/poc/lab/compose/php/zz-lab-fpm.conf:/usr/local/etc/php-fpm.d/zz-lab.conf:ro
+    environment:
+      <<: *lab-env
+      PEAK_LAB_SCALE: ${PEAK_LAB_SCALE:-10000}
+      PEAK_LAB_PROFILE: ${PEAK_LAB_PROFILE:-bookstack}
+      PEAK_LAB_ACT_AS: ${PEAK_LAB_ACT_AS:-BookStack\Users\Models\User:1:web}
+      PEAK_LAB_GATE_BYPASS: ${PEAK_LAB_GATE_BYPASS:-0}
+      PEAK_LAB_SCRATCH: /scratch/peak-measure-lab
+    depends_on:
+      measure-db:
+        condition: service_healthy
+    command: ["php-fpm", "--nodaemonize"]
+
+  lab-web:
+    image: nginx:1.28-alpine
+    container_name: peak-lab-web
+    networks:
+      lab-internal:
+        aliases: [lab-web]
+    cpus: 6
+    cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "${PEAK_LAB_UID:-1000}:${PEAK_LAB_GID:-1000}"
+    volumes:
+      - ${PEAK_REPO_ROOT}/poc/lab/compose/nginx/lab.conf:/etc/nginx/nginx.conf:ro
+      - ${PEAK_LAB_OUT_DIR:?set by poc/lab/bin/_lab.sh}:/out:rw
+    depends_on: [lab-app]
+    # The image's own start-up scripts write into /etc/nginx; the root is read-only, so nginx is started directly.
+    entrypoint: ["nginx", "-g", "daemon off;"]
+
+  lab-k6:
+    image: grafana/k6:${K6_VERSION:-2.3.0}
+    container_name: peak-lab-k6
+    networks: [lab-internal]
+    cpus: 2
+    cpuset: ${PEAK_LAB_CPUSET_K6:-8-9}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=256m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "${PEAK_LAB_UID:-1000}:${PEAK_LAB_GID:-1000}"
+    environment:
+      HOME: /tmp
+      LAB_BASE_URL: http://lab-web:8080
+    volumes:
+      - ${PEAK_LAB_LOAD_DIR:?set by poc/lab/bin/_lab.sh}:/load:ro
+      - ${PEAK_LAB_OUT_DIR}:/out:rw
+    depends_on: [lab-web]
+    # Idle until `docker exec peak-lab-k6 k6 run /load/<script>.js`.
+    entrypoint: ["sleep", "infinity"]
+
+  # Builds the databases (poc/lab/bin/build-db). Runs the same PHP as the app. Not part of the load.
+  lab-tools:
+    image: peak-lab-php:${PHP_VERSION:-8.3}
+    container_name: peak-lab-tools
+    networks: [lab-internal]
+    cpus: 2
+    cpuset: ${PEAK_LAB_CPUSET_TOOLS:-10-11}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=2g,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "${PEAK_LAB_UID:-1000}:${PEAK_LAB_GID:-1000}"
+    working_dir: /peak-sim
+    volumes:
+      - ${PEAK_REPO_ROOT}:/peak-sim:ro
+      - ${PEAK_APP_ROOT}:/app:ro
+      - ${PEAK_REPO_ROOT}/poc/lab/compose/php/zz-lab.ini:/usr/local/etc/php/conf.d/zz-lab.ini:ro
+      - ${PEAK_LAB_OUT_DIR}:/out:rw
+    environment:
+      <<: *lab-env
+    depends_on:
+      lab-app:
+        condition: service_started
+      measure-db:
+        condition: service_healthy
+    entrypoint: ["sleep", "infinity"]

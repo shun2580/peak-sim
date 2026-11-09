@@ -1,0 +1,14 @@
+# The PHP image of the lab: php-fpm with the extensions BookStack needs (the same set as the measurement image used for
+# it). Built on the ordinary network (the build needs the internet: the base image from Docker Hub and the Debian mirror
+# the official image already uses); RUN time is on the internal network only. Used for the app and for the DB-building
+# container, so both run the same PHP.
+ARG PHP_VERSION=8.3
+FROM php:${PHP_VERSION}-fpm
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
+ && docker-php-ext-configure gd --with-jpeg --with-freetype \
+ && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /peak-sim

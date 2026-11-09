@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Builds one lab database with the measurement's own builder (poc/runtime/bin/inner/build-db.php: drop and create, the app's
+# migrations, then the generator and the app profile), in the tools container. The name is
+# peak_sim_measure_<run id>_lab_<scale>; no name is passed in. An existing database of that scale is dropped first.
+#
+#   poc/lab/bin/build-db --scale=N --n-tables=a,b [--base=5]   those tables get N rows, every other table the base size
+#   poc/lab/bin/build-db --scale=N --global [--base=5]         every table gets N rows
+#
+# Which tables are "N" (docs/simulator-spec.md section 7.2) is not decided here: one of the two forms is required.
+# Runs the closed-network check first (exit 11). A long build should be started detached (setsid nohup ...).
+# exit codes: 0 built / 2 usage / 11 not sealed / others: those of build-db.php (10 refused, 13 could not be built)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+usage() { echo "usage: bin/build-db --scale=N (--n-tables=a,b | --global) [--base=5]" >&2; exit 2; }
+
+scale="" ; tables="" ; global=0 ; base=5
+for arg in "$@"; do
+  case "$arg" in
+    --scale=*) scale="${arg#--scale=}" ;;
+    --n-tables=*) tables="${arg#--n-tables=}" ;;
+    --global) global=1 ;;
+    --base=*) base="${arg#--base=}" ;;
+    *) usage ;;
+  esac
+done
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$scale" -ge 1 ] || usage
+[[ "$base" =~ ^[0-9]{1,4}$ ]] || usage
+if [ "$global" = 1 ] && [ -n "$tables" ]; then usage; fi
+if [ "$global" = 0 ] && ! [[ "$tables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then usage; fi
+
+"$(dirname "${BASH_SOURCE[0]}")/preflight" >/dev/null || { echo "lab: the closed-network check failed; nothing was built" >&2; exit 11; }
+
+if [ "$global" = 1 ]; then
+  recipe="{\"mode\":\"global\",\"n\":$scale,\"base\":$base}"
+else
+  list="$(printf '"%s",' ${tables//,/ })"
+  recipe="{\"mode\":\"targeted\",\"n_tables\":[${list%,}],\"m_table\":null,\"m_per\":null,\"n\":$scale,\"m\":0,\"base\":$base}"
+fi
+echo "building scale=$scale recipe=$recipe"
+docker exec peak-lab-tools php /peak-sim/poc/runtime/bin/inner/build-db.php \
+  --scale="$scale" --mode=generator --recipe-json="$recipe" --profile=bookstack

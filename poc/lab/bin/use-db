@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Points the app at the database of one scale (PEAK_LAB_SCALE). Recreates the app and web containers (php-fpm reads the
+# scale from its environment; nginx must find the new app container), then runs the closed-network check again.
+#   poc/lab/bin/use-db <scale>
+# exit codes: 0 done / 2 usage or no such database / 11 not sealed
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+scale="${1:-}"
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] || { echo "usage: bin/use-db <scale>" >&2; exit 2; }
+name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
+found="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B -e "SHOW DATABASES LIKE '${name}'" 2>/dev/null)"
+if [ "$found" != "$name" ]; then
+  echo "lab: no database for scale $scale (build it with bin/build-db --scale=$scale ...)" >&2
+  exit 2
+fi
+export PEAK_LAB_SCALE="$scale"
+compose up -d --no-deps --force-recreate lab-app lab-web || exit 11
+exec "$(dirname "${BASH_SOURCE[0]}")/preflight"

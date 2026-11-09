@@ -1,0 +1,7 @@
+# TEST ONLY. Laid over lab.compose.yaml, it publishes a port of the web server on the host, with the network still
+# internal. It exists to prove that poc/lab/bin/up refuses to start (exit code 11) when a port is published. Never use
+# it for a measurement.
+services:
+  lab-web:
+    ports:
+      - "127.0.0.1:18080:8080"

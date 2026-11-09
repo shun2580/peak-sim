@@ -1,0 +1,6 @@
+# TEST ONLY. Laid over lab.compose.yaml, it makes the lab's network an ordinary one, so the containers CAN reach the
+# outside. It exists to prove that poc/lab/bin/up refuses to start (exit code 11) when the network is not sealed. Never
+# use it for a measurement.
+networks:
+  lab-internal:
+    internal: false

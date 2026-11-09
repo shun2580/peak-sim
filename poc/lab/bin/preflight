@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# The closed-network check of the lab (safety condition 1; the same idea as poc/runtime/bin/preflight, for every container
+# of the lab). `bin/up`, `bin/use-db` and `bin/build-db` run it, and it can be run alone. It refuses (exit 11) unless ALL of:
+#   1. every container of the project is one of the five the lab expects, and all five are running
+#   2. every network of the project is `internal`; every container is on those networks only (not `host`, not another
+#      network); none is privileged; no port is published on the host
+#   3. from INSIDE each container, nothing outside is reachable (negative controls: two public addresses, a public name)
+#      while what the container needs is (positive controls: the DB from the app and the tools container, the app from the
+#      web server, the web server from k6, the DB's own port). A positive control that fails means the probe itself cannot
+#      be trusted, so that fails the check too.
+# exit codes: 0 sealed / 11 refused (every FAIL line says why)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+fail=0
+ok()   { printf 'PASS %s\n' "$*"; }
+bad()  { printf 'FAIL %s\n' "$*"; fail=1; }
+
+# ---- 1 and 2: what docker says about the project --------------------------------------------------------------
+declare -A expected=()
+for c in "${LAB_CONTAINERS[@]}"; do expected[$c]=1; done
+
+mapfile -t found < <(docker ps -a --filter "label=com.docker.compose.project=$PEAK_LAB_PROJECT" --format '{{.Names}}')
+for c in "${found[@]}"; do
+  [ -n "$c" ] || continue
+  [ -n "${expected[$c]:-}" ] || bad "container: $c belongs to the project but is not one of the lab's five"
+done
+for c in "${LAB_CONTAINERS[@]}"; do
+  state="$(docker inspect -f '{{.State.Running}}' "$c" 2>/dev/null || echo missing)"
+  if [ "$state" = "true" ]; then ok "container: $c is running"; else bad "container: $c is not running ($state)"; fi
+done
+
+mapfile -t net_ids < <(docker network ls --filter "label=com.docker.compose.project=$PEAK_LAB_PROJECT" --format '{{.ID}}')
+if [ "${#net_ids[@]}" -eq 0 ] || [ -z "${net_ids[0]}" ]; then
+  bad "network: no network found for project $PEAK_LAB_PROJECT"
+fi
+declare -A sealed_net=()
+for id in "${net_ids[@]}"; do
+  [ -n "$id" ] || continue
+  name="$(docker network inspect "$id" --format '{{.Name}}')"
+  internal="$(docker network inspect "$id" --format '{{.Internal}}')"
+  if [ "$internal" = "true" ]; then ok "network: $name internal=true"; sealed_net[$name]=1; else bad "network: $name is not internal (internal=$internal)"; fi
+done
+
+for c in "${LAB_CONTAINERS[@]}"; do
+  docker inspect "$c" >/dev/null 2>&1 || continue
+  mode="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$c")"
+  [ -n "${sealed_net[$mode]:-}" ] && ok "$c: network mode $mode" || bad "$c: network mode '$mode' is not an internal network of the project"
+  for n in $(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$c"); do
+    [ -n "${sealed_net[$n]:-}" ] || bad "$c: attached to '$n', which is not an internal network of the project"
+  done
+  [ "$(docker inspect -f '{{.HostConfig.Privileged}}' "$c")" = "false" ] || bad "$c: privileged"
+  bindings="$(docker inspect -f '{{json .HostConfig.PortBindings}}' "$c")"
+  case "$bindings" in
+    null|'{}') ok "$c: no published port" ;;
+    *) bad "$c: a port is published ($bindings)" ;;
+  esac
+  live="$(docker inspect -f '{{range $p, $b := .NetworkSettings.Ports}}{{if $b}}{{$p}} {{end}}{{end}}' "$c")"
+  [ -z "$live" ] || bad "$c: a port is bound on the host ($live)"
+done
+
+# ---- 3: from inside ---------------------------------------------------------------------------------------------
+# must_fail <container> <label> <command...>: the command must NOT succeed (an outside address must be unreachable).
+must_fail() {
+  local c="$1" label="$2"; shift 2
+  if docker exec "$c" "$@" >/dev/null 2>&1; then bad "$c: LEAK $label is reachable"; else ok "$c: $label is unreachable"; fi
+}
+# must_pass <container> <label> <command...>: a positive control.
+must_pass() {
+  local c="$1" label="$2"; shift 2
+  if docker exec "$c" "$@" >/dev/null 2>&1; then ok "$c: $label (positive control)"; else bad "$c: $label did not work, so the probe cannot be trusted"; fi
+}
+
+all_running=1
+for c in "${LAB_CONTAINERS[@]}"; do
+  [ "$(docker inspect -f '{{.State.Running}}' "$c" 2>/dev/null || echo missing)" = "true" ] || all_running=0
+done
+# The probes run even when a check above has failed (they only read), so one run shows every way out there is.
+if [ "$all_running" -eq 1 ]; then
+  # the PHP containers: the probes of the measurement stack (public addresses, a public name, the gateway, an HTTP fetch,
+  # and a login of the measurement user)
+  for c in peak-lab-app peak-lab-tools; do
+    out="$(docker exec "$c" php /peak-sim/poc/runtime/bin/inner/preflight.php 2>&1)"; rc=$?
+    echo "$out" | sed "s/^/$c: /"
+    [ "$rc" -eq 0 ] || bad "$c: the PHP-side check exited $rc"
+  done
+  # web (busybox): nc and wget
+  must_fail peak-lab-web "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
+  must_fail peak-lab-web "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
+  must_fail peak-lab-web "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
+  must_pass peak-lab-web "the app (lab-app:9000)" nc -w 3 -z lab-app 9000
+  # k6
+  must_fail peak-lab-k6 "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
+  must_fail peak-lab-k6 "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
+  must_fail peak-lab-k6 "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
+  must_pass peak-lab-k6 "the web server (/__lab/health)" wget -T 3 -q -O /dev/null http://lab-web:8081/__lab/health
+  # database
+  must_fail peak-lab-db "1.1.1.1:443" timeout 3 bash -c '</dev/tcp/1.1.1.1/443'
+  must_fail peak-lab-db "8.8.8.8:53" timeout 3 bash -c '</dev/tcp/8.8.8.8/53'
+  must_fail peak-lab-db "the name example.com" getent hosts example.com
+  must_pass peak-lab-db "its own port (3306)" timeout 3 bash -c '</dev/tcp/127.0.0.1/3306'
+else
+  echo "(the in-container probes are skipped: not every container is running)"
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "PREFLIGHT FAIL: the lab is not sealed, or the check could not be trusted" >&2
+  exit 11
+fi
+echo "PREFLIGHT OK"
+exit 0

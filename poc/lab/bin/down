@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Takes the lab down. The databases (the data volume peak-lab-dbdata) are KEPT: building one takes long.
+#   poc/lab/bin/down            stop and remove the containers and the network
+#   poc/lab/bin/down --purge    also remove the data volume (every database)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+case "${1:-}" in
+  "") compose down --remove-orphans ;;
+  --purge) compose down --remove-orphans -v ;;
+  *) echo "usage: bin/down [--purge]" >&2; exit 2 ;;
+esac

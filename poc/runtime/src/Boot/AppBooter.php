@@ -31,7 +31,11 @@ final class AppBooter
     /** Drivers whose connection is rewritten to point at the measurement database (the rest are replaced). */
     private const MYSQL_DRIVERS = ['mysql', 'mariadb'];
 
-    public function boot(MeasureConfig $config, int $scale): BootedApp
+    /**
+     * @param ScratchDir|null $scratch a scratch directory the caller made and owns (the lab's, `ScratchDir::fixed()`);
+     *                                 null (the default) makes one for this process and removes it when the process ends
+     */
+    public function boot(MeasureConfig $config, int $scale, ?ScratchDir $scratch = null): BootedApp
     {
         $dbName = $config->dbNameForScale($scale);
         $appRoot = $config->appRoot;
@@ -41,8 +45,11 @@ final class AppBooter
             }
         }
 
-        $scratch = ScratchDir::create($config->runId);
-        register_shutdown_function(static fn () => $scratch->remove());
+        if ($scratch === null) {
+            $own = ScratchDir::create($config->runId);
+            register_shutdown_function(static fn () => $own->remove());
+            $scratch = $own;
+        }
 
         self::export(self::environment($config, $dbName, $scratch, self::appKeyFrom(getenv())));
         ini_set('display_errors', 'stderr');
