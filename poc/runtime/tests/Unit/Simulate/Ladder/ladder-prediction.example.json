@@ -1,0 +1,718 @@
+{
+    "schema_version": "0.1",
+    "kind": "lab-ladder-prediction",
+    "app": "demo",
+    "estimate_at": 200000,
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8
+    },
+    "stages_rps_total": [
+        0.05,
+        0.07,
+        0.1,
+        0.15,
+        0.2,
+        0.3,
+        0.45,
+        0.7,
+        1.0,
+        1.5,
+        2.2,
+        3.3,
+        5.0
+    ],
+    "inputs": {
+        "estimate_commit": "abc123",
+        "estimate_commit_source": "argument",
+        "estimate_sha256": "cb913803964423f2c5d197323994f2fcb45a91bca6cc2dff2d297408c2d225aa",
+        "scenario_sha256": "07c49cfad66d0c7bfa4f6aad7cde8cb02a28745e60b11a5e833d1723d834d80d"
+    },
+    "calibration": {
+        "coefficients": {
+            "name": "two_coefficient",
+            "c_q": 0.004839296005674514,
+            "c_row": 0.0
+        },
+        "method": "two_coefficient",
+        "calibration_scenarios": 3,
+        "cut_coefficients": true,
+        "warnings": [
+            "two_coefficient: c_row came out negative in the plain least squares and is pinned at 0."
+        ],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.004839296005674514,
+                "c_row": 0.0,
+                "negative_unconstrained": [
+                    "c_row"
+                ],
+                "at_zero": [
+                    "c_row"
+                ],
+                "notes": [],
+                "sum_squared_residual_load": 0.0017424480205701124,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4,
+                        "fitted_load": 0.4113401604823337,
+                        "residual_load": -0.011340160482333661,
+                        "observed_utilization": 0.2,
+                        "fitted_utilization": 0.20567008024116684,
+                        "residual_utilization": -0.0056700802411668305
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.54,
+                        "fitted_load": 0.5129653766014984,
+                        "residual_load": 0.0270346233985016,
+                        "observed_utilization": 0.27,
+                        "fitted_utilization": 0.2564826883007492,
+                        "residual_utilization": 0.0135173116992508
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.28,
+                        "fitted_load": 0.3097149443631689,
+                        "residual_load": -0.02971494436316885,
+                        "observed_utilization": 0.14,
+                        "fitted_utilization": 0.15485747218158444,
+                        "residual_utilization": -0.014857472181584425
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.004839296005674514,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0017424480205701124,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4,
+                        "fitted_load": 0.4113401604823337,
+                        "residual_load": -0.011340160482333661,
+                        "observed_utilization": 0.2,
+                        "fitted_utilization": 0.20567008024116684,
+                        "residual_utilization": -0.0056700802411668305
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.54,
+                        "fitted_load": 0.5129653766014984,
+                        "residual_load": 0.0270346233985016,
+                        "observed_utilization": 0.27,
+                        "fitted_utilization": 0.2564826883007492,
+                        "residual_utilization": 0.0135173116992508
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.28,
+                        "fitted_load": 0.3097149443631689,
+                        "residual_load": -0.02971494436316885,
+                        "observed_utilization": 0.14,
+                        "fitted_utilization": 0.15485747218158444,
+                        "residual_utilization": -0.014857472181584425
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 0.00014374833589879816,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.047977330130714174,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4,
+                        "fitted_load": 0.4003391154781529,
+                        "residual_load": -0.0003391154781528516,
+                        "observed_utilization": 0.2,
+                        "fitted_utilization": 0.20016955773907644,
+                        "residual_utilization": -0.0001695577390764258
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.54,
+                        "fitted_load": 0.3757581500394584,
+                        "residual_load": 0.16424184996054164,
+                        "observed_utilization": 0.27,
+                        "fitted_utilization": 0.1878790750197292,
+                        "residual_utilization": 0.08212092498027082
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.28,
+                        "fitted_load": 0.42492008091684735,
+                        "residual_load": -0.14492008091684733,
+                        "observed_utilization": 0.14,
+                        "fitted_utilization": 0.21246004045842368,
+                        "residual_utilization": -0.07246004045842366
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 3 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.004839296005674514,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.004902165405687451,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.004586167299708507,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.004942310817398841,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                }
+            ]
+        }
+    },
+    "naive": {
+        "basis_scenario": "cal-2",
+        "basis_utilization": 0.27,
+        "basis_rps_total": 10.0
+    },
+    "scenarios": [
+        {
+            "id": "t-1",
+            "tables": {
+                "pages": 3000,
+                "books": 900
+            },
+            "rps_total_in_file": 10.0,
+            "marked_routes": [
+                "POST /m"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /a": 0.03,
+                        "GET /axisless": 0.01,
+                        "POST /m": 0.01
+                    },
+                    "utilization": {
+                        "point": 0.0024438444828656296,
+                        "upper": 0.0024438444828656296
+                    },
+                    "naive": 0.00135,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /a": 0.04200000000000001,
+                        "GET /axisless": 0.014000000000000002,
+                        "POST /m": 0.014000000000000002
+                    },
+                    "utilization": {
+                        "point": 0.003421382276011882,
+                        "upper": 0.003421382276011882
+                    },
+                    "naive": 0.0018900000000000004,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /a": 0.06,
+                        "GET /axisless": 0.02,
+                        "POST /m": 0.02
+                    },
+                    "utilization": {
+                        "point": 0.004887688965731259,
+                        "upper": 0.004887688965731259
+                    },
+                    "naive": 0.0027,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /a": 0.09,
+                        "GET /axisless": 0.03,
+                        "POST /m": 0.03
+                    },
+                    "utilization": {
+                        "point": 0.007331533448596887,
+                        "upper": 0.007331533448596887
+                    },
+                    "naive": 0.00405,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /a": 0.12,
+                        "GET /axisless": 0.04,
+                        "POST /m": 0.04
+                    },
+                    "utilization": {
+                        "point": 0.009775377931462518,
+                        "upper": 0.009775377931462518
+                    },
+                    "naive": 0.0054,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /a": 0.18,
+                        "GET /axisless": 0.06,
+                        "POST /m": 0.06
+                    },
+                    "utilization": {
+                        "point": 0.014663066897193775,
+                        "upper": 0.014663066897193775
+                    },
+                    "naive": 0.0081,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /a": 0.27,
+                        "GET /axisless": 0.09,
+                        "POST /m": 0.09
+                    },
+                    "utilization": {
+                        "point": 0.021994600345790663,
+                        "upper": 0.021994600345790663
+                    },
+                    "naive": 0.012150000000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /a": 0.41999999999999993,
+                        "GET /axisless": 0.13999999999999999,
+                        "POST /m": 0.13999999999999999
+                    },
+                    "utilization": {
+                        "point": 0.034213822760118806,
+                        "upper": 0.034213822760118806
+                    },
+                    "naive": 0.0189,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /a": 0.6000000000000001,
+                        "GET /axisless": 0.2,
+                        "POST /m": 0.2
+                    },
+                    "utilization": {
+                        "point": 0.04887688965731259,
+                        "upper": 0.04887688965731259
+                    },
+                    "naive": 0.027000000000000003,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /a": 0.8999999999999999,
+                        "GET /axisless": 0.3,
+                        "POST /m": 0.3
+                    },
+                    "utilization": {
+                        "point": 0.07331533448596887,
+                        "upper": 0.07331533448596887
+                    },
+                    "naive": 0.0405,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /a": 1.3200000000000003,
+                        "GET /axisless": 0.44000000000000006,
+                        "POST /m": 0.44000000000000006
+                    },
+                    "utilization": {
+                        "point": 0.10752915724608772,
+                        "upper": 0.10752915724608772
+                    },
+                    "naive": 0.05940000000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /a": 1.9799999999999998,
+                        "GET /axisless": 0.6599999999999999,
+                        "POST /m": 0.6599999999999999
+                    },
+                    "utilization": {
+                        "point": 0.16129373586913154,
+                        "upper": 0.16129373586913154
+                    },
+                    "naive": 0.0891,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /a": 3.0,
+                        "GET /axisless": 1.0,
+                        "POST /m": 1.0
+                    },
+                    "utilization": {
+                        "point": 0.24438444828656294,
+                        "upper": 0.24438444828656294
+                    },
+                    "naive": 0.135,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 16.36765362135334
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 16.36765362135334
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 29.629629629629626
+                }
+            }
+        },
+        {
+            "id": "t-2",
+            "tables": {
+                "pages": 10000,
+                "books": 3000
+            },
+            "rps_total_in_file": 10.0,
+            "marked_routes": [
+                "POST /m"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /a": 0.01,
+                        "POST /m": 0.04
+                    },
+                    "utilization": {
+                        "point": 0.0029519705634614532,
+                        "upper": 0.0029519705634614532
+                    },
+                    "naive": 0.00135,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /a": 0.014000000000000002,
+                        "POST /m": 0.05600000000000001
+                    },
+                    "utilization": {
+                        "point": 0.004132758788846035,
+                        "upper": 0.004132758788846035
+                    },
+                    "naive": 0.0018900000000000004,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /a": 0.02,
+                        "POST /m": 0.08
+                    },
+                    "utilization": {
+                        "point": 0.0059039411269229064,
+                        "upper": 0.0059039411269229064
+                    },
+                    "naive": 0.0027,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /a": 0.03,
+                        "POST /m": 0.12
+                    },
+                    "utilization": {
+                        "point": 0.00885591169038436,
+                        "upper": 0.00885591169038436
+                    },
+                    "naive": 0.00405,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /a": 0.04,
+                        "POST /m": 0.16
+                    },
+                    "utilization": {
+                        "point": 0.011807882253845813,
+                        "upper": 0.011807882253845813
+                    },
+                    "naive": 0.0054,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /a": 0.06,
+                        "POST /m": 0.24
+                    },
+                    "utilization": {
+                        "point": 0.01771182338076872,
+                        "upper": 0.01771182338076872
+                    },
+                    "naive": 0.0081,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /a": 0.09,
+                        "POST /m": 0.36
+                    },
+                    "utilization": {
+                        "point": 0.026567735071153082,
+                        "upper": 0.026567735071153082
+                    },
+                    "naive": 0.012150000000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /a": 0.13999999999999999,
+                        "POST /m": 0.5599999999999999
+                    },
+                    "utilization": {
+                        "point": 0.041327587888460346,
+                        "upper": 0.041327587888460346
+                    },
+                    "naive": 0.0189,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /a": 0.2,
+                        "POST /m": 0.8
+                    },
+                    "utilization": {
+                        "point": 0.05903941126922907,
+                        "upper": 0.05903941126922907
+                    },
+                    "naive": 0.027000000000000003,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /a": 0.3,
+                        "POST /m": 1.2
+                    },
+                    "utilization": {
+                        "point": 0.08855911690384359,
+                        "upper": 0.08855911690384359
+                    },
+                    "naive": 0.0405,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /a": 0.44000000000000006,
+                        "POST /m": 1.7600000000000002
+                    },
+                    "utilization": {
+                        "point": 0.12988670479230396,
+                        "upper": 0.12988670479230396
+                    },
+                    "naive": 0.05940000000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /a": 0.6599999999999999,
+                        "POST /m": 2.6399999999999997
+                    },
+                    "utilization": {
+                        "point": 0.19483005718845592,
+                        "upper": 0.19483005718845592
+                    },
+                    "naive": 0.0891,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /a": 1.0,
+                        "POST /m": 4.0
+                    },
+                    "utilization": {
+                        "point": 0.29519705634614535,
+                        "upper": 0.29519705634614535
+                    },
+                    "naive": 0.135,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 13.550270620956454
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 13.550270620956454
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 29.629629629629626
+                }
+            }
+        }
+    ]
+}

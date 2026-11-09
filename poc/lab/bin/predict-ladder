@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Predicts the lab backtest's rps ladder (simulator-spec.md sections 7.2 and 7.3): for every target scenario of the scenario file, the
+# utilisation of the database CPU at each of the 13 stages (point and safe side), the naive estimate, and the limit rps (point, safe, naive).
+# Writes ladder-prediction.json. Sends no request, touches no database and no app.
+#
+#   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--estimate-commit=<hash>]
+#
+# The scenario file is the form of section 3.4: the calibration scenarios with `observed`, and the target scenarios, whose rps give the mix of
+# routes (the stages rescale it). The calibration and the utilisation of a stage are the parts of bin/simulate; nothing is calculated here.
+# The commit of the estimate is the last commit that touched <estimate dir> (git); the estimate must be committed and unchanged, or this
+# stops (exit 3). --estimate-commit=<hash> says it instead (recorded as coming from the argument): for a trial run on a scratch estimate.
+# Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built PHP image, no network, the inputs
+# mounted read-only and only the output directory writable. The image is never pulled.
+# exit codes: 0 done / 2 wrong usage / 3 the estimate is not committed and unchanged (and no --estimate-commit) / 11 no PHP and no image /
+# 20..25, 1 as bin/simulate / 30 the calibration cannot be made / 32 no target scenario
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/../../runtime" && pwd)"
+usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--estimate-commit=<hash>]"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+estimate=""
+scenario=""
+out=""
+commit=""
+for arg in "$@"; do
+  case "$arg" in
+    --estimate=*) estimate="${arg#--estimate=}" ;;
+    --scenario=*) scenario="${arg#--scenario=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --estimate-commit=*) commit="${arg#--estimate-commit=}" ;;
+    *) echo "predict-ladder: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+if [ ! -d "$estimate" ]; then echo "predict-ladder: --estimate is not a directory" >&2; echo "$usage" >&2; exit 2; fi
+if [ ! -f "$scenario" ]; then echo "predict-ladder: --scenario is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+if [ -z "$out" ]; then echo "predict-ladder: --out is required" >&2; echo "$usage" >&2; exit 2; fi
+mkdir -p "$out"
+estimate="$(cd "$estimate" && pwd)"
+scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"
+out="$(cd "$out" && pwd)"
+
+source="argument"
+if [ -z "$commit" ]; then
+  source="git"
+  if ! commit="$(git -C "$estimate" log -1 --format=%H -- . 2>/dev/null)" || [ -z "$commit" ]; then
+    echo "predict-ladder: the estimate directory is not in a git history (commit it first, or give --estimate-commit=<hash>)" >&2
+    exit 3
+  fi
+  if [ -n "$(git -C "$estimate" status --porcelain -- . 2>/dev/null)" ]; then
+    echo "predict-ladder: the estimate directory has changes that are not committed" >&2
+    exit 3
+  fi
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$runtime/bin/inner/predict-ladder.php" --estimate="$estimate" --scenario="$scenario" --out="$out" \
+    --estimate-commit="$commit" --estimate-commit-source="$source"
+fi
+
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "predict-ladder: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" \
+  -v "$runtime:/runtime:ro" -v "$estimate:/input/estimate:ro" -v "$scenario:/input/scenario.yaml:ro" -v "$out:/output" \
+  "$image" php /runtime/bin/inner/predict-ladder.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output \
+  --estimate-commit="$commit" --estimate-commit-source="$source"

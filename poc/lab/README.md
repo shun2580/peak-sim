@@ -13,6 +13,7 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `bin/up`, `bin/down`, `bin/ps` | start (with the closed-network check; exit 11 and nothing left running if it fails), stop, list |
 | `bin/preflight` | the closed-network check, also run by `up`, `build-db` and `use-db` |
 | `bin/build-db`, `bin/use-db` | build the database of one scale; point the app at one |
+| `bin/predict-ladder` | the ladder prediction (`docs/simulator-spec.md` 7.2 and 7.3): for each target scenario, the utilisation at each of the 13 rps stages (point and safe side), the naive estimate, and the limit rps solved from the proportional form. Sends no request; the code is `poc/runtime/src/Simulate/Ladder/`, which calls the calibration and prediction parts of `bin/simulate` |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
 

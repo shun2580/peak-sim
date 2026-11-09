@@ -1,0 +1,222 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PeakSim\Runtime\Simulate\Ladder;
+
+use PeakSim\Runtime\Backtest\NaiveEstimate;
+use PeakSim\Runtime\Simulate\Calibrate\CalibrationResult;
+use PeakSim\Runtime\Simulate\Predict\CalibrationWidth;
+use PeakSim\Runtime\Simulate\Predict\Coefficients;
+use PeakSim\Runtime\Simulate\Predict\LimitSearch;
+use PeakSim\Runtime\Simulate\Predict\PredictStage;
+use PeakSim\Runtime\Simulate\Predict\ScenarioPredictor;
+
+/**
+ * The prediction of the lab backtest on its rps ladder (simulator-spec.md sections 7.2 and 7.3), as one array in a fixed key order.
+ *
+ * It calculates nothing of its own about the database. The utilisation of a stage is what {@see ScenarioPredictor::predict} gives for the
+ * target scenario with every route's rps put at that stage's total, in the mix the scenario file gives; the calibration is
+ * {@see PredictStage::points} and `Calibrator` (called by the step that uses this class); the naive value is {@see NaiveEstimate}. So the
+ * utilisation of a stage is the same number `bin/simulate` prints for a scenario file that writes the same rps.
+ *
+ * The limit rps is solved from the proportional form of the model (the load is in proportion to the rps of every route, section 5), not
+ * searched in steps: limit = threshold x total / utilisation, with the utilisation read at the scenario's own total. The same is done for
+ * the safe side (the upper side of the marked routes) and for the naive estimate (threshold x basis rps / basis utilisation).
+ *
+ * Units: rps is requests per second (a total over all routes, or per route); a utilisation is a share of the database's CPU (0 to 1, as in
+ * `prediction.json`); the threshold is a share too.
+ *
+ * No clock and no randomness: the same input gives the same JSON. A target's `observed` is never here (the loaded input has none).
+ */
+final class LadderPrediction
+{
+    public const SCHEMA_VERSION = '0.1';
+
+    public const KIND = 'lab-ladder-prediction';
+
+    /** The rps ladder of section 7.2: totals over all routes, fixed before any model was built. */
+    public const STAGES = [0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
+
+    public const LIMIT_FOUND = 'found';
+
+    /** The scenario puts no load on the database under this reading (no costed route): there is no rps that reaches the threshold. */
+    public const LIMIT_NO_LOAD = 'no_load';
+
+    /**
+     * @param array<string, mixed>                                                                                                $loaded      LoadedInput::toArray()
+     * @param array{estimate_commit: string|null, estimate_commit_source: string|null, estimate_sha256: string, scenario_sha256: string} $inputs    where the estimate and the scenario file came from
+     * @param list<float>                                                                                                         $stages      the totals of the ladder
+     *
+     * @return array<string, mixed>
+     *
+     * @throws \InvalidArgumentException when there is no target scenario, or the calibration cannot be made from the loaded input
+     */
+    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, array $stages = self::STAGES): array
+    {
+        $resources = (array) $loaded['resources'];
+        $cores = (float) $resources['cores'];
+        $threshold = (float) $resources['threshold'];
+
+        $points = PredictStage::points($loaded);
+        $width = CalibrationWidth::of($points, $calibration);
+        $naiveBasis = [];
+        foreach ((array) $loaded['scenarios'] as $s) {
+            if (($s['kind'] ?? null) === 'calibration') {
+                $naiveBasis[] = [
+                    'id' => (string) $s['id'],
+                    'rps_total' => self::rpsTotal($s),
+                    'utilization' => (float) $s['observed']['db_cpu_utilization'],
+                ];
+            }
+        }
+
+        $scenarios = [];
+        foreach ((array) $loaded['scenarios'] as $s) {
+            if (($s['kind'] ?? null) === 'target') {
+                $scenarios[] = self::scenario($s, $calibration, $width, $naiveBasis, $cores, $threshold, $stages);
+            }
+        }
+        if ($scenarios === []) {
+            throw new \InvalidArgumentException('the scenario file has no target scenario to predict');
+        }
+
+        $basis = NaiveEstimate::estimate($naiveBasis, 1.0);
+
+        return [
+            'schema_version' => self::SCHEMA_VERSION,
+            'kind' => self::KIND,
+            'app' => $loaded['app'] ?? null,
+            'estimate_at' => $loaded['estimate_at'] ?? null,
+            'resources' => ['cores' => $cores, 'threshold' => $threshold],
+            'stages_rps_total' => array_values($stages),
+            'inputs' => $inputs,
+            'calibration' => [
+                'coefficients' => Coefficients::pointOf($calibration)->toArray(),
+            ] + $calibration->toArray() + ['width' => $width->toArray()],
+            'naive' => [
+                'basis_scenario' => $basis['basis_id'],
+                'basis_utilization' => $basis['basis_utilization'],
+                'basis_rps_total' => $basis['basis_rps_total'],
+            ],
+            'scenarios' => $scenarios,
+        ];
+    }
+
+    /**
+     * The target scenario with the rps of every route scaled so that they add up to `$total`, the mix kept. The scenario as the loaded input
+     * gives it is not changed. Routes with no cost stay in (they carry rps and count in the coverage).
+     *
+     * @param array<string, mixed> $scenario
+     *
+     * @return array<string, mixed>
+     */
+    public static function scenarioAt(array $scenario, float $total): array
+    {
+        $sum = self::rpsTotal($scenario);
+        if ($sum <= 0.0) {
+            throw new \InvalidArgumentException('the scenario "' . (string) $scenario['id'] . '" has a sum of rps of 0: its mix is undefined');
+        }
+        $factor = $total / $sum;
+        $routes = [];
+        foreach ((array) $scenario['routes'] as $r) {
+            $r['rps'] = (float) $r['rps'] * $factor;
+            $routes[] = $r;
+        }
+        $scenario['routes'] = $routes;
+
+        return $scenario;
+    }
+
+    /**
+     * The total rps (rps total of all routes) at which the utilisation reaches the threshold, from the utilisation read at `$total`.
+     *
+     * @return array{status: string, rps: float|null}
+     */
+    public static function limitRps(float $utilisation, float $total, float $threshold): array
+    {
+        if (!($utilisation > 0.0)) {
+            return ['status' => self::LIMIT_NO_LOAD, 'rps' => null];
+        }
+
+        return ['status' => self::LIMIT_FOUND, 'rps' => $threshold * $total / $utilisation];
+    }
+
+    /** @param array<string, mixed> $scenario */
+    private static function rpsTotal(array $scenario): float
+    {
+        $sum = 0.0;
+        foreach ((array) $scenario['routes'] as $r) {
+            $sum += (float) $r['rps'];
+        }
+
+        return $sum;
+    }
+
+    /**
+     * @param array<string, mixed>                                                      $scenario
+     * @param list<array{id: string, rps_total: float, utilization: float}>             $naiveBasis
+     * @param list<float>                                                               $stages
+     *
+     * @return array<string, mixed>
+     */
+    private static function scenario(array $scenario, CalibrationResult $calibration, CalibrationWidth $width, array $naiveBasis, float $cores, float $threshold, array $stages): array
+    {
+        $own = self::rpsTotal($scenario);
+        $ownPrediction = ScenarioPredictor::predict($scenario, $calibration, $cores, $threshold, null, $width);
+        $ownPoint = (float) $ownPrediction['utilization']['point'];
+        $ownUpper = (float) $ownPrediction['utilization']['upper'];
+        $naiveOwn = NaiveEstimate::estimate($naiveBasis, $own);
+
+        $rows = [];
+        foreach ($stages as $total) {
+            $at = self::scenarioAt($scenario, (float) $total);
+            $p = ScenarioPredictor::predict($at, $calibration, $cores, $threshold, null, $width);
+            $point = (float) $p['utilization']['point'];
+            $upper = (float) $p['utilization']['upper'];
+            $naive = NaiveEstimate::estimate($naiveBasis, (float) $total)['utilization'];
+            $rps = [];
+            foreach ((array) $at['routes'] as $r) {
+                $rps[(string) $r['route']] = (float) $r['rps'];
+            }
+            $rows[] = [
+                'rps_total' => (float) $total,
+                'rps' => $rps,
+                'utilization' => ['point' => $point, 'upper' => $upper],
+                'naive' => $naive,
+                'over_threshold' => [
+                    'point' => LimitSearch::exceeds($point, $threshold),
+                    'upper' => LimitSearch::exceeds($upper, $threshold),
+                    'naive' => LimitSearch::exceeds($naive, $threshold),
+                ],
+            ];
+        }
+
+        $marked = [];
+        foreach ((array) $scenario['routes'] as $r) {
+            if (($r['marked'] ?? false) === true) {
+                $marked[] = (string) $r['route'];
+            }
+        }
+        $tables = [];
+        foreach ((array) ($scenario['tables'] ?? []) as $name => $count) {
+            $tables[(string) $name] = (int) $count;
+        }
+
+        return [
+            'id' => (string) $scenario['id'],
+            'tables' => $tables,
+            'rps_total_in_file' => $own,
+            'marked_routes' => $marked,
+            'low_coverage' => $ownPrediction['low_coverage'],
+            'unknown_tables' => $ownPrediction['unknown_tables'],
+            'warnings' => $ownPrediction['warnings'],
+            'stages' => $rows,
+            'limit_rps' => [
+                'point' => self::limitRps($ownPoint, $own, $threshold),
+                'safe' => self::limitRps($ownUpper, $own, $threshold),
+                'naive' => self::limitRps($naiveOwn['utilization'], $own, $threshold),
+            ],
+        ];
+    }
+}
