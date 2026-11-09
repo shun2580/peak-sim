@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Writes the calibration-only scenario file of the lab backtest (simulator-spec.md sections 3.4 and 7.2) from the plan and the record of each
+# calibration run. No `target` scenario is ever written, so bin/simulate makes the calibration and no prediction.
+#
+#   poc/lab/scenarios/make-calibration-scenario --run=cal-1:<dir> --run=cal-2:<dir> --run=cal-3:<dir> > calibration.yaml
+#       [--scale=10000] [--tables=entities,images,references] [--cores=2]
+#
+# <dir> holds plan.json and record.json of that run. A run whose rps did not come out is refused. Reads those files only; touches no
+# database and no app. Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built dev image, with
+# no network and the files mounted read-only. The image is never pulled.
+# exit codes: 0 done / 2 wrong usage, an unreadable input or an unusable run / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/make-calibration-scenario.php" "$@"
+fi
+
+image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "make-calibration-scenario: no php on this machine and no image $image" >&2
+  exit 11
+fi
+# Each --run=<id>:<dir> directory is mounted read-only at /runs/<n> and the argument is rewritten to that path.
+mounts=()
+args=()
+n=0
+for arg in "$@"; do
+  case "$arg" in
+    --run=*:*)
+      spec="${arg#--run=}"
+      id="${spec%%:*}"
+      dir="${spec#*:}"
+      if [ ! -d "$dir" ]; then echo "make-calibration-scenario: not a directory: $dir" >&2; exit 2; fi
+      n=$((n + 1))
+      mounts+=(-v "$(cd "$dir" && pwd):/runs/$n:ro")
+      args+=("--run=$id:/runs/$n")
+      ;;
+    *) args+=("$arg") ;;
+  esac
+done
+exec docker run --rm --pull=never --network none --read-only -u "$(id -u):$(id -g)" \
+  -v "$here:/scn:ro" "${mounts[@]}" "$image" \
+  php /scn/make-calibration-scenario.php "${args[@]}"

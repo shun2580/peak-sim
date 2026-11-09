@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Calibrates on a calibration-only scenario file and makes NO prediction, then checks that none was made.
+#
+#   poc/lab/scenarios/recalibrate --estimate=<estimate dir> --scenario=<calibration.yaml> --out=<output dir> [--selfcheck=<file>] [--memory-accuracy=<file>]
+#
+# Refuses a scenario file that has a `target` scenario (exit 4, nothing run). Otherwise runs bin/simulate (the same arguments), then checks
+# prediction.json: the calibration is there and the list of predictions is empty. The calibration is in <output dir>/prediction.json
+# (`calibration`: the fits, the coefficients, the residuals, the cut coefficients and warnings, the width) and the table is printed.
+# exit codes: 0 calibrated, no prediction / 4 the scenario file has a target / 3 a prediction or no calibration in the output /
+# the other codes are bin/simulate's (docs in poc/runtime/bin/simulate)
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/../../runtime" && pwd)"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+scenario=""
+out=""
+for arg in "$@"; do
+  case "$arg" in
+    --scenario=*) scenario="${arg#--scenario=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+  esac
+done
+if [ -z "$scenario" ] || [ ! -f "$scenario" ] || [ -z "$out" ]; then
+  echo "usage: recalibrate --estimate=<dir> --scenario=<calibration.yaml> --out=<dir> [--selfcheck=<file>] [--memory-accuracy=<file>]" >&2
+  exit 2
+fi
+if grep -Eq '^[[:space:]]*(-[[:space:]]+)?kind:[[:space:]]*["'"'"']?target' "$scenario"; then
+  echo "recalibrate: the scenario file has a target scenario; this tool makes no prediction" >&2
+  exit 4
+fi
+
+"$runtime/bin/simulate" "$@" || exit $?
+
+if command -v php >/dev/null 2>&1; then
+  php "$here/check-output.php" "$out/prediction.json"
+  exit $?
+fi
+image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "recalibrate: no php on this machine and no image $image to check the output" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only -u "$(id -u):$(id -g)" \
+  -v "$here:/scn:ro" -v "$(cd "$out" && pwd):/output:ro" "$image" php /scn/check-output.php /output/prediction.json
