@@ -32,6 +32,13 @@ measured step by step from the bottom up and stops after the first step that was
 come out (outside 5%); that step is recorded too. A step whose rps did not come out while the DB was under 80% is recorded as an
 app-side stall, with the app's CPU utilization.
 
+- **The layout of a step (`--scheme`).** `spec` (the default) is the spec as written. `A` keeps the 5-minute window and starts each
+  route's stream at its own time, so each route has a chosen whole number of requests in the window and the total is exactly the
+  decided rps times the window. `B` also lengthens the window to the smallest multiple of 40 / rps that is at least 300 s (a step is
+  that plus the 60 s discarded). Only the layout changes: the gate, the 80% / 5% stopping rule and the record do not depend on it, and
+  the record names the scheme. `--dry-run` prints the table of every step for all three, with the number of requests the window
+  would count, its deviation from the decided total, the largest error of a route's count, and the smallest distance of an arrival to
+  an edge of the window.
 - **The gate.** Before anything else, `bin/prediction-gate` checks that the prediction file (a `.json` in `poc/lab/predictions/`) is in
   `HEAD` and has no difference from it, staged or not, and that nothing else in that directory is untracked or changed. If that cannot
   be confirmed, `measure-ladder` exits 12 and no container has been touched. `--dry-run` does not enforce it (nothing is measured).

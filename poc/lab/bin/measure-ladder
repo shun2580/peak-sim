@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Measures one prediction scenario (t-1 .. t-5) on the lab, step by step up the rps ladder (docs/simulator-spec.md section 7.2).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --predictions=<poc/lab/predictions/....json> [--switch-scale] [--out=<dir>]
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --dry-run [--predictions=<file>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --predictions=<poc/lab/predictions/....json> [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
 #
-# One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). The steps
+# One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). That is the
+# scheme `spec`, the default and the spec as written. `--scheme` chooses how a step is laid out in time, in one place
+# (poc/runtime/src/LabLoad/LadderShape.php): `A` keeps the 5-minute window and starts each route's stream at its own time so that
+# each route has a chosen whole number of requests in the window and the total is exactly the decided rps x the window; `B` also
+# lengthens the window to the smallest multiple of 40 / rps that is at least 300 s. The stopping rule, the 5% check and the gate do
+# not depend on the scheme. The steps
 # are 0.05 0.07 0.1 0.15 0.2 0.3 0.45 0.7 1.0 1.5 2.2 3.3 5.0, from the bottom up. The count of the tables and the mix are the
 # scenario's (t-1: 3 x N_0 even; t-2: 10 x N_0 even; t-3: 10 x N_0 first80; t-4: N_0 even; t-5: 10 x N_0 last80; N_0 = 10,000).
 #
@@ -40,7 +45,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '2,5p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out=""
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -48,10 +53,12 @@ for arg in "$@"; do
     --out=*) out="${arg#--out=}" ;;
     --dry-run) dry=1 ;;
     --switch-scale) switch=1 ;;
+    --scheme=*) scheme="${arg#--scheme=}" ;;
     *) usage ;;
   esac
 done
 [[ "$scenario" =~ ^t-[1-5]$ ]] || usage
+[[ "$scheme" =~ ^(spec|A|B)$ ]] || usage
 [ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/ladder"
 if [ "$dry" = 0 ] && [ -z "$predictions" ]; then
   echo "measure-ladder: --predictions=<the committed prediction file> is required (the gate)" >&2
@@ -107,22 +114,36 @@ sdir="$out/${scenario}-${scale}"
 mkdir -p "$sdir"
 duration=360 ; warmup=60
 
-make_plan() {  # make_plan <rps> <file>
-  php_tool poc/lab/load/make-plan.php --routes="$(routes_path)" --mix="$mix" --rps="$1" --duration=$duration --warmup=$warmup >"$2"
+# make_plan <rps> <file> <scheme>: the length of the step under the scheme (ladder.php shape), the plan (make-plan), then, for a
+# staggered scheme, each route's start time (ladder.php stagger). Sets $duration and $warmup for this step.
+make_plan() {
+  local shape tmp
+  shape="$(php_tool poc/lab/load/ladder.php shape --scheme="$3" --rps="$1")" || return 1
+  read -r duration warmup <<<"$shape"
+  php_tool poc/lab/load/make-plan.php --routes="$(routes_path)" --mix="$mix" --rps="$1" --duration="$duration" --warmup="$warmup" >"$2" || return 1
+  if [ "$3" != spec ]; then
+    tmp="$2.tmp"
+    php_tool poc/lab/load/ladder.php stagger --scheme="$3" "$(host_or_container "$2")" >"$tmp" && mv "$tmp" "$2" || return 1
+  fi
 }
 
 # --dry-run -------------------------------------------------------------------------------------------------------------------
 if [ "$dry" = 1 ]; then
-  echo "DRY RUN $scenario: scale $scale, mix $mix, ${#rungs[@]} steps, each $duration s with the first $warmup s discarded; no container is touched"
-  i=0
-  for rps in "${rungs[@]}"; do
-    i=$((i + 1))
-    d="$sdir/dry-run/rung-$(printf '%02d' "$i")-$rps"; mkdir -p "$d"
-    make_plan "$rps" "$d/plan.json" || { echo "measure-ladder: make-plan failed for rps $rps (see above)" >&2; exit 13; }
+  echo "DRY RUN $scenario: scale $scale, mix $mix, ${#rungs[@]} steps; no container is touched. Selected scheme: $scheme (the table is printed for all three)"
+  for sc in spec A B; do
+    echo
+    echo "scheme $sc$([ "$sc" = "$scheme" ] && echo ' (selected)')"
+    i=0
+    for rps in "${rungs[@]}"; do
+      i=$((i + 1))
+      d="$sdir/dry-run/$sc/rung-$(printf '%02d' "$i")-$rps"; mkdir -p "$d"
+      make_plan "$rps" "$d/plan.json" "$sc" || { echo "measure-ladder: the plan failed for rps $rps, scheme $sc (see above)" >&2; exit 13; }
+    done
+    php_tool poc/lab/load/ladder.php table --dir="$(host_or_container "$sdir/dry-run/$sc")" || exit 13
   done
-  php_tool poc/lab/load/ladder.php table --dir="$(host_or_container "$sdir/dry-run")" || exit 13
-  echo "longest this scenario can take: ${#rungs[@]} steps x $((duration / 60)) min = $(( ${#rungs[@]} * duration / 60 )) min of load (+ about 1 min per step to start and read); it stops earlier at the first step at 80% DB utilization or with its rps not out"
-  echo "plans are in $sdir/dry-run/"
+  echo
+  echo "a step is its window + 60 s discarded; the scenario stops earlier at the first step at 80% DB utilization or with its rps not out (plus about 1 min per step to start and read)"
+  echo "plans are in $sdir/dry-run/<scheme>/"
   exit 0
 fi
 
@@ -153,9 +174,9 @@ for rps in "${rungs[@]}"; do
     continue
   fi
   rm -rf "$d"; mkdir -p "$d"
-  make_plan "$rps" "$d/plan.json" || { echo "measure-ladder: make-plan failed for rps $rps" >&2; exit 13; }
+  make_plan "$rps" "$d/plan.json" "$scheme" || { echo "measure-ladder: the plan failed for rps $rps (scheme $scheme)" >&2; exit 13; }
   started_epoch="$(date +%s)"; started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
-  echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix at $started_at (6 min)"
+  echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s)"
 
   # The samplers stop themselves (--seconds): the kept window ends at k6's own start + $duration s, and k6 starts a few seconds
   # after this line, so they run $duration + 60 s. Nothing is killed.

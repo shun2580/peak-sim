@@ -108,26 +108,30 @@ final class Ladder
     }
 
     /**
-     * What a step would count in the kept window if the requests of each route arrived evenly spaced from the start of the
-     * scenario, against what was decided. This is arithmetic on the plan, not a measurement: with few requests per route the
-     * count is a whole number per route, and that alone can put a step outside the 5% of the rps check.
+     * What a step would count in the kept window if the requests of each route arrived evenly spaced from the start of its
+     * stream (`start_offset_sec`, 0 if the plan has none), against what was decided. This is arithmetic on the plan, not a
+     * measurement: with few requests per route the count is a whole number per route, and that alone can put a step outside the 5%
+     * of the rps check.
      *
-     * @param array{rps: float|int, duration_sec: int, warmup_sec: int, routes: list<array{rate: int, time_unit: string}>} $plan
+     * @param array{rps: float|int, duration_sec: int, warmup_sec: int, routes: list<array<string, mixed>>} $plan
      *
-     * @return array{expected_requests: int, decided_requests: float, deviation: float, within_5_percent: bool}
+     * @return array{expected_requests: int, decided_requests: float, deviation: float, within_5_percent: bool, max_route_count_error: float, min_edge_margin_sec: float}
      */
     public static function arrivalPreview(array $plan): array
     {
         $total = 0;
+        $worst = 0.0;
+        $margin = INF;
+        $window = $plan['duration_sec'] - $plan['warmup_sec'];
         foreach ($plan['routes'] as $r) {
-            $spacing = (int) rtrim($r['time_unit'], 's') / $r['rate'];
-            for ($i = 0; $i * $spacing < $plan['duration_sec'] - 1e-9; ++$i) {
-                if ($i * $spacing >= $plan['warmup_sec'] - 1e-9) {
-                    ++$total;
-                }
-            }
+            $spacing = (int) rtrim((string) $r['time_unit'], 's') / (int) $r['rate'];
+            $phi = (float) ($r['start_offset_sec'] ?? 0.0);
+            $n = LadderShape::countIn($phi, $spacing, $plan['warmup_sec'], $plan['duration_sec']);
+            $total += $n;
+            $worst = max($worst, abs($n - (float) $r['rps'] * $window));
+            $margin = min($margin, LadderShape::distanceToNearest($phi, $spacing, $plan['warmup_sec']), LadderShape::distanceToNearest($phi, $spacing, $plan['duration_sec']));
         }
-        $decided = (float) $plan['rps'] * ($plan['duration_sec'] - $plan['warmup_sec']);
+        $decided = (float) $plan['rps'] * $window;
         $deviation = $total / $decided - 1.0;
 
         return [
@@ -135,6 +139,8 @@ final class Ladder
             'decided_requests' => $decided,
             'deviation' => $deviation,
             'within_5_percent' => abs($deviation) <= RpsAchievement::TOLERANCE + 1e-9,
+            'max_route_count_error' => $worst,
+            'min_edge_margin_sec' => $margin,
         ];
     }
 
@@ -160,6 +166,7 @@ final class Ladder
             'scenario' => $meta['scenario'],
             'scale' => $meta['scale'],
             'mix' => $summary['mix'],
+            'scheme' => $summary['scheme'] ?? LadderShape::SPEC,
             'rung' => $meta['rung'],
             'decided_rps' => $rps['target_rps'],
             'achieved_rps' => $rps['achieved_rps'],

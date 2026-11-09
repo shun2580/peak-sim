@@ -9,6 +9,8 @@ declare(strict_types=1);
  *   php ladder.php rungs                          the rps of each step, one per line
  *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
  *   php ladder.php order                          the order of the measurement by scale (JSON)
+ *   php ladder.php shape --scheme=<spec|A|B> --rps=<n>   "<duration> <warmup>" in seconds of a step under the scheme
+ *   php ladder.php stagger --scheme=<spec|A|B> <plan.json>   the plan with each route's start time and planned count (JSON)
  *   php ladder.php preview <plan.json>            what the plan would count in the kept window if the requests arrived evenly (JSON)
  *   php ladder.php table --dir=<dir of rung-NN-<rps>/plan.json>
  *                                                 the dry-run table: per step the rate of the routes and what the plan would count
@@ -25,6 +27,7 @@ declare(strict_types=1);
 require __DIR__ . '/../../runtime/bootstrap.php';
 
 use PeakSim\Runtime\LabLoad\Ladder;
+use PeakSim\Runtime\LabLoad\LadderShape;
 
 const JSON_FLAGS = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION;
 
@@ -77,6 +80,24 @@ switch ($command) {
         echo json_encode(Ladder::order(), JSON_FLAGS), "\n";
         exit(0);
 
+    case 'shape':
+        try {
+            $shape = LadderShape::shape($opts['scheme'] ?? LadderShape::SPEC, (float) ($opts['rps'] ?? 0));
+        } catch (InvalidArgumentException $e) {
+            fail($e->getMessage());
+        }
+        echo $shape['duration_sec'] . ' ' . $shape['warmup_sec'] . "\n";
+        exit(0);
+
+    case 'stagger':
+        try {
+            $shaped = LadderShape::stagger(readJson($positional[0] ?? ''), $opts['scheme'] ?? LadderShape::SPEC);
+        } catch (InvalidArgumentException $e) {
+            fail($e->getMessage());
+        }
+        echo json_encode($shaped, JSON_FLAGS), "\n";
+        exit(0);
+
     case 'preview':
         $plan = readJson($positional[0] ?? '');
         echo json_encode(Ladder::arrivalPreview($plan), JSON_FLAGS), "\n";
@@ -89,7 +110,8 @@ switch ($command) {
             fail('table needs --dir=<dir with rung-*/plan.json>');
         }
         sort($files, SORT_STRING);
-        printf("%-4s %-6s %-30s %-9s %-9s %s\n", 'step', 'rps', 'route rates (count/time unit)', 'expected', 'decided', 'deviation if the arrivals are evenly spaced');
+        printf("%-4s %-6s %-8s %-30s %-9s %-9s %-24s %-10s %s\n", 'step', 'rps', 'window', 'route rates (count/time unit)', 'expected', 'decided', 'deviation (even arrival)', 'route err', 'min edge margin');
+        $minutes = 0.0;
         foreach ($files as $i => $file) {
             $plan = readJson($file);
             $rates = [];
@@ -98,17 +120,22 @@ switch ($command) {
             }
             $label = implode(' ', array_map(static fn (string $k, int $n): string => $n . 'x' . $k, array_keys($rates), $rates));
             $p = Ladder::arrivalPreview($plan);
+            $minutes += $plan['duration_sec'] / 60;
             printf(
-                "%-4d %-6s %-30s %-9d %-9.1f %+.1f%% (%s)\n",
+                "%-4d %-6s %-8s %-30s %-9d %-9.1f %+6.1f%% %-15s %-10s %s\n",
                 $i + 1,
                 rtrim(rtrim(number_format((float) $plan['rps'], 4, '.', ''), '0'), '.'),
+                ($plan['duration_sec'] - $plan['warmup_sec']) . 's',
                 $label,
                 $p['expected_requests'],
                 $p['decided_requests'],
                 $p['deviation'] * 100,
                 $p['within_5_percent'] ? 'within 5%' : 'OUTSIDE 5%',
+                sprintf('%.2f', $p['max_route_count_error']),
+                sprintf('%.2fs', $p['min_edge_margin_sec']),
             );
         }
+        printf("all %d steps: %.0f minutes of load\n", count($files), $minutes);
         exit(0);
 
     case 'record':
@@ -173,5 +200,5 @@ switch ($command) {
         exit(0);
 
     default:
-        fail('usage: ladder.php rungs | scenario <id> [--line] | order | preview <plan.json> | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs | scenario <id> [--line] | order | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
 }

@@ -50,7 +50,10 @@ plan.routes.forEach((r, i) => {
     executor: 'constant-arrival-rate',
     rate: r.rate,
     timeUnit: r.time_unit,
-    duration: plan.duration_sec + 's',
+    // A route's stream may start later than the others (a plan made for a staggered scheme gives it `start_offset_sec`); every
+    // stream ends at the end of the scenario, so its duration is what is left after its start. Without the field: starts at 0.
+    startTime: (r.start_offset_sec || 0) + 's',
+    duration: (plan.duration_sec - (r.start_offset_sec || 0)) + 's',
     preAllocatedVUs: parseInt(__ENV.PRE_VUS || '20'),
     maxVUs: parseInt(__ENV.MAX_VUS || '400'),
     exec: 'hit',
@@ -69,7 +72,9 @@ export const options = {
 export function hit() {
   const r = plan.routes[parseInt(__ENV.ROUTE_INDEX)];
   const t = targets.routes[r.route];
-  const started = exec.scenario.startTime;
+  // The start of the whole scenario (not of this route's stream, which may start later): for a stream that starts at 0 it is the
+  // stream's own start; for a later one, the time since the test began gives it.
+  const started = r.start_offset_sec ? Date.now() - exec.instance.currentTestRunDuration : exec.scenario.startTime;
   const phase = Date.now() - started < plan.warmup_sec * 1000 ? 'warmup' : 'measure';
   scenarioStart.add(started);
   http.get(targets.base_url + t.path, {

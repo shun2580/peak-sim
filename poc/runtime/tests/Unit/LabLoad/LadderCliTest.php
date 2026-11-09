@@ -84,8 +84,28 @@ final class LadderCliTest extends TestCase
         [$code, $out] = self::tool('ladder.php', ['table', '--dir=' . $this->dir . '/dry']);
 
         $this->assertSame(0, $code);
-        $this->assertMatchesRegularExpression('/^1\s+0\.05\s+8x1\/160s\s+16\s+15\.0\s+\+6\.7% \(OUTSIDE 5%\)$/m', $out);
-        $this->assertMatchesRegularExpression('/^2\s+1\s+8x125\/1000s\s+296\s+300\.0\s+-1\.3% \(within 5%\)$/m', $out);
+        $this->assertMatchesRegularExpression('/^1\s+0\.05\s+300s\s+8x1\/160s\s+16\s+15\.0\s+\+6\.7% OUTSIDE 5%/m', $out);
+        $this->assertMatchesRegularExpression('/^2\s+1\s+300s\s+8x125\/1000s\s+296\s+300\.0\s+-1\.3% within 5%/m', $out);
+        $this->assertStringContainsString('all 2 steps: 12 minutes of load', $out);
+    }
+
+    public function test_shape_and_stagger_give_the_length_of_a_step_and_each_routes_start(): void
+    {
+        $this->assertSame([0, "360 60\n"], array_slice(self::tool('ladder.php', ['shape', '--scheme=spec', '--rps=0.05']), 0, 2));
+        $this->assertSame([0, "860 60\n"], array_slice(self::tool('ladder.php', ['shape', '--scheme=B', '--rps=0.05']), 0, 2));
+        $this->assertSame(2, self::tool('ladder.php', ['shape', '--scheme=Z', '--rps=1'])[0]);
+
+        [, $plan] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), '--mix=even', '--rps=0.05', '--duration=360', '--warmup=60']);
+        file_put_contents($this->dir . '/plan.json', $plan);
+        [$code, $out] = self::tool('ladder.php', ['stagger', '--scheme=A', $this->dir . '/plan.json']);
+        $this->assertSame(0, $code);
+        $staggered = json_decode($out, true);
+        $this->assertSame('A', $staggered['scheme']);
+        $this->assertSame([2, 2, 2, 2, 2, 2, 2, 1], array_column($staggered['routes'], 'planned_window_requests'));
+        mkdir($this->dir . '/a/rung-01', 0777, true);
+        file_put_contents($this->dir . '/a/rung-01/plan.json', $out);
+        [, $table] = self::tool('ladder.php', ['table', '--dir=' . $this->dir . '/a']);
+        $this->assertMatchesRegularExpression('/^1\s+0\.05\s+300s\s+8x1\/160s\s+15\s+15\.0\s+\+0\.0% within 5%/m', $table);
     }
 
     /** @return string the path of a summarize-run output */

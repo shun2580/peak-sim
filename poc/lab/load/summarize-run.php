@@ -51,7 +51,11 @@ $rps = RpsAchievement::judge((float) $plan['rps'], (int) $k6['measure_requests']
 $perRoute = [];
 foreach ($plan['routes'] as $r) {
     $count = (int) ($k6['per_route'][$r['route']] ?? 0);
-    $perRoute[] = ['route' => $r['route'], 'target_rps' => $r['rps'], 'achieved_rps' => $count / $window, 'requests' => $count];
+    $row = ['route' => $r['route'], 'target_rps' => $r['rps'], 'achieved_rps' => $count / $window, 'requests' => $count];
+    if (isset($r['planned_window_requests'])) {
+        $row['planned_requests'] = $r['planned_window_requests'];
+    }
+    $perRoute[] = $row;
 }
 
 $start = $k6['scenario_start_ms'] / 1000;
@@ -80,6 +84,7 @@ if (isset($opts['app-samples'])) {
 
 $record = [
     'mix' => $plan['mix'],
+    'scheme' => $plan['scheme'] ?? 'spec',
     'rps' => $rps,
     'window_sec' => $window,
     'window_epoch' => ['from' => $from, 'to' => $to],
