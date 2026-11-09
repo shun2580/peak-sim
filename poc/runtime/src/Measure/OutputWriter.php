@@ -15,7 +15,8 @@ use PeakSim\Runtime\Report\Comparison;
  *   report.md         the same, for reading; conflicts first
  *   summary.json      counts, per-database timings, what each build produced
  *   comparison.md/json  with an expectations file: expectation, static analysis and measurement side by side
- *   tasks.json        what the inspection decided for each route (URI, login, body, or why not)
+ *   tasks.json        what the inspection decided for each route (URI, login, body, or why not); the body is the one the
+ *                     measurement used, so a later run of the same request (bin/variance-run) sends the same one
  */
 final class OutputWriter
 {
@@ -46,7 +47,7 @@ final class OutputWriter
         $files[] = $this->put('attempts.jsonl', $lines);
         $files[] = $this->put('routes.jsonl', $report->toJsonLines());
         $files[] = $this->put('report.md', $report->toMarkdown());
-        $files[] = $this->put('tasks.json', self::json(array_map(static fn (RouteTask $t): array => $t->toArray(), $tasks)));
+        $files[] = $this->put('tasks.json', self::json(array_map(static fn (RouteTask $t): array => self::asMeasured($t, $result->learnedBodies), $tasks)));
         $files[] = $this->put('summary.json', self::json([
             'meta' => $meta,
             'exit' => $result->exit,
@@ -79,6 +80,25 @@ final class OutputWriter
     private static function buildSummary(array $build): array
     {
         return array_intersect_key($build, array_flip(['point', 'rebuilt_after', 'database', 'mode', 'scale', 'laravel', 'migrate_seconds', 'fill_seconds', 'total_seconds', 'rows', 'generation', 'not_run', 'reason', 'limit_seconds', 'table', 'statement', 'still_running']));
+    }
+
+    /**
+     * The task as the measurement ran it: when a 422 made the driver build the body again, the body that got past validation
+     * replaces the one the task started with. Nothing else of the task changes.
+     *
+     * @param array<string, array<string, mixed>> $learnedBodies
+     *
+     * @return array<string, mixed>
+     */
+    private static function asMeasured(RouteTask $task, array $learnedBodies): array
+    {
+        $data = $task->toArray();
+        $learned = $learnedBodies[$task->spec->method . ' ' . $task->spec->uri] ?? null;
+        if ($learned !== null) {
+            $data['body'] = $learned;
+        }
+
+        return $data;
     }
 
     private function put(string $name, string $content): string

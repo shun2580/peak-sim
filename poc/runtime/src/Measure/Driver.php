@@ -112,7 +112,7 @@ final class Driver
             }
         }
 
-        return new DriverResult($exit, $message, $this->report($tasks, $byTask, $exit === MeasureExit::OK ? null : (string) $message), $all, $timings, $this->builds);
+        return new DriverResult($exit, $message, $this->report($tasks, $byTask, $exit === MeasureExit::OK ? null : (string) $message), $all, $timings, $this->builds, $this->learnedBodies);
     }
 
     /**
