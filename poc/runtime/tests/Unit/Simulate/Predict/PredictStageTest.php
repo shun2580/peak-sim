@@ -14,11 +14,11 @@ use PHPUnit\Framework\TestCase;
 final class PredictStageTest extends TestCase
 {
     /** @return array{int, string, string} */
-    private static function invoke(RecordingIo $io): array
+    private static function invoke(RecordingIo $io, ?string $selfcheckPath = null): array
     {
         $out = fopen('php://memory', 'w+');
         $err = fopen('php://memory', 'w+');
-        $next = new PredictStage('/est', $out, $err, null, null, $io);
+        $next = new PredictStage('/est', $out, $err, null, $selfcheckPath, $io);
         $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         rewind($out);
         rewind($err);
@@ -69,6 +69,30 @@ final class PredictStageTest extends TestCase
         self::assertSame(0, $code);
         $report = json_decode($io->files['/out/prediction.json'], true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('checked', $report['accuracy_on_this_app']['status']);
+    }
+
+    public function testAGivenPathIsReadAndTheDefaultPlaceIsLeftAlone(): void
+    {
+        $result = static fn (string $verdict): string => json_encode(['schema_version' => '0.1', 'kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => 'x', 'summary' => ['verdict' => $verdict]]);
+        $io = Fixtures::io();
+        $io->files['/runs/a/selfcheck-result.json'] = $result('fail');
+        $io->files['/est/selfcheck-result.json'] = $result('pass'); // the default place; the given path wins
+        [$code] = self::invoke($io, '/runs/a/selfcheck-result.json');
+        self::assertSame(0, $code);
+        $report = json_decode($io->files['/out/prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('fail', $report['accuracy_on_this_app']['verdict']);
+        self::assertContains('read /runs/a/selfcheck-result.json', $io->events);
+        self::assertNotContains('read /est/selfcheck-result.json', $io->events);
+    }
+
+    public function testAGivenPathThatIsNotThereIsNotCheckedNotTheDefaultFile(): void
+    {
+        $io = Fixtures::io();
+        $io->files['/est/selfcheck-result.json'] = json_encode(['schema_version' => '0.1', 'kind' => 'selfcheck-result', 'summary' => ['verdict' => 'pass']]);
+        [$code] = self::invoke($io, '/runs/none/selfcheck-result.json');
+        self::assertSame(0, $code);
+        $report = json_decode($io->files['/out/prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('not_checked', $report['accuracy_on_this_app']['status']);
     }
 
     public function testWithoutACalibrationScenarioItStopsAndWritesNoPrediction(): void
