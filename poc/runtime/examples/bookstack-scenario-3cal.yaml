@@ -5,7 +5,7 @@
 # scenario left out; with two it cannot be given (docs/simulator-spec.md section 6.3).
 #
 # THE VALUES IN THIS FILE ARE MADE UP. They are not a measurement of a real
-# load. The `observed` values of the two calibration scenarios are invented
+# load. The `observed` values of the three calibration scenarios are invented
 # so that the whole pipeline can be exercised end to end; a prediction made
 # from them says nothing about a real BookStack installation.
 # A real check against measured loads is the lab backtest
@@ -23,7 +23,7 @@ resources:
   php_memory_limit: 128M
 
 scenarios:
-  # Two calibration scenarios (made-up observed utilization).
+  # Two of the three calibration scenarios (made-up observed utilization); the third, calm-3, follows.
   - id: calm-1
     kind: calibration
     tables: { entities: 20000, references: 20000, page_revisions: 20000 }
