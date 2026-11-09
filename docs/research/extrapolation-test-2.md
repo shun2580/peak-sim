@@ -319,6 +319,22 @@ Nothing is dropped silently.
 
 Two routes of BookStack, `POST /books/{bookSlug}/copy` and `GET /import/{id}`, also had an empty-system point that is `not_found` at scale 0 (the last attempt at scale 0 is `not_found`, an empty system). They fit the kind of exception that D105 describes. The denominator is not changed by this: it is counted from the list of 12 routes in D105 (with D123 and D124), as in the first run, and these two stay outside it. At 200,000 rows `POST /books/{bookSlug}/copy` ended at the 600-second limit, and `GET /import/{id}` answered HTTP 500 (an exception reading a property of a missing record); neither is in the shares.
 
+### Two disclosures added after the result
+
+These two notes were added after the comparison and after a check of this file. No result, verdict, table figure, rule or denominator above was changed by them.
+
+**1. How the denominator of the number of queries was read.** D95 says that a route whose route-level formula is `contradicts_static` is left out of the denominator of that quantity. This test used the estimate of version 0.2 for the number of queries, which is the sum over the statement types of the route of the count of each type, for every route. The route-level formula of 14 BookStack routes is `contradicts_static` or `not_predicted`; 13 of them are in the denominator (`GET /books/{slug}` was not measured). These 13 were counted in the denominator of the number of queries. This reading was not written down before the comparison. There is a case for it, because the sum over the statement types is not the route-level formula, and it is the stricter side: it adds routes to the denominator. The other reading leaves those 13 routes out. Both readings, rule B:
+
+| Scope | Queries inside ±5%, as counted in this file | Queries inside ±5%, those 13 routes left out | Pass line (80%) under each reading |
+| --- | --- | --- | --- |
+| Verification app | 22 of 22 | 22 of 22 | met under both |
+| BookStack | 32 of 34 (94.12%) | 20 of 21 (95.24%) | met under both |
+| Both applications together | 54 of 56 (96.43%) | 42 of 43 (97.67%) | met under both |
+
+Of the 13 routes, 12 are inside the lowest standard and one is not (`GET /shelves/{slug}`); the other miss of the number of queries, `POST /settings/maintenance/regenerate-references`, is not one of them. The rows examined are not affected, because a route left out of one quantity stays in the other (D95). The verdicts are the same under both readings, because the deciding quantity is the rows examined, which is below the line in the scopes that fail. Which reading is the correct one is left to the project owner's decision. This file keeps the stricter reading.
+
+**2. A defect in one record of the measuring tool.** For `GET /books/{bookSlug}/export/zip`, the record of the three extra laps of the marked routes (`attempt.jsonl`) holds the content of the ZIP file (about 2.2 MB) inside the record. The lines of the record are still valid JSON and the values can be read from them; the rows examined used here (1,670,196 in every try) were read from them. The tool should keep the body of a response out of its record. This is a candidate for a later fix and nothing was changed in the tool for this test.
+
 ## 6. What can be said, and what cannot
 
 Written before the result.
