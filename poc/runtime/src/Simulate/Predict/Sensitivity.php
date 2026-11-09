@@ -88,6 +88,8 @@ final class Sensitivity
             'to' => $to,
             'limit_before' => $base['step'] === self::CAP_STEP ? null : (float) ($base['step'] / LimitSearch::PER_UNIT),
             'limit_after' => $after['step'] === self::CAP_STEP ? null : (float) ($after['step'] / LimitSearch::PER_UNIT),
+            'limit_unrounded_before' => $base['exact'],
+            'limit_unrounded_after' => $after['exact'],
             'change' => (float) (($after['step'] - $base['step']) / LimitSearch::PER_UNIT),
             'change_unrounded' => $base['exact'] !== null && $after['exact'] !== null ? $after['exact'] - $base['exact'] : 0.0,
         ];

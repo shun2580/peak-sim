@@ -9,6 +9,7 @@ use PeakSim\Runtime\Simulate\Calibrate\Calibrator;
 use PeakSim\Runtime\Simulate\Load\EstimateFormulas;
 use PeakSim\Runtime\Simulate\Load\LoadedInput;
 use PeakSim\Runtime\Simulate\Load\NativeIo;
+use PeakSim\Runtime\Simulate\Load\SimulateIo;
 use PeakSim\Runtime\Simulate\Load\TwoStage;
 
 /**
@@ -41,11 +42,13 @@ final class PredictStage
         private readonly mixed $stderr,
         private readonly ?string $memoryAccuracyPath = null,
         private readonly ?string $selfcheckPath = null,
+        private readonly ?SimulateIo $io = null,
     ) {
     }
 
     public function __invoke(TwoStage $stage, LoadedInput $input, string $outDir): int
     {
+        $io = $this->io ?? new NativeIo();
         $loaded = $input->toArray();
         try {
             $calibration = (new Calibrator())->calibrate(self::points($loaded));
@@ -57,10 +60,11 @@ final class PredictStage
 
         $dir = rtrim($this->estimateDir, '/');
         try {
-            $estimate = EstimateFormulas::load(new NativeIo(), $dir);
+            $estimate = EstimateFormulas::load($io, $dir);
             $memoryPath = $this->memoryAccuracyPath ?? $dir . '/' . MemoryAccuracy::FILE;
-            $memoryAccuracy = is_file($memoryPath) ? MemoryAccuracy::fromFile($memoryPath) : MemoryAccuracy::none();
-            $accuracy = AccuracyRecord::load($this->selfcheckPath ?? $dir . '/' . AccuracyRecord::FILE);
+            $memoryAccuracy = $io->exists($memoryPath) ? MemoryAccuracy::fromArray(self::json($io->read($memoryPath), $memoryPath)) : MemoryAccuracy::none();
+            $selfcheckPath = $this->selfcheckPath ?? $dir . '/' . AccuracyRecord::FILE;
+            $accuracy = $io->exists($selfcheckPath) ? AccuracyRecord::fromResult(self::json($io->read($selfcheckPath), $selfcheckPath)) : AccuracyRecord::notChecked('no selfcheck result at ' . basename($selfcheckPath));
         } catch (\InvalidArgumentException | \JsonException $e) {
             fwrite($this->stderr, 'bin/simulate: ' . $e->getMessage() . "\n");
 
@@ -82,6 +86,17 @@ final class PredictStage
         fwrite($this->stdout, "\n" . PredictionText::render($report));
 
         return 0;
+    }
+
+    /** @return array<string, mixed> */
+    private static function json(string $raw, string $path): array
+    {
+        $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('not a JSON object: ' . $path);
+        }
+
+        return $data;
     }
 
     /**

@@ -48,6 +48,12 @@ final class ScenarioPredictor
         $upper = $utilisation[UtilizationModel::UPPER];
 
         $coverage = Coverage::of($routes);
+        $givesBounds = false;
+        foreach ($routes as $r) {
+            if (isset($r['rows_low']) || isset($r['rows_high']) || isset($r['queries_low']) || isset($r['queries_high'])) {
+                $givesBounds = true;
+            }
+        }
         $warnings = [];
         if ($coverage['low_coverage']) {
             $warnings[] = sprintf(
@@ -102,6 +108,10 @@ final class ScenarioPredictor
                 'point' => $point,
                 'upper' => $upper,
                 'range' => ['min' => $min, 'max' => $max],
+                'range_basis' => [
+                    'estimate' => $givesBounds ? ['point', 'upper', 'low', 'high'] : ['point', 'upper'],
+                    'calibration_fits' => array_map(static fn ($f): string => $f->kind, $calibration->fits),
+                ],
                 'threshold' => $threshold,
                 'over_threshold' => ['point' => LimitSearch::exceeds($point, $threshold), 'upper' => LimitSearch::exceeds($upper, $threshold)],
                 'by_reading' => $utilisation,

@@ -52,6 +52,7 @@ final class PredictionText
                 $u['over_threshold']['point'] ? 'over' : 'under',
                 $u['over_threshold']['upper'] ? 'over' : 'under',
             );
+            $out[] = sprintf('               range basis: estimate %s x calibration %s', implode('/', $u['range_basis']['estimate']), implode('/', $u['range_basis']['calibration_fits']));
             $l = $s['limit_multiplier'];
             $out[] = sprintf('  limit        point %s   safe side %s', self::limit($l['point']), self::limit($l['safe']));
             $out[] = sprintf(
@@ -89,7 +90,14 @@ final class PredictionText
             if ($s['sensitivity']['top'] !== []) {
                 $out[] = '  most influential inputs (+10% of one input, change of the limit multiplier):';
                 foreach ($s['sensitivity']['top'] as $x) {
-                    $out[] = sprintf('    %-40s %s -> %s  (%+.1fx)', self::cut($x['input'], 40), self::limitValue($x['limit_before']), self::limitValue($x['limit_after']), $x['change']);
+                    $out[] = sprintf(
+                        '    %-40s %s -> %s  (%+.1fx; unrounded %+.3fx)',
+                        self::cut($x['input'], 40),
+                        self::limitValue($x['limit_before']),
+                        self::limitValue($x['limit_after']),
+                        $x['change'],
+                        $x['change_unrounded'],
+                    );
                 }
             }
             if ($s['sensitivity']['not_evaluated'] !== []) {
@@ -157,7 +165,7 @@ final class PredictionText
 
     private static function num(int|float $x): string
     {
-        return rtrim(rtrim(sprintf('%.6F', $x), '0'), '.');
+        return sprintf('%.6g', $x);
     }
 
     private static function cut(string $s, int $max): string
