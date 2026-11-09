@@ -2,23 +2,25 @@
 # Estimates the rows a route reads at a size N: per statement type, per_exec x count (candidates H1, H2, H3 of docs/research/explain-estimate.md).
 # H1_RANGE gives the H1 point and, for a route with a marked statement, the upper side (the value H2 gives to the marked types).
 #
-#   bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas] > estimate.json
+#   bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas] > estimate.json
 #
 # Reads the files only; touches no database and no app; the same inputs always give the same output. The explain.json is the one of
 # bin/explain-at-scale at N (it also holds the plans of the small size). --at defaults to the size in explain.json. --predictions
 # (bin/predict at the same N) adds the route-level peak memory and query count of the route fits. Uses the PHP on this machine if there
 # is one; otherwise a throwaway container of the already built PHP image, with no network and the inputs mounted read-only. The image
-# is never pulled. --with-formulas adds the formulas themselves (per statement type: count, per_exec, upper ratio; per route: table, peak-memory
+# is never pulled. --axes-only (with --predictions) reads only route, axis and table of the predictions, the part the static analysis decides, and none
+# of their quantities: the route-level peak memory and query fit stay not_given (for an estimate whose fits were not made in the way the capture was).
+# --with-formulas adds the formulas themselves (per statement type: count, per_exec, upper ratio; per route: table, peak-memory
 # formula; the route index) for bin/simulate, which puts each scenario's own table sizes into them; without it the output is as it always was.
 # exit codes: 0 done / 2 wrong usage or an unreadable input / 11 no PHP and no image
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/.." && pwd)"
-usage="usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas]"
+usage="usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -32,6 +34,7 @@ candidate=""
 at=""
 predictions=""
 with_formulas=""
+axes_only=""
 for arg in "$@"; do
   case "$arg" in
     --capture=*) capture="${arg#--capture=}" ;;
@@ -39,6 +42,7 @@ for arg in "$@"; do
     --candidate=*) candidate="${arg#--candidate=}" ;;
     --at=*) at="${arg#--at=}" ;;
     --predictions=*) predictions="${arg#--predictions=}" ;;
+    --axes-only) axes_only=1 ;;
     --with-formulas) with_formulas=1 ;;
     *) echo "bin/estimate: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
   esac
@@ -60,6 +64,7 @@ args=(--capture=/input/capture.json --explain=/input/explain.json --candidate="$
 mounts=(-v "$capture:/input/capture.json:ro" -v "$explain:/input/explain.json:ro")
 [ -n "$at" ] && args+=(--at="$at")
 [ -n "$with_formulas" ] && args+=(--with-formulas)
+[ -n "$axes_only" ] && args+=(--axes-only)
 if [ -n "$predictions" ]; then
   if [ ! -f "$predictions" ]; then echo "bin/estimate: --predictions is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
   predictions="$(cd "$(dirname "$predictions")" && pwd)/$(basename "$predictions")"

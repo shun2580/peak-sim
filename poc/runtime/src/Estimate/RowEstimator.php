@@ -58,10 +58,13 @@ final class RowEstimator
      * @param array<string, mixed>|null $predictions the decoded predictions.json of bin/predict at N (queries, peak memory at route level), or null
      * @param bool                      $withFormulas add the formulas themselves (`formula` per type; `table`, `axis`, `peak_memory_formula` per route;
      *                                  `capture_scales` and `route_index` at the top) so a reader can evaluate them at another size. Nothing else changes.
+     * @param bool                      $axesOnly    read only `route`, `axis` and `table` of the predictions (the part the static analysis decides) and none of their
+     *                                  `quantities`: the route-level peak memory and query fit stay `not_given` and there is no `peak_memory_formula`. For an estimate whose
+     *                                  fits were not made in the way the capture was (no figure of an old measurement gets in). Without it nothing changes.
      *
      * @return array<string, mixed>
      */
-    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null, bool $withFormulas = false): array
+    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null, bool $withFormulas = false, bool $axesOnly = false): array
     {
         if (!in_array($candidate, self::CANDIDATES, true)) {
             throw new \InvalidArgumentException('the candidate must be one of ' . implode(', ', self::CANDIDATES));
@@ -79,6 +82,9 @@ final class RowEstimator
         $predicted = [];
         foreach ((array) ($predictions['routes'] ?? []) as $r) {
             if (is_array($r) && isset($r['route'])) {
+                if ($axesOnly) {
+                    unset($r['quantities']);
+                }
                 $predicted[(string) $r['route']] = $r;
             }
         }

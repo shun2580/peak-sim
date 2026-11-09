@@ -101,6 +101,51 @@ final class RowEstimatorFormulasTest extends TestCase
         $this->assertSame($plain, $stripped);
     }
 
+    public function test_axes_only_without_the_flag_nothing_changes(): void
+    {
+        [$capture, $explain, $predictions] = self::fixture();
+        foreach ([false, true] as $withFormulas) {
+            $this->assertSame(
+                RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, $withFormulas),
+                RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, $withFormulas, false),
+            );
+        }
+    }
+
+    public function test_axes_only_takes_the_table_and_the_axis_and_none_of_the_quantities_of_the_predictions(): void
+    {
+        [$capture, $explain, $predictions] = self::fixture();
+        $full = RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, true);
+        $axes = RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, true, true);
+        $route = $axes['routes'][0];
+        $this->assertSame('pages', $route['table']);
+        $this->assertSame('N', $route['axis']);
+        $this->assertNull($route['peak_memory_formula']);
+        $this->assertSame(['status' => 'not_given'], $route['peak_memory']);
+        $this->assertSame(['status' => 'not_given'], $route['queries_route_fit']);
+        $this->assertSame($full['route_index'], $axes['route_index']);
+        // every other figure is the one of the full run: the types (counts, rows per run, formulas) come from the capture and the explain only
+        $strip = static function (array $e): array {
+            foreach ($e['routes'] as &$r) {
+                unset($r['peak_memory'], $r['queries_route_fit'], $r['peak_memory_formula']);
+            }
+
+            return $e;
+        };
+        $this->assertSame($strip($full), $strip($axes));
+    }
+
+    public function test_axes_only_lets_no_figure_of_the_predictions_into_the_output(): void
+    {
+        [$capture, $explain, $predictions] = self::fixture();
+        $predictions['routes'][0]['quantities']['peak_memory'] = ['status' => 'predicted', 'value' => 424242.0, 'a' => 987654.0, 'b' => 3.5, 'k' => 1.0];
+        $predictions['routes'][0]['quantities']['queries'] = ['status' => 'predicted', 'value' => 777777.0, 'a' => 555555.0, 'b' => 0.0, 'k' => 0.0];
+        $json = json_encode(RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, true, true), JSON_THROW_ON_ERROR);
+        foreach (['424242', '987654', '777777', '555555'] as $figure) {
+            $this->assertStringNotContainsString($figure, $json);
+        }
+    }
+
     public function test_the_formulas_are_the_ones_the_figures_came_from(): void
     {
         [$capture, $explain, $predictions] = self::fixture();

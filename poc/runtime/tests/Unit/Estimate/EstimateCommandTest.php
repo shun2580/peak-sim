@@ -50,6 +50,7 @@ final class EstimateCommandTest extends TestCase
         yield 'no arguments' => [[], '--capture is required'];
         yield 'unknown candidate' => [['--capture=a', '--explain=b', '--candidate=H4'], '--candidate must be one of'];
         yield 'unknown argument' => [['--bogus'], 'unknown argument'];
+        yield 'axes only without predictions' => [['--capture=a', '--explain=b', '--candidate=H1', '--axes-only'], '--axes-only needs --predictions'];
     }
 
     /** @param list<string> $args */
@@ -80,5 +81,22 @@ final class EstimateCommandTest extends TestCase
         $this->assertSame('H2', $decoded['candidate']);
         $this->assertSame(100000, $decoded['at']);
         $this->assertSame(10000, $decoded['small_scale']);
+    }
+
+    public function test_axes_only_with_predictions_prints_the_estimate_without_the_quantities_of_the_predictions(): void
+    {
+        file_put_contents($this->dir . '/capture.json', json_encode(['representative_scale' => 10000, 'routes' => [['route' => 'GET /r', 'status' => 'captured', 'statement_types' => []]]]));
+        file_put_contents($this->dir . '/predictions.json', json_encode(['routes' => [['route' => 'GET /r', 'axis' => 'N', 'table' => 'pages', 'quantities' => [
+            'peak_memory' => ['status' => 'predicted', 'value' => 5.0, 'a' => 1000.0, 'b' => 2.0, 'k' => 1.0],
+        ]]]]));
+        $base = ['--capture=' . $this->dir . '/capture.json', '--explain=' . $this->dir . '/explain.json', '--candidate=H1', '--predictions=' . $this->dir . '/predictions.json', '--with-formulas'];
+        [$code, $out] = self::invoke([...$base, '--axes-only']);
+        $this->assertSame(0, $code);
+        $route = json_decode($out, true, 512, JSON_THROW_ON_ERROR)['routes'][0];
+        $this->assertSame('pages', $route['table']);
+        $this->assertNull($route['peak_memory_formula']);
+        $this->assertSame(['status' => 'not_given'], $route['peak_memory']);
+        [, $full] = self::invoke($base);
+        $this->assertSame(['a' => 1000.0, 'b' => 2.0, 'k' => 1.0], json_decode($full, true, 512, JSON_THROW_ON_ERROR)['routes'][0]['peak_memory_formula']);
     }
 }

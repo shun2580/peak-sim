@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Estimate;
 
 /**
- * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas]
+ * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas]
  * prints the estimate of every route on standard output. Exit codes: 0 done; 2 wrong usage or an unreadable input.
  */
 final class EstimateCommand
 {
-    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas] > estimate.json';
+    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas] > estimate.json';
 
     /**
      * @param resource $out
@@ -25,7 +25,12 @@ final class EstimateCommand
     {
         $opts = ['capture' => null, 'explain' => null, 'candidate' => null, 'at' => null, 'predictions' => null];
         $withFormulas = false;
+        $axesOnly = false;
         foreach ($args as $arg) {
+            if ($arg === '--axes-only') {
+                $axesOnly = true;
+                continue;
+            }
             if ($arg === '--with-formulas') {
                 $withFormulas = true;
                 continue;
@@ -49,6 +54,9 @@ final class EstimateCommand
         }
         if (!in_array($opts['candidate'], RowEstimator::CANDIDATES, true)) {
             return $this->usage('--candidate must be one of ' . implode(', ', RowEstimator::CANDIDATES));
+        }
+        if ($axesOnly && $opts['predictions'] === null) {
+            return $this->usage('--axes-only needs --predictions');
         }
         if ($opts['at'] !== null && preg_match('/^[1-9][0-9]*$/', $opts['at']) !== 1) {
             return $this->usage('--at must be a positive integer');
@@ -74,7 +82,7 @@ final class EstimateCommand
             $decoded[$name] = $value;
         }
         try {
-            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions'], $withFormulas);
+            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions'], $withFormulas, $axesOnly);
         } catch (\InvalidArgumentException $e) {
             return $this->usage($e->getMessage());
         }
