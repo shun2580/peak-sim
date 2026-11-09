@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PeakSim\Lab\Scenarios;
 
 /**
- * The scenario file for calibrating on the lab's three calibration runs and nothing else (simulator-spec.md sections 3.4 and 7.2).
+ * The scenario file for calibrating on the lab's calibration runs and nothing else (simulator-spec.md sections 3.4 and 7.2).
  *
- * Each run is one calibration scenario of the lab (cal-1, cal-2, cal-3): its plan (the rate of each route that was asked for) and its
+ * Each run is one calibration scenario of the lab (cal-1 to cal-4): its plan (the rate of each route that was asked for) and its
  * record (what the load tool saw: whether the rps came out, and the utilization of the database over the kept window). Both are read as
  * they were written by the load tools; nothing is typed by hand. The scenario file that comes out has calibration scenarios only. It
  * never has a `target` scenario, so `bin/simulate` has nothing to predict and stops after the calibration.
@@ -23,10 +23,19 @@ final class CalibrationScenario
     /** The tables that are N in the lab: the union of the `n_table` of the eight routes (the lab's database is shared). */
     public const DEFAULT_TABLES = ['entities', 'images', 'references'];
 
+    /**
+     * Runs that are kept as a record and never used for the calibration. `cal-3-orig` is the first cal-3, a mix that adds no information to
+     * the two coefficients (D155); its observation stays on record only as a check that the utilisation adds up over the mix.
+     */
+    public const NOT_FOR_CALIBRATION = ['cal-3-orig'];
+
     public const DEFAULT_CORES = 2;
 
     /**
-     * @param list<array{id: string, plan: array<string, mixed>, record: array<string, mixed>, plan_sha256?: string, record_sha256?: string}> $runs
+     * Each run has the scale of the tables it was measured at: its own `scale` when it has one (cal-4 is measured at 3,000 rows, the others
+     * at N_0), `$scale` when it has none. The scale is a property of the scenario, so the scenario file gives every scenario its own tables.
+     *
+     * @param list<array{id: string, plan: array<string, mixed>, record: array<string, mixed>, plan_sha256?: string, record_sha256?: string, scale?: int}> $runs
      * @param list<string> $tables the tables that get the scale
      *
      * @throws \InvalidArgumentException
@@ -56,8 +65,15 @@ final class CalibrationScenario
             if (isset($ids[$id])) {
                 throw new \InvalidArgumentException(sprintf('the scenario id "%s" is given twice', $id));
             }
+            if (in_array($id, self::NOT_FOR_CALIBRATION, true)) {
+                throw new \InvalidArgumentException(sprintf('the run %s is a record only; it is never a calibration scenario (D155)', $id));
+            }
             $ids[$id] = true;
-            $blocks[] = self::scenario($run, $scale, $tables);
+            $own = $run['scale'] ?? $scale;
+            if (!is_int($own) || $own < 1) {
+                throw new \InvalidArgumentException(sprintf('the scale of %s must be a positive whole number', $id));
+            }
+            $blocks[] = self::scenario($run, $own, $tables);
         }
 
         $lines = [];

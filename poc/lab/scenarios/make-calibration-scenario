@@ -2,10 +2,11 @@
 # Writes the calibration-only scenario file of the lab backtest (simulator-spec.md sections 3.4 and 7.2) from the plan and the record of each
 # calibration run. No `target` scenario is ever written, so bin/simulate makes the calibration and no prediction.
 #
-#   poc/lab/scenarios/make-calibration-scenario --run=cal-1:<dir> --run=cal-2:<dir> --run=cal-3:<dir> > calibration.yaml
-#       [--scale=10000] [--tables=entities,images,references] [--cores=2]
+#   poc/lab/scenarios/make-calibration-scenario --run=cal-1:<dir> --run=cal-2:<dir> --run=cal-3:<dir> --run=cal-4:<dir> --run-scale=cal-4:3000 > calibration.yaml
+#       [--scale=10000] [--run-scale=<id>:<n> ...] [--tables=entities,images,references] [--cores=2]
 #
-# <dir> holds plan.json and record.json of that run. A run whose rps did not come out is refused. Reads those files only; touches no
+# <dir> holds plan.json and record.json of that run. --scale is the count of rows of the N tables of every run that has no --run-scale
+# of its own (cal-4 is measured at 3,000 rows). A run whose rps did not come out is refused, and so is `cal-3-orig` (a record only). Reads those files only; touches no
 # database and no app. Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built dev image, with
 # no network and the files mounted read-only. The image is never pulled.
 # exit codes: 0 done / 2 wrong usage, an unreadable input or an unusable run / 11 no PHP and no image
@@ -14,7 +15,7 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
