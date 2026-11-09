@@ -53,6 +53,8 @@ usage: bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=
   --profile=<name>       app profile; default: the one the capture names ("none" for no profile)
   --data=generator|seeder  how the databases are filled; default: the one the capture names
   --base=N               generator only: rows of every table that is not scaled
+  --n-tables=a,b,c       generator only: build ONE database for all routes in which these tables all have N rows together
+                         (the way a shared test bed is built); without it every route is on the database of its own scaled table
   --php-image=<name>     run the stack in this already built PHP image (never built or pulled here)
   --project-prefix=<p>   compose project prefix (default peak-eas; PEAK_COMPOSE_PROJECT in the environment names the project itself)
   --keep-db              do not drop each database after its plans are taken
@@ -79,7 +81,7 @@ fail_usage() {
   exit 2
 }
 
-capture="" tasks="" app="" scale="" small=10000 out="" label="explain" profile="" data="" base="" image="" prefix="peak-eas" keep_db=0 keep=0
+capture="" tasks="" app="" scale="" small=10000 out="" label="explain" profile="" data="" base="" ntables="" image="" prefix="peak-eas" keep_db=0 keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -93,6 +95,7 @@ for arg in "$@"; do
     --profile=*) profile="${arg#--profile=}" ;;
     --data=*) data="${arg#--data=}" ;;
     --base=*) base="${arg#--base=}" ;;
+    --n-tables=*) ntables="${arg#--n-tables=}" ;;
     --php-image=*) image="${arg#--php-image=}" ;;
     --project-prefix=*) prefix="${arg#--project-prefix=}" ;;
     --keep-db) keep_db=1 ;;
@@ -118,6 +121,10 @@ case "$out" in /*) ;; *) fail_usage "--out must be an absolute path" ;; esac
 if [ -n "$profile" ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
 if [ -n "$data" ]; then case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac; fi
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ -n "$ntables" ]; then
+  [[ "$ntables" =~ ^[a-z][a-z0-9_]{0,63}(,[a-z][a-z0-9_]{0,63})*$ ]] || fail_usage "--n-tables is a comma separated list of table names (lowercase letters, digits and _)"
+  [ "${data:-generator}" = generator ] || fail_usage "--n-tables works with --data=generator only"
+fi
 [ -d "$app" ] || fail_usage "--app is not a directory: $app"
 [ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
 [ -f "$capture" ] || fail_usage "--capture is not a file: $capture"
@@ -239,6 +246,7 @@ plan_args=(--step=plan --capture=/out/inputs/capture.json --tasks=/out/inputs/ta
 [ -n "$profile" ] && plan_args+=("--profile=$profile")
 [ -n "$data" ] && plan_args+=("--data=$data")
 [ -n "$base" ] && plan_args+=("--base=$base")
+[ -n "$ntables" ] && plan_args+=("--n-tables=$ntables")
 step "${plan_args[@]}"
 step_code $?
 code=$?

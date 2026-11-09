@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Runs INSIDE the sealed PHP container (bin/explain-at-scale calls it), as the `measure` user, one step at a time.
 //
-//   --step=plan      --capture=F --tasks=F --scale=N --small-scale=M --out-dir=D [--data=] [--profile=] [--base=N]
+//   --step=plan      --capture=F --tasks=F --scale=N --small-scale=M --out-dir=D [--data=] [--profile=] [--base=N] [--n-tables=a,b]
 //                    Which databases to build and which routes each is asked about (writes plan files under D).
 //   --step=prepare   --group-dir=D/g<G> --capture=F --scale=S        ANALYZE TABLE on every table, then STATS_AUTO_RECALC=0
 //                    on the tables the statements of the group's routes name.
@@ -28,6 +28,7 @@ use PeakSim\Runtime\Explain\ExplainSender;
 use PeakSim\Runtime\Explain\PdoExplainTransport;
 use PeakSim\Runtime\Explain\PdoStatsDb;
 use PeakSim\Runtime\Explain\RelatedTables;
+use PeakSim\Runtime\Explain\SharedTablesPlanner;
 use PeakSim\Runtime\Explain\StatsCheck;
 use PeakSim\Runtime\Explain\StatsSnapshot;
 use PeakSim\Runtime\Explain\StatsStatements;
@@ -48,7 +49,7 @@ $usage = static function (string $why): never {
 
 $opts = [];
 foreach (array_slice($argv, 1) as $arg) {
-    if (preg_match('/^--(step|capture|tasks|scale|small-scale|out-dir|data|profile|base|group-dir|state|run-dir)=(.*)$/Ds', $arg, $m) !== 1) {
+    if (preg_match('/^--(step|capture|tasks|scale|small-scale|out-dir|data|profile|base|n-tables|group-dir|state|run-dir)=(.*)$/Ds', $arg, $m) !== 1) {
         $usage('unknown argument: ' . $arg);
     }
     $opts[$m[1]] = $m[2];
@@ -114,7 +115,19 @@ try {
             if ($profile !== null && preg_match('/^[a-z][a-z0-9_-]{0,30}$/D', (string) $profile) !== 1) {
                 $usage('--profile takes the name of a file in profiles/');
             }
-            $planner = $mode === 'seeder' ? new SeederPlanner() : new GeneratorPlanner(isset($opts['base']) ? (int) $opts['base'] : GeneratorPlanner::BASE);
+            $base = isset($opts['base']) ? (int) $opts['base'] : GeneratorPlanner::BASE;
+            if (isset($opts['n-tables'])) {
+                // One database for every route, the named tables all at N rows together (default: each route on the database of its own table).
+                if ($mode !== 'generator') {
+                    $usage('--n-tables works with --data=generator only');
+                }
+                if (preg_match('/^[a-z][a-z0-9_]{0,63}(,[a-z][a-z0-9_]{0,63})*$/D', $opts['n-tables']) !== 1) {
+                    $usage('--n-tables is a comma separated list of table names (lowercase letters, digits and _)');
+                }
+                $planner = new SharedTablesPlanner(explode(',', $opts['n-tables']), $base);
+            } else {
+                $planner = $mode === 'seeder' ? new SeederPlanner() : new GeneratorPlanner($base);
+            }
             $read = CaptureFile::read($capture);
             $plan = ExplainPlan::build($tasks, $read['routes'], $int('scale'), $int('small-scale'), $planner, $mode, $profile);
             $dir = rtrim($opts['out-dir'] ?? '', '/');
