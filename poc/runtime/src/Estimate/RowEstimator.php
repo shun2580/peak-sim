@@ -56,10 +56,12 @@ final class RowEstimator
      * @param array<string, mixed>      $capture     the decoded capture.json
      * @param array<string, mixed>      $explain     the decoded explain.json of the database of N rows (it also holds the small side)
      * @param array<string, mixed>|null $predictions the decoded predictions.json of bin/predict at N (queries, peak memory at route level), or null
+     * @param bool                      $withFormulas add the formulas themselves (`formula` per type; `table`, `axis`, `peak_memory_formula` per route;
+     *                                  `capture_scales` and `route_index` at the top) so a reader can evaluate them at another size. Nothing else changes.
      *
      * @return array<string, mixed>
      */
-    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null): array
+    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null, bool $withFormulas = false): array
     {
         if (!in_array($candidate, self::CANDIDATES, true)) {
             throw new \InvalidArgumentException('the candidate must be one of ' . implode(', ', self::CANDIDATES));
@@ -91,7 +93,7 @@ final class RowEstimator
             if (!is_array($cr) || !isset($cr['route'])) {
                 continue;
             }
-            $route = self::route($cr, $explainRoutes[(string) $cr['route']] ?? null, $candidate, $n, $representative);
+            $route = self::route($cr, $explainRoutes[(string) $cr['route']] ?? null, $candidate, $n, $representative, $withFormulas);
             $seen = [];
             foreach ($route['fallbacks'] as $reason => $count) {
                 $fallbacks[$reason] = ($fallbacks[$reason] ?? 0) + $count;
@@ -106,12 +108,34 @@ final class RowEstimator
             $p = $predicted[(string) $cr['route']]['quantities'] ?? null;
             $route['peak_memory'] = self::predicted($p['peak_memory'] ?? null);
             $route['queries_route_fit'] = self::predicted($p['queries'] ?? null);
+            if ($withFormulas) {
+                $pr = $predicted[(string) $cr['route']] ?? [];
+                $route['table'] = isset($pr['table']) ? (string) $pr['table'] : null;
+                $route['axis'] = isset($pr['axis']) ? (string) $pr['axis'] : null;
+                $route['peak_memory_formula'] = self::formulaOf($p['peak_memory'] ?? null);
+            }
             $routes[] = $route;
         }
         usort($routes, static fn (array $x, array $y): int => strcmp($x['route'], $y['route']));
         ksort($fallbacks);
 
-        return [
+        $extra = [];
+        if ($withFormulas) {
+            $index = [];
+            foreach ($predicted as $name => $pr) {
+                $index[$name] = ['route' => $name, 'axis' => isset($pr['axis']) ? (string) $pr['axis'] : null, 'table' => isset($pr['table']) ? (string) $pr['table'] : null, 'in_estimate' => false];
+            }
+            foreach ($routes as $r) {
+                $index[$r['route']] = ['route' => $r['route'], 'axis' => $r['axis'], 'table' => $r['table'], 'in_estimate' => true];
+            }
+            ksort($index);
+            $extra = [
+                'capture_scales' => array_values(array_map('intval', (array) ($capture['scales'] ?? []))),
+                'route_index' => array_values($index),
+            ];
+        }
+
+        return $extra + [
             'schema_version' => self::SCHEMA_VERSION,
             'candidate' => $candidate,
             'at' => $n,
@@ -148,7 +172,7 @@ final class RowEstimator
      *
      * @return array<string, mixed>
      */
-    private static function route(array $cr, ?array $er, string $candidate, int $n, int $representative): array
+    private static function route(array $cr, ?array $er, string $candidate, int $n, int $representative, bool $withFormulas = false): array
     {
         $status = (string) ($cr['status'] ?? 'captured');
         $out = [
@@ -171,6 +195,9 @@ final class RowEstimator
         }
         foreach ((array) ($cr['statement_types'] ?? []) as $ty) {
             $type = self::type((array) $ty, $statements[(string) ($ty['id'] ?? '')] ?? null, $candidate, $n, $representative);
+            if ($withFormulas && !isset($type['unavailable'])) {
+                $type['formula'] = self::formula((array) $ty, $type);
+            }
             if (isset($type['unavailable'])) {
                 $out['complete'] = false;
                 $out['unavailable'][] = ['id' => $type['id'], 'pattern' => $type['pattern'], 'reason' => $type['unavailable']];
@@ -304,6 +331,59 @@ final class RowEstimator
         $rec['measured_small'] = $measuredSmall;
 
         return $rec + ['per_exec' => (float) $measuredSmall * (float) $eN / (float) $eSmall, 'basis' => 'ratio'];
+    }
+
+    /**
+     * The formulas behind a type's point and upper side, for a reader that puts another size in. The same numbers `type` used.
+     *
+     * `count`: a, b, k of the count fit. `per_exec`: the H1 fit (a, b, k as rounded by CostFit::sig) or, with fewer scales than the fit needs,
+     * the value held from the largest scale. `upper`: for a type with an upper side, its value at the size of this estimate, the H1 value there
+     * and their ratio (null when the H1 value is 0: a reader then holds the upper value as it is).
+     *
+     * @param array<string, mixed> $ty
+     * @param array<string, mixed> $type the record `type` made
+     *
+     * @return array<string, mixed>
+     */
+    private static function formula(array $ty, array $type): array
+    {
+        $fit = (array) ($ty['count_fit'] ?? []);
+        $series = self::series((array) ($ty['per_scale'] ?? []));
+        if (count($series) >= CostFit::MIN_SCALES) {
+            $f = CostFit::fit(array_keys($series), array_values($series));
+            $perExec = ['basis' => 'fit', 'a' => CostFit::sig($f['a']), 'b' => CostFit::sig($f['b']), 'k' => CostFit::sig($f['k'])];
+        } else {
+            $perExec = ['basis' => 'held_from_largest_scale', 'value' => $series[max(array_keys($series))]];
+        }
+        $out = [
+            'count' => ['a' => (float) $fit['a'], 'b' => (float) $fit['b'], 'k' => (float) $fit['k']],
+            'per_exec' => $perExec,
+            'scales' => array_keys($series),
+            'upper' => null,
+        ];
+        if (isset($type['per_exec_upper'])) {
+            $h1 = (float) $type['per_exec_h1'];
+            $up = (float) $type['per_exec_upper'];
+            $out['upper'] = ['at_n' => $up, 'h1_at_n' => $h1, 'ratio' => $h1 > 0.0 ? $up / $h1 : null];
+        }
+
+        return $out;
+    }
+
+    /**
+     * a, b, k of a route-level quantity of predictions.json, or null when it was not predicted.
+     *
+     * @param array<string, mixed>|null $q
+     *
+     * @return array{a: float, b: float, k: float}|null
+     */
+    private static function formulaOf(?array $q): ?array
+    {
+        if ($q === null || ($q['status'] ?? null) !== 'predicted' || !isset($q['a'], $q['b'], $q['k'])) {
+            return null;
+        }
+
+        return ['a' => (float) $q['a'], 'b' => (float) $q['b'], 'k' => (float) $q['k']];
     }
 
     /**

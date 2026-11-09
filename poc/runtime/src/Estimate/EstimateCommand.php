@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Estimate;
 
 /**
- * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>]
+ * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas]
  * prints the estimate of every route on standard output. Exit codes: 0 done; 2 wrong usage or an unreadable input.
  */
 final class EstimateCommand
 {
-    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] > estimate.json';
+    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--with-formulas] > estimate.json';
 
     /**
      * @param resource $out
@@ -24,7 +24,12 @@ final class EstimateCommand
     public function run(array $args): int
     {
         $opts = ['capture' => null, 'explain' => null, 'candidate' => null, 'at' => null, 'predictions' => null];
+        $withFormulas = false;
         foreach ($args as $arg) {
+            if ($arg === '--with-formulas') {
+                $withFormulas = true;
+                continue;
+            }
             $matched = false;
             foreach (array_keys($opts) as $name) {
                 if (str_starts_with($arg, '--' . $name . '=')) {
@@ -69,7 +74,7 @@ final class EstimateCommand
             $decoded[$name] = $value;
         }
         try {
-            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions']);
+            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions'], $withFormulas);
         } catch (\InvalidArgumentException $e) {
             return $this->usage($e->getMessage());
         }
