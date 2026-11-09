@@ -166,10 +166,16 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
-| `bin/estimate` | a separate command: the rows each route reads at a size N by the candidates H1 to H3 of `docs/research/explain-estimate.md` (a fit per statement type, and the ratio of two EXPLAIN readings); reads `capture.json` and `explain.json` only, no database. `--candidate=H1_RANGE` gives the H1 point and, for a route with a marked statement, the upper side (the value H2 gives to the marked types) |
+| `bin/estimate` | a separate command: the rows each route reads at a size N by the candidates H1 to H3 of `docs/research/explain-estimate.md` (a fit per statement type, and the ratio of two EXPLAIN readings); reads `capture.json` and `explain.json` only, no database. `--candidate=H1_RANGE` gives the H1 point and, for a route with a marked statement, the upper side (the value H2 gives to the marked types). `--with-formulas` adds the formulas themselves (per statement type and per route) so `bin/simulate` can evaluate them at another size; without the flag the output is as before |
 | `bin/marked-routes` | a separate command: the marked routes of the 200,000-row test (a route with at least one statement marked `plan_changes_at_scale` or `plan_unstable` in the EXPLAIN at that size, `docs/simulator-spec.md` section 7.1); made from `explain.json` by that rule alone, no measured value, nothing added or dropped by hand |
 | `bin/explain-at-scale` | a separate command: the plans of the statements of a `capture.json` on a database of the target size, in three statistics states (above); `bin/measure` never calls it. The steps run inside the container in `bin/inner/explain-at-scale.php` |
 | `src/Explain/` | the gate and the sender of the capture's statements, the fixed statistics statements, the summary and marks of plans, the report |
+| `bin/simulate` | a separate command: `bin/simulate --estimate=<dir> --scenario=<scenario.yaml> --out=<dir> [--selfcheck=<file>] [--memory-accuracy=<file>]`. Reads an estimate (made by `bin/estimate ... --with-formulas`) and a scenario file (`docs/simulator-spec.md` section 3.4), puts each scenario's own table sizes into the formulas, calibrates on the calibration scenarios, and predicts the target scenarios. Writes `loaded.json` (the first stage) and `prediction.json`, and prints a table. A target scenario's `observed` is not read here. No database; the PHP image only (no network) if the host has no PHP |
+| `bin/backtest` | a separate command: `bin/backtest --estimate=<dir> --scenario=<scenario.yaml> --out=<dir>`. Writes the same prediction as `bin/simulate` first, and only then reads the `observed` of the target scenarios; writes `backtest.json` and a table: the difference in utilization, the comparison with the naive estimate, and the three items of section 7.4 B |
+| `bin/selfcheck` | a separate command: checks how well the estimate holds on the user's own app (`docs/simulator-spec.md` section 8.1). One command runs capture, the plans at the target size, the estimate, a seal (sha256 of the estimate files into `estimate/seal.json` and `estimate/order.log`), a gate that lets the measurement start only when the seal is intact, `bin/measure` at the target size, three more cold tries of each marked route (`bin/variance-run`), and the judge (rule B decides, rule A is shown). Saves `selfcheck-result.json`, which `bin/simulate --selfcheck=<file>` shows as the accuracy on that app. Its exit codes are in the table below |
+| `src/Simulate/` | `Load/` (the scenario file and the estimate's formulas; `TwoStage` keeps the order of the two stages), `Calibrate/` (section 5: `Calibrator::calibrate` fits the two coefficients by non-negative least squares from `CalibrationPoint`s and returns a `CalibrationResult` with the values, the range, the residual and the warnings), `Predict/` (section 6: utilization, the limit multiplier, the range, dominant routes, sensitivity, the PHP memory line, the output), `Yaml/` (a small YAML reader that needs no package) |
+| `src/Backtest/` | the naive estimate, the comparison and the report of `bin/backtest`, and the reader that keeps the target's `observed` back until the prediction is written |
+| `src/Selfcheck/` | `EstimateSeal` (the order, kept in code), `SelfcheckJudge` (the comparison of the extrapolation test on the user's app), `SelfcheckCommand` and `SelfcheckReport` (the PHP half of `bin/selfcheck`: seal, gate, marked, judge) |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
 | `tests/Unit/` | no Docker, no database |
@@ -182,12 +188,22 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | 0 | done (routes that could not be measured are in the record, not in the exit code) |
 | 2 | wrong usage |
 | 10 | start refused: host, user, database name or input is not allowed, or a statement named another schema, or a statement of a capture was not one `EXPLAIN FORMAT=JSON` of a data statement |
-| 11 | preflight failed (the container can leave the network, or cannot reach the DB service), or the stack could not be brought up |
+| 11 | preflight failed (the container can leave the network, or cannot reach the DB service), or the stack could not be brought up. `bin/simulate` and `bin/backtest`: no PHP on the host and no PHP image |
 | 12 | the app could not be started |
 | 13 | a measurement database could not be built (migration, seeder, generator) |
 | 14 | a request changed the database and it could not be rebuilt clean |
+| 15 | `bin/selfcheck` or `bin/explain-at-scale`: a step failed (the code of the step is in `steps.log`) |
+| 20 | `bin/selfcheck`: the order (seal, then measure) was not kept. `bin/simulate` and `bin/backtest`: the scenario file cannot be read or is not in the form of the spec |
+| 21-25 | `bin/simulate` and `bin/backtest`, the input stops the run: 21 `schema_version` differs, 22 a route that the estimate does not have, 23 a calibration scenario without `observed`, 24 cores missing, 25 the estimate directory cannot be read or has no formulas |
+| 30 | `bin/simulate` and `bin/backtest`: the calibration cannot be made |
+| 31 | `bin/simulate` and `bin/backtest`: `memory-accuracy.json` is there but not valid |
+| 40 | `bin/backtest`: no target scenario has an `observed` value (the prediction is written) |
+| 41 | `bin/backtest`: the order was not kept; nothing was compared |
+| 42 | `bin/backtest`: the naive estimate cannot be made |
 
 A run that stops with 10, 12, 13 or 14 still writes what it had measured; the routes it did not reach are recorded as `not_run`.
+
+The codes 15 and 20 of `bin/selfcheck` are its own; the codes of its parts are written in `steps.log`.
 
 ## Tests
 
@@ -203,6 +219,9 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/app -w /app peak-sim-php-dev:8
 bash poc/runtime/tests/Docker/run.sh                 # both stages
 bash poc/runtime/tests/Docker/run.sh --stage=2       # only the tests inside the stack
 ```
+
+The unit tests of the simulator are in `tests/Unit/Simulate/` (reading, calibration, prediction), `tests/Unit/Backtest/` (the naive estimate, the comparison, the order) and `tests/Unit/Selfcheck/`.
+`SelfcheckScriptOrderTest` runs `bin/selfcheck` itself with stand-in parts (no Docker needed; PHP and bash are).
 
 The ordinary suite (`phpunit.xml`) never runs these; `tests/Unit/PocIsolationTest.php` keeps the PoC out of the
 official tool.
