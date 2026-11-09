@@ -46,7 +46,7 @@ final class LadderScoreTest extends TestCase
 
     /**
      * A scenario of up to four stages that are all usable: observed 0.20 0.40 0.60 0.85 at rps 1 2 3 4. With four stages the limit rps
-     * is measured by interpolation between (3, 0.60) and (4, 0.85): 3.8. With two or three it is extended from the top two stages.
+     * is measured by interpolation between (3, 0.60) and (4, 0.85): 3.8. With two or three it is extended from the top two stages (the stage that reached the threshold is added, invalid).
      */
     private static function standard(string $id, int $n = 4, float $offset = 0.0, float $naiveOffset = 0.3, ?float $limit = 3.8): array
     {
@@ -54,6 +54,10 @@ final class LadderScoreTest extends TestCase
         $stages = [];
         for ($i = 0; $i < $n; $i++) {
             $stages[] = self::stage($i + 1.0, $obs[$i], true, $obs[$i] + $offset, $obs[$i] + $offset + 0.05, $obs[$i] + $naiveOffset);
+        }
+        if ($n < 4) {
+            // The stage that reached the threshold came out invalid: the limit is then extended from the top two valid stages.
+            $stages[] = self::stage($n + 1.0, 0.95, false);
         }
 
         return self::scenario($id, $stages, $limit, $limit, $limit === null ? null : $limit * 2);
@@ -230,9 +234,9 @@ final class LadderScoreTest extends TestCase
         $this->assertEqualsWithDelta(1.0 + (0.3 / 0.4) * 2.0, $m['rps'], 1e-9);
     }
 
-    public function test_when_no_valid_stage_reaches_the_threshold_the_top_two_are_extended_and_marked(): void
+    public function test_when_a_stage_at_the_threshold_was_invalid_the_two_largest_valid_stages_are_extended_and_marked(): void
     {
-        // (1, 0.40) (2, 0.60) valid; the stage that reached it (3, 0.90) is invalid. Slope 0.2 per rps: 0.8 at rps 3.
+        // (1, 0.40) (2, 0.60) valid; the stage that reached the threshold (3, 0.90) is invalid. Slope 0.2 per rps: 0.8 at rps 3.
         $m = self::measuredLimit([self::stage(1.0, 0.4), self::stage(2.0, 0.6), self::stage(3.0, 0.9, false)]);
         $this->assertSame('measured', $m['status']);
         $this->assertSame('extended', $m['method']);
@@ -242,10 +246,48 @@ final class LadderScoreTest extends TestCase
 
     public function test_the_extension_uses_the_two_largest_rps_not_the_first_two(): void
     {
-        $m = self::measuredLimit([self::stage(1.0, 0.1), self::stage(2.0, 0.2), self::stage(3.0, 0.4), self::stage(4.0, 0.6)]);
+        // Valid (1, 0.1) (2, 0.2) (3, 0.4) (4, 0.6); the stage at the threshold (5, 0.85) is invalid. The line of the first two would
+        // reach 0.8 at rps 8; the line of the largest two (3, 0.4) (4, 0.6) reaches it at rps 5.
+        $m = self::measuredLimit([self::stage(1.0, 0.1), self::stage(2.0, 0.2), self::stage(3.0, 0.4), self::stage(4.0, 0.6), self::stage(5.0, 0.85, false)]);
         $this->assertSame('extended', $m['method']);
         $this->assertSame([3.0, 4.0], array_column($m['basis'], 'rps'));
         $this->assertEqualsWithDelta(5.0, $m['rps'], 1e-9);
+    }
+
+    public function test_a_valid_straddle_is_interpolated_even_if_a_later_stage_at_the_threshold_was_invalid(): void
+    {
+        $m = self::measuredLimit([self::stage(1.0, 0.5), self::stage(2.0, 0.9), self::stage(3.0, 0.95, false)]);
+        $this->assertSame('interpolated', $m['method']);
+    }
+
+    public function test_a_ladder_that_stopped_below_the_threshold_before_the_top_stage_is_not_measured_as_app_bound(): void
+    {
+        // The application became the bottleneck: the last measured stage came out invalid at 60%, and the stages above were not measured.
+        $m = self::measuredLimit([self::stage(1.0, 0.2), self::stage(2.0, 0.4), self::stage(3.0, 0.6, false), self::stage(4.0, null), self::stage(5.0, null)]);
+        $this->assertSame('not_measured', $m['status']);
+        $this->assertNull($m['rps']);
+        $this->assertSame('app_bound_below_threshold', $m['reason_code']);
+        $this->assertStringContainsString('app_bound_below_threshold', $m['reason']);
+        // The same when the last measured stage is valid and below the threshold.
+        $m = self::measuredLimit([self::stage(1.0, 0.2), self::stage(2.0, 0.4), self::stage(3.0, 0.6), self::stage(4.0, null)]);
+        $this->assertSame('app_bound_below_threshold', $m['reason_code']);
+    }
+
+    public function test_a_ladder_that_reached_the_top_stage_without_reaching_the_threshold_is_not_measured_as_never_reached(): void
+    {
+        $m = self::measuredLimit([self::stage(1.0, 0.1), self::stage(2.0, 0.2), self::stage(3.0, 0.3)]);
+        $this->assertSame('not_measured', $m['status']);
+        $this->assertNull($m['rps']);
+        $this->assertSame('never_reached_threshold', $m['reason_code']);
+        $this->assertStringContainsString('never_reached_threshold', $m['reason']);
+    }
+
+    public function test_the_three_not_measured_reasons_are_told_apart(): void
+    {
+        $few = self::measuredLimit([self::stage(1.0, 0.5), self::stage(2.0, 0.85, false)]);
+        $app = self::measuredLimit([self::stage(1.0, 0.2), self::stage(2.0, 0.4), self::stage(3.0, null)]);
+        $never = self::measuredLimit([self::stage(1.0, 0.2), self::stage(2.0, 0.4)]);
+        $this->assertSame(['fewer_than_two_valid', 'app_bound_below_threshold', 'never_reached_threshold'], [$few['reason_code'], $app['reason_code'], $never['reason_code']]);
     }
 
     public function test_fewer_than_two_valid_stages_is_not_measured(): void
@@ -261,24 +303,24 @@ final class LadderScoreTest extends TestCase
     public function test_a_line_that_does_not_rise_never_reaches_the_threshold_so_it_is_not_measured(): void
     {
         foreach ([[0.5, 0.5], [0.6, 0.5]] as [$a, $b]) {
-            $m = self::measuredLimit([self::stage(1.0, $a), self::stage(2.0, $b)]);
+            $m = self::measuredLimit([self::stage(1.0, $a), self::stage(2.0, $b), self::stage(3.0, 0.85, false)]);
             $this->assertSame('not_measured', $m['status']);
             $this->assertStringContainsString('does not rise', $m['reason']);
         }
     }
 
-    public function test_when_every_valid_stage_is_at_or_above_the_threshold_the_line_is_extended_downwards(): void
+    public function test_when_every_valid_stage_is_at_or_above_the_threshold_and_none_was_invalid_there_it_is_not_measured(): void
     {
-        // The spec does not say: the same idea (the two valid stages nearest the threshold, here the two smallest rps) is used.
+        // Nothing straddles the threshold, and the spec extends a line only after an invalid stage at the threshold.
         $m = self::measuredLimit([self::stage(1.0, 0.85), self::stage(2.0, 0.95)]);
-        $this->assertSame('extended', $m['method']);
-        $this->assertEqualsWithDelta(0.5, $m['rps'], 1e-9);
-        $this->assertSame([1.0, 2.0], array_column($m['basis'], 'rps'));
+        $this->assertSame('not_measured', $m['status']);
+        $this->assertNull($m['rps']);
+        $this->assertSame('no_valid_stage_below_threshold', $m['reason_code']);
     }
 
     public function test_an_extension_that_lands_at_zero_or_less_is_not_measured(): void
     {
-        $m = self::measuredLimit([self::stage(1.0, 0.9), self::stage(2.0, 0.95)]);
+        $m = self::measuredLimit([self::stage(1.0, 0.9), self::stage(2.0, 0.95), self::stage(3.0, 0.99, false)]);
         $this->assertSame('not_measured', $m['status']);
         $this->assertStringContainsString('0 or less', $m['reason']);
     }

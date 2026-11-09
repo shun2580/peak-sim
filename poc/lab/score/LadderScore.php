@@ -30,8 +30,9 @@ namespace PeakSim\Lab\Score;
  *  - item 4: over the scenarios whose limit rps was measured, the share whose predicted limit (point) is within 20% (target 10%) of the measured one
  *    is 80% or more
  *  - the measured limit rps: a straight line between the two valid stages that straddle the threshold (the first valid stage that reaches it,
- *    and the valid stage just below that); if no valid stage reaches it, a line from the two valid stages with the largest rps, extended, and
- *    marked so; fewer than two valid stages: not measured
+ *    and the valid stage just below that); when a stage at or above the threshold was measured but was invalid, a line from the two valid stages
+ *    with the largest rps, extended, and marked so; fewer than two valid stages: not measured. Any other case (the ladder stopped below the
+ *    threshold, or the top stage was reached without reaching it) is not measured, with a reason
  *  - INDETERMINATE: fewer than 10 usable stages, or fewer than 4 scenarios whose limit rps was measured. Never counted as a pass
  * Section 7.4 B also has the naive estimate stand beside items 1 and 4 (item 4 against the naive estimate is not used for the verdict).
  */
@@ -370,6 +371,11 @@ final class LadderScore
     }
 
     /**
+     * The measured limit rps, as the spec writes it (7.2): a line between the two valid stages that straddle the threshold; a line
+     * EXTENDED from the two valid stages with the largest rps only when a stage at or above the threshold was measured but was invalid
+     * (its rps did not come out); fewer than two valid stages is not measured. Every other case (the ladder stopped below the threshold
+     * because the application was the bottleneck, or the top stage was reached and the threshold was not) is not measured, with a reason.
+     *
      * @param list<array<string, mixed>> $stages sorted by rps, ascending
      *
      * @return array<string, mixed>
@@ -377,13 +383,21 @@ final class LadderScore
     private static function measuredLimit(array $stages, float $threshold): array
     {
         $valid = [];
-        foreach ($stages as $stage) {
-            if ($stage['observed'] !== null && $stage['valid']) {
+        $invalidAtThreshold = false;
+        $lastMeasured = null;
+        foreach ($stages as $i => $stage) {
+            if ($stage['observed'] === null) {
+                continue;
+            }
+            $lastMeasured = $i;
+            if ($stage['valid']) {
                 $valid[] = ['rps' => $stage['rps'], 'utilization' => $stage['observed']];
+            } elseif (self::reaches($stage['observed'], $threshold)) {
+                $invalidAtThreshold = true;
             }
         }
         if (count($valid) < 2) {
-            return ['status' => 'not_measured', 'reason' => 'fewer than two valid stages (' . count($valid) . ')', 'method' => null, 'rps' => null, 'basis' => $valid];
+            return self::notMeasured('fewer_than_two_valid', 'fewer than two valid stages (' . count($valid) . ')', $valid);
         }
 
         $first = null;
@@ -399,25 +413,52 @@ final class LadderScore
             $hi = $valid[$first];
             $rps = $lo['rps'] + ($threshold - $lo['utilization']) / ($hi['utilization'] - $lo['utilization']) * ($hi['rps'] - $lo['rps']);
 
-            return ['status' => 'measured', 'reason' => null, 'method' => 'interpolated', 'rps' => $rps, 'basis' => [$lo, $hi]];
+            return ['status' => 'measured', 'reason' => null, 'reason_code' => null, 'method' => 'interpolated', 'rps' => $rps, 'basis' => [$lo, $hi]];
         }
 
-        // No valid stage below the threshold sits under one that reaches it, or no valid stage reaches it: a line is extended.
-        // The two valid stages nearest the threshold on the side they lie are used: the two with the largest rps when all lie below it
-        // (the spec), the two with the smallest rps when all lie at or above it (the spec does not say; the same idea).
-        $pair = $first === null ? [$valid[count($valid) - 2], $valid[count($valid) - 1]] : [$valid[0], $valid[1]];
+        if (!$invalidAtThreshold) {
+            if ($first !== null) {
+                return self::notMeasured(
+                    'no_valid_stage_below_threshold',
+                    'no valid stage lies below the threshold, so nothing straddles it, and no stage at or above it was invalid, so the spec does not extend a line',
+                    $valid,
+                );
+            }
+            if ($lastMeasured === count($stages) - 1) {
+                return self::notMeasured('never_reached_threshold', 'the top stage was measured and no valid stage reached the threshold', $valid);
+            }
+
+            return self::notMeasured(
+                'app_bound_below_threshold',
+                'the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured',
+                $valid,
+            );
+        }
+
+        // A stage at or above the threshold was measured and was invalid, and nothing valid straddles the threshold: the spec extends a line
+        // from the two valid stages with the largest rps.
+        $pair = [$valid[count($valid) - 2], $valid[count($valid) - 1]];
         [$a, $b] = $pair;
         $slope = ($b['utilization'] - $a['utilization']) / ($b['rps'] - $a['rps']);
         if ($slope <= 0.0) {
-            return ['status' => 'not_measured', 'reason' => 'the line through the two nearest valid stages does not rise, so it never reaches the threshold', 'method' => null, 'rps' => null, 'basis' => $pair];
+            return self::notMeasured('line_does_not_rise', 'the line through the two largest valid stages does not rise, so it never reaches the threshold', $pair);
         }
-        $anchor = $first === null ? $b : $a;
-        $rps = $anchor['rps'] + ($threshold - $anchor['utilization']) / $slope;
+        $rps = $b['rps'] + ($threshold - $b['utilization']) / $slope;
         if ($rps <= 0.0) {
-            return ['status' => 'not_measured', 'reason' => 'the extended line reaches the threshold at an rps of 0 or less', 'method' => null, 'rps' => null, 'basis' => $pair];
+            return self::notMeasured('extension_not_above_zero', 'the extended line reaches the threshold at an rps of 0 or less', $pair);
         }
 
-        return ['status' => 'measured', 'reason' => null, 'method' => 'extended', 'rps' => $rps, 'basis' => $pair];
+        return ['status' => 'measured', 'reason' => null, 'reason_code' => null, 'method' => 'extended', 'rps' => $rps, 'basis' => $pair];
+    }
+
+    /**
+     * @param list<array{rps: float, utilization: float}> $basis
+     *
+     * @return array<string, mixed>
+     */
+    private static function notMeasured(string $code, string $reason, array $basis): array
+    {
+        return ['status' => 'not_measured', 'reason' => $code . ': ' . $reason, 'reason_code' => $code, 'method' => null, 'rps' => null, 'basis' => $basis];
     }
 
     /**

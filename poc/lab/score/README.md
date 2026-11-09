@@ -23,13 +23,13 @@ The tests are in `poc/runtime/tests/Unit/LabScore/` (suite `RuntimeUnit`).
 | Item 2: mean abs. difference, 15 points (target 5) | the end is in |
 | Item 3: "exceeded the threshold" agrees, over all valid stages, 80% or more | exceeded means strictly above the threshold (as `LimitSearch::exceeds`); 80% is held as 8 in 10, in whole numbers |
 | Item 4: predicted limit rps (point) within 20% (target 10%) of the measured one, over the scenarios whose limit was measured, 80% or more | the end is in; a predicted limit of `null` (no load) is a miss |
-| Measured limit rps | a line between the two valid stages that straddle the threshold (the first valid stage that reaches it, and the valid stage just below it), `interpolated`; if no valid stage reaches it, a line from the two valid stages with the largest rps, `extended`; fewer than two valid stages, `not_measured` |
+| Measured limit rps | a line between the two valid stages that straddle the threshold (the first valid stage that reaches it, and the valid stage just below it), `interpolated`; when a stage at or above the threshold was measured but was invalid, a line from the two valid stages with the largest rps, `extended`; fewer than two valid stages, `not_measured` (`fewer_than_two_valid`). Any other case is `not_measured` too, with a reason: `app_bound_below_threshold` (the ladder stopped below the threshold before the top stage), `never_reached_threshold` (the top stage was measured and no valid stage reached the threshold), `no_valid_stage_below_threshold` |
 | Indeterminate | fewer than 10 usable stages, or fewer than 4 scenarios whose limit was measured. Never counted as a pass; the items are still shown |
 
 Where the spec is silent, the code does the following, and says so in the output:
 
-- Every valid stage is at or above the threshold (so nothing straddles it): the line is extended downwards from the two valid stages with
-  the smallest rps. The same idea as the spec's: the two valid stages nearest the threshold.
+- Every valid stage is at or above the threshold and none was invalid at or above it (nothing straddles it, and the spec does not extend):
+  `not_measured` (`no_valid_stage_below_threshold`).
 - A line that does not rise (or that reaches the threshold at an rps of 0 or less) never reaches it: `not_measured`, with the reason.
 - Reaching the threshold (to measure a limit) is "at or above"; exceeding it (item 3) is "strictly above".
 
