@@ -1168,13 +1168,7 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 内容:(1)「§4 でコストを見積もれたもの」は、estimate.json で status が captured かつ complete が true の GET のルートと読む。(2)「静的解析の下限の次数」は、fits.json の static_lower_bound の `O(...)` の因子の指数の和とし(O(N)=1、O(N*M)=2)、O(1) と下限なしは 0 とする。知らない形の下限は 0 と読まず、止めて拒む。(3) 並びは次数の大きい順、同じなら「メソッド + URI」の文字列のバイト順。上位 8 本のうち順位 1〜4 を前半、5〜8 を後半とする。(4) BookStack の入力では、O(N) の GET が 9 本、下限なしが 7 本で、O(N*M) の GET は無い。このため 8 本は O(N) の 9 本を文字列順に並べた先頭 8 本になった
 - 理由:仕様の「機械的に決める」を、入力の読み方の曖昧さなしに再現できるようにするため。知らない形を黙って 0 と読むと、順位が静かにずれるため拒む。決まり(§7.2)は変えていない
 
-### D142. selfcheck の欠陥2つを直す(cmd_273 T2。判定の規則・測り方は変えない)
-
-- 内容:(1) `bin/measure` が書く `tasks.json` の body を、測定が実際に使った本文(422 の後で作り直して通った本文)にする(`DriverResult::learnedBodies` → `OutputWriter`)。cold 3回の段(`bin/variance-run`)はこの `tasks.json` から要求を作るので、PUT などで同じ本文が渡り 422 にならない。作り直しが無かったルートの本文は元のまま。(2) `bin/variance-run` は `measure-one` の標準出力から試行の記録の行だけを `attempt.jsonl` に残す。ダウンロードのルートが標準出力へ送るファイルの中身は残さず、省いたバイト数だけを `trial.json` の `stdout_other_bytes` に書く
-- 理由:前回の実測(cmd_271)で出た欠陥。(1) は元の本文のまま3回やって全部 422、(2) は `attempt.jsonl` が JSONL として読めなかった。どちらも測り方・判定の規則・測定器の既定の動きは変えていない(記録の書き方と受け渡しだけ)
-- 試験:(1) `MeasuredBodyReachesTheRepeatTest`、(2) `VarianceRunRecordTest`。どちらも直す前の形で落ち、直した後で通ることを確かめた
-
-### D143. 較正の幅の作り方と出力の足し方(cmd_273 T1。D137 の実装の細目。D72 の委任による戻せる判断。2026-11-09)
+### D143. 較正の幅の作り方と出力の足し方(D137 の実装の細目。D72 の委任による戻せる判断。2026-11-09)
 
 - 内容(作り方):較正用が3本以上なら、1本ずつ抜いた2係数の較正(各 n−1 本)の予測値の範囲を較正の幅にする。**全本での2係数の較正(点の値を出すもの)もその中に入れる**。2本は「較正の幅は出せない」(理由を出力に書く)で、較正の幅は置かず、幅は見積もりの読み(点・上側・下限・上限)だけで作る。1本(または2本で係数を分けられぬとき)は §5 の本数だけ・行数だけの2通り。2係数の較正ができるときは1係数の較正を幅に使わない(`fits` には残して「表示のみ」と書く)。抜いた残りで2係数が分けられぬ組は範囲に入れず、`notes` に書く。較正の部品(`Calibrate/`)は変えず、`Calibrator::calibrate` を部分集合で呼ぶだけ(`Predict/CalibrationWidth`)
 - 内容(出力):各シナリオの `utilization.width` に、`upper_over_point`(上端 ÷ 点)・`point_over_lower`(点 ÷ 下端)・`estimate_only`(点の較正で、見積もりの読みだけが広げる範囲)・`calibration_only`(点の読みで、較正の幅だけが広げる範囲。出せぬときは null)・`calibration_width_note`(出せぬ理由)。`range_basis.calibration_width` に種類(`leave_one_out`/`one_coefficient_pair`/`unavailable`)、`range_basis.calibration_fits` に使った組の名(`all`・`without:<id>`)。出力全体の `calibration.width` に、使った組の係数・理由・注記。端末の表にも同じ内容(「出せない」は大文字で明示)。下端が 0 の倍率は無限にせず null(表では undefined)
@@ -1193,3 +1187,9 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 変わらないもの:合格線・許す誤差(rps ±5%)・判定の規則・ラボのシナリオ(§7.2 の表)・DB の権限
 - 理由:指示書 #14 T3 が、使用率の定義と cpu.stat の読み方を測る前に記帳することを求めた。後から戻せる(読み方と数え方だけで、値の判定規則は仕様のまま)
 - 置き場:`poc/lab/load/`(`scenario.js`・`make-plan.php`・`summarize-run.php`)、`poc/lab/observe/sample-cpu`、部品は `poc/runtime/src/LabLoad/`、試験は `poc/runtime/tests/Unit/LabLoad/`
+
+### D145. selfcheck の欠陥2つを直す(判定の規則・測り方は変えない)
+
+- 内容:(1) `bin/measure` が書く `tasks.json` の body を、測定が実際に使った本文(422 の後で作り直して通った本文)にする(`DriverResult::learnedBodies` → `OutputWriter`)。cold 3回の段(`bin/variance-run`)はこの `tasks.json` から要求を作るので、PUT などで同じ本文が渡り 422 にならない。作り直しが無かったルートの本文は元のまま。(2) `bin/variance-run` は `measure-one` の標準出力から試行の記録の行だけを `attempt.jsonl` に残す。ダウンロードのルートが標準出力へ送るファイルの中身は残さず、省いたバイト数だけを `trial.json` の `stdout_other_bytes` に書く
+- 理由:前回の実測で出た欠陥。(1) は元の本文のまま3回やって全部 422、(2) は `attempt.jsonl` が JSONL として読めなかった。どちらも測り方・判定の規則・測定器の既定の動きは変えていない(記録の書き方と受け渡しだけ)
+- 試験:(1) `MeasuredBodyReachesTheRepeatTest`、(2) `VarianceRunRecordTest`。どちらも直す前の形で落ち、直した後で通ることを確かめた
