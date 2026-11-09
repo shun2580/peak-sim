@@ -86,6 +86,8 @@ record of one database, <out>/<label>/db<k>/:
   g<G>/stats_after_build.tsv  [g<G>/analyze.log  stats_before_analyze.tsv  stats_after_analyze.tsv]
   [g<G>/stats_off.log  stats_off_tables.txt  stats_after_off.tsv  table_options_before_off.tsv  table_options_after_off.tsv]   (--stats-auto-recalc=off)
   g<G>/<phase>_lap<L>/<seq>_<route>/attempt.jsonl stderr.log tap.jsonl trial.json stats_before.tsv stats_after.tsv
+                                                               (attempt.jsonl holds the attempt records only; trial.json says in stdout_other_bytes
+                                                               how many bytes of anything else, a downloaded file's, were left out)
   index.tsv                                                    one line per trial
   <phase> is plain, analyzed after an ANALYZE TABLE, or statsoff after ANALYZE TABLE and STATS_AUTO_RECALC=0.
 exit codes:
@@ -432,6 +434,17 @@ run_lap() {
   done
 }
 
+# measure-one writes one attempt record per line on standard output. A route that answers with a file (a ZIP download, say) can also
+# send the file's own bytes there. The record keeps the attempt lines and nothing else: $1 is what was written, $2 the record. What was
+# left out is not kept; only its size is returned (on standard output), so the record says that something was left out, not what.
+keep_attempt_records() {
+  local raw="$1" kept="$2" raw_bytes raw_lines kept_bytes kept_lines
+  LC_ALL=C sed -n 's/.*\({"route":.*}\)$/\1/p' "$raw" > "$kept"
+  raw_bytes="$(wc -c < "$raw")"; raw_lines="$(LC_ALL=C tr -cd '\n' < "$raw" | wc -c)"
+  kept_bytes="$(wc -c < "$kept")"; kept_lines="$(LC_ALL=C tr -cd '\n' < "$kept" | wc -c)"
+  echo "$(( (raw_bytes - raw_lines) - (kept_bytes - kept_lines) ))"
+}
+
 run_trial() {
   local k="$1" g="$2" db_dir="$3" gd="$4" tag="$5" dbname="$6" phase="$7" lap="$8" n="$9" i="${10}"
   local num dir rel started ended started_epoch ended_epoch code
@@ -446,9 +459,12 @@ run_trial() {
 
   snapshot_stats "$dbname" "$dir/stats_before.tsv"
   started="$(now_iso)"; started_epoch="$(date +%s)"
-  compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/measure-one "${margs[@]}" ${tap_args[@]+"${tap_args[@]}"} > "$dir/attempt.jsonl" 2> "$dir/stderr.log"
+  compose exec -T "${exec_env[@]}" -e "PEAK_MEASURE_DB_TAG=$tag" measure-php php /peak-sim/poc/runtime/bin/measure-one "${margs[@]}" ${tap_args[@]+"${tap_args[@]}"} > "$dir/.stdout.raw" 2> "$dir/stderr.log"
   code=$?
   ended="$(now_iso)"; ended_epoch="$(date +%s)"
+  local other_bytes
+  other_bytes="$(keep_attempt_records "$dir/.stdout.raw" "$dir/attempt.jsonl")"
+  rm -f "$dir/.stdout.raw"
   snapshot_stats "$dbname" "$dir/stats_after.tsv"
 
   local attempts oks tap_file=absent
@@ -457,7 +473,7 @@ run_trial() {
   [ -s "$dir/tap.jsonl" ] && tap_file=present
   json db="$k" group="$g" database="$dbname" phase="$phase" lap="$lap" order="$n" route="${r_method[$i]} ${r_route[$i]}" uri="${r_uri[$i]}" \
     started="$started" ended="$ended" started_epoch="$started_epoch" ended_epoch="$ended_epoch" seconds="$((ended_epoch - started_epoch))" \
-    exit="$code" attempts="$attempts" attempts_ok="$oks" tap="$tap_file" source_commit="$source_commit" > "$dir/trial.json"
+    exit="$code" attempts="$attempts" attempts_ok="$oks" stdout_other_bytes="$other_bytes" tap="$tap_file" source_commit="$source_commit" > "$dir/trial.json"
   printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "db$k" "g$g" "$phase" "$lap" "$n" "${r_method[$i]} ${r_route[$i]}" "$code" "$attempts/$oks" "${dir#"$run_root"/}" >> "$db_dir/index.tsv"
   echo "[$ended] db$k g$g $phase lap$lap #$n ${r_method[$i]} ${r_route[$i]}: exit $code, $attempts attempts ($oks ok), $((ended_epoch - started_epoch)) s, tap $tap_file"
 
