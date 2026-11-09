@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "source": "peak memory within +-30% in the first extrapolation test (100,000 rows) and the second (200,000 rows); see memory_accuracy.py",
+  "tolerance": 0.3,
+  "app": "fixtures",
+  "within": [
+    "GET /hidden/appends",
+    "GET /hidden/blade",
+    "GET /hidden/cache",
+    "GET /hidden/conditional-binding",
+    "GET /hidden/cursor",
+    "GET /hidden/model-with",
+    "GET /hidden/resource",
+    "GET /ng/collection-filter",
+    "GET /ng/count-in-loop",
+    "GET /ng/first-or-create-in-loop",
+    "GET /ng/get-then-count",
+    "GET /ng/layered",
+    "GET /ng/n-plus-one",
+    "GET /ng/nested",
+    "GET /ng/save-in-loop",
+    "GET /ng/service",
+    "GET /ng/unbounded",
+    "GET /ok/chunk",
+    "GET /ok/eager",
+    "GET /ok/lazy",
+    "GET /ok/paginate",
+    "GET /ok/with-count",
+    "GET /unknown/dynamic"
+  ],
+  "outside": [],
+  "tests": {
+    "first": {
+      "measured": 23,
+      "within": 23,
+      "outside": 0
+    },
+    "second": {
+      "measured": 22,
+      "within": 22,
+      "outside": 0
+    }
+  }
+}

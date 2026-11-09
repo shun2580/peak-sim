@@ -1,0 +1,56 @@
+{
+  "schema_version": "1",
+  "source": "peak memory within +-30% in the first extrapolation test (100,000 rows) and the second (200,000 rows); see memory_accuracy.py",
+  "tolerance": 0.3,
+  "app": "bookstack",
+  "within": [
+    "DELETE /import/{id}",
+    "DELETE /settings/sorting/rules/{id}",
+    "GET /books/{bookSlug}/chapter/{chapterSlug}",
+    "GET /books/{bookSlug}/copy",
+    "GET /books/{bookSlug}/draft/{pageId}",
+    "GET /books/{bookSlug}/export/zip",
+    "GET /books/{bookSlug}/page/{pageSlug}",
+    "GET /images/edit/{id}",
+    "GET /oidc/callback",
+    "GET /settings/sorting/rules/{id}",
+    "GET /settings/users/create",
+    "GET /settings/users/{id}",
+    "GET /shelves/{slug}",
+    "POST /books/{bookSlug}/draft/{pageId}",
+    "POST /import/{id}",
+    "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+    "PUT /books/{bookSlug}/page/{pageSlug}",
+    "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+    "PUT /books/{slug}",
+    "PUT /settings/sorting/rules/{id}",
+    "PUT /settings/users/{id}",
+    "PUT /shelves/{slug}"
+  ],
+  "outside": [
+    "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+    "DELETE /books/{bookSlug}/draft/{pageId}",
+    "DELETE /books/{bookSlug}/page/{pageSlug}",
+    "DELETE /books/{id}",
+    "DELETE /settings/maintenance/cleanup-images",
+    "DELETE /shelves/{slug}",
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+    "GET /books/{bookSlug}/page/{pageSlug}/references",
+    "GET /books/{slug}/references",
+    "GET /shelves/{slug}/references",
+    "POST /settings/maintenance/regenerate-references",
+    "POST /settings/recycle-bin/empty"
+  ],
+  "tests": {
+    "first": {
+      "measured": 23,
+      "within": 17,
+      "outside": 6
+    },
+    "second": {
+      "measured": 34,
+      "within": 22,
+      "outside": 12
+    }
+  }
+}
