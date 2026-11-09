@@ -1193,3 +1193,28 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 内容:(1) `bin/measure` が書く `tasks.json` の body を、測定が実際に使った本文(422 の後で作り直して通った本文)にする(`DriverResult::learnedBodies` → `OutputWriter`)。cold 3回の段(`bin/variance-run`)はこの `tasks.json` から要求を作るので、PUT などで同じ本文が渡り 422 にならない。作り直しが無かったルートの本文は元のまま。(2) `bin/variance-run` は `measure-one` の標準出力から試行の記録の行だけを `attempt.jsonl` に残す。ダウンロードのルートが標準出力へ送るファイルの中身は残さず、省いたバイト数だけを `trial.json` の `stdout_other_bytes` に書く
 - 理由:前回の実測で出た欠陥。(1) は元の本文のまま3回やって全部 422、(2) は `attempt.jsonl` が JSONL として読めなかった。どちらも測り方・判定の規則・測定器の既定の動きは変えていない(記録の書き方と受け渡しだけ)
 - 試験:(1) `MeasuredBodyReachesTheRepeatTest`、(2) `VarianceRunRecordTest`。どちらも直す前の形で落ち、直した後で通ることを確かめた
+
+### D146. ラボの環境:php-fpm の入口と、安全の条件 1〜6 の引き継ぎ(§7.2 の細目。D72 の委任による戻せる判断。2026-11-09)
+
+- 内容(入口):nginx は fpm に常に `poc/lab/app/entry.php` だけを渡す。アプリ自身の `public/index.php` は動かさない。入口は `AppBooter`(接続の固定と証明)・`AppSupport`・プロファイルの `on_boot`・`ActingAs`・`Fakes::install` を測定と同じ順で呼び、要求ごとに transaction を張って必ず巻き戻す。条件 4〜6 は緩めていない
+- 内容(GET だけ):GET と HEAD 以外は入口が 405 で返し、アプリを起動しない(負荷は GET だけ。書き込みで表の件数が変わるのを避ける)
+- 内容(巻き戻せなかったとき):暗黙の commit になる文・既定でない接続への書き込み・測定 DB 以外のスキーマを名指す文・要求が transaction を終わらせた、のいずれかを要求の後で見つけたら、ラッチのファイルを置き、以後の要求は 503 で拒む(測れない DB を測らない)。測定器が要求ごとに取る「全表の行数の前後比べ」は、負荷の最中は重すぎるので入口では取らない(`RollbackGuard` の他の見張りは同じ)
+- 内容(ログイン):既定は `PEAK_LAB_ACT_AS`(先頭の BookStack ユーザー)。測定でゲストとして要求したルート(`/oidc/callback`)は、ヘッダ `X-Lab-Login: none` を付けると入口がログインさせない(`bin/targets` がルートごとに付ける)。この印はログインの有無だけを変え、どの DB・どの権限にも触れない
+- 内容(ランタイムへの足し):`ScratchDir::fixed($path)` と `AppBooter::boot` の省略可能な第3引数(呼び出し側が持つ書き込み場所)。既定の動きは変えていない(既存の試験はそのまま通る。`ScratchDirFixedTest` を足した)。理由:要求ごとに書き込み場所を作り直すと、Blade の再コンパイルが毎回走り、本番の php-fpm(コンパイル済みを持ち越す)と CPU の使い方が違ってしまう
+- 変わらないもの:合格線・許す誤差・判定の規則・測定器の既定の動き・ラボのシナリオ・DB の権限(`10-measure-user.sql` の1文だけ。比較試験用の `performance_schema` の権限は渡さない)
+- ラボで言えないこと(§7.2 に足して報告に書く):要求ごとに文が1本増える(AppBooter が「いまどの DB か」をサーバに尋ねる。条件 2 の証明)
+- 縛る試験:`poc/lab/tests/run.sh`(密閉の起動が通る・外へ出られる形と公開ポートの形は終了コード 11 で止まり何も残らない・外へ出られる形ではコンテナの中から本当に外に届く・アプリは読み取り専用・GET 以外は 405)、`ScratchDirFixedTest`
+
+### D147. ラボの資源の割り当てと設定、取得したイメージ(§7.2 の細目。D72 の委任による戻せる判断。2026-11-09)
+
+- 内容(CPU):DB を CPU 0-1(`cpuset`)・`cpus: 2`、アプリ(php-fpm)と web を CPU 2-7(`cpus: 6`)、k6 を CPU 8-9、DB 作成用を CPU 10-11。コアを分けるのは、アプリが DB より先に詰まらず、使用率(`cpu.stat` の差分 ÷ 2 CPU)に他のコンテナの負荷が混ざらないため。16 コアの機械で足りる前提(足りない機械では `PEAK_LAB_CPUSET_*` で変える)
+- 内容(設定):php-fpm は静的 16 本・opcache 有効(アプリは読み取り専用で変わらないので `validate_timestamps=0`)、nginx の worker は 2、DB は `innodb_buffer_pool_size=2G`(「メモリに収まらない読み込み」はラボで言えないことなので、全 DB が載る大きさにした)。統計の自動の取り直しは既定のまま(設定に触れていない)。DB のデータは名前付きボリューム `peak-lab-dbdata` に置き `down` では消さない(`down --purge` で消す)。パスワード・run id・APP_KEY は使い捨ての値を一度だけ作って `~/.cache/peak-lab/state.env`(mode 600)に置く
+- 内容(取得したイメージ。いずれも公式の配布元):`php:8.3-fpm`(docker.io/library/php、PHP 8.3.36。sha256:03af3528…。これに BookStack の拡張を足して `peak-lab-php:8.3` を作る)、`nginx:1.28-alpine`(docker.io/library/nginx、1.28.3。sha256:a8b39bd9…)、`grafana/k6:2.3.0`(docker.io/grafana/k6、Grafana 公式、k6 v2.3.0。`latest` と同じ中身)、`mysql:8.4.7`(測定と同じ、取得済み)。Debian の apt(`libzip-dev` などの拡張の部品)は公式 php イメージが既に使う鏡
+- 変わらないもの:合格線・許す誤差・判定の規則・ラボのシナリオ・DB の権限
+
+### D148. ラボの DB の件数の作り方:N となる表は、8 本のルートの `n_table` の和集合(§7.2 の細目。D72 の委任による戻せる判断。2026-11-09)
+
+- 内容:ラボの DB は 8 本のルートが共有する1つ。N となる表は、8 本の静的解析の `n_table` の和集合 = `entities`・`images`・`references`(`entities`:books/{slug}・export/zip・shelves/{slug}・images/edit/{id}、`references`:references の3本、`images`:oidc/callback)。この3表を N、ほかの表は生成器の既定(base=5)で、測定と同じ生成器・同じ `bookstack` プロファイルで作る(`bin/build-db --scale=N --n-tables=entities,images,references`)。N_0 = 10,000 の DB は 15.2 秒で作れた(生成された行数:entities・images・references が各 10,000。ほかに activities・deletions・favourites・tags・views・watches・search_terms・slug_history が各 10,000、joint_permissions 90,000。生成器とプロファイルの後処理がそう作る)
+- 理由:仕様は「N はそのルートの N となる表の件数」と書くが、1つの DB で 8 本を混ぜて測るので、ルートごとの DB は作れない。和集合なら、どのルートにとっても自分の N の表が N 件になる。戻せる(件数の作り方だけ。`--n-tables` を変えて作り直せる)
+- 要確認(軍師・家老):和集合の「ほかの表」が N 件になる表(上の activities など)は、ルートによっては自分の N の表ではない表も N 件になっていることを意味する。仕様の「N となる表以外は生成器の既定」とどこまで同じかは、予測の側(見積もり)が見る行数と同じ作り方かで決まる。違うなら `--n-tables` の選び方を変える(再作成は 15 秒)
+- 変わらないもの:合格線・許す誤差・判定の規則・ラボのシナリオ(§7.2 の表)・DB の権限
