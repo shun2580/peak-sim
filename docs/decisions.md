@@ -1216,5 +1216,5 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 
 - 内容:ラボの DB は 8 本のルートが共有する1つ。N となる表は、8 本の静的解析の `n_table` の和集合 = `entities`・`images`・`references`(`entities`:books/{slug}・export/zip・shelves/{slug}・images/edit/{id}、`references`:references の3本、`images`:oidc/callback)。この3表を N、ほかの表は生成器の既定(base=5)で、測定と同じ生成器・同じ `bookstack` プロファイルで作る(`bin/build-db --scale=N --n-tables=entities,images,references`)。N_0 = 10,000 の DB は 15.2 秒で作れた(生成された行数:entities・images・references が各 10,000。ほかに activities・deletions・favourites・tags・views・watches・search_terms・slug_history が各 10,000、joint_permissions 90,000。生成器とプロファイルの後処理がそう作る)
 - 理由:仕様は「N はそのルートの N となる表の件数」と書くが、1つの DB で 8 本を混ぜて測るので、ルートごとの DB は作れない。和集合なら、どのルートにとっても自分の N の表が N 件になる。戻せる(件数の作り方だけ。`--n-tables` を変えて作り直せる)
-- 要確認(軍師・家老):和集合の「ほかの表」が N 件になる表(上の activities など)は、ルートによっては自分の N の表ではない表も N 件になっていることを意味する。仕様の「N となる表以外は生成器の既定」とどこまで同じかは、予測の側(見積もり)が見る行数と同じ作り方かで決まる。違うなら `--n-tables` の選び方を変える(再作成は 15 秒)
+- 未確認:和集合の「ほかの表」が N 件になる表(上の activities など)は、ルートによっては自分の N の表ではない表も N 件になっていることを意味する。仕様の「N となる表以外は生成器の既定」とどこまで同じかは、予測の側(見積もり)が見る行数と同じ作り方かで決まる。違うなら `--n-tables` の選び方を変える(再作成は 15 秒)
 - 変わらないもの:合格線・許す誤差・判定の規則・ラボのシナリオ(§7.2 の表)・DB の権限
