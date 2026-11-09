@@ -7,9 +7,12 @@ declare(strict_types=1);
  * utilization over the kept window. It judges nothing else.
  *
  *   php poc/lab/load/summarize-run.php --plan=<plan.json> --k6-summary=<summary.json> --samples=<cpu samples file>
+ *       [--app-samples=<app cpu samples file> [--app-cpus=6]]
  *
  * The kept window is [scenario start + discarded start, scenario start + length], taken from the scenario's own start time.
  * If the samples cannot give the utilization (cpu.stat unreadable, window not covered) it exits 3 and prints no figure.
+ * With --app-samples (the app container's cpu.stat, sampled the same way) the record also holds the app's CPU utilization over
+ * the same window, taken over its --app-cpus (default 6); the DB figure is the one the judgment uses, the app's is read beside it.
  * exit codes: 0 done / 2 wrong usage or an unreadable input / 3 the utilization cannot be worked out
  */
 
@@ -61,7 +64,21 @@ try {
     exit(3);
 }
 
-echo json_encode([
+$app = null;
+if (isset($opts['app-samples'])) {
+    if (!is_file($opts['app-samples'])) {
+        fwrite(STDERR, "summarize-run: --app-samples is not a readable file\n");
+        exit(2);
+    }
+    try {
+        $app = DbUtilization::fromSamples(DbUtilization::parseSamples((string) file_get_contents($opts['app-samples'])), $from, $to, (int) ($opts['app-cpus'] ?? 6));
+    } catch (CpuStatUnreadable $e) {
+        fwrite(STDERR, 'summarize-run: the app CPU utilization cannot be worked out: ' . $e->getMessage() . "\n");
+        exit(3);
+    }
+}
+
+$record = [
     'mix' => $plan['mix'],
     'rps' => $rps,
     'window_sec' => $window,
@@ -69,4 +86,11 @@ echo json_encode([
     'db_utilization' => $util,
     'requests' => ['in_window' => (int) $k6['measure_requests'], 'failed' => (int) $k6['measure_failed'], 'dropped_iterations' => (int) $k6['dropped_iterations']],
     'per_route' => $perRoute,
-], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION), "\n";
+];
+if (isset($k6['http_status']) && is_array($k6['http_status'])) {
+    $record['requests']['http_status'] = $k6['http_status'];
+}
+if ($app !== null) {
+    $record['app_cpu_utilization'] = $app;
+}
+echo json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION), "\n";

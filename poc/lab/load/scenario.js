@@ -32,12 +32,18 @@ const scenarioStart = new Gauge('lab_scenario_start_ms');
 
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 299 }));
 
+// The statuses counted one by one (the HTTP breakdown of the record); any other status is counted as `other`.
+const STATUSES = [200, 201, 204, 301, 302, 303, 304, 307, 308, 400, 401, 403, 404, 405, 408, 409, 410, 422, 429, 500, 501, 502, 503, 504, 0];
+
 const scenarios = {};
 const thresholds = {
   'http_reqs{phase:measure}': ['count>=0'],
   'http_req_failed{phase:measure}': ['rate>=0'],
   'http_req_duration{phase:measure}': ['max>=0'],
 };
+for (const status of STATUSES) {
+  thresholds['http_reqs{phase:measure,status:' + status + '}'] = ['count>=0'];
+}
 plan.routes.forEach((r, i) => {
   const name = 'r' + i;
   scenarios[name] = {
@@ -89,12 +95,26 @@ export function handleSummary(data) {
   const dropped = metric(data, 'dropped_iterations');
   const start = metric(data, 'lab_scenario_start_ms');
   const dur = metric(data, 'http_req_duration{phase:measure}');
+  const http_status = {};
+  let counted = 0;
+  for (const status of STATUSES) {
+    const v = metric(data, 'http_reqs{phase:measure,status:' + status + '}');
+    if (v && v.count > 0) {
+      http_status[String(status)] = v.count;
+      counted += v.count;
+    }
+  }
+  const total = reqs ? reqs.count : 0;
+  if (total > counted) {
+    http_status.other = total - counted;
+  }
   const out = {
     scenario_start_ms: start ? start.min : null,
     measure_requests: reqs ? reqs.count : 0,
     measure_failed: failed ? failed.passes : 0,
     measure_ok: failed ? failed.fails : 0,
     dropped_iterations: dropped ? dropped.count : 0,
+    http_status: http_status,
     duration_ms: dur ? { avg: dur.avg, p95: dur['p(95)'], max: dur.max } : null,
     per_route: per_route,
   };

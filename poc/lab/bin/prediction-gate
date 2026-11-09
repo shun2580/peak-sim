@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# The gate in front of every measurement of the prediction scenarios (docs/simulator-spec.md section 7.2: the prediction is made
+# and committed BEFORE any prediction scenario is measured, and nothing about it changes afterwards).
+#
+#   poc/lab/bin/prediction-gate <prediction file>
+#
+# Passes (exit 0, prints `PREDICTION OK <path> <commit> <commit time>`) only if ALL of these hold:
+#   1. the file is a .json file inside poc/lab/predictions/ of this repository;
+#   2. it is tracked and present in HEAD;
+#   3. it has no difference from HEAD, neither staged nor in the working tree;
+#   4. nothing in poc/lab/predictions/ is untracked or differs from HEAD (a second, uncommitted prediction file is as bad as an
+#      edited one).
+# Anything else stops with exit 12 and says which. It reads git only; it touches no container and writes nothing.
+# exit codes: 0 the gate is open / 12 closed / 2 usage
+set -uo pipefail
+: "${PEAK_REPO_ROOT:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+
+closed() { echo "PREDICTION GATE CLOSED: $1" >&2; exit 12; }
+
+[ "$#" -eq 1 ] && [ -n "$1" ] || { echo "usage: prediction-gate <prediction file>" >&2; exit 2; }
+git -C "$PEAK_REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 || closed "$PEAK_REPO_ROOT is not a git working tree"
+
+dir="$PEAK_REPO_ROOT/poc/lab/predictions"
+[ -f "$1" ] || closed "no such prediction file: $1"
+file="$(realpath -- "$1")"
+real_dir="$(realpath -m -- "$dir")"
+case "$file" in
+  "$real_dir"/*.json) ;;
+  *) closed "the prediction file must be a .json file inside poc/lab/predictions/ ($1)" ;;
+esac
+rel="${file#"$(realpath -- "$PEAK_REPO_ROOT")"/}"
+
+git -C "$PEAK_REPO_ROOT" ls-files --error-unmatch -- "$rel" >/dev/null 2>&1 || closed "$rel is not tracked (it has not been committed)"
+git -C "$PEAK_REPO_ROOT" cat-file -e "HEAD:$rel" 2>/dev/null || closed "$rel is not in HEAD (staged but not committed?)"
+git -C "$PEAK_REPO_ROOT" diff --quiet HEAD -- "$rel" || closed "$rel differs from HEAD (edited or staged after the commit)"
+if [ -n "$(git -C "$PEAK_REPO_ROOT" status --porcelain --untracked-files=all -- "poc/lab/predictions")" ]; then
+  closed "poc/lab/predictions/ has an untracked or changed file besides the committed one"
+fi
+
+commit="$(git -C "$PEAK_REPO_ROOT" log -1 --format=%H -- "$rel")"
+when="$(git -C "$PEAK_REPO_ROOT" log -1 --format=%cI -- "$rel")"
+echo "PREDICTION OK $rel $commit $when"

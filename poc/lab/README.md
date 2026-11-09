@@ -14,8 +14,40 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `bin/preflight` | the closed-network check, also run by `up`, `build-db` and `use-db` |
 | `bin/build-db`, `bin/use-db` | build the database of one scale; point the app at one |
 | `bin/predict-ladder` | the ladder prediction (`docs/simulator-spec.md` 7.2 and 7.3): for each target scenario, the utilisation at each of the 13 rps stages (point and safe side), the naive estimate, and the limit rps solved from the proportional form. Sends no request; the code is `poc/runtime/src/Simulate/Ladder/`, which calls the calibration and prediction parts of `bin/simulate` |
+| `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
+| `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
+
+## Measuring a prediction scenario
+
+```bash
+poc/lab/bin/measure-ladder --scenario=t-4 --dry-run                      # plans only; no container is touched
+poc/lab/bin/measure-ladder --scenario=t-4 --predictions=poc/lab/predictions/<file>.json [--switch-scale]
+```
+
+The scenarios (`t-1` to `t-5`: the count of the 8 N tables and the mix) and the ladder (13 steps from 0.05 to 5.0 rps in total, each
+6 minutes at a constant arrival rate with the first minute discarded) are those of `docs/simulator-spec.md` section 7.2. A scenario is
+measured step by step from the bottom up and stops after the first step that was at 80% DB utilization or more, or whose rps did not
+come out (outside 5%); that step is recorded too. A step whose rps did not come out while the DB was under 80% is recorded as an
+app-side stall, with the app's CPU utilization.
+
+- **The gate.** Before anything else, `bin/prediction-gate` checks that the prediction file (a `.json` in `poc/lab/predictions/`) is in
+  `HEAD` and has no difference from it, staged or not, and that nothing else in that directory is untracked or changed. If that cannot
+  be confirmed, `measure-ladder` exits 12 and no container has been touched. `--dry-run` does not enforce it (nothing is measured).
+- **The scale.** Build the database of a scale and write its targets first (`bin/build-db --scale=N --n-tables=entities,images,references`,
+  `bin/targets --static=<analysis.json> --scale=N`); `--switch-scale` points the app at it with `bin/use-db`. Without it, a mismatch stops
+  the run (exit 2).
+- **The record.** Per step, in `<out>/<scenario>-<scale>/rung-NN-<rps>/`: `plan.json`, `summary.json` (k6), `cpu.txt` and `app-cpu.txt`
+  (the DB's and the app's `usage_usec`), `run.json` (`load/summarize-run.php`), and `record.json` (the decided and achieved rps, whether it
+  was within 5%, the DB and app CPU utilization, the dropped iterations, the HTTP status counts, the start and end times, the stop
+  decision, and the commit of the prediction file). `ladder.json` collects the steps of the scenario. Each step prints a `RUNG START`
+  and a `RUNG END` line. A restart skips the steps that already have a `record.json`.
+- **What it uses.** `load/make-plan.php`, `load/scenario.js`, `load/summarize-run.php`, `observe/sample-cpu`; the steps, the stopping rule
+  and the record are in `poc/runtime/src/LabLoad/Ladder.php` (`load/ladder.php` is its command line).
+
+A low step has few requests per route in the kept window (0.05 rps in total is 15 requests in 5 minutes), so a whole number of arrivals
+per route can put its count outside the 5% of the rps check by arithmetic alone; `--dry-run` prints that count for every step.
 
 ## Layout of the stack
 
