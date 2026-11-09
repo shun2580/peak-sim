@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Compares a prediction with what was observed (simulator-spec.md 8.2). Predicts exactly as bin/simulate does and writes loaded.json and
+# prediction.json; ONLY THEN reads the `observed` of the target scenarios, and writes backtest.json and a table: per scenario the observed
+# utilisation, the prediction, the difference and the naive estimate of section 7.3 with its difference, then the three items of section 7.4 B
+# (mean absolute difference against the naive estimate and against 15 / 10 points, and the agreement on "over the threshold"). The lines are
+# those of the spec; nothing here moves them. The order (the prediction is on record before any observed value is read) is kept by the code
+# and held by tests.
+#
+#   bin/backtest --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--selfcheck=<selfcheck-result.json>] [--memory-accuracy=<memory-accuracy.json>]
+#
+# The inputs and the options are those of bin/simulate. A target scenario with no `observed` is listed and not compared. Uses the PHP on this
+# machine if there is one; otherwise a throwaway container of the already built PHP image, no network, the inputs mounted read-only and only
+# the output directory writable. The image is never pulled.
+# exit codes: those of bin/simulate (0 done / 2 wrong usage / 20-25 the input stops the run / 30, 31 the prediction cannot be made / 1 an output
+# cannot be written / 11 no PHP and no image), and: 40 no target scenario has an observed value (the prediction is written) /
+# 41 the order was not kept, nothing was compared / 42 the naive estimate cannot be made
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+runtime="$(cd "$here/.." && pwd)"
+usage="usage: bin/backtest --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--selfcheck=<file>] [--memory-accuracy=<file>]"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/inner/backtest.php" "$@"
+fi
+
+estimate=""
+scenario=""
+out=""
+selfcheck=""
+memacc=""
+for arg in "$@"; do
+  case "$arg" in
+    --estimate=*) estimate="${arg#--estimate=}" ;;
+    --scenario=*) scenario="${arg#--scenario=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --selfcheck=*) selfcheck="${arg#--selfcheck=}" ;;
+    --memory-accuracy=*) memacc="${arg#--memory-accuracy=}" ;;
+    *) echo "bin/backtest: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+if [ ! -d "$estimate" ]; then echo "bin/backtest: --estimate is not a directory" >&2; echo "$usage" >&2; exit 2; fi
+if [ ! -f "$scenario" ]; then echo "bin/backtest: --scenario is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+if [ -z "$out" ]; then echo "bin/backtest: --out is required" >&2; echo "$usage" >&2; exit 2; fi
+mkdir -p "$out"
+estimate="$(cd "$estimate" && pwd)"
+scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"
+out="$(cd "$out" && pwd)"
+extra_mounts=()
+extra_args=()
+if [ -n "$selfcheck" ]; then
+  if [ ! -f "$selfcheck" ]; then echo "bin/backtest: --selfcheck is not a readable file" >&2; exit 2; fi
+  extra_mounts+=(-v "$(cd "$(dirname "$selfcheck")" && pwd)/$(basename "$selfcheck"):/input/selfcheck-result.json:ro")
+  extra_args+=(--selfcheck=/input/selfcheck-result.json)
+fi
+if [ -n "$memacc" ]; then
+  if [ ! -f "$memacc" ]; then echo "bin/backtest: --memory-accuracy is not a readable file" >&2; exit 2; fi
+  extra_mounts+=(-v "$(cd "$(dirname "$memacc")" && pwd)/$(basename "$memacc"):/input/memory-accuracy.json:ro")
+  extra_args+=(--memory-accuracy=/input/memory-accuracy.json)
+fi
+
+image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "bin/backtest: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" \
+  -v "$runtime:/runtime:ro" -v "$estimate:/input/estimate:ro" -v "$scenario:/input/scenario.yaml:ro" -v "$out:/output" \
+  "${extra_mounts[@]}" \
+  "$image" php /runtime/bin/inner/backtest.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output "${extra_args[@]}"
