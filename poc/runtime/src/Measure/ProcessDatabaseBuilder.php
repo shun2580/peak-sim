@@ -14,7 +14,7 @@ use PeakSim\Runtime\Guard\StatementKiller;
  */
 final class ProcessDatabaseBuilder implements DatabaseBuilder
 {
-    public const TIMEOUT = 900;
+    public const TIMEOUT = 3600;
 
     /** @param array<string, string> $env the PEAK_MEASURE_* inputs */
     public function __construct(

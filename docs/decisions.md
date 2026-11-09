@@ -1026,3 +1026,11 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 内容:D105 で分母に入れるのは、`DELETE /import/{id}`・`DELETE /settings/sorting/rules/{id}`・`GET /books/{bookSlug}/chapter/{chapterSlug}`・`GET /books/{bookSlug}/copy`・`GET /books/{bookSlug}/export/zip`・`GET /books/{bookSlug}/page/{pageSlug}`・`GET /books/{slug}`・`GET /settings/sorting/rules/{id}`・`GET /shelves/{slug}`・`POST /books/{bookSlug}/draft/{pageId}`・`PUT /books/{slug}`・`PUT /settings/sorting/rules/{id}` の 12 ルートだけとする。分母は変えない
 - 内容:`POST /books/{bookSlug}/copy` は D123 の 1 の定義に当たる(規模 0 が 404)。しかし 1回目の外挿試験と同じく、10,000 件で 1 要求の上限(600 秒)を超えるため、4 点がそろわず `insufficient_scales` となる。見積もれないので分母の外のままとする(1回目の扱いと変わらない)
 - 理由:D105 の確認。分母を後から増減しない(D95)
+
+### D125. 測定 DB の作成の上限を 900 秒から 3,600 秒に上げる(D72 の委任による戻せる判断。2026-11-09)
+
+- 内容:`ProcessDatabaseBuilder::TIMEOUT` を 900 から 3600 に上げる。変えるのはこの定数 1 つだけである
+- 内容(変わらないもの):DB の中身、SQL、プロファイル、1 要求の上限(600 秒)、測り方、安全の条件、合否の規則。D98 の「超えたら `not_run`」の扱いも変えない。D98 が「作成の上限は 900 秒のまま」と定めた値の部分だけを、この項で置き換える
+- 内容(順序):BookStack の 200,000 件は、この項の変更を commit したあとに、はじめて 1 本測る。見積もりの commit が先、測定が後、という順序は保たれる。上限を上げる前に測った BookStack の値は無い(1 本も測れていない)
+- 理由:200,000 件の BookStack では、検査用 DB の組み立てが 900 秒の上限に当たり、1 ルートも測れなかった(止められた文は `joint_permissions` への `INSERT ... SELECT`)。`joint_permissions` の補正は全エンティティ × 全ロールの組を作るため規模の 2 乗で伸び、100,000 件では 1,040 秒で通ったが、規模が倍の 200,000 件では、この表を埋めるだけで単独でも約 1,800 秒かかる見込みである。上限の値が足りないのが原因であり、測る中身を変える理由は無い
+- 将来の直しの候補:補正の SQL を索引が効く形に書き換えて、組み立て自体を速くする案がある。ただしプロファイルの字面が変わり、1 回目の測定との同じさが崩れるため、今回は採らない
