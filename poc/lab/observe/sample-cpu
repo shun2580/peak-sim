@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Samples the DB container's CPU time while a scenario runs: one line `<epoch seconds> <usage_usec>` every few seconds, read
+# from the container's own cgroup file (`/sys/fs/cgroup/cpu.stat`, cgroup v2) with `docker exec`. The utilization is worked out
+# from these lines over the whole kept window by `summarize-run`; an instantaneous reading is never used in its place.
+#
+#   poc/lab/load/sample-cpu --container=<name> --out=<file> [--interval=5] [--seconds=<n>]
+#
+# Stops at once, with no figure, if the file cannot be read or has no usage_usec (exit 3). Runs until --seconds have passed, or
+# until it is stopped by the caller (SIGTERM). Reads only; changes nothing in the container.
+# exit codes: 0 done / 2 wrong usage / 3 cpu.stat unreadable
+set -uo pipefail
+
+container=""
+out=""
+interval=5
+seconds=0
+for arg in "$@"; do
+  case "$arg" in
+    --container=*) container="${arg#--container=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --interval=*) interval="${arg#--interval=}" ;;
+    --seconds=*) seconds="${arg#--seconds=}" ;;
+    *) echo "sample-cpu: unknown argument: $arg" >&2; exit 2 ;;
+  esac
+done
+if [ -z "$container" ] || [ -z "$out" ]; then
+  echo "usage: sample-cpu --container=<name> --out=<file> [--interval=5] [--seconds=<n>]" >&2
+  exit 2
+fi
+
+: >"$out"
+started="$(date +%s)"
+while :; do
+  now="$(date +%s.%N)"
+  text="$(docker exec "$container" cat /sys/fs/cgroup/cpu.stat 2>/dev/null)" || {
+    echo "sample-cpu: cannot read cpu.stat in $container; stop and report, do not use an instantaneous figure instead" >&2
+    exit 3
+  }
+  usage="$(printf '%s\n' "$text" | sed -n 's/^usage_usec[[:space:]]\{1,\}\([0-9]\{1,\}\)[[:space:]]*$/\1/p' | head -1)"
+  if [ -z "$usage" ]; then
+    echo "sample-cpu: cpu.stat of $container has no usage_usec line; stop and report" >&2
+    exit 3
+  fi
+  printf '%s %s\n' "$now" "$usage" >>"$out"
+  if [ "$seconds" -gt 0 ] && [ $(($(date +%s) - started)) -ge "$seconds" ]; then
+    exit 0
+  fi
+  sleep "$interval"
+done

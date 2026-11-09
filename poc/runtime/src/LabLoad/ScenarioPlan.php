@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PeakSim\Runtime\LabLoad;
+
+/**
+ * The plan the k6 scenario file reads: one constant-arrival-rate stream per route, so the mix is exact and not left to chance.
+ *
+ * A route's rate is the total rps times its share. k6 wants an integer rate per time unit, so a rate that is not a whole
+ * number of requests per second is written as a count per 1000 seconds (the spacing between requests is the same).
+ * Nothing here decides what a good rps is; it only turns "R requests per second, spread like this" into the file.
+ */
+final class ScenarioPlan
+{
+    public const DURATION_SEC = 600;
+    public const WARMUP_SEC = 120;
+
+    /**
+     * @param list<string> $routes "METHOD uri" of the routes, in the order of the list (the list is read, not changed)
+     *
+     * @return array{mix: string, rps: float, duration_sec: int, warmup_sec: int, routes: list<array{route: string, share: float, rps: float, rate: int, time_unit: string}>}
+     *
+     * @throws \InvalidArgumentException a non-positive rps, a window that does not fit, a duplicate route, or a rate k6 cannot express
+     */
+    public static function build(array $routes, string $mix, float $rps, int $durationSec = self::DURATION_SEC, int $warmupSec = self::WARMUP_SEC): array
+    {
+        if (!is_finite($rps) || $rps <= 0.0) {
+            throw new \InvalidArgumentException('rps must be a positive number');
+        }
+        if ($warmupSec < 0 || $warmupSec >= $durationSec) {
+            throw new \InvalidArgumentException('the discarded start must be shorter than the scenario');
+        }
+        if (count(array_unique($routes)) !== count($routes)) {
+            throw new \InvalidArgumentException('a route is in the list twice');
+        }
+        $shares = RouteMix::shares(count($routes), $mix);
+        $out = [];
+        foreach ($routes as $i => $route) {
+            $routeRps = $rps * $shares[$i];
+            [$rate, $unit] = self::rate($routeRps);
+            $out[] = ['route' => $route, 'share' => $shares[$i], 'rps' => $routeRps, 'rate' => $rate, 'time_unit' => $unit];
+        }
+
+        return ['mix' => $mix, 'rps' => $rps, 'duration_sec' => $durationSec, 'warmup_sec' => $warmupSec, 'routes' => $out];
+    }
+
+    /** @return array{0: int, 1: string} */
+    private static function rate(float $rps): array
+    {
+        foreach ([[1, '1s'], [1000, '1000s']] as [$factor, $unit]) {
+            $rate = (int) round($rps * $factor);
+            if ($rate >= 1 && abs($rate / $factor - $rps) <= $rps * 0.001) {
+                return [$rate, $unit];
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('a rate of %.6f rps per route cannot be written as a whole count to within 0.1%%', $rps));
+    }
+}
