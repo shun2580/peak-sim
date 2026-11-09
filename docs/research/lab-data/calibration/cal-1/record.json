@@ -1,0 +1,78 @@
+{
+    "mix": "even",
+    "rps": {
+        "target_rps": 1.0,
+        "achieved_rps": 0.9916666666666667,
+        "ratio": 0.9916666666666667,
+        "deviation": -0.008333333333333304,
+        "valid": true,
+        "status": "valid"
+    },
+    "window_sec": 480,
+    "window_epoch": {
+        "from": 1794210740.689,
+        "to": 1794211220.689
+    },
+    "db_utilization": {
+        "utilization": 0.2309215545172296,
+        "percent": 23.09215545172296,
+        "delta_usage_usec": 221684692.3365404,
+        "delta_sec": 480.0,
+        "cpus": 2
+    },
+    "requests": {
+        "in_window": 476,
+        "failed": 60,
+        "dropped_iterations": 0
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.125,
+            "achieved_rps": 0.12291666666666666,
+            "requests": 59
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.125,
+            "achieved_rps": 0.12291666666666666,
+            "requests": 59
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.125,
+            "achieved_rps": 0.125,
+            "requests": 60
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.125,
+            "achieved_rps": 0.12291666666666666,
+            "requests": 59
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.125,
+            "achieved_rps": 0.12291666666666666,
+            "requests": 59
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.125,
+            "achieved_rps": 0.125,
+            "requests": 60
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.125,
+            "achieved_rps": 0.125,
+            "requests": 60
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.125,
+            "achieved_rps": 0.125,
+            "requests": 60
+        }
+    ]
+}
