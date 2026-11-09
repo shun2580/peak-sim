@@ -28,6 +28,8 @@ scenarios:
       "GET /books/{bookSlug}/page/{pageSlug}": 6.0
       "GET /shelves/{slug}": 2.0
       "PUT /books/{bookSlug}/page/{pageSlug}": 0.5
+      "GET /books/{bookSlug}/draft/{pageId}": 1.0
+      "GET /books/{bookSlug}/copy": 0.5
     observed: { db_cpu_utilization: 0.12 }
 
   - id: calm-2
@@ -38,35 +40,43 @@ scenarios:
       "GET /books/{bookSlug}/page/{pageSlug}": 10.0
       "GET /shelves/{slug}": 3.0
       "PUT /books/{bookSlug}/page/{pageSlug}": 1.0
+      "GET /books/{bookSlug}/draft/{pageId}": 2.0
+      "GET /books/{bookSlug}/copy": 1.0
     observed: { db_cpu_utilization: 0.31 }
 
   # Three target scenarios (predictions; no `observed`).
   - id: busy-1
     kind: target
-    tables: { entities: 80000, references: 80000, page_revisions: 80000 }
+    tables: { entities: 60000, references: 60000, page_revisions: 60000 }
+    rps:
+      "GET /books/{slug}": 8.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 12.0
+      "GET /shelves/{slug}": 3.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.0
+      "GET /books/{bookSlug}/draft/{pageId}": 1.5
+      "GET /books/{bookSlug}/copy": 0.5
+      "GET /books/{slug}/references": 0.5
+
+  - id: busy-2
+    kind: target
+    tables: { entities: 90000, references: 90000, page_revisions: 90000 }
+    rps:
+      "GET /books/{slug}": 10.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 16.0
+      "GET /shelves/{slug}": 4.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.5
+      "GET /books/{bookSlug}/draft/{pageId}": 2.0
+      "GET /books/{bookSlug}/copy": 1.0
+      "GET /books/{bookSlug}/chapter/{chapterSlug}": 1.0
+
+  - id: busy-3
+    kind: target
+    tables: { entities: 120000, references: 120000, page_revisions: 120000 }
     rps:
       "GET /books/{slug}": 12.0
       "GET /books/{bookSlug}/page/{pageSlug}": 20.0
       "GET /shelves/{slug}": 5.0
       "PUT /books/{bookSlug}/page/{pageSlug}": 2.0
+      "GET /books/{bookSlug}/draft/{pageId}": 3.0
+      "GET /books/{bookSlug}/copy": 1.5
       "GET /books/{slug}/references": 1.0
-
-  - id: busy-2
-    kind: target
-    tables: { entities: 120000, references: 120000, page_revisions: 120000 }
-    rps:
-      "GET /books/{slug}": 18.0
-      "GET /books/{bookSlug}/page/{pageSlug}": 30.0
-      "GET /shelves/{slug}": 8.0
-      "PUT /books/{bookSlug}/page/{pageSlug}": 3.0
-      "GET /books/{bookSlug}/chapter/{chapterSlug}": 4.0
-
-  - id: busy-3
-    kind: target
-    tables: { entities: 160000, references: 160000, page_revisions: 160000 }
-    rps:
-      "GET /books/{slug}": 24.0
-      "GET /books/{bookSlug}/page/{pageSlug}": 40.0
-      "GET /shelves/{slug}": 10.0
-      "PUT /books/{bookSlug}/page/{pageSlug}": 4.0
-      "GET /books/{slug}/references": 2.0
