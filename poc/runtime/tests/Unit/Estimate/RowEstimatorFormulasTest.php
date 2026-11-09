@@ -260,4 +260,59 @@ final class RowEstimatorFormulasTest extends TestCase
             $this->assertNull($type['formula']['states']);
         }
     }
+
+    /**
+     * A type measured at four scales (10 / 100 / 1,000 / 10,000) whose count of runs is the given series and whose rows per run are the given
+     * series. The count fit is the one given (`a` = 0), so that the figures can be worked by hand.
+     *
+     * @param list<int|float> $counts
+     * @param list<int|float> $perExec
+     *
+     * @return array<string, mixed>
+     */
+    private static function fourScaleCapture(array $counts, array $perExec): array
+    {
+        $scales = [10, 100, 1000, 10000];
+        $perScale = [];
+        foreach ($scales as $i => $scale) {
+            $perScale[(string) $scale] = ['count' => $counts[$i], 'texts' => 1, 'rows_sum' => $perExec[$i] * $counts[$i], 'rows_min' => 0, 'rows_max' => 0, 'unread' => 0];
+        }
+        $type = [
+            'id' => 'sF', 'kind' => 'select', 'pattern' => 'select sF',
+            'representative' => ['scale' => 10000, 'sql' => 'select sF', 'bindings' => []],
+            'per_scale' => $perScale,
+            'count_fit' => ['fit_status' => 'ok', 'a' => 0.0, 'b' => 1.0, 'k' => 1.0, 'sse' => 0.0, 'scales' => $scales],
+        ];
+
+        return ['capture_version' => 1, 'app' => 'demo', 'scales' => $scales, 'representative_scale' => 10000, 'routes' => [['route' => 'GET /f', 'status' => 'captured', 'statement_types' => [$type]]]];
+    }
+
+    public function test_a_type_of_four_scales_has_three_formulas_of_the_larger_three_scales_and_none_with_the_scale_10(): void
+    {
+        $capture = self::fourScaleCapture([10, 100, 1000, 10000], [3, 30, 300, 3000]);
+        $lines = RowEstimator::estimate($capture, self::bareExplain(), RowEstimator::H1, self::N, null, true)['routes'][0]['types'][0]['formula']['lines'];
+        $this->assertSame([[100, 1000], [100, 10000], [1000, 10000]], array_column($lines['count'], 'scales'));
+        $this->assertSame([[100, 1000], [100, 10000], [1000, 10000]], array_column($lines['per_exec'], 'scales'));
+        foreach (['count', 'per_exec'] as $quantity) {
+            foreach ($lines[$quantity] as $l) {
+                $this->assertNotContains(10, $l['scales'], 'a formula that holds the scale 10 and the full fit\'s a runs k to its limit');
+            }
+        }
+    }
+
+    public function test_the_formulas_of_a_type_of_four_scales_run_from_the_least_to_the_most_by_hand(): void
+    {
+        // runs per scale 50 / 100 / 1,000 / 5,000 with a = 0: the pair (100, 1,000) is a straight line, (1,000, 10,000) has k = log10 5,
+        // (100, 10,000) has k = log10 50 / 2. At N = 100,000 they read 100 x 1,000 = 100,000, 1,000 x 100^k = 1,000 x 25 = 25,000
+        // and 100 x 1,000^k = 100 x 50^1.5 = 35,355.
+        $capture = self::fourScaleCapture([50, 100, 1000, 5000], [3, 3, 3, 3]);
+        $lines = RowEstimator::estimate($capture, self::bareExplain(), RowEstimator::H1, self::N, null, true)['routes'][0]['types'][0]['formula']['lines']['count'];
+        $this->assertCount(3, $lines);
+        $at = array_map(static fn (array $l): float => CostFit::evaluate($l['a'], $l['b'], $l['k'], self::N), $lines);
+        $this->assertEqualsWithDelta(100000.0, $at[0], 100000.0 * 0.01);
+        $this->assertEqualsWithDelta(35355.0, $at[1], 35355.0 * 0.01);
+        $this->assertEqualsWithDelta(25000.0, $at[2], 25000.0 * 0.01);
+        $this->assertEqualsWithDelta(25000.0, min($at), 25000.0 * 0.01);
+        $this->assertEqualsWithDelta(100000.0, max($at), 100000.0 * 0.01);
+    }
 }

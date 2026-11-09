@@ -357,7 +357,8 @@ final class RowEstimator
         if (count($series) >= CostFit::MIN_SCALES) {
             $f = CostFit::fit(array_keys($series), array_values($series));
             $perExec = ['basis' => 'fit', 'a' => CostFit::sig($f['a']), 'b' => CostFit::sig($f['b']), 'k' => CostFit::sig($f['k'])];
-            $perExecPairs = self::withA(CostFit::pairs(array_keys($series), array_values($series), $perExec['a']), $perExec['a']);
+            [$pairScales, $pairValues] = self::largestThree(array_keys($series), array_values($series));
+            $perExecPairs = self::withA(CostFit::pairs($pairScales, $pairValues, $perExec['a']), $perExec['a']);
         } else {
             $perExec = ['basis' => 'held_from_largest_scale', 'value' => $series[max(array_keys($series))]];
         }
@@ -365,6 +366,7 @@ final class RowEstimator
         $countScales = array_values(array_map('intval', (array) ($fit['scales'] ?? [])));
         $perScale = (array) ($ty['per_scale'] ?? []);
         $countValues = array_map(static fn (int $s): int => (int) (is_array($perScale[(string) $s] ?? null) ? ($perScale[(string) $s]['count'] ?? 0) : 0), $countScales);
+        [$pairCountScales, $pairCountValues] = self::largestThree($countScales, $countValues);
         $out = [
             'count' => ['a' => (float) $fit['a'], 'b' => (float) $fit['b'], 'k' => (float) $fit['k']],
             'per_exec' => $perExec,
@@ -372,7 +374,7 @@ final class RowEstimator
             'upper' => null,
             // the formulas of the width of section 6.3: the full fit above and the three formulas of two scales each (`a` held at the full fit's)
             'lines' => [
-                'count' => self::withA(CostFit::pairs($countScales, $countValues, (float) $fit['a']), (float) $fit['a']),
+                'count' => self::withA(CostFit::pairs($pairCountScales, $pairCountValues, (float) $fit['a']), (float) $fit['a']),
                 'per_exec' => $perExecPairs,
             ],
             // plan_unstable: the rows per run at each statistics state (measured at the small size x E(state, N) / E(small)), for the width
@@ -394,6 +396,31 @@ final class RowEstimator
         }
 
         return $out;
+    }
+
+    /**
+     * The three largest scales (and their values) for the formulas of two scales each. Section 6.3 asks for three formulas of two scales each,
+     * so a type measured at four or more scales pairs only the larger three: the smallest scale stays in the full fit (and pins its `a`)
+     * but is left out of the pairs, because a pair that holds the smallest scale and `a` of the full fit runs `k` to its limit (D135).
+     * Scale 0 is never paired. With three scales or fewer the scales are returned as they are.
+     *
+     * @param list<int>       $scales
+     * @param list<int|float> $values
+     *
+     * @return array{list<int>, list<int|float>}
+     */
+    private static function largestThree(array $scales, array $values): array
+    {
+        $points = [];
+        foreach (array_values($scales) as $i => $scale) {
+            if ($scale > 0) {
+                $points[$scale] = $values[$i];
+            }
+        }
+        ksort($points);
+        $points = array_slice($points, -3, 3, true);
+
+        return [array_keys($points), array_values($points)];
     }
 
     /**
