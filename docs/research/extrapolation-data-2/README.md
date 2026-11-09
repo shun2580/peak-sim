@@ -41,3 +41,15 @@ SHA-256 of the inputs the three tools read (after the merge for BookStack):
 | capture.json | `1ed59ba7a0c94a388f11797915fd3d77b62d6e19844a537bb772b4a218f142a5` | `a2e1d267f6604f80d53ba340749c72e3f74a78f7f321b7bcf4452f7801b0bf21` |
 | explain.json | `1823b1b3f0b518a37b430966de26e944223267d01c82b3609e6b1285fea22f9f` | `c037f7c660bf73b5a806f02cc2271858b7ac155ff48539ab60e3176f2a54aec5` |
 | fits.json | `216f2b46435d85b9d6a45a2ac329debf4993cbfcdfa7d1f262a31ab717815c27` | `5f409c300b490463b9a198e677f301e09125d288a0d06d89fbce19c01a3a518f` |
+
+## The comparison (after the measurement)
+
+`compare_test2.py` compares the committed estimates with the cold measurements at 200,000 rows and writes `compare.json` and `compare.md` (rule B decides, rule A is shown beside it; shares for all, unmarked and marked routes; the point and upper side of each marked route against its cold values; every try of the marked routes, with failed tries counted by class). `input_sha256.txt` lists the SHA-256 of every measurement record file it read; the records themselves are kept outside the repository. The record of the test is `docs/research/extrapolation-test-2.md`.
+
+```
+python3 -I compare_test2.py --out <dir> \
+  --app fixtures  fixtures/estimate.json  fixtures/marked-routes.json  <measurement dir> <empty dir> \
+  --app bookstack bookstack/estimate.json bookstack/marked-routes.json <measurement dir> <step 6 dir 1>,<step 6 dir 2>
+```
+
+It reads only; the same inputs give the same output (rebuilt and compared byte for byte). When a route appears in more than one directory of a list, the tries of the later directory replace the earlier ones for that route; the replaced tries are listed and not used.
