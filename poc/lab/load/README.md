@@ -5,7 +5,7 @@ closed-network check) is elsewhere in `poc/lab/`; the route list is in `poc/lab/
 
 | File | What it does |
 | --- | --- |
-| `make-plan.php` | Route list + mix (`even`, `first80`, `last80`) + total rps -> the plan: one rate per route, in the order of the list. |
+| `make-plan.php` | Route list + mix (`even`, `first80`, `last80`, `odd80`) + total rps -> the plan: one rate per route, in the order of the list. |
 | `scenario.js` | The k6 script. One constant-arrival-rate stream per route, GET only. Tags each request `phase=warmup` (the discarded start) or `phase=measure` and writes a summary file. |
 | `summarize-run.php` | Plan + k6 summary + CPU samples -> the record of one scenario: did the rps come out within 5% (`valid` / `invalid`), the DB utilization over the kept window, requests per route. |
 | `../observe/sample-cpu` | Reads the DB container's `cpu.stat` every few seconds into a file. Stops with no figure if it cannot read it. |

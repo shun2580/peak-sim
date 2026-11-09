@@ -35,6 +35,22 @@ final class RouteMixTest extends TestCase
         $this->assertEqualsWithDelta(0.8, array_sum(array_slice($last, 4)), 1e-12);
     }
 
+    public function test_odd80_puts_80_percent_on_the_1st_3rd_5th_and_7th_and_20_on_the_rest(): void
+    {
+        $shares = RouteMix::shares(8, RouteMix::ODD_80);
+        $this->assertEqualsWithDelta([0.2, 0.05, 0.2, 0.05, 0.2, 0.05, 0.2, 0.05], $shares, 1e-12);
+        $odd = $even = 0.0;
+        foreach ($shares as $i => $s) {
+            if ($i % 2 === 0) {
+                $odd += $s;
+            } else {
+                $even += $s;
+            }
+        }
+        $this->assertEqualsWithDelta(0.8, $odd, 1e-12);
+        $this->assertEqualsWithDelta(0.2, $even, 1e-12);
+    }
+
     public function test_every_mix_adds_up_to_one(): void
     {
         foreach (RouteMix::names() as $mix) {
