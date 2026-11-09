@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Makes the route list of the lab backtest (simulator-spec.md section 7.2): the GET routes with a cost estimate, ordered by the degree of the
+# static lower bound (largest first, then by "METHOD URI"), the first eight taken, in a first half and a second half. Made by that rule alone;
+# nothing is measured and nothing is added or dropped by hand.
+#
+#   poc/lab/routes/make-route-list > poc/lab/routes/route-list.json
+#
+# Reads the two input files only; touches no database and no app; the same inputs always give the same output. Uses the PHP on this
+# machine if there is one; otherwise a throwaway container of the already built dev image, with no network and the repository mounted
+# read-only. The image is never pulled. The inputs can be changed with --estimate= and --fits= (paths relative to the repository root).
+# exit codes: 0 done / 2 wrong usage or an unreadable input / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="$(cd "$here/../../.." && pwd)"
+data="docs/research/extrapolation-data-2/bookstack"
+estimate="$data/estimate.json"
+fits="$data/fits.json"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+for arg in "$@"; do
+  case "$arg" in
+    --estimate=*) estimate="${arg#--estimate=}" ;;
+    --fits=*) fits="${arg#--fits=}" ;;
+    *) echo "make-route-list: unknown argument: $arg" >&2; echo "usage: make-route-list [--estimate=<file>] [--fits=<file>]" >&2; exit 2 ;;
+  esac
+done
+
+cd "$root" || exit 2
+if command -v php >/dev/null 2>&1; then
+  exec php poc/lab/routes/make-route-list.php --estimate="$estimate" --fits="$fits"
+fi
+
+image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "make-route-list: no php on this machine and no image $image" >&2
+  exit 11
+fi
+exec docker run --rm --pull=never --network none --read-only -u "$(id -u):$(id -g)" \
+  -v "$root:/repo:ro" -w /repo "$image" \
+  php poc/lab/routes/make-route-list.php --estimate="$estimate" --fits="$fits"
