@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Scores the lab backtest (simulator-spec.md sections 7.2 and 7.4 B) from one input file: the usable stages, the four items at the minimum and
+# at the target, the measured limit rps of each scenario, the table of each scenario and every stage where the safe-side prediction fell below
+# the observation. Writes score.json and score.md. The rules are the spec's; nothing here moves a line.
+#
+#   poc/lab/score/score-ladder --input=<scoring input .json> --out=<output dir>
+#   poc/lab/score/score-ladder --prediction=<prediction .json> --ladder=<ladder.json> [--ladder=...] --out=<output dir>
+#
+# Reads the input files only; touches no database and no app. Uses the PHP on this machine if there is one; otherwise a throwaway container of
+# the already built dev image, with no network, the input mounted read-only and only the output directory writable. The image is never pulled.
+# exit codes: 0 scored (a fail or an indeterminate is still 0; read the verdict) / 2 wrong usage or an input that is not usable / 1 an output cannot
+# be written / 11 no PHP and no image
+set -uo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/score-ladder.php" "$@"
+fi
+
+usage="usage: score-ladder (--input=<file> | --prediction=<file> --ladder=<file> [--ladder=...]) --out=<output dir>"
+out=""
+mounts=()
+args=()
+n=0
+for arg in "$@"; do
+  case "$arg" in
+    --out=*) out="${arg#--out=}" ;;
+    --input=*|--prediction=*|--ladder=*)
+      key="${arg%%=*}"
+      file="${arg#*=}"
+      if [ ! -f "$file" ]; then echo "score-ladder: ${key#--} is not a readable file: $file" >&2; echo "$usage" >&2; exit 2; fi
+      n=$((n + 1))
+      mounts+=(-v "$(cd "$(dirname "$file")" && pwd)/$(basename "$file"):/input/$n.json:ro")
+      args+=("$key=/input/$n.json")
+      ;;
+    *) echo "score-ladder: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
+  esac
+done
+if [ -z "$out" ]; then echo "score-ladder: --out is required" >&2; echo "$usage" >&2; exit 2; fi
+image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "score-ladder: no php on this machine and no image $image" >&2
+  exit 11
+fi
+mkdir -p "$out"
+out="$(cd "$out" && pwd)"
+exec docker run --rm --pull=never --network none --read-only -u "$(id -u):$(id -g)" \
+  -v "$here:/score:ro" "${mounts[@]}" -v "$out:/output" "$image" \
+  php /score/score-ladder.php "${args[@]}" --out=/output
