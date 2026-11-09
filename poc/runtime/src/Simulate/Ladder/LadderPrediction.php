@@ -11,6 +11,7 @@ use PeakSim\Runtime\Simulate\Predict\Coefficients;
 use PeakSim\Runtime\Simulate\Predict\LimitSearch;
 use PeakSim\Runtime\Simulate\Predict\PredictStage;
 use PeakSim\Runtime\Simulate\Predict\ScenarioPredictor;
+use PeakSim\Runtime\Simulate\Predict\UtilizationModel;
 
 /**
  * The prediction of the lab backtest on its rps ladder (simulator-spec.md sections 7.2 and 7.3), as one array in a fixed key order.
@@ -60,15 +61,31 @@ final class LadderPrediction
 
         $points = PredictStage::points($loaded);
         $width = CalibrationWidth::of($points, $calibration);
-        $naiveBasis = [];
+        // the naive estimate is chosen among the calibration scenarios at the largest count of rows (N_0) only: a calibration scenario at a
+        // smaller count (cal-4) is no basis for it (simulator-spec.md section 7.3, 2026-11-10)
+        $counts = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'calibration') {
-                $naiveBasis[] = [
-                    'id' => (string) $s['id'],
-                    'rps_total' => self::rpsTotal($s),
-                    'utilization' => (float) $s['observed']['db_cpu_utilization'],
-                ];
+                $counts[(string) $s['id']] = self::tableCount($s);
             }
+        }
+        $naiveCount = $counts === [] ? null : max($counts);
+        $naiveBasis = [];
+        $naiveExcluded = [];
+        foreach ((array) $loaded['scenarios'] as $s) {
+            if (($s['kind'] ?? null) !== 'calibration') {
+                continue;
+            }
+            if ($counts[(string) $s['id']] !== $naiveCount) {
+                $naiveExcluded[] = ['id' => (string) $s['id'], 'count' => $counts[(string) $s['id']]];
+
+                continue;
+            }
+            $naiveBasis[] = [
+                'id' => (string) $s['id'],
+                'rps_total' => self::rpsTotal($s),
+                'utilization' => (float) $s['observed']['db_cpu_utilization'],
+            ];
         }
 
         $scenarios = [];
@@ -98,6 +115,9 @@ final class LadderPrediction
                 'basis_scenario' => $basis['basis_id'],
                 'basis_utilization' => $basis['basis_utilization'],
                 'basis_rps_total' => $basis['basis_rps_total'],
+                'basis_count' => $naiveCount,
+                'candidates' => array_column($naiveBasis, 'id'),
+                'not_candidates' => $naiveExcluded,
             ],
             'scenarios' => $scenarios,
         ];
@@ -140,6 +160,18 @@ final class LadderPrediction
         }
 
         return ['status' => self::LIMIT_FOUND, 'rps' => $threshold * $total / $utilisation];
+    }
+
+    /**
+     * The count of rows a scenario was measured or is set at: the largest of its tables (in the lab all the N tables have the same count).
+     *
+     * @param array<string, mixed> $scenario
+     */
+    private static function tableCount(array $scenario): int
+    {
+        $counts = array_map('intval', array_values((array) ($scenario['tables'] ?? [])));
+
+        return $counts === [] ? 0 : max($counts);
     }
 
     /** @param array<string, mixed> $scenario */
@@ -207,6 +239,7 @@ final class LadderPrediction
             'id' => (string) $scenario['id'],
             'tables' => $tables,
             'rps_total_in_file' => $own,
+            'safe_side' => $scenario['safe_side'] ?? null,
             'marked_routes' => $marked,
             'low_coverage' => $ownPrediction['low_coverage'],
             'unknown_tables' => $ownPrediction['unknown_tables'],
@@ -217,6 +250,69 @@ final class LadderPrediction
                 'safe' => self::limitRps($ownUpper, $own, $threshold),
                 'naive' => self::limitRps($naiveOwn['utilization'], $own, $threshold),
             ],
+            'calibration_range' => self::calibrationRange($scenario, $width, $cores, $threshold, $stages),
+        ];
+    }
+
+    /**
+     * What the width of the calibration does to this scenario: for each fit of the width (all the calibration scenarios, and each one left
+     * out in turn), its coefficients, the utilisation it gives at every stage and the limit rps it gives (from the proportional form, as for the
+     * point). It is a record of how far the calibration alone moves the prediction; it is not used to decide a pass or a failure (section 6.3:
+     * the decision is by the point value). The point reading of the estimate is used, so this is the calibration's width alone.
+     *
+     * @param array<string, mixed> $scenario
+     * @param list<float>          $stages
+     *
+     * @return array<string, mixed>
+     */
+    private static function calibrationRange(array $scenario, CalibrationWidth $width, float $cores, float $threshold, array $stages): array
+    {
+        $head = ['for_the_decision' => false, 'status' => $width->status, 'reason' => $width->reason, 'notes' => $width->notes];
+        if (!$width->isAvailable()) {
+            return $head + ['fits' => [], 'stages' => [], 'limit_rps' => null];
+        }
+        $own = self::rpsTotal($scenario);
+        $rates = static function (array $at): array {
+            $r = UtilizationModel::rates(array_values((array) $at['routes']), UtilizationModel::POINT);
+
+            return [$r['queries'], $r['rows']];
+        };
+        $fits = [];
+        foreach ($width->fits as $f) {
+            $fits[$f['label']] = [
+                'label' => $f['label'],
+                'c_query' => $f['fit']->cQuery,
+                'c_row' => $f['fit']->cRow,
+                'cut_coefficient' => $f['fit']->hasCutCoefficient(),
+                'utilization' => [],
+                'limit_rps' => null,
+            ];
+        }
+        [$q, $r] = $rates($scenario);
+        foreach ($width->loads($q, $r) as $label => $load) {
+            $fits[$label]['limit_rps'] = self::limitRps($load / $cores, $own, $threshold);
+        }
+        $rows = [];
+        foreach ($stages as $total) {
+            [$q, $r] = $rates(self::scenarioAt($scenario, (float) $total));
+            $loads = $width->loads($q, $r);
+            foreach ($loads as $label => $load) {
+                $fits[$label]['utilization'][] = $load / $cores;
+            }
+            $values = array_map(static fn (float $l): float => $l / $cores, array_values($loads));
+            $rows[] = ['rps_total' => (float) $total, 'min' => min($values), 'max' => max($values)];
+        }
+        $limits = [];
+        foreach ($fits as $f) {
+            if (($f['limit_rps']['status'] ?? null) === self::LIMIT_FOUND) {
+                $limits[] = (float) $f['limit_rps']['rps'];
+            }
+        }
+
+        return $head + [
+            'fits' => array_values($fits),
+            'stages' => $rows,
+            'limit_rps' => $limits === [] ? null : ['min' => min($limits), 'max' => max($limits)],
         ];
     }
 }

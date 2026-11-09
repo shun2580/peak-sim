@@ -27,11 +27,20 @@ use PHPUnit\Framework\TestCase;
  */
 final class LadderPredictionTest extends TestCase
 {
+    /**
+     * The calibration scenarios: id, rps, observed, tables. Three at N_0 (1,000 rows here) and a fourth at 0.3 x N_0, as the lab has them. The
+     * observed values are the made-up model (c_query 0.004, c_row 0.0002 over 2 cores) with a little noise, chosen so that no fit of the width
+     * (the four that leave one scenario out, and the one on all four) has a coefficient cut to 0.
+     */
     private const CALIBRATIONS = [
-        ['cal-1', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.20'],
-        ['cal-2', '{ "GET /a": 8.0, "POST /m": 2.0 }', '0.27'],
-        ['cal-3', '{ "GET /a": 2.0, "POST /m": 8.0 }', '0.14'],
+        ['cal-1', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.4515', '{ pages: 1000, books: 1000 }'],
+        ['cal-2', '{ "GET /a": 8.0, "POST /m": 2.0 }', '0.4694', '{ pages: 1000, books: 1000 }'],
+        ['cal-3', '{ "GET /a": 2.0, "POST /m": 8.0 }', '0.4256', '{ pages: 1000, books: 1000 }'],
+        ['cal-4', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.194', '{ pages: 300, books: 300 }'],
     ];
+
+    /** The observed utilisation of the calibration scenario the naive estimate is taken from (the largest at N_0: cal-2). */
+    private const NAIVE_OBSERVED = 0.4694;
 
     /** @var array<string, string> id => rps map as YAML text (a target scenario of the made-up file) */
     private const TARGETS = [
@@ -39,14 +48,17 @@ final class LadderPredictionTest extends TestCase
         't-2' => '{ "GET /a": 2.0, "POST /m": 8.0 }',
     ];
 
-    private const TARGET_TABLES = ['t-1' => '{ pages: 3000, books: 900 }', 't-2' => '{ pages: 10000, books: 3000 }'];
+    private const TARGET_TABLES = ['t-1' => '{ pages: 3000, books: 3000 }', 't-2' => '{ pages: 10000, books: 10000 }'];
 
-    /** @param array<string, string> $targets id => rps map as YAML text */
-    private static function yaml(array $targets = self::TARGETS): string
+    /**
+     * @param array<string, string>                                      $targets      id => rps map as YAML text
+     * @param list<array{0: string, 1: string, 2: string, 3: string}>|null $calibrations the calibration scenarios (the lab's four when null)
+     */
+    private static function yaml(array $targets = self::TARGETS, ?array $calibrations = null): string
     {
         $y = "schema_version: \"0.1\"\nresources:\n  db_cpu:\n    cores: 2\n    threshold: 0.8\n  php_memory_limit: 128M\nscenarios:\n";
-        foreach (self::CALIBRATIONS as [$id, $rps, $observed]) {
-            $y .= "  - id: {$id}\n    kind: calibration\n    tables: { pages: 1000, books: 300 }\n    rps: {$rps}\n    observed: { db_cpu_utilization: {$observed} }\n";
+        foreach ($calibrations ?? self::CALIBRATIONS as [$id, $rps, $observed, $tables]) {
+            $y .= "  - id: {$id}\n    kind: calibration\n    tables: {$tables}\n    rps: {$rps}\n    observed: { db_cpu_utilization: {$observed} }\n";
         }
         foreach ($targets as $id => $rps) {
             $y .= "  - id: {$id}\n    kind: target\n    tables: " . self::TARGET_TABLES[$id] . "\n    rps: {$rps}\n";
@@ -64,13 +76,23 @@ final class LadderPredictionTest extends TestCase
         return [$loaded, (new Calibrator())->calibrate(PredictStage::points($loaded))];
     }
 
-    /** @return array{int, string, string, RecordingIo} */
-    private static function ladder(string $yaml, ?string $commit = 'abc123'): array
+    /**
+     * @param array<string, string> $safe     count => the estimate document (JSON text) made at that count, each given as a safe-side estimate
+     * @param string|null           $source   how the commit of the main estimate was found (null: "argument" when there is a commit)
+     *
+     * @return array{int, string, string, RecordingIo}
+     */
+    private static function ladder(string $yaml, ?string $commit = 'abc123', array $safe = [], bool $require = false, ?string $expected = null, ?string $source = null): array
     {
         $io = Fixtures::io($yaml);
+        $given = [];
+        foreach ($safe as $count => $json) {
+            $io->files['/safe' . $count . '/estimate.json'] = $json;
+            $given[] = ['dir' => '/safe' . $count, 'commit' => 'safe' . $count . 'c', 'commit_source' => 'git'];
+        }
         $out = fopen('php://memory', 'w+');
         $err = fopen('php://memory', 'w+');
-        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, $commit, $commit === null ? null : 'argument', $io);
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, $commit, $commit === null ? null : ($source ?? 'argument'), $io, $given, $require, $expected);
         $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         rewind($out);
         rewind($err);
@@ -152,14 +174,14 @@ final class LadderPredictionTest extends TestCase
     public function testTheNaiveEstimateScalesTheCalibrationScenarioWithTheLargestObservedUtilisation(): void
     {
         $r = self::ladderReport(self::yaml());
-        // the three calibration scenarios all add up to 10 rps; cal-2 has the largest observed utilisation (0.27)
+        // the calibration scenarios all add up to 10 rps; cal-2 has the largest observed utilisation among those at N_0
         self::assertSame('cal-2', $r['naive']['basis_scenario']);
         foreach ($r['scenarios'] as $s) {
             foreach ($s['stages'] as $stage) {
-                self::assertEqualsWithDelta(0.27 * $stage['rps_total'] / 10.0, $stage['naive'], 1e-12);
+                self::assertEqualsWithDelta(self::NAIVE_OBSERVED * $stage['rps_total'] / 10.0, $stage['naive'], 1e-12);
             }
-            // threshold 0.8: 0.8 x 10 / 0.27 rps
-            self::assertEqualsWithDelta(0.8 * 10.0 / 0.27, $s['limit_rps']['naive']['rps'], 1e-9);
+            // threshold 0.8: 0.8 x 10 / 0.4694 rps
+            self::assertEqualsWithDelta(0.8 * 10.0 / self::NAIVE_OBSERVED, $s['limit_rps']['naive']['rps'], 1e-9);
         }
     }
 
@@ -290,5 +312,272 @@ final class LadderPredictionTest extends TestCase
         self::assertSame(32, $code);
         self::assertStringContainsString('no target scenario', $stderr);
         self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    // ---- four calibration scenarios, a smaller count for the fourth, and the naive estimate ----
+
+    public function testFourCalibrationScenariosGiveTheFitOnAllFourAndFourLeaveOneOutFits(): void
+    {
+        $r = self::ladderReport(self::yaml());
+        self::assertSame(4, $r['calibration']['calibration_scenarios']);
+        self::assertFalse($r['calibration']['cut_coefficients']);
+        self::assertSame('leave_one_out', $r['calibration']['width']['status']);
+        self::assertSame(['all', 'without:cal-1', 'without:cal-2', 'without:cal-3', 'without:cal-4'], array_column($r['calibration']['width']['fits'], 'label'));
+        foreach ($r['calibration']['width']['fits'] as $fit) {
+            self::assertFalse($fit['cut_coefficient'], $fit['label']);
+            self::assertGreaterThan(0.0, $fit['c_query']);
+            self::assertGreaterThan(0.0, $fit['c_row']);
+        }
+    }
+
+    public function testTheNaiveEstimateIsChosenOnlyAmongTheCalibrationScenariosAtTheLargestCount(): void
+    {
+        $r = self::ladderReport(self::yaml());
+        self::assertSame(1000, $r['naive']['basis_count']);
+        self::assertSame(['cal-1', 'cal-2', 'cal-3'], $r['naive']['candidates']);
+        self::assertSame([['id' => 'cal-4', 'count' => 300]], $r['naive']['not_candidates']);
+
+        // cal-4 with the largest rps total and the largest observed utilisation of all: it is still not the basis
+        $calibrations = self::CALIBRATIONS;
+        $calibrations[3] = ['cal-4', '{ "GET /a": 20.0, "POST /m": 20.0 }', '0.95', '{ pages: 300, books: 300 }'];
+        $io = Fixtures::io(self::yaml(self::TARGETS, $calibrations));
+        $loaded = (new TwoStage($io))->stageOne('/est', Fixtures::SCENARIO_PATH, '/out')->toArray();
+        $report = LadderPrediction::build(
+            $loaded,
+            (new Calibrator())->calibrate(PredictStage::points($loaded)),
+            ['estimate_commit' => null, 'estimate_commit_source' => null, 'estimate_sha256' => 'x', 'scenario_sha256' => 'y'],
+        );
+        self::assertSame('cal-2', $report['naive']['basis_scenario']);
+        self::assertSame(['cal-1', 'cal-2', 'cal-3'], $report['naive']['candidates']);
+        self::assertEqualsWithDelta(self::NAIVE_OBSERVED, $report['naive']['basis_utilization'], 1e-12);
+    }
+
+    // ---- the calibration range is a record ----
+
+    public function testTheCalibrationRangeGivesEachFitsCoefficientsUtilisationAtEveryStageAndLimitRps(): void
+    {
+        $r = self::ladderReport(self::yaml());
+        foreach ($r['scenarios'] as $s) {
+            $range = $s['calibration_range'];
+            self::assertFalse($range['for_the_decision']);
+            self::assertSame('leave_one_out', $range['status']);
+            self::assertSame(['all', 'without:cal-1', 'without:cal-2', 'without:cal-3', 'without:cal-4'], array_column($range['fits'], 'label'));
+            self::assertCount(13, $range['stages']);
+            $limits = [];
+            foreach ($range['fits'] as $fit) {
+                self::assertCount(13, $fit['utilization']);
+                self::assertSame('found', $fit['limit_rps']['status']);
+                // the proportional form: the utilisation at a total T is T / limit x the threshold, so at T = 1.0 (the 9th stage) it is 0.8 / limit
+                $u = $fit['limit_rps']['rps'];
+                self::assertEqualsWithDelta(0.8 / $u, $fit['utilization'][8], 1e-9, $fit['label']);
+                $limits[] = $u;
+            }
+            self::assertSame(['min' => min($limits), 'max' => max($limits)], $range['limit_rps']);
+            foreach ($range['stages'] as $i => $row) {
+                self::assertSame($r['stages_rps_total'][$i], $row['rps_total']);
+                $point = $s['stages'][$i]['utilization']['point'];
+                self::assertLessThanOrEqual($point + 1e-12, $row['min']);
+                self::assertGreaterThanOrEqual($point - 1e-12, $row['max']);
+            }
+            // the fit on all the calibration scenarios is the point: its limit is the point limit
+            self::assertEqualsWithDelta($s['limit_rps']['point']['rps'], $range['fits'][0]['limit_rps']['rps'], 1e-9);
+        }
+    }
+
+    // ---- stop conditions ----
+
+    public function testACutCoefficientStopsBeforeAnyPredictionIsWritten(): void
+    {
+        // three runs at one count, as the lab had them before cal-4: a leave-one-out fit cuts a coefficient to 0
+        $old = [
+            ['cal-1', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.20', '{ pages: 1000, books: 300 }'],
+            ['cal-2', '{ "GET /a": 8.0, "POST /m": 2.0 }', '0.27', '{ pages: 1000, books: 300 }'],
+            ['cal-3', '{ "GET /a": 2.0, "POST /m": 8.0 }', '0.14', '{ pages: 1000, books: 300 }'],
+        ];
+        [$code, , $stderr, $io] = self::ladder(self::yaml(self::TARGETS, $old));
+        self::assertSame(LadderStage::EXIT_CUT_COEFFICIENT, $code);
+        self::assertSame(33, $code);
+        self::assertStringContainsString('was cut to 0', $stderr);
+        self::assertStringContainsString('without:cal-', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    public function testACalibrationScenarioThatIsARecordOnlyIsRefused(): void
+    {
+        $calibrations = self::CALIBRATIONS;
+        $calibrations[] = ['cal-3-orig', '{ "GET /a": 2.0, "POST /m": 8.0 }', '0.30', '{ pages: 1000, books: 1000 }'];
+        [$code, , $stderr, $io] = self::ladder(self::yaml(self::TARGETS, $calibrations));
+        self::assertSame(34, $code);
+        self::assertStringContainsString('cal-3-orig', $stderr);
+        self::assertStringContainsString('record only', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    // ---- where the estimate came from ----
+
+    public function testTheOutputSaysWhetherTheEstimateCommitIsTheExpectedOneFoundInGit(): void
+    {
+        [, $stdout, , $io] = self::ladder(self::yaml(), '7c4077412345', [], false, '7c40774', 'git');
+        $r = json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('7c40774', $r['inputs']['estimate_commit_expected']);
+        self::assertTrue($r['inputs']['estimate_commit_is_expected']);
+        self::assertStringContainsString('as expected (7c40774)', $stdout);
+
+        // a different commit, and the right commit given by hand: both are "not the expected one"
+        foreach ([['deadbeef', 'git'], ['7c4077412345', 'argument']] as [$commit, $source]) {
+            [, $out, , $io] = self::ladder(self::yaml(), $commit, [], false, '7c40774', $source);
+            $r = json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+            self::assertFalse($r['inputs']['estimate_commit_is_expected'], $commit . ' ' . $source);
+            self::assertStringContainsString('NOT the expected 7c40774', $out);
+        }
+
+        [, , , $io] = self::ladder(self::yaml());
+        $r = json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+        self::assertNull($r['inputs']['estimate_commit_expected']);
+        self::assertNull($r['inputs']['estimate_commit_is_expected']);
+    }
+
+    // ---- the marks of the safe side are the marks at the scenario's own count ----
+
+    /**
+     * The made-up estimate again, as it would be made at `$at` rows: the same formulas (so the same point), and the marks of that size.
+     * GET /a is marked here (its t1 gets an upper side of 2 x the point) and POST /m's upper side is 9 x the point instead of 5 x.
+     */
+    private static function estimateAt(int $at, bool $changePoint = false): string
+    {
+        $doc = Fixtures::estimateDocument();
+        $doc['at'] = $at;
+        foreach ($doc['routes'] as &$route) {
+            if ($route['route'] === 'GET /a') {
+                $route['marked'] = true;
+                $route['types'][0]['marks']['plan_changes_at_scale'] = true;
+                $route['types'][0]['formula']['upper'] = ['at_n' => 2.0 * (10.0 + 0.1 * $at), 'h1_at_n' => 10.0 + 0.1 * $at, 'ratio' => 2.0];
+                if ($changePoint) {
+                    $route['types'][0]['formula']['per_exec']['a'] = 11.0;
+                }
+            }
+            if ($route['route'] === 'POST /m') {
+                $route['types'][0]['formula']['upper'] = ['at_n' => 9.0 * $at, 'h1_at_n' => (float) $at, 'ratio' => 9.0];
+            }
+        }
+        unset($route);
+
+        return json_encode($doc, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    /** @return array<string, mixed> */
+    private static function decoded(RecordingIo $io): array
+    {
+        return json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    public function testAScenarioGetsTheMarksOfTheEstimateMadeAtItsOwnCount(): void
+    {
+        // t-1 reads 3,000 rows. Without a safe-side estimate it takes the main estimate's marks (made at 200,000 rows) and says so.
+        $without = self::decoded(self::ladder(self::yaml())[3]);
+        self::assertSame(
+            [['count' => 3000, 'source' => 'main_estimate_other_count', 'estimate_at' => 200000, 'marked_routes' => ['POST /m']]],
+            $without['scenarios'][0]['safe_side'],
+        );
+
+        [$code, $stdout, $stderr, $io] = self::ladder(self::yaml(), 'abc123', [3000 => self::estimateAt(3000)]);
+        self::assertSame(0, $code, $stderr);
+        $r = self::decoded($io);
+        self::assertSame(
+            [['count' => 3000, 'source' => 'estimate_at_count', 'estimate_at' => 3000, 'marked_routes' => ['GET /a', 'POST /m']]],
+            $r['scenarios'][0]['safe_side'],
+        );
+        self::assertSame(['GET /a', 'POST /m'], $r['scenarios'][0]['marked_routes']);
+        // t-2 reads 10,000 rows: no estimate at that count was given, so it keeps the main estimate's marks
+        self::assertSame('main_estimate_other_count', $r['scenarios'][1]['safe_side'][0]['source']);
+        self::assertSame(['POST /m'], $r['scenarios'][1]['marked_routes']);
+        self::assertStringContainsString('t-1 safe side: marks of the estimate made at 3,000 rows (estimate_at_count) for 3,000 rows', $stdout);
+
+        // the point does not move; the safe side of t-1 does (more routes are marked, and POST /m's upper side is larger)
+        foreach ($r['scenarios'][0]['stages'] as $i => $stage) {
+            self::assertSame(self::number($without['scenarios'][0]['stages'][$i]['utilization']['point']), self::number($stage['utilization']['point']));
+            self::assertGreaterThan($without['scenarios'][0]['stages'][$i]['utilization']['upper'], $stage['utilization']['upper']);
+        }
+        // t-2 is untouched
+        self::assertSame($without['scenarios'][1]['stages'], $r['scenarios'][1]['stages']);
+        self::assertSame($without['scenarios'][1]['limit_rps'], $r['scenarios'][1]['limit_rps']);
+        // the output names the estimates, with no path
+        self::assertSame([3000, 200000], array_column($r['inputs']['estimates_for_marks'], 'at'));
+        self::assertSame(['safe_side', 'main'], array_column($r['inputs']['estimates_for_marks'], 'role'));
+        self::assertSame('safe3000c', $r['inputs']['estimates_for_marks'][0]['commit']);
+        self::assertSame(hash('sha256', self::estimateAt(3000)), $r['inputs']['estimates_for_marks'][0]['sha256']);
+        self::assertStringNotContainsString('/safe3000', $io->files['/out/ladder-prediction.json']);
+    }
+
+    public function testTheSafeSideAtACountIsWhatBinSimulateGivesWithTheEstimateMadeAtThatCountAsTheOnlyEstimate(): void
+    {
+        $r = self::decoded(self::ladder(self::yaml(), 'abc123', [3000 => self::estimateAt(3000)])[3]);
+        // the same scenario file read with the 3,000-row estimate as the only estimate
+        $io = Fixtures::io(self::yaml(), self::estimateAt(3000));
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        $code = (new SimulateCommand($out, $err, $io, new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'argument', $io)))
+            ->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
+        self::assertSame(0, $code);
+        $alone = self::decoded($io);
+        foreach ($r['scenarios'][0]['stages'] as $i => $stage) {
+            self::assertSame(self::number($alone['scenarios'][0]['stages'][$i]['utilization']['upper']), self::number($stage['utilization']['upper']), 'stage ' . $i);
+            self::assertSame(self::number($alone['scenarios'][0]['stages'][$i]['utilization']['point']), self::number($stage['utilization']['point']), 'stage ' . $i);
+        }
+        self::assertSame($alone['scenarios'][0]['limit_rps']['safe'], $r['scenarios'][0]['limit_rps']['safe']);
+    }
+
+    public function testEveryCountNeedsAnEstimateMadeAtItWhenTheLabEntryAsksForIt(): void
+    {
+        [$code, , $stderr, $io] = self::ladder(self::yaml(), 'abc123', [3000 => self::estimateAt(3000)], true);
+        self::assertSame(35, $code);
+        self::assertStringContainsString('t-2 reads 10,000 rows', $stderr);
+        self::assertStringNotContainsString('t-1 reads', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+
+        [$code, , $stderr, $io] = self::ladder(self::yaml(), 'abc123', [3000 => self::estimateAt(3000), 10000 => self::estimateAt(10000)], true);
+        self::assertSame(0, $code, $stderr);
+        $r = self::decoded($io);
+        self::assertSame([3000, 10000], array_map(static fn (array $s): int => $s['safe_side'][0]['count'], $r['scenarios']));
+        self::assertSame(['estimate_at_count', 'estimate_at_count'], array_map(static fn (array $s): string => $s['safe_side'][0]['source'], $r['scenarios']));
+    }
+
+    public function testTheMainEstimateServesItsOwnCount(): void
+    {
+        $main = Fixtures::estimateDocument();
+        $main['at'] = 3000;
+        $io = Fixtures::io(self::yaml(), json_encode($main, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'git', $io, [], true);
+        $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
+        self::assertSame(35, $code, 'the main estimate was made at 3,000 rows: t-2 (10,000 rows) has no estimate');
+        rewind($err);
+        self::assertStringContainsString('t-2 reads 10,000 rows', (string) stream_get_contents($err));
+    }
+
+    public function testASafeSideEstimateWhosePointDiffersIsRefused(): void
+    {
+        [$code, , $stderr, $io] = self::ladder(self::yaml(), 'abc123', [3000 => self::estimateAt(3000, true)]);
+        self::assertSame(36, $code);
+        self::assertStringContainsString('the point differs', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    public function testTwoEstimatesForOneCountAreRefused(): void
+    {
+        $io = Fixtures::io(self::yaml());
+        $io->files['/a/estimate.json'] = self::estimateAt(3000);
+        $io->files['/b/estimate.json'] = self::estimateAt(3000);
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'git', $io, [
+            ['dir' => '/a', 'commit' => 'a', 'commit_source' => 'git'],
+            ['dir' => '/b', 'commit' => 'b', 'commit_source' => 'git'],
+        ]);
+        $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
+        self::assertSame(36, $code);
+        rewind($err);
+        self::assertStringContainsString('two estimates were given for the count 3000', (string) stream_get_contents($err));
     }
 }

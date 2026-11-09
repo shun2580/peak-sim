@@ -3,24 +3,32 @@
 # utilisation of the database CPU at each of the 13 stages (point and safe side), the naive estimate, and the limit rps (point, safe, naive).
 # Writes ladder-prediction.json. Sends no request, touches no database and no app.
 #
-#   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--estimate-commit=<hash>]
+#   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--safe-estimate=<estimate dir> ...]
+#       [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]
 #
 # The scenario file is the form of section 3.4: the calibration scenarios with `observed`, and the target scenarios, whose rps give the mix of
 # routes (the stages rescale it). The calibration and the utilisation of a stage are the parts of bin/simulate; nothing is calculated here.
-# The commit of the estimate is the last commit that touched <estimate dir> (git); the estimate must be committed and unchanged, or this
-# stops (exit 3). --estimate-commit=<hash> says it instead (recorded as coming from the argument): for a trial run on a scratch estimate.
+# The point of every route is the one formula of --estimate. The marks (and so the safe side) are those of the estimate made at the count of rows
+# the target scenario reads: --estimate's own if it was made at that count, else one of the --safe-estimate directories (repeatable; one per
+# count, each also committed and unchanged). A target scenario whose count has no estimate stops this (exit 35); the output says which estimate's
+# marks each scenario got. A calibration scenario that is a record only (cal-3-orig) stops it (34); so does a calibration coefficient cut to 0 (33).
+# The commit of an estimate is the last commit that touched its directory (git); each must be committed and unchanged, or this
+# stops (exit 3). --estimate-commit=<hash> says the main one's instead (recorded as coming from the argument): for a trial run on a scratch estimate.
+# --expect-estimate-commit=<hash> (default 7c40774, the estimate the lab predicts from) is the commit --estimate must come from by git; the output
+# and the summary say whether it does (a mismatch is recorded, it does not stop).
 # Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built PHP image, no network, the inputs
 # mounted read-only and only the output directory writable. The image is never pulled.
-# exit codes: 0 done / 2 wrong usage / 3 the estimate is not committed and unchanged (and no --estimate-commit) / 11 no PHP and no image /
-# 20..25, 1 as bin/simulate / 30 the calibration cannot be made / 32 no target scenario
+# exit codes: 0 done / 2 wrong usage / 3 an estimate is not committed and unchanged (and no --estimate-commit for the main one) / 11 no PHP and
+# no image / 20..25, 1 as bin/simulate / 30 the calibration cannot be made / 32 no target scenario / 33 a calibration coefficient was cut /
+# 34 a record-only scenario is a calibration scenario / 35 a target scenario has no estimate at its count / 36 the estimates disagree
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/../../runtime" && pwd)"
-usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--estimate-commit=<hash>]"
+usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -28,9 +36,13 @@ estimate=""
 scenario=""
 out=""
 commit=""
+expected="7c40774"
+safe=()
 for arg in "$@"; do
   case "$arg" in
     --estimate=*) estimate="${arg#--estimate=}" ;;
+    --safe-estimate=*) safe+=("${arg#--safe-estimate=}") ;;
+    --expect-estimate-commit=*) expected="${arg#--expect-estimate-commit=}" ;;
     --scenario=*) scenario="${arg#--scenario=}" ;;
     --out=*) out="${arg#--out=}" ;;
     --estimate-commit=*) commit="${arg#--estimate-commit=}" ;;
@@ -58,9 +70,30 @@ if [ -z "$commit" ]; then
   fi
 fi
 
+# The safe-side estimates: each a committed, unchanged directory of its own, with its commit found by git (no way to say it by hand).
+safe_dirs=()
+safe_args=()
+for d in "${safe[@]+"${safe[@]}"}"; do
+  if [ ! -d "$d" ]; then echo "predict-ladder: --safe-estimate is not a directory: $d" >&2; echo "$usage" >&2; exit 2; fi
+  d="$(cd "$d" && pwd)"
+  if ! sc="$(git -C "$d" log -1 --format=%H -- . 2>/dev/null)" || [ -z "$sc" ]; then
+    echo "predict-ladder: a --safe-estimate directory is not in a git history (commit it first)" >&2
+    exit 3
+  fi
+  if [ -n "$(git -C "$d" status --porcelain -- . 2>/dev/null)" ]; then
+    echo "predict-ladder: a --safe-estimate directory has changes that are not committed" >&2
+    exit 3
+  fi
+  safe_dirs+=("$d")
+  safe_args+=("$sc")
+done
+
 if command -v php >/dev/null 2>&1; then
+  safe_opts=()
+  for i in "${!safe_dirs[@]}"; do safe_opts+=("--safe-estimate=${safe_dirs[$i]}::${safe_args[$i]}::git"); done
   exec php "$runtime/bin/inner/predict-ladder.php" --estimate="$estimate" --scenario="$scenario" --out="$out" \
-    --estimate-commit="$commit" --estimate-commit-source="$source"
+    --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
+    --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
 fi
 
 image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
@@ -68,7 +101,15 @@ if ! docker image inspect "$image" >/dev/null 2>&1; then
   echo "predict-ladder: no php on this machine and no image $image (build it with bin/stack build-image)" >&2
   exit 11
 fi
+mounts=()
+safe_opts=()
+for i in "${!safe_dirs[@]}"; do
+  mounts+=(-v "${safe_dirs[$i]}:/input/safe/$i:ro")
+  safe_opts+=("--safe-estimate=/input/safe/$i::${safe_args[$i]}::git")
+done
 exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" \
   -v "$runtime:/runtime:ro" -v "$estimate:/input/estimate:ro" -v "$scenario:/input/scenario.yaml:ro" -v "$out:/output" \
+  "${mounts[@]+"${mounts[@]}"}" \
   "$image" php /runtime/bin/inner/predict-ladder.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output \
-  --estimate-commit="$commit" --estimate-commit-source="$source"
+  --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
+  --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
