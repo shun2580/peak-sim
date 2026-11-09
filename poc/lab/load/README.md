@@ -10,6 +10,8 @@ closed-network check) is elsewhere in `poc/lab/`; the route list is in `poc/lab/
 | `summarize-run.php` | Plan + k6 summary + CPU samples -> the record of one scenario: did the rps come out within 5% (`valid` / `invalid`), the DB utilization over the kept window, requests per route. |
 | `../observe/sample-cpu` | Reads the DB container's `cpu.stat` every few seconds into a file. Stops with no figure if it cannot read it. |
 
+The `failed` count in a record is the requests that were not 2xx; the rps check counts every request in the window whatever its status. One route (`GET /oidc/callback`, sent as a guest) answers 302 by design, so its requests show as `failed`.
+
 Utilization = change in `usage_usec` / (change in time x 2 CPUs), over the kept 8 minutes, never an instant (`docs/decisions.md` D144).
 
 ```bash
