@@ -1,0 +1,99 @@
+# Example scenario file for `bin/simulate` (BookStack), with THREE calibration scenarios.
+#
+# It is the same as bookstack-scenario.yaml (two calibration scenarios) with a third calibration scenario, calm-3, added so that the
+# width of the calibration can be made: with three or more calibration scenarios the calibration's width is the range of the fits with one
+# scenario left out; with two it cannot be given (docs/simulator-spec.md section 6.3).
+#
+# THE VALUES IN THIS FILE ARE MADE UP. They are not a measurement of a real
+# load. The `observed` values of the two calibration scenarios are invented
+# so that the whole pipeline can be exercised end to end; a prediction made
+# from them says nothing about a real BookStack installation.
+# A real check against measured loads is the lab backtest
+# (docs/simulator-spec.md section 7.2).
+#
+# Routes and table names are the ones that appear in the BookStack estimate
+# (docs/research/extrapolation-data-2/bookstack/). Format: docs/simulator-spec.md
+# section 3.4.
+schema_version: "0.1"
+
+resources:
+  db_cpu:
+    cores: 2
+    threshold: 0.8
+  php_memory_limit: 128M
+
+scenarios:
+  # Two calibration scenarios (made-up observed utilization).
+  - id: calm-1
+    kind: calibration
+    tables: { entities: 20000, references: 20000, page_revisions: 20000 }
+    rps:
+      "GET /books/{slug}": 4.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 6.0
+      "GET /shelves/{slug}": 2.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 0.5
+      "GET /books/{bookSlug}/draft/{pageId}": 1.0
+      "GET /books/{bookSlug}/copy": 0.5
+    observed: { db_cpu_utilization: 0.12 }
+
+  - id: calm-2
+    kind: calibration
+    tables: { entities: 40000, references: 40000, page_revisions: 40000 }
+    rps:
+      "GET /books/{slug}": 8.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 10.0
+      "GET /shelves/{slug}": 3.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.0
+      "GET /books/{bookSlug}/draft/{pageId}": 2.0
+      "GET /books/{bookSlug}/copy": 1.0
+    observed: { db_cpu_utilization: 0.31 }
+
+  # A third calibration scenario (made-up observed utilization), with a different mix of routes from the other two.
+  - id: calm-3
+    kind: calibration
+    tables: { entities: 30000, references: 30000, page_revisions: 30000 }
+    rps:
+      "GET /books/{slug}": 10.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 4.0
+      "GET /shelves/{slug}": 1.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.5
+      "GET /books/{bookSlug}/draft/{pageId}": 0.5
+      "GET /books/{bookSlug}/copy": 1.0
+    observed: { db_cpu_utilization: 0.22 }
+
+  # Three target scenarios (predictions; no `observed`).
+  - id: busy-1
+    kind: target
+    tables: { entities: 60000, references: 60000, page_revisions: 60000 }
+    rps:
+      "GET /books/{slug}": 8.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 12.0
+      "GET /shelves/{slug}": 3.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.0
+      "GET /books/{bookSlug}/draft/{pageId}": 1.5
+      "GET /books/{bookSlug}/copy": 0.5
+      "GET /books/{slug}/references": 0.5
+
+  - id: busy-2
+    kind: target
+    tables: { entities: 90000, references: 90000, page_revisions: 90000 }
+    rps:
+      "GET /books/{slug}": 10.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 16.0
+      "GET /shelves/{slug}": 4.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.5
+      "GET /books/{bookSlug}/draft/{pageId}": 2.0
+      "GET /books/{bookSlug}/copy": 1.0
+      "GET /books/{bookSlug}/chapter/{chapterSlug}": 1.0
+
+  - id: busy-3
+    kind: target
+    tables: { entities: 120000, references: 120000, page_revisions: 120000 }
+    rps:
+      "GET /books/{slug}": 12.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 20.0
+      "GET /shelves/{slug}": 5.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 2.0
+      "GET /books/{bookSlug}/draft/{pageId}": 3.0
+      "GET /books/{bookSlug}/copy": 1.5
+      "GET /books/{slug}/references": 1.0

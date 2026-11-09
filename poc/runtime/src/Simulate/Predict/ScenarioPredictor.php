@@ -14,7 +14,10 @@ use PeakSim\Runtime\Simulate\Calibrate\CalibrationResult;
  * Utilisation (L / cores):
  *  - point   the point estimate (H1) with the calibration's point value
  *  - upper   the same, with a marked route's rows replaced by its upper side
- *  - range   the smallest and largest value over every reading of the estimate (point, upper, low, high) and every calibration fit
+ *  - range   the smallest and largest value over every reading of the estimate (point, upper, low, high) and every fit of the calibration's
+ *            width (CalibrationWidth: the leave-one-out fits, never the one-coefficient fits beside a two-coefficient fit)
+ *  - width   the ratios upper end / point and point / lower end, and what each source alone widens: the estimate alone (point calibration,
+ *            every reading) and the calibration alone (point reading, every fit of the width)
  * Limit multiplier: point and safe (the upper side), each by LimitSearch on the whole-number steps.
  */
 final class ScenarioPredictor
@@ -22,10 +25,11 @@ final class ScenarioPredictor
     /**
      * @param array<string, mixed>                                                                     $scenario a target scenario of the loaded input
      * @param (callable(array<string, int>, array<string, float>): list<array<string, mixed>>)|null     $evaluate re-evaluates the routes at other table counts (for the sensitivity)
+     * @param CalibrationWidth|null                                                                    $width    the width of the calibration; when null, what the result alone gives (CalibrationWidth::ofResult)
      *
      * @return array<string, mixed>
      */
-    public static function predict(array $scenario, CalibrationResult $calibration, float $cores, float $threshold, ?callable $evaluate = null): array
+    public static function predict(array $scenario, CalibrationResult $calibration, float $cores, float $threshold, ?callable $evaluate = null, ?CalibrationWidth $width = null): array
     {
         if ($cores <= 0.0) {
             throw new \InvalidArgumentException('cores must be above 0');
@@ -34,15 +38,32 @@ final class ScenarioPredictor
         $routes = array_values((array) ($scenario['routes'] ?? []));
         $coefficients = Coefficients::pointOf($calibration);
 
+        $width ??= CalibrationWidth::ofResult($calibration);
+
         $utilisation = [];
         $min = null;
         $max = null;
+        $estimateMin = null;
+        $estimateMax = null;
+        $calibrationMin = null;
+        $calibrationMax = null;
         foreach (UtilizationModel::READINGS as $reading) {
             $rates = UtilizationModel::rates($routes, $reading);
-            $load = $calibration->predict($rates['queries'], $rates['rows']);
-            $utilisation[$reading] = $load['point'] / $cores;
-            $min = $min === null ? $load['min'] / $cores : min($min, $load['min'] / $cores);
-            $max = $max === null ? $load['max'] / $cores : max($max, $load['max'] / $cores);
+            $pointLoad = $calibration->predict($rates['queries'], $rates['rows'])['point'] / $cores;
+            $utilisation[$reading] = $pointLoad;
+            // the loads of this reading: the point calibration, and every fit of the calibration's width
+            $loads = [$pointLoad];
+            foreach ($width->loads($rates['queries'], $rates['rows']) as $l) {
+                $loads[] = $l / $cores;
+                if ($reading === UtilizationModel::POINT) {
+                    $calibrationMin = $calibrationMin === null ? $l / $cores : min($calibrationMin, $l / $cores);
+                    $calibrationMax = $calibrationMax === null ? $l / $cores : max($calibrationMax, $l / $cores);
+                }
+            }
+            $estimateMin = $estimateMin === null ? $pointLoad : min($estimateMin, $pointLoad);
+            $estimateMax = $estimateMax === null ? $pointLoad : max($estimateMax, $pointLoad);
+            $min = $min === null ? min($loads) : min($min, ...$loads);
+            $max = $max === null ? max($loads) : max($max, ...$loads);
         }
         $point = $utilisation[UtilizationModel::POINT];
         $upper = $utilisation[UtilizationModel::UPPER];
@@ -110,7 +131,15 @@ final class ScenarioPredictor
                 'range' => ['min' => $min, 'max' => $max],
                 'range_basis' => [
                     'estimate' => $givesBounds ? ['point', 'upper', 'low', 'high'] : ['point', 'upper'],
-                    'calibration_fits' => array_map(static fn ($f): string => $f->kind, $calibration->fits),
+                    'calibration_width' => $width->status,
+                    'calibration_fits' => $width->isAvailable() ? $width->labels() : [self::pointFitName($calibration)],
+                ],
+                'width' => [
+                    'upper_over_point' => $point > 0.0 ? $max / $point : null,
+                    'point_over_lower' => $min > 0.0 ? $point / $min : null,
+                    'estimate_only' => ['min' => $estimateMin, 'max' => $estimateMax],
+                    'calibration_only' => $width->isAvailable() ? ['min' => $calibrationMin, 'max' => $calibrationMax] : null,
+                    'calibration_width_note' => $width->isAvailable() ? null : $width->reason,
                 ],
                 'threshold' => $threshold,
                 'over_threshold' => ['point' => LimitSearch::exceeds($point, $threshold), 'upper' => LimitSearch::exceeds($upper, $threshold)],
@@ -132,5 +161,10 @@ final class ScenarioPredictor
             'routes' => $routeRows,
             'warnings' => $warnings,
         ];
+    }
+
+    private static function pointFitName(CalibrationResult $calibration): string
+    {
+        return $calibration->method === CalibrationResult::METHOD_TWO ? 'two_coefficient' : 'mean_of_one_coefficient_fits';
     }
 }

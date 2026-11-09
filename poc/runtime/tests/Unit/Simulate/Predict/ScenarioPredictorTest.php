@@ -37,10 +37,10 @@ final class ScenarioPredictorTest extends TestCase
         self::assertEqualsWithDelta(0.63, $u['point'], 1e-12);
         self::assertEqualsWithDelta(1.53, $u['upper'], 1e-12);
         self::assertSame(['point' => false, 'upper' => true], $u['over_threshold']);
-        // the range over the three fits and the readings: the least is the queries-only fit on 60 queries/s (0.0005 x 60 = 0.03 -> 0.015),
-        // the greatest is the rows-only fit on the upper rows 30,000/s (0.0002 x 30000 = 6.0 -> 3.0)
-        self::assertEqualsWithDelta(0.015, $u['range']['min'], 1e-12);
-        self::assertEqualsWithDelta(3.0, $u['range']['max'], 1e-12);
+        // the range of a two-coefficient calibration is not widened by the one-coefficient fits beside it (2026-11-09): with no width of the
+        // calibration, only the readings of the estimate widen it: the point 0.63 and the upper side 1.53
+        self::assertEqualsWithDelta(0.63, $u['range']['min'], 1e-12);
+        self::assertEqualsWithDelta(1.53, $u['range']['max'], 1e-12);
         // limit, point: 0.63 x k/10 > 0.8 first at k = 13 (0.819; k = 12 gives 0.756) -> 1.3x
         self::assertSame(['status' => LimitSearch::FOUND, 'k' => 13, 'multiplier' => 1.3], $p['limit_multiplier']['point']);
         // limit, safe side: 1.53 x k/10 > 0.8 first at k = 6 (0.918; k = 5 gives 0.765) -> 0.6x, already over today

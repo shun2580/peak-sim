@@ -1173,3 +1173,12 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 内容:(1) `bin/measure` が書く `tasks.json` の body を、測定が実際に使った本文(422 の後で作り直して通った本文)にする(`DriverResult::learnedBodies` → `OutputWriter`)。cold 3回の段(`bin/variance-run`)はこの `tasks.json` から要求を作るので、PUT などで同じ本文が渡り 422 にならない。作り直しが無かったルートの本文は元のまま。(2) `bin/variance-run` は `measure-one` の標準出力から試行の記録の行だけを `attempt.jsonl` に残す。ダウンロードのルートが標準出力へ送るファイルの中身は残さず、省いたバイト数だけを `trial.json` の `stdout_other_bytes` に書く
 - 理由:前回の実測(cmd_271)で出た欠陥。(1) は元の本文のまま3回やって全部 422、(2) は `attempt.jsonl` が JSONL として読めなかった。どちらも測り方・判定の規則・測定器の既定の動きは変えていない(記録の書き方と受け渡しだけ)
 - 試験:(1) `MeasuredBodyReachesTheRepeatTest`、(2) `VarianceRunRecordTest`。どちらも直す前の形で落ち、直した後で通ることを確かめた
+
+### D143. 較正の幅の作り方と出力の足し方(cmd_273 T1。D137 の実装の細目。D72 の委任による戻せる判断。2026-11-09)
+
+- 内容(作り方):較正用が3本以上なら、1本ずつ抜いた2係数の較正(各 n−1 本)の予測値の範囲を較正の幅にする。**全本での2係数の較正(点の値を出すもの)もその中に入れる**。2本は「較正の幅は出せない」(理由を出力に書く)で、較正の幅は置かず、幅は見積もりの読み(点・上側・下限・上限)だけで作る。1本(または2本で係数を分けられぬとき)は §5 の本数だけ・行数だけの2通り。2係数の較正ができるときは1係数の較正を幅に使わない(`fits` には残して「表示のみ」と書く)。抜いた残りで2係数が分けられぬ組は範囲に入れず、`notes` に書く。較正の部品(`Calibrate/`)は変えず、`Calibrator::calibrate` を部分集合で呼ぶだけ(`Predict/CalibrationWidth`)
+- 内容(出力):各シナリオの `utilization.width` に、`upper_over_point`(上端 ÷ 点)・`point_over_lower`(点 ÷ 下端)・`estimate_only`(点の較正で、見積もりの読みだけが広げる範囲)・`calibration_only`(点の読みで、較正の幅だけが広げる範囲。出せぬときは null)・`calibration_width_note`(出せぬ理由)。`range_basis.calibration_width` に種類(`leave_one_out`/`one_coefficient_pair`/`unavailable`)、`range_basis.calibration_fits` に使った組の名(`all`・`without:<id>`)。出力全体の `calibration.width` に、使った組の係数・理由・注記。端末の表にも同じ内容(「出せない」は大文字で明示)。下端が 0 の倍率は無限にせず null(表では undefined)
+- 判断:全本の較正を幅に含めるのは、仕様の字面(抜いた較正の範囲)より点が必ず幅の内に収まる側に倒した。抜いた較正3つだけだと、全本の点が範囲の外に出得て、倍率が 1 未満になる。範囲が広がるのは全本の点が外にあるときだけで、戻すには `CalibrationWidth::of` の `$fits` の先頭を外す
+- 変わらないもの:合格線・許す誤差・判定の規則・測定器の既定の動き・点の値・上側・限界の倍率。`Calibrate/` と `Estimate/` は触っていない。既存の `ScenarioPredictorTest` の1件は、旧規則(2係数に1係数の2通りを混ぜた範囲)を縛っていたので、新しい規則(混ぜない)の値に直した
+- 縛る試験:`CalibrationWidthTest`(較正用 1・2・3 本。倍率と内訳を手計算の値で縛る。1係数の組が3本の幅に入らぬこと。同じ入力で同じ出力)
+- 実データ(BookStack 200,000 件の見積もり、作り物の観測値):2本の例は較正の幅が「出せない」。3本の例(`bookstack-scenario-3cal.yaml`)は、busy-1 の点 46.6% に対し較正だけの幅 35.3%〜50.6%、上端 ÷ 点 1.10・点 ÷ 下端 2.01。同じ入力から同じ出力(バイト一致)

@@ -32,7 +32,17 @@ final class PredictionText
             $out[] = 'NOTE ' . $w;
         }
         foreach ($cal['fits'] as $f) {
-            $out[] = sprintf('  fit %-16s c_query %s  c_row %s  squared residual (load) %s', $f['kind'], self::num($f['c_query']), self::num($f['c_row']), self::num($f['sum_squared_residual_load']));
+            $unused = $cal['method'] === 'two_coefficient' && $f['kind'] !== 'two_coefficient' ? '  (shown only; not used for the point or the width)' : '';
+            $out[] = sprintf('  fit %-16s c_query %s  c_row %s  squared residual (load) %s%s', $f['kind'], self::num($f['c_query']), self::num($f['c_row']), self::num($f['sum_squared_residual_load']), $unused);
+        }
+        $w = $cal['width'];
+        if ($w['status'] === CalibrationWidth::UNAVAILABLE) {
+            $out[] = '  width of the calibration: NOT AVAILABLE. ' . $w['reason'];
+        } else {
+            $out[] = sprintf('  width of the calibration: %s (%s)', $w['status'], implode(', ', array_column($w['fits'], 'label')));
+        }
+        foreach ($w['notes'] as $n) {
+            $out[] = 'NOTE ' . $n;
         }
 
         foreach ($report['scenarios'] as $s) {
@@ -53,6 +63,9 @@ final class PredictionText
                 $u['over_threshold']['upper'] ? 'over' : 'under',
             );
             $out[] = sprintf('               range basis: estimate %s x calibration %s', implode('/', $u['range_basis']['estimate']), implode('/', $u['range_basis']['calibration_fits']));
+            $wd = $u['width'];
+            $out[] = sprintf('  width        upper end = %s of the point, point = %s of the lower end', self::times($wd['upper_over_point']), self::times($wd['point_over_lower']));
+            $out[] = sprintf('               from the estimate alone %s to %s; from the calibration alone %s', self::pct($wd['estimate_only']['min']), self::pct($wd['estimate_only']['max']), $wd['calibration_only'] === null ? 'not available (no width of the calibration)' : self::pct($wd['calibration_only']['min']) . ' to ' . self::pct($wd['calibration_only']['max']));
             $l = $s['limit_multiplier'];
             $out[] = sprintf('  limit        point %s   safe side %s', self::limit($l['point']), self::limit($l['safe']));
             $out[] = sprintf(
@@ -167,6 +180,11 @@ final class PredictionText
         $names = array_keys(array_filter($marks));
 
         return $names === [] ? '' : '[' . implode(',', $names) . '] ';
+    }
+
+    private static function times(?float $x): string
+    {
+        return $x === null ? 'undefined' : sprintf('x%.2f', $x);
     }
 
     private static function pct(float $x): string

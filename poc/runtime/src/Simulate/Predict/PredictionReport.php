@@ -29,10 +29,11 @@ final class PredictionReport
         $threshold = (float) $resources['threshold'];
         $limitBytes = isset($resources['php_memory_limit_bytes']) ? (int) $resources['php_memory_limit_bytes'] : null;
 
+        $width = CalibrationWidth::of(PredictStage::points($loaded), $calibration);
         $scenarios = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'target') {
-                $scenarios[] = ScenarioPredictor::predict($s, $calibration, $cores, $threshold, $evaluate);
+                $scenarios[] = ScenarioPredictor::predict($s, $calibration, $cores, $threshold, $evaluate, $width);
             }
         }
         $lowCoverage = array_values(array_map(static fn (array $p): string => $p['id'], array_filter($scenarios, static fn (array $p): bool => $p['low_coverage'])));
@@ -43,7 +44,7 @@ final class PredictionReport
             'estimate_at' => $loaded['estimate_at'] ?? null,
             'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes],
             'low_coverage_scenarios' => $lowCoverage,
-            'calibration' => $calibration->toArray(),
+            'calibration' => $calibration->toArray() + ['width' => $width->toArray()],
             'scenarios' => $scenarios,
             'peak_memory' => [
                 'line_share_of_limit' => PeakMemoryLimit::SHARE,
