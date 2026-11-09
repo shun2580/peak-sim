@@ -89,7 +89,7 @@ final class PredictionReportTest extends TestCase
 
     public function testASavedSelfcheckResultIsCarriedOver(): void
     {
-        $saved = ['kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => '2026-11-09T10:00:00+09:00', 'summary' => ['verdict' => 'pass', 'routes' => 12, 'marked_routes' => 2, 'unmarked_routes' => 10, 'quantities' => []]];
+        $saved = ['schema_version' => '0.1', 'kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => '2026-11-09T10:00:00+09:00', 'summary' => ['verdict' => 'pass', 'routes' => 12, 'marked_routes' => 2, 'unmarked_routes' => 10, 'quantities' => []]];
         $a = AccuracyRecord::fromResult($saved);
         self::assertSame('checked', $a['status']);
         self::assertSame('pass', $a['verdict']);
@@ -97,16 +97,28 @@ final class PredictionReportTest extends TestCase
         self::assertStringContainsString('selfcheck 2026-11-09T10:00:00+09:00 at 20,000 rows, demo: PASS', $text);
     }
 
-    public function testAFileThatIsNotASelfcheckResultIsAnErrorNotNotChecked(): void
+    public function testAFileThatIsNotASelfcheckResultIsNotCheckedWithTheReason(): void
     {
         $path = sys_get_temp_dir() . '/peak-accuracy-' . bin2hex(random_bytes(4)) . '.json';
         file_put_contents($path, '{"kind": "something-else"}');
         try {
-            $this->expectException(\InvalidArgumentException::class);
-            AccuracyRecord::load($path);
+            $a = AccuracyRecord::load($path);
+            self::assertSame('not_checked', $a['status']);
+            self::assertStringContainsString('not a selfcheck result', $a['why']);
         } finally {
             unlink($path);
         }
+    }
+
+    public function testTheDistributionAndTheReasonsOfTheSelfcheckAreCarriedOver(): void
+    {
+        $saved = ['schema_version' => '0.1', 'kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => 't', 'decides_by' => 'B',
+            'summary' => ['verdict' => 'fail', 'reasons' => ['rows_examined: 3 of 5'], 'routes' => 5],
+            'rules' => ['B' => ['error_distribution' => ['queries' => ['count' => 5, 'max_percent' => 1.5]]]]];
+        $a = AccuracyRecord::fromResult($saved);
+        self::assertSame(['rows_examined: 3 of 5'], $a['reasons']);
+        self::assertSame(1.5, $a['error_distribution']['queries']['max_percent']);
+        self::assertSame('B', $a['decides_by']);
     }
 
     public function testNoFileIsNotChecked(): void

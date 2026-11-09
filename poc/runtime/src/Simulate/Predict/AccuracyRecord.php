@@ -12,6 +12,8 @@ final class AccuracyRecord
 {
     public const FILE = 'selfcheck-result.json';
 
+    public const SCHEMA_VERSION = '0.1';
+
     public const CHECKED = 'checked';
 
     public const NOT_CHECKED = 'not_checked';
@@ -29,8 +31,8 @@ final class AccuracyRecord
      */
     public static function fromResult(array $result): array
     {
-        if (($result['kind'] ?? null) !== 'selfcheck-result' || !is_array($result['summary'] ?? null)) {
-            throw new \InvalidArgumentException('not a selfcheck result (kind must be selfcheck-result and it must have a summary)');
+        if (($result['kind'] ?? null) !== 'selfcheck-result' || ($result['schema_version'] ?? null) !== self::SCHEMA_VERSION || !is_array($result['summary'] ?? null)) {
+            throw new \InvalidArgumentException('not a selfcheck result (kind must be selfcheck-result, schema_version "' . self::SCHEMA_VERSION . '", and it must have a summary)');
         }
         $s = $result['summary'];
 
@@ -40,18 +42,21 @@ final class AccuracyRecord
             'target_scale' => $result['target_scale'] ?? null,
             'checked_at' => $result['checked_at'] ?? null,
             'verdict' => $s['verdict'] ?? null,
+            'reasons' => $s['reasons'] ?? null,
+            'decides_by' => $result['decides_by'] ?? null,
             'routes' => $s['routes'] ?? null,
             'marked_routes' => $s['marked_routes'] ?? null,
             'unmarked_routes' => $s['unmarked_routes'] ?? null,
             'quantities' => $s['quantities'] ?? null,
             'plan_unstable_statements' => $s['plan_unstable_statements'] ?? null,
             'explain_unavailable_statements' => $s['explain_unavailable_statements'] ?? null,
+            'error_distribution' => $result['rules']['B']['error_distribution'] ?? null,
         ];
     }
 
     /**
-     * The saved result at $path, or "not checked" when there is no file. A file that is there but is not a result is an error: it is not
-     * passed over as "not checked".
+     * The saved result at $path, or "not checked" (with the reason) when there is no file or the file is not a selfcheck result. The
+     * reason is always in the output, so a wrong file is not passed over without a word.
      *
      * @return array<string, mixed>
      */
@@ -63,9 +68,12 @@ final class AccuracyRecord
         $raw = file_get_contents($path);
         $data = $raw === false ? null : json_decode($raw, true);
         if (!is_array($data)) {
-            throw new \InvalidArgumentException('the selfcheck result is not readable JSON: ' . $path);
+            return self::notChecked('the file is not readable JSON: ' . basename($path));
         }
-
-        return self::fromResult($data);
+        try {
+            return self::fromResult($data);
+        } catch (\InvalidArgumentException $e) {
+            return self::notChecked('the file is not a selfcheck result: ' . basename($path));
+        }
     }
 }

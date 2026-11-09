@@ -3,25 +3,26 @@
 # database CPU (point, upper side, range), the limit multiplier, the dominant routes, the PHP-memory line and how far the estimate covers the
 # scenario. Writes loaded.json (the first stage) and prediction.json, and prints a table.
 #
-#   bin/simulate --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir>
+#   bin/simulate --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--selfcheck=<selfcheck-result.json>] [--memory-accuracy=<memory-accuracy.json>]
 #
 # <estimate dir> holds estimate.json made by bin/estimate --candidate=H1_RANGE --predictions=<predictions.json> --with-formulas. Each scenario's
-# own table sizes are put into its formulas. A target scenario's `observed` is not read here. memory-accuracy.json and selfcheck-result.json in
-# the estimate directory are used when they are there. Uses the PHP on this machine if there is one;
+# own table sizes are put into its formulas. A target scenario's `observed` is not read here. --selfcheck is the saved result of bin/selfcheck, shown
+# as the accuracy on this app (not given: selfcheck-result.json of the estimate directory if there is one, else "not checked"; a file that is not a
+# selfcheck result is "not checked" with the reason). --memory-accuracy defaults to memory-accuracy.json of the estimate directory. Uses the PHP on this machine if there is one;
 # otherwise a throwaway container of the already built PHP image, no network, the inputs mounted read-only and only the output directory
 # writable. The image is never pulled.
 # exit codes: 0 done / 2 wrong usage / 20 scenario file unreadable or not in the form of the spec / 21 schema_version differs / 22 a route the
 # estimate does not have / 23 a calibration scenario without observed / 24 cores missing / 25 estimate directory unreadable or without formulas /
-# 30 the calibration cannot be made / 31 memory-accuracy.json or selfcheck-result.json is there but not valid / 1 an output cannot be written /
+# 30 the calibration cannot be made / 31 memory-accuracy.json is there but not valid / 1 an output cannot be written /
 # 11 no PHP and no image
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/.." && pwd)"
-usage="usage: bin/simulate --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir>"
+usage="usage: bin/simulate --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--selfcheck=<file>] [--memory-accuracy=<file>]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -32,11 +33,15 @@ fi
 estimate=""
 scenario=""
 out=""
+selfcheck=""
+memacc=""
 for arg in "$@"; do
   case "$arg" in
     --estimate=*) estimate="${arg#--estimate=}" ;;
     --scenario=*) scenario="${arg#--scenario=}" ;;
     --out=*) out="${arg#--out=}" ;;
+    --selfcheck=*) selfcheck="${arg#--selfcheck=}" ;;
+    --memory-accuracy=*) memacc="${arg#--memory-accuracy=}" ;;
     *) echo "bin/simulate: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
   esac
 done
@@ -47,6 +52,18 @@ mkdir -p "$out"
 estimate="$(cd "$estimate" && pwd)"
 scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"
 out="$(cd "$out" && pwd)"
+extra_mounts=()
+extra_args=()
+if [ -n "$selfcheck" ]; then
+  if [ ! -f "$selfcheck" ]; then echo "bin/simulate: --selfcheck is not a readable file" >&2; exit 2; fi
+  extra_mounts+=(-v "$(cd "$(dirname "$selfcheck")" && pwd)/$(basename "$selfcheck"):/input/selfcheck-result.json:ro")
+  extra_args+=(--selfcheck=/input/selfcheck-result.json)
+fi
+if [ -n "$memacc" ]; then
+  if [ ! -f "$memacc" ]; then echo "bin/simulate: --memory-accuracy is not a readable file" >&2; exit 2; fi
+  extra_mounts+=(-v "$(cd "$(dirname "$memacc")" && pwd)/$(basename "$memacc"):/input/memory-accuracy.json:ro")
+  extra_args+=(--memory-accuracy=/input/memory-accuracy.json)
+fi
 
 image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
 if ! docker image inspect "$image" >/dev/null 2>&1; then
@@ -55,4 +72,5 @@ if ! docker image inspect "$image" >/dev/null 2>&1; then
 fi
 exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" \
   -v "$runtime:/runtime:ro" -v "$estimate:/input/estimate:ro" -v "$scenario:/input/scenario.yaml:ro" -v "$out:/output" \
-  "$image" php /runtime/bin/inner/simulate.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output
+  "${extra_mounts[@]}" \
+  "$image" php /runtime/bin/inner/simulate.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output "${extra_args[@]}"

@@ -64,7 +64,7 @@ final class PredictStageTest extends TestCase
     public function testASavedSelfcheckResultIsPickedUpFromTheEstimateDirectory(): void
     {
         $io = Fixtures::io();
-        $io->files['/est/selfcheck-result.json'] = json_encode(['kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => 'x', 'summary' => ['verdict' => 'pass']]);
+        $io->files['/est/selfcheck-result.json'] = json_encode(['schema_version' => '0.1', 'kind' => 'selfcheck-result', 'app' => 'demo', 'target_scale' => 20000, 'checked_at' => 'x', 'summary' => ['verdict' => 'pass']]);
         [$code] = self::invoke($io);
         self::assertSame(0, $code);
         $report = json_decode($io->files['/out/prediction.json'], true, 512, JSON_THROW_ON_ERROR);
@@ -80,22 +80,26 @@ final class PredictStageTest extends TestCase
         self::assertArrayNotHasKey('/out/prediction.json', $io->files);
     }
 
-    public function testAFileThatIsThereButNotValidStopsTheRunNotPassedOver(): void
+    public function testAMemoryAccuracyFileThatIsThereButNotValidStopsTheRun(): void
     {
         $io = Fixtures::io();
         $io->files['/est/memory-accuracy.json'] = '{"within": []}';
         [$code] = self::invoke($io);
         self::assertSame(PredictStage::EXIT_ACCURACY_FILE, $code);
         self::assertArrayNotHasKey('/out/prediction.json', $io->files);
+    }
 
-        $io = Fixtures::io();
-        $io->files['/est/selfcheck-result.json'] = '{"kind": "other"}';
-        [$code] = self::invoke($io);
-        self::assertSame(PredictStage::EXIT_ACCURACY_FILE, $code);
-
-        $io = Fixtures::io();
-        $io->files['/est/selfcheck-result.json'] = '{not json';
-        [$code] = self::invoke($io);
-        self::assertSame(PredictStage::EXIT_ACCURACY_FILE, $code);
+    public function testASelfcheckFileThatIsNotAResultIsNotCheckedWithTheReasonAndTheRunGoesOn(): void
+    {
+        foreach (['{"kind": "other"}', '{not json', '{"kind": "selfcheck-result", "schema_version": "9", "summary": {}}'] as $bad) {
+            $io = Fixtures::io();
+            $io->files['/est/selfcheck-result.json'] = $bad;
+            [$code, $stdout] = self::invoke($io);
+            self::assertSame(0, $code);
+            $report = json_decode($io->files['/out/prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+            self::assertSame('not_checked', $report['accuracy_on_this_app']['status']);
+            self::assertStringContainsString('selfcheck-result.json', $report['accuracy_on_this_app']['why']);
+            self::assertStringContainsString('accuracy on this app: not checked', $stdout);
+        }
     }
 }

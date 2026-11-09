@@ -128,6 +128,17 @@ final class PredictionText
         $out[] = '';
         if ($a['status'] === AccuracyRecord::CHECKED) {
             $out[] = sprintf('accuracy on this app: selfcheck %s at %s rows, %s: %s', (string) $a['checked_at'], number_format((int) $a['target_scale']), (string) $a['app'], strtoupper((string) $a['verdict']));
+            foreach ((array) ($a['quantities'] ?? []) as $name => $q) {
+                $out[] = sprintf(
+                    '  %-14s %s of %s routes within +-%s%% (goal +-%s%%: %s)',
+                    $name,
+                    $q['within_lowest_standard'] ?? '?',
+                    $q['denominator'] ?? '?',
+                    $q['tolerance_percent'] ?? '?',
+                    $q['goal_percent'] ?? '?',
+                    $q['within_goal'] ?? '?',
+                );
+            }
         } else {
             $out[] = 'accuracy on this app: not checked (' . $a['why'] . ')';
         }

@@ -20,7 +20,7 @@ use PeakSim\Runtime\Simulate\Load\TwoStage;
  * It does not read a target's `observed`: it has only the loaded input, which has none.
  *
  * Exit codes: 0 done; 30 the calibration cannot be made (no calibration scenario, or an input the fit refuses); 31 the memory-accuracy
- * file or the selfcheck result is there but is not valid. An output that cannot be written is the usual 1 of the command.
+ * file is there but is not valid. A selfcheck result that is missing or not a result is "not checked", with the reason in the output. An output that cannot be written is the usual 1 of the command.
  */
 final class PredictStage
 {
@@ -63,14 +63,13 @@ final class PredictStage
             $estimate = EstimateFormulas::load($io, $dir);
             $memoryPath = $this->memoryAccuracyPath ?? $dir . '/' . MemoryAccuracy::FILE;
             $memoryAccuracy = $io->exists($memoryPath) ? MemoryAccuracy::fromArray(self::json($io->read($memoryPath), $memoryPath)) : MemoryAccuracy::none();
-            $selfcheckPath = $this->selfcheckPath ?? $dir . '/' . AccuracyRecord::FILE;
-            $accuracy = $io->exists($selfcheckPath) ? AccuracyRecord::fromResult(self::json($io->read($selfcheckPath), $selfcheckPath)) : AccuracyRecord::notChecked('no selfcheck result at ' . basename($selfcheckPath));
         } catch (\InvalidArgumentException | \JsonException $e) {
             fwrite($this->stderr, 'bin/simulate: ' . $e->getMessage() . "\n");
 
             return self::EXIT_ACCURACY_FILE;
         }
 
+        $accuracy = $this->accuracy($io, $this->selfcheckPath ?? $dir . '/' . AccuracyRecord::FILE);
         $report = PredictionReport::build(
             $loaded,
             $calibration,
@@ -86,6 +85,23 @@ final class PredictStage
         fwrite($this->stdout, "\n" . PredictionText::render($report));
 
         return 0;
+    }
+
+    /**
+     * The accuracy on this app: the saved selfcheck result, or "not checked" with the reason when there is none or it is not one.
+     *
+     * @return array<string, mixed>
+     */
+    private function accuracy(SimulateIo $io, string $path): array
+    {
+        if (!$io->exists($path)) {
+            return AccuracyRecord::notChecked('no selfcheck result at ' . basename($path));
+        }
+        try {
+            return AccuracyRecord::fromResult(self::json($io->read($path), $path));
+        } catch (\InvalidArgumentException | \JsonException) {
+            return AccuracyRecord::notChecked('the file is not a selfcheck result: ' . basename($path));
+        }
     }
 
     /** @return array<string, mixed> */
