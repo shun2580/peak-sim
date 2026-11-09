@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Unit\Estimate;
 
 use PeakSim\Runtime\Estimate\RowEstimator;
+use PeakSim\Runtime\Judge\CostFit;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -134,5 +135,129 @@ final class RowEstimatorFormulasTest extends TestCase
             ['route' => 'GET /only-static', 'axis' => 'N', 'table' => 'books', 'in_estimate' => false],
             ['route' => 'GET /r', 'axis' => 'N', 'table' => 'pages', 'in_estimate' => true],
         ], $with['route_index']);
+    }
+
+    /**
+     * A type whose count of runs and rows per run both follow a + b N^k exactly, at three scales: 10 / 100 / 1,000.
+     *
+     * @param array<int, float|int> $counts  runs at each scale
+     * @param array<int, float|int> $perExec rows per run at each scale
+     *
+     * @return array<string, mixed>
+     */
+    private static function seriesType(string $id, array $counts, array $perExec): array
+    {
+        $scales = [10, 100, 1000];
+        $perScale = [];
+        foreach ($scales as $i => $scale) {
+            $perScale[(string) $scale] = ['count' => $counts[$i], 'texts' => 1, 'rows_sum' => $perExec[$i] * $counts[$i], 'rows_min' => 0, 'rows_max' => 0, 'unread' => 0];
+        }
+        $f = CostFit::fit($scales, $counts);
+
+        return [
+            'id' => $id, 'kind' => 'select', 'pattern' => 'select ' . $id,
+            'representative' => ['scale' => 1000, 'sql' => 'select ' . $id, 'bindings' => []],
+            'per_scale' => $perScale,
+            'count_fit' => ['fit_status' => 'ok', 'a' => CostFit::sig($f['a']), 'b' => CostFit::sig($f['b']), 'k' => CostFit::sig($f['k']), 'sse' => 0.0, 'scales' => $scales],
+        ];
+    }
+
+    /** @param list<array<string, mixed>> $types */
+    private static function capture(array $types): array
+    {
+        return ['capture_version' => 1, 'app' => 'demo', 'scales' => [10, 100, 1000], 'representative_scale' => 1000, 'routes' => [['route' => 'GET /w', 'status' => 'captured', 'statement_types' => $types]]];
+    }
+
+    /** @return array<string, mixed> an explain.json at N = 100,000 with no statement (every type then has no plan) */
+    private static function bareExplain(): array
+    {
+        return ['explain_version' => 1, 'scale' => self::N, 'small_scale' => 1000, 'routes' => []];
+    }
+
+    public function test_the_formulas_of_two_scales_each_hold_a_at_the_full_fit_and_are_three_for_three_scales(): void
+    {
+        // both series are exact: count 1 x N, rows per run 3 x N -> every pair finds the same b and k as the full fit
+        $capture = self::capture([self::seriesType('sE', [10, 100, 1000], [30, 300, 3000])]);
+        $with = RowEstimator::estimate($capture, self::bareExplain(), RowEstimator::H1, self::N, null, true);
+        $lines = $with['routes'][0]['types'][0]['formula']['lines'];
+        $this->assertSame([[10, 100], [10, 1000], [100, 1000]], array_column($lines['count'], 'scales'));
+        $this->assertSame([[10, 100], [10, 1000], [100, 1000]], array_column($lines['per_exec'], 'scales'));
+        foreach ($lines['count'] as $l) {
+            $this->assertSame(['a' => 0.0, 'b' => 1.0, 'k' => 1.0], ['a' => $l['a'], 'b' => $l['b'], 'k' => $l['k']]);
+        }
+        foreach ($lines['per_exec'] as $l) {
+            $this->assertSame(['a' => 0.0, 'b' => 3.0, 'k' => 1.0], ['a' => $l['a'], 'b' => $l['b'], 'k' => $l['k']]);
+        }
+    }
+
+    public function test_the_pairs_of_a_series_that_is_not_exact_differ_and_keep_the_a_of_the_full_fit(): void
+    {
+        $counts = [10, 100, 2000];
+        $capture = self::capture([self::seriesType('sB', $counts, [4, 4, 90])]);
+        $type = RowEstimator::estimate($capture, self::bareExplain(), RowEstimator::H1, self::N, null, true)['routes'][0]['types'][0];
+        $full = $type['formula']['count'];
+        $this->assertCount(3, $type['formula']['lines']['count']);
+        $values = [];
+        foreach ($type['formula']['lines']['count'] as $l) {
+            $this->assertSame($full['a'], $l['a'], 'a is held at the full fit');
+            $direct = CostFit::fitWithFixedA($l['scales'], array_map(static fn (int $s): int => $counts[array_search($s, [10, 100, 1000], true)], $l['scales']), $full['a']);
+            $this->assertSame(CostFit::sig($direct['b']), $l['b']);
+            $this->assertSame(CostFit::sig($direct['k']), $l['k']);
+            $values[] = CostFit::evaluate($l['a'], $l['b'], $l['k'], self::N);
+        }
+        $this->assertGreaterThan(min($values), max($values), 'the three formulas do not agree at N: that is the width');
+        // the type's own figures are those of the full fit, the same with and without the flag
+        $plain = RowEstimator::estimate($capture, self::bareExplain(), RowEstimator::H1, self::N)['routes'][0]['types'][0];
+        $this->assertSame($plain['count_at_n'], $type['count_at_n']);
+        $this->assertSame($plain['per_exec'], $type['per_exec']);
+    }
+
+    public function test_a_type_with_fewer_than_three_scales_for_its_rows_has_no_formulas_for_them(): void
+    {
+        $type = self::seriesType('sH', [10, 100, 1000], [5, 5, 5]);
+        unset($type['per_scale']['100']);              // did not run at 100
+        $type['per_scale']['10']['rows_sum'] = null;   // the rows at 10 could not be read: only the 1,000 scale has a value
+        $with = RowEstimator::estimate(self::capture([$type]), self::bareExplain(), RowEstimator::H1, self::N, null, true);
+        $formula = $with['routes'][0]['types'][0]['formula'];
+        $this->assertSame('held_from_largest_scale', $formula['per_exec']['basis']);
+        $this->assertSame([], $formula['lines']['per_exec']);
+    }
+
+    public function test_a_plan_unstable_type_gives_its_rows_per_run_at_each_statistics_state_and_the_upper_side_is_the_heaviest(): void
+    {
+        // measured 1,000 rows per run at the small size (E = 2,002); at N the plan reads 4,002 / 8,002 / 16,002 in the states low / default / high
+        $capture = self::capture([self::seriesType('sU', [1, 1, 1], [1000, 1000, 1000])]);
+        $capture['routes'][0]['statement_types'][0]['count_fit'] = ['fit_status' => 'ok', 'a' => 1.0, 'b' => 0.0, 'k' => 0.0, 'sse' => 0.0, 'scales' => [10, 100, 1000]];
+        $state = static fn (int $rows): array => ['summary' => [], 'raw' => self::plan($rows)];
+        $explain = ['explain_version' => 1, 'scale' => self::N, 'small_scale' => 1000, 'routes' => [[
+            'route' => 'GET /w',
+            'statements' => [[
+                'id' => 'sU',
+                'marks' => ['plan_unstable' => true, 'plan_changes_at_scale' => false, 'explain_unavailable' => null, 'unavailable_states' => [], 'unstable_states' => ['low', 'high']],
+                'small_scale' => ['default' => $state(2000)],
+                'target_scale' => ['default' => $state(8000), 'low' => $state(4000), 'high' => $state(16000)],
+            ]],
+        ]]];
+        $plain = RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N);
+        $with = RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, null, true);
+        $type = $with['routes'][0]['types'][0];
+        $states = $type['formula']['states'];
+        $this->assertSame(['default', 'high', 'low'], array_keys($states));
+        $this->assertEqualsWithDelta(1000.0 * 8002 / 2002, $states['default']['at_n'], 1e-9);
+        $this->assertEqualsWithDelta(1000.0 * 16002 / 2002, $states['high']['at_n'], 1e-9);
+        $this->assertEqualsWithDelta(1000.0 * 4002 / 2002, $states['low']['at_n'], 1e-9);
+        $this->assertEqualsWithDelta($states['high']['at_n'] / 1000.0, $states['high']['ratio'], 1e-9, 'the ratio is to the point (H1) at N');
+        $this->assertEqualsWithDelta($states['high']['at_n'], $type['per_exec_upper'], 1e-9, 'the upper side is the heaviest state, as before');
+        $this->assertArrayNotHasKey('e_by_state', $type, 'the figures of the type are as without the flag');
+        $this->assertNull($plain['routes'][0]['types'][0]['formula'] ?? null);
+    }
+
+    public function test_a_type_that_is_not_plan_unstable_has_no_states(): void
+    {
+        [$capture, $explain, $predictions] = self::fixture();
+        $with = RowEstimator::estimate($capture, $explain, RowEstimator::H1_RANGE, self::N, $predictions, true);
+        foreach ($with['routes'][0]['types'] as $type) {
+            $this->assertNull($type['formula']['states']);
+        }
     }
 }

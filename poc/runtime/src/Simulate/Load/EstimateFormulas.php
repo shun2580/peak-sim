@@ -105,7 +105,11 @@ final class EstimateFormulas
     /**
      * One route at the table size n of a scenario.
      *
-     * @return array<string, mixed> {cost, unknown_reason, queries, rows, rows_upper, marked, peak_memory, peak_memory_status, n_mark, sources, types}
+     * `queries_low` / `queries_high` / `rows_low` / `rows_high` are the width of section 6.3 that the estimate gives: the least and the most over the
+     * four formulas of the fitted values (the full fit and the three of two scales each) and, for a plan_unstable type, over its statistics states.
+     * They are null when no type of the route has such a formula or state.
+     *
+     * @return array<string, mixed> {cost, unknown_reason, queries, rows, rows_upper, queries_low, queries_high, rows_low, rows_high, marked, peak_memory, peak_memory_status, n_mark, sources, types}
      */
     public function evaluate(string $route, ?int $n): array
     {
@@ -115,6 +119,10 @@ final class EstimateFormulas
             'queries' => null,
             'rows' => null,
             'rows_upper' => null,
+            'queries_low' => null,
+            'queries_high' => null,
+            'rows_low' => null,
+            'rows_high' => null,
             'marked' => false,
             'peak_memory' => null,
             'peak_memory_status' => 'unknown',
@@ -143,6 +151,7 @@ final class EstimateFormulas
         $rows = 0.0;
         $upper = 0.0;
         $scales = [];
+        $width = ['queries_low' => 0.0, 'queries_high' => 0.0, 'rows_low' => 0.0, 'rows_high' => 0.0, 'given' => false];
         foreach ((array) ($r['types'] ?? []) as $t) {
             $f = (array) $t['formula'];
             $count = CostFit::evaluate((float) $f['count']['a'], (float) $f['count']['b'], (float) $f['count']['k'], $n);
@@ -154,6 +163,12 @@ final class EstimateFormulas
             if (isset($f['upper']) && is_array($f['upper'])) {
                 $perUpper = $f['upper']['ratio'] !== null ? $perExec * (float) $f['upper']['ratio'] : (float) $f['upper']['at_n'];
             }
+            $range = self::widthOf($f, $n, $count, $perExec);
+            $width['queries_low'] += $range['count_low'];
+            $width['queries_high'] += $range['count_high'];
+            $width['rows_low'] += $range['per_exec_low'] * $range['count_low'];
+            $width['rows_high'] += $range['per_exec_high'] * $range['count_high'];
+            $width['given'] = $width['given'] || $range['given'];
             foreach ((array) ($f['scales'] ?? []) as $s) {
                 $scales[(int) $s] = true;
             }
@@ -182,6 +197,12 @@ final class EstimateFormulas
         $out['queries'] = $queries;
         $out['rows'] = $rows;
         $out['rows_upper'] = $marked ? $upper : null;
+        if ($width['given']) {
+            $out['queries_low'] = $width['queries_low'];
+            $out['queries_high'] = $width['queries_high'];
+            $out['rows_low'] = $width['rows_low'];
+            $out['rows_high'] = $width['rows_high'];
+        }
         $out['marked'] = $marked;
         if (is_array($pf)) {
             $out['peak_memory'] = CostFit::evaluate((float) $pf['a'], (float) $pf['b'], (float) $pf['k'], $n);
@@ -194,6 +215,42 @@ final class EstimateFormulas
         $out['types'] = $types;
 
         return $out;
+    }
+
+    /**
+     * The least and the most of a type's count of runs and rows per run at the table size n (section 6.3). The point is inside both ranges: it is the
+     * full fit, one of the formulas. The count and the rows per run vary on their own (every value is >= 0, so the least rows is the least rows per run
+     * times the least count, and the most is the most times the most).
+     *
+     * @param array<string, mixed> $f       the type's `formula`
+     * @param float                $count   the point's count at n
+     * @param float                $perExec the point's rows per run at n
+     *
+     * @return array{count_low: float, count_high: float, per_exec_low: float, per_exec_high: float, given: bool}
+     */
+    private static function widthOf(array $f, int $n, float $count, float $perExec): array
+    {
+        $counts = [$count];
+        $per = [$perExec];
+        $lines = (array) ($f['lines'] ?? []);
+        foreach ((array) ($lines['count'] ?? []) as $l) {
+            $counts[] = CostFit::evaluate((float) $l['a'], (float) $l['b'], (float) $l['k'], $n);
+        }
+        foreach ((array) ($lines['per_exec'] ?? []) as $l) {
+            $per[] = CostFit::evaluate((float) $l['a'], (float) $l['b'], (float) $l['k'], $n);
+        }
+        // a plan_unstable type: the rows per run of each statistics state, kept in the ratio to the point that it had where the estimate was made
+        foreach ((array) ($f['states'] ?? []) as $state) {
+            $per[] = $state['ratio'] !== null ? $perExec * (float) $state['ratio'] : (float) $state['at_n'];
+        }
+
+        return [
+            'count_low' => min($counts),
+            'count_high' => max($counts),
+            'per_exec_low' => min($per),
+            'per_exec_high' => max($per),
+            'given' => count($counts) > 1 || count($per) > 1,
+        ];
     }
 
     /** @param list<int> $scales the sizes the type's rows per run were measured at */

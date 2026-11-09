@@ -194,10 +194,11 @@ final class RowEstimator
             }
         }
         foreach ((array) ($cr['statement_types'] ?? []) as $ty) {
-            $type = self::type((array) $ty, $statements[(string) ($ty['id'] ?? '')] ?? null, $candidate, $n, $representative);
+            $type = self::type((array) $ty, $statements[(string) ($ty['id'] ?? '')] ?? null, $candidate, $n, $representative, $withFormulas);
             if ($withFormulas && !isset($type['unavailable'])) {
                 $type['formula'] = self::formula((array) $ty, $type);
             }
+            unset($type['e_by_state']); // only the formula carries it; the figures of the type are the same with and without the flag
             if (isset($type['unavailable'])) {
                 $out['complete'] = false;
                 $out['unavailable'][] = ['id' => $type['id'], 'pattern' => $type['pattern'], 'reason' => $type['unavailable']];
@@ -241,7 +242,7 @@ final class RowEstimator
      *
      * @return array<string, mixed>
      */
-    private static function type(array $ty, ?array $explained, string $candidate, int $n, int $representative): array
+    private static function type(array $ty, ?array $explained, string $candidate, int $n, int $representative, bool $withFormulas = false): array
     {
         $rec = ['id' => (string) ($ty['id'] ?? ''), 'kind' => (string) ($ty['kind'] ?? ''), 'pattern' => substr((string) ($ty['pattern'] ?? ''), 0, 160)];
         $fit = (array) ($ty['count_fit'] ?? []);
@@ -273,12 +274,12 @@ final class RowEstimator
                 return $rec + ['per_exec' => $h1, 'basis' => 'h1'];
             }
             // a marked type: the point stays H1, the upper side is what H2 gives (its fall-back to H1 is counted, never silent)
-            $h2 = self::type($ty, $explained, RowEstimator::H2, $n, $representative);
+            $h2 = self::type($ty, $explained, RowEstimator::H2, $n, $representative, $withFormulas);
             $upper = ['per_exec' => $h1, 'basis' => 'h1', 'per_exec_upper' => $h2['per_exec'], 'upper_basis' => $h2['basis']];
             if (isset($h2['fallback'])) {
                 $upper['fallback'] = $h2['fallback'];
             }
-            foreach (['e_at_n', 'e_at_small', 'measured_small'] as $key) {
+            foreach (['e_at_n', 'e_at_small', 'measured_small', 'e_by_state'] as $key) {
                 if (isset($h2[$key])) {
                     $upper[$key] = $h2[$key];
                 }
@@ -329,6 +330,9 @@ final class RowEstimator
         $rec['e_at_n'] = $eN;
         $rec['e_at_small'] = $eSmall;
         $rec['measured_small'] = $measuredSmall;
+        if ($withFormulas && $unstable === true) {
+            $rec['e_by_state'] = self::statesReads((array) ($explained['target_scale'] ?? []), (array) ($marks['unavailable_states'] ?? []));
+        }
 
         return $rec + ['per_exec' => (float) $measuredSmall * (float) $eN / (float) $eSmall, 'basis' => 'ratio'];
     }
@@ -349,22 +353,79 @@ final class RowEstimator
     {
         $fit = (array) ($ty['count_fit'] ?? []);
         $series = self::series((array) ($ty['per_scale'] ?? []));
+        $perExecPairs = [];
         if (count($series) >= CostFit::MIN_SCALES) {
             $f = CostFit::fit(array_keys($series), array_values($series));
             $perExec = ['basis' => 'fit', 'a' => CostFit::sig($f['a']), 'b' => CostFit::sig($f['b']), 'k' => CostFit::sig($f['k'])];
+            $perExecPairs = self::withA(CostFit::pairs(array_keys($series), array_values($series), $perExec['a']), $perExec['a']);
         } else {
             $perExec = ['basis' => 'held_from_largest_scale', 'value' => $series[max(array_keys($series))]];
         }
+        // the count of runs at each scale the count fit used (a type that did not run at a scale counts 0 there, as CaptureBuilder fitted it)
+        $countScales = array_values(array_map('intval', (array) ($fit['scales'] ?? [])));
+        $perScale = (array) ($ty['per_scale'] ?? []);
+        $countValues = array_map(static fn (int $s): int => (int) (is_array($perScale[(string) $s] ?? null) ? ($perScale[(string) $s]['count'] ?? 0) : 0), $countScales);
         $out = [
             'count' => ['a' => (float) $fit['a'], 'b' => (float) $fit['b'], 'k' => (float) $fit['k']],
             'per_exec' => $perExec,
             'scales' => array_keys($series),
             'upper' => null,
+            // the formulas of the width of section 6.3: the full fit above and the three formulas of two scales each (`a` held at the full fit's)
+            'lines' => [
+                'count' => self::withA(CostFit::pairs($countScales, $countValues, (float) $fit['a']), (float) $fit['a']),
+                'per_exec' => $perExecPairs,
+            ],
+            // plan_unstable: the rows per run at each statistics state (measured at the small size x E(state, N) / E(small)), for the width
+            'states' => null,
         ];
         if (isset($type['per_exec_upper'])) {
             $h1 = (float) $type['per_exec_h1'];
             $up = (float) $type['per_exec_upper'];
             $out['upper'] = ['at_n' => $up, 'h1_at_n' => $h1, 'ratio' => $h1 > 0.0 ? $up / $h1 : null];
+        }
+        if (isset($type['e_by_state']) && $type['e_by_state'] !== [] && isset($type['measured_small'], $type['e_at_small'])) {
+            $h1 = (float) $type['per_exec_h1'];
+            $states = [];
+            foreach ((array) $type['e_by_state'] as $name => $e) {
+                $v = (float) $type['measured_small'] * (float) $e / (float) $type['e_at_small'];
+                $states[(string) $name] = ['at_n' => $v, 'ratio' => $h1 > 0.0 ? $v / $h1 : null];
+            }
+            $out['states'] = $states;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param list<array{scales: list<int>, b: float, k: float}> $pairs
+     *
+     * @return list<array{scales: list<int>, a: float, b: float, k: float}>
+     */
+    private static function withA(array $pairs, float $a): array
+    {
+        return array_map(static fn (array $p): array => ['scales' => $p['scales'], 'a' => $a, 'b' => $p['b'], 'k' => $p['k']], $pairs);
+    }
+
+    /**
+     * E at N for each statistics state that has a plan, by state name (ascending). The same reading of a plan as `stateReads`.
+     *
+     * @param array<string, mixed> $states      state name => {summary, raw}
+     * @param list<mixed>          $unavailable the states the explain run could not read (left out)
+     *
+     * @return array<string, float>
+     *
+     * @throws UnrecognisedPlan
+     */
+    private static function statesReads(array $states, array $unavailable): array
+    {
+        $names = array_map('strval', array_keys($states));
+        sort($names);
+        $out = [];
+        foreach ($names as $name) {
+            $e = self::stateReads($states, [$name], $unavailable);
+            if ($e !== null) {
+                $out[$name] = $e;
+            }
         }
 
         return $out;
