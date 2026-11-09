@@ -1,0 +1,72 @@
+# Example scenario file for `bin/simulate` (BookStack).
+#
+# THE VALUES IN THIS FILE ARE MADE UP. They are not a measurement of a real
+# load. The `observed` values of the two calibration scenarios are invented
+# so that the whole pipeline can be exercised end to end; a prediction made
+# from them says nothing about a real BookStack installation.
+# A real check against measured loads is the lab backtest
+# (docs/simulator-spec.md section 7.2).
+#
+# Routes and table names are the ones that appear in the BookStack estimate
+# (docs/research/extrapolation-data-2/bookstack/). Format: docs/simulator-spec.md
+# section 3.4.
+schema_version: "0.1"
+
+resources:
+  db_cpu:
+    cores: 2
+    threshold: 0.8
+  php_memory_limit: 128M
+
+scenarios:
+  # Two calibration scenarios (made-up observed utilization).
+  - id: calm-1
+    kind: calibration
+    tables: { entities: 20000, references: 20000, page_revisions: 20000 }
+    rps:
+      "GET /books/{slug}": 4.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 6.0
+      "GET /shelves/{slug}": 2.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 0.5
+    observed: { db_cpu_utilization: 0.12 }
+
+  - id: calm-2
+    kind: calibration
+    tables: { entities: 40000, references: 40000, page_revisions: 40000 }
+    rps:
+      "GET /books/{slug}": 8.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 10.0
+      "GET /shelves/{slug}": 3.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 1.0
+    observed: { db_cpu_utilization: 0.31 }
+
+  # Three target scenarios (predictions; no `observed`).
+  - id: busy-1
+    kind: target
+    tables: { entities: 80000, references: 80000, page_revisions: 80000 }
+    rps:
+      "GET /books/{slug}": 12.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 20.0
+      "GET /shelves/{slug}": 5.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 2.0
+      "GET /books/{slug}/references": 1.0
+
+  - id: busy-2
+    kind: target
+    tables: { entities: 120000, references: 120000, page_revisions: 120000 }
+    rps:
+      "GET /books/{slug}": 18.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 30.0
+      "GET /shelves/{slug}": 8.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 3.0
+      "GET /books/{bookSlug}/chapter/{chapterSlug}": 4.0
+
+  - id: busy-3
+    kind: target
+    tables: { entities: 160000, references: 160000, page_revisions: 160000 }
+    rps:
+      "GET /books/{slug}": 24.0
+      "GET /books/{bookSlug}/page/{pageSlug}": 40.0
+      "GET /shelves/{slug}": 10.0
+      "PUT /books/{bookSlug}/page/{pageSlug}": 4.0
+      "GET /books/{slug}/references": 2.0
