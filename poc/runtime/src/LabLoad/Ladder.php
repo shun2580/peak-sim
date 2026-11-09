@@ -82,6 +82,35 @@ final class Ladder
     }
 
     /**
+     * The trial scenarios: a dress rehearsal of the measuring tool on the calibration mixes (never on a prediction scenario).
+     * name => the mix. The count is N_0 and the one step is R_0 = 1 rps, both fixed here. `even` is not offered: at N_0 it is
+     * the prediction scenario t-4, and the trial must not measure it before the prediction is committed.
+     *
+     * @var array<string, string>
+     */
+    private const TRIALS = [
+        'cal-2' => RouteMix::FIRST_80,
+        'cal-3' => RouteMix::ODD_80,
+    ];
+
+    /** The one step of a trial: R_0 (section 7.2's calibration rps). */
+    public const TRIAL_RPS = 1.0;
+
+    /**
+     * @return array{id: string, scale: int, multiple: int, mix: string, trial: true}
+     *
+     * @throws \InvalidArgumentException the name is not a trial (a prediction scenario id such as t-4 is refused)
+     */
+    public static function trial(string $name): array
+    {
+        if (!isset(self::TRIALS[$name])) {
+            throw new \InvalidArgumentException(sprintf('unknown trial "%s" (one of %s; a prediction scenario is never a trial)', $name, implode(', ', array_keys(self::TRIALS))));
+        }
+
+        return ['id' => 'trial-' . $name, 'scale' => self::BASE_SCALE, 'multiple' => 1, 'mix' => self::TRIALS[$name], 'trial' => true];
+    }
+
+    /**
      * Does the scenario stop after this step (section 7.2: the step measured was at 80% or more of the DB, or its rps did not
      * come out), and what is written beside the stop?
      *
@@ -147,7 +176,7 @@ final class Ladder
     /**
      * The record of one step.
      *
-     * @param array{scenario: string, scale: int, rung: int, started_at: string, ended_at: string, prediction?: array<string, mixed>} $meta
+     * @param array{scenario: string, scale: int, rung: int, started_at: string, ended_at: string, trial?: bool, prediction?: array<string, mixed>} $meta
      * @param array<string, mixed> $summary the output of summarize-run (with --app-samples)
      *
      * @return array<string, mixed>
@@ -186,6 +215,7 @@ final class Ladder
             'started_at' => $meta['started_at'],
             'ended_at' => $meta['ended_at'],
             'decision' => $decision,
+            'trial' => $meta['trial'] ?? false,
             'prediction' => $meta['prediction'] ?? null,
             'per_route' => $summary['per_route'],
         ];

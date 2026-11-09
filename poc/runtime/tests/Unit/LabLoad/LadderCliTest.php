@@ -64,6 +64,33 @@ final class LadderCliTest extends TestCase
         $this->assertSame(2, self::tool('ladder.php', ['scenario', 'cal-1', '--line'])[0]);
     }
 
+    public function test_the_trial_has_one_step_at_r0_and_a_calibration_mix_at_n0_and_refuses_the_prediction_scenarios(): void
+    {
+        $this->assertSame([0, "1\n"], array_slice(self::tool('ladder.php', ['rungs', '--trial']), 0, 2));
+        $this->assertSame([0, "10000 first80\n"], array_slice(self::tool('ladder.php', ['scenario', 'cal-2', '--trial', '--line']), 0, 2));
+        $this->assertSame([0, "10000 odd80\n"], array_slice(self::tool('ladder.php', ['scenario', 'cal-3', '--trial', '--line']), 0, 2));
+        foreach (['t-4', 't-1', 'even', 'cal-1'] as $name) {
+            $this->assertSame(2, self::tool('ladder.php', ['scenario', $name, '--trial', '--line'])[0], $name);
+        }
+        $this->assertSame(2, self::tool('ladder.php', ['scenario', 'cal-2', '--line'])[0], 'a trial name without --trial is no scenario');
+    }
+
+    public function test_a_trial_record_is_written_with_trial_true_and_no_prediction_and_refuses_one(): void
+    {
+        $common = ['--rung=1', '--summary=' . $this->runJson(0.4, true), '--started=2026-11-10T10:00:00+09:00', '--ended=2026-11-10T10:06:00+09:00'];
+        [$code, $out] = self::tool('ladder.php', array_merge(['record', '--trial=cal-3'], $common));
+        $this->assertSame(0, $code);
+        $r = json_decode($out, true);
+        $this->assertSame('trial-cal-3', $r['scenario']);
+        $this->assertSame(10000, $r['scale']);
+        $this->assertTrue($r['trial']);
+        $this->assertNull($r['prediction']);
+        $this->assertSame(2, self::tool('ladder.php', array_merge(['record', '--trial=cal-3', '--prediction-file=x'], $common))[0]);
+        $this->assertSame(2, self::tool('ladder.php', array_merge(['record', '--trial=cal-3', '--scenario=t-4'], $common))[0]);
+        $this->assertSame(2, self::tool('ladder.php', array_merge(['record', '--trial=t-4'], $common))[0]);
+        $this->assertSame(2, self::tool('ladder.php', array_merge(['record'], $common))[0], 'neither a scenario nor a trial');
+    }
+
     public function test_make_plan_makes_a_plan_for_every_step_of_every_mix_the_ladder_uses(): void
     {
         foreach (['even', 'first80', 'last80'] as $mix) {

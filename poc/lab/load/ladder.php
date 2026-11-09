@@ -6,16 +6,17 @@ declare(strict_types=1);
  * The PHP half of `poc/lab/bin/measure-ladder`: the steps, the scenarios, the stopping rule and the record of one step. It
  * measures nothing and touches no container.
  *
- *   php ladder.php rungs                          the rps of each step, one per line
+ *   php ladder.php rungs [--trial]                the rps of each step, one per line (--trial: the one step of a trial, R_0)
  *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
+ *   php ladder.php scenario <cal-2|cal-3> --trial [--line]   the same for a trial (N_0; a prediction scenario id is refused)
  *   php ladder.php order                          the order of the measurement by scale (JSON)
  *   php ladder.php shape --scheme=<spec|A|B> --rps=<n>   "<duration> <warmup>" in seconds of a step under the scheme
  *   php ladder.php stagger --scheme=<spec|A|B> <plan.json>   the plan with each route's start time and planned count (JSON)
  *   php ladder.php preview <plan.json>            what the plan would count in the kept window if the requests arrived evenly (JSON)
  *   php ladder.php table --dir=<dir of rung-NN-<rps>/plan.json>
  *                                                 the dry-run table: per step the rate of the routes and what the plan would count
- *   php ladder.php record --scenario=<id> --rung=<n> --summary=<summarize-run output> --started=<iso> --ended=<iso>
- *                         [--prediction-file=<path> --prediction-commit=<hash> --prediction-time=<iso>]
+ *   php ladder.php record --scenario=<id>|--trial=<cal-2|cal-3> --rung=<n> --summary=<summarize-run output> --started=<iso> --ended=<iso>
+ *                         [--prediction-file (not with --trial)=<path> --prediction-commit=<hash> --prediction-time=<iso>]
  *                                                 the record of one step (JSON on stdout, the end line on stderr)
  *   php ladder.php decision <record.json>         the stopping decision of a record that was written
  *   php ladder.php collect --dir=<scenario dir>   the records of the steps in the directory, in one file (JSON on stdout)
@@ -62,14 +63,15 @@ foreach ($args as $arg) {
 
 switch ($command) {
     case 'rungs':
-        foreach (Ladder::RUNGS as $rps) {
+        // --trial: the one step of a trial (R_0)
+        foreach (isset($opts['trial']) ? [Ladder::TRIAL_RPS] : Ladder::RUNGS as $rps) {
             echo rtrim(rtrim(number_format($rps, 4, '.', ''), '0'), '.'), "\n";
         }
         exit(0);
 
     case 'scenario':
         try {
-            $s = Ladder::scenario($positional[0] ?? '');
+            $s = isset($opts['trial']) ? Ladder::trial($positional[0] ?? '') : Ladder::scenario($positional[0] ?? '');
         } catch (InvalidArgumentException $e) {
             fail($e->getMessage());
         }
@@ -139,13 +141,20 @@ switch ($command) {
         exit(0);
 
     case 'record':
-        foreach (['scenario', 'rung', 'summary', 'started', 'ended'] as $need) {
+        foreach (['rung', 'summary', 'started', 'ended'] as $need) {
             if (!isset($opts[$need])) {
                 fail("record needs --$need");
             }
         }
+        // a prediction scenario (--scenario) or a trial (--trial), never both
+        if (isset($opts['scenario']) === isset($opts['trial'])) {
+            fail('record needs --scenario=<t-1..t-5> or --trial=<cal-2|cal-3>, and not both');
+        }
+        if (isset($opts['trial']) && isset($opts['prediction-file'])) {
+            fail('a trial has no prediction: --prediction-file is refused with --trial');
+        }
         try {
-            $scenario = Ladder::scenario($opts['scenario']);
+            $scenario = isset($opts['trial']) ? Ladder::trial($opts['trial']) : Ladder::scenario($opts['scenario']);
         } catch (InvalidArgumentException $e) {
             fail($e->getMessage());
         }
@@ -156,6 +165,9 @@ switch ($command) {
             'started_at' => $opts['started'],
             'ended_at' => $opts['ended'],
         ];
+        if (isset($opts['trial'])) {
+            $meta['trial'] = true;
+        }
         if (isset($opts['prediction-file'])) {
             $meta['prediction'] = [
                 'file' => $opts['prediction-file'],
@@ -192,7 +204,8 @@ switch ($command) {
             'scale' => $rungs[0]['scale'] ?? null,
             'mix' => $rungs[0]['mix'] ?? null,
             'rungs_measured' => count($rungs),
-            'rungs_in_ladder' => count(Ladder::RUNGS),
+            'trial' => (bool) ($rungs[0]['trial'] ?? false),
+            'rungs_in_ladder' => ($rungs[0]['trial'] ?? false) ? 1 : count(Ladder::RUNGS),
             'stopped_after_rung' => $last !== null && $last['decision']['stop'] ? $last['rung'] : null,
             'stop_reasons' => $last !== null && $last['decision']['stop'] ? $last['decision']['reasons'] : [],
             'rungs' => $rungs,
@@ -200,5 +213,5 @@ switch ($command) {
         exit(0);
 
     default:
-        fail('usage: ladder.php rungs | scenario <id> [--line] | order | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
 }

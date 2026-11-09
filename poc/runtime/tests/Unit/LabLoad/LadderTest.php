@@ -45,6 +45,34 @@ final class LadderTest extends TestCase
         }
     }
 
+    public function test_a_trial_is_a_calibration_mix_at_n0_and_never_a_prediction_scenario(): void
+    {
+        $this->assertSame(['id' => 'trial-cal-2', 'scale' => 10000, 'multiple' => 1, 'mix' => RouteMix::FIRST_80, 'trial' => true], Ladder::trial('cal-2'));
+        $this->assertSame(['id' => 'trial-cal-3', 'scale' => 10000, 'multiple' => 1, 'mix' => RouteMix::ODD_80, 'trial' => true], Ladder::trial('cal-3'));
+        $this->assertSame(1.0, Ladder::TRIAL_RPS);
+        // t-4 (N_0, even), the other scenarios, cal-1 and the bare `even` are refused: a trial must never measure a prediction scenario
+        foreach (['t-1', 't-2', 't-3', 't-4', 't-5', 'even', 'first80', 'cal-1', 'cal-2 ', '', 'trial-cal-2'] as $name) {
+            try {
+                Ladder::trial($name);
+                $this->fail("expected a refusal for trial '$name'");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        // and a trial name is no prediction scenario
+        $this->expectException(\InvalidArgumentException::class);
+        Ladder::scenario('trial-cal-2');
+    }
+
+    public function test_a_trial_never_has_the_mix_and_count_of_a_prediction_scenario(): void
+    {
+        $predictions = array_map(static fn (string $id): array => [Ladder::scenario($id)['scale'], Ladder::scenario($id)['mix']], ['t-1', 't-2', 't-3', 't-4', 't-5']);
+        foreach (['cal-2', 'cal-3'] as $name) {
+            $t = Ladder::trial($name);
+            $this->assertNotContains([$t['scale'], $t['mix']], $predictions);
+        }
+    }
+
     public function test_the_measurement_goes_by_scale_n0_then_3_n0_then_10_n0(): void
     {
         $this->assertSame([
@@ -129,6 +157,14 @@ final class LadderTest extends TestCase
         $this->assertSame('2026-11-10T09:00:00+09:00', $r['started_at']);
         $this->assertSame('2026-11-10T09:06:10+09:00', $r['ended_at']);
         $this->assertFalse($r['decision']['stop']);
+    }
+
+    public function test_a_trial_record_says_so_and_a_prediction_record_does_not(): void
+    {
+        $meta = ['scenario' => 'trial-cal-2', 'scale' => 10000, 'rung' => 1, 'started_at' => 'a', 'ended_at' => 'b', 'trial' => true];
+        $this->assertTrue(Ladder::record($meta, self::summary(0.5, true))['trial']);
+        unset($meta['trial']);
+        $this->assertFalse(Ladder::record($meta, self::summary(0.5, true))['trial']);
     }
 
     public function test_a_stall_record_carries_the_app_cpu_and_says_when_it_was_not_sampled(): void

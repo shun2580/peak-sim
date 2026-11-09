@@ -3,6 +3,7 @@
 #
 #   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --predictions=<poc/lab/predictions/....json> [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --scenario=<t-1..t-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
 # One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). That is the
 # scheme `spec`, the default and the spec as written. `--scheme` chooses how a step is laid out in time, in one place
@@ -37,6 +38,12 @@
 # each route, what the plan would count in the kept window, the longest the scenario can take) and says what the gate says. It
 # does not enforce the gate (nothing is measured), and it needs PHP (on the host, or the dev image `peak-sim-php-dev:8.3`).
 #
+# --trial is a dress rehearsal of this tool, NOT a measurement of a prediction scenario and never used to judge or calibrate:
+# it takes a calibration mix only (cal-2 = first80, cal-3 = odd80; `even` is refused because at N_0 it is the prediction scenario
+# t-4), at N_0 = 10,000, the one step R_0 = 1 rps, and it excludes --scenario and --predictions. It does not go through the
+# prediction gate (there is no prediction in it); the gate of the ordinary path is untouched. Its records are always under
+# <out dir>/trial/ (default and only place), named trial-<cal>-<scale>, and each record says "trial": true.
+#
 # exit codes: 0 the ladder was measured to its end or to its stopping step / 2 usage, or the app reads another scale, or a
 # missing prerequisite / 11 not sealed / 12 the prediction gate is closed / 13 a step could not be measured (the cause is printed)
 set -uo pipefail
@@ -45,7 +52,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '2,5p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial=
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -54,20 +61,34 @@ for arg in "$@"; do
     --dry-run) dry=1 ;;
     --switch-scale) switch=1 ;;
     --scheme=*) scheme="${arg#--scheme=}" ;;
+    --trial=*) trial="${arg#--trial=}" ;;
     *) usage ;;
   esac
 done
-[[ "$scenario" =~ ^t-[1-5]$ ]] || usage
 [[ "$scheme" =~ ^(spec|A|B)$ ]] || usage
-[ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/ladder"
-if [ "$dry" = 0 ] && [ -z "$predictions" ]; then
+if [ -n "$trial" ]; then
+  # A trial is exclusive with a prediction scenario and with a prediction file; only the calibration mixes are accepted.
+  if [ -n "$scenario" ] || [ -n "$predictions" ]; then
+    echo "measure-ladder: --trial excludes --scenario and --predictions (a trial is never a prediction scenario)" >&2
+    exit 2
+  fi
+  [[ "$trial" =~ ^cal-[23]$ ]] || { echo "measure-ladder: --trial takes cal-2 or cal-3 only (got '$trial')" >&2; exit 2; }
+  scenario="trial-$trial"
+  [ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/trial"
+else
+  [[ "$scenario" =~ ^t-[1-5]$ ]] || usage
+  [ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/ladder"
+fi
+if [ -z "$trial" ] && [ "$dry" = 0 ] && [ -z "$predictions" ]; then
   echo "measure-ladder: --predictions=<the committed prediction file> is required (the gate)" >&2
   exit 2
 fi
 
 # 1. THE GATE. Nothing above this line touches a container; nothing below runs unless it is open. -------------------------
 gate_line=""
-if [ "$dry" = 0 ]; then
+if [ -n "$trial" ]; then
+  echo "trial $trial: a dress rehearsal of the tool at N_0, one step at R_0 = 1 rps; no prediction is involved, nothing here is used to judge or to calibrate"
+elif [ "$dry" = 0 ]; then
   gate_line="$("$bindir/prediction-gate" "$predictions")" || exit 12
   echo "$gate_line"
 elif [ -n "$predictions" ]; then
@@ -76,7 +97,7 @@ else
   echo "gate (not enforced in a dry run): no prediction file was given; a measurement will not start without a committed one"
 fi
 pred_file="" ; pred_commit="" ; pred_time=""
-if [ "$dry" = 0 ]; then
+if [ "$dry" = 0 ] && [ -z "$trial" ]; then
   read -r _ _ pred_file pred_commit pred_time <<<"$gate_line"
 fi
 
@@ -86,6 +107,11 @@ mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 lab_out="$(cd "$PEAK_LAB_OUT_DIR" && pwd)"
 case "$out" in "$lab_out"/*) ;; *) echo "measure-ladder: --out must be inside $lab_out (the tools container sees only that directory, as /out)" >&2; exit 2 ;; esac
+if [ -n "$trial" ]; then
+  case "$out" in "$lab_out"/trial|"$lab_out"/trial/*) ;; *) echo "measure-ladder: a trial's records go under $lab_out/trial only (got $out)" >&2; exit 2 ;; esac
+else
+  case "$out" in "$lab_out"/trial|"$lab_out"/trial/*) echo "measure-ladder: $lab_out/trial is for trials only" >&2; exit 2 ;; esac
+fi
 in_container() { echo "/out/${1#"$lab_out"/}"; }   # host path under the out directory -> path inside the containers
 
 php_tool() {  # php_tool <path of the script under the repository> [args...]
@@ -105,9 +131,11 @@ php_tool() {  # php_tool <path of the script under the repository> [args...]
 host_or_container() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "$1"; else in_container "$1"; fi; }
 routes_path() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "$PEAK_REPO_ROOT/poc/lab/routes/route-list.json"; else echo "/peak-sim/poc/lab/routes/route-list.json"; fi; }
 
-read -r scale mix < <(php_tool poc/lab/load/ladder.php scenario "$scenario" --line) || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
+tflag=() ; tname="$scenario"
+if [ -n "$trial" ]; then tflag=(--trial) ; tname="$trial"; fi
+read -r scale mix < <(php_tool poc/lab/load/ladder.php scenario "$tname" "${tflag[@]}" --line) || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
 [ -n "${scale:-}" ] && [ -n "${mix:-}" ] || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
-mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs)
+mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${tflag[@]}")
 [ "${#rungs[@]}" -gt 0 ] || { echo "measure-ladder: cannot read the ladder" >&2; exit 13; }
 
 sdir="$out/${scenario}-${scale}"
@@ -204,8 +232,9 @@ for rps in "${rungs[@]}"; do
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
     --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
-  php_tool poc/lab/load/ladder.php record --scenario="$scenario" --rung="$i" --summary="$(in_container "$d/run.json")" \
-    --started="$started_at" --ended="$ended_at" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time" \
+  if [ -n "$trial" ]; then record_args=(--trial="$trial"); else record_args=(--scenario="$scenario" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time"); fi
+  php_tool poc/lab/load/ladder.php record "${record_args[@]}" --rung="$i" --summary="$(in_container "$d/run.json")" \
+    --started="$started_at" --ended="$ended_at" \
     >"$d/record.json" 2>"$d/end-line.txt"; rc=$?
   cat "$d/end-line.txt"
   if [ "$rc" != 0 ] && [ "$rc" != 6 ]; then

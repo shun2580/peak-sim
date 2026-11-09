@@ -15,6 +15,10 @@
 # 9. measure-ladder with a closed gate exits 12 and calls `docker` zero times (take the gate out of it and this fails)
 # 10. measure-ladder with an open gate goes on past the gate (it reaches `docker`), so the test in 9 means something
 # 11. measure-ladder without --predictions (and not a dry run) is refused before anything else (2), `docker` zero times
+# 12-19 the trial path (`--trial`, a rehearsal of the tool on a calibration mix; no prediction in it) cannot be used to get round the gate:
+#   --trial=t-4 / even / cal-1 are refused (2); --trial with --scenario or with --predictions is refused (2); a trial's --out must be
+#   under out/trial and an ordinary run's must not (2); every refusal calls `docker` zero times; the trial itself goes on to docker
+#   with no prediction file; the ordinary path with a closed gate is still 12 (9) and an unknown scenario is still refused.
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -91,6 +95,35 @@ grep -q '^PREDICTION OK' "$work/ml.out" && pass "10c open gate: it printed the g
 ml --scenario=t-4; rc=$?
 expect_code "11 no --predictions: refused" 2 $rc
 [ "$(calls)" = 0 ] && pass "11b no --predictions: docker was not called" || fail "11b docker was called"
+
+# 12-19: the trial path
+for bad in t-4 even first80 cal-1 t-1; do
+  ml --trial="$bad"; rc=$?
+  expect_code "12 --trial=$bad: refused" 2 $rc
+  [ "$(calls)" = 0 ] && pass "12b --trial=$bad: docker was not called" || fail "12b --trial=$bad: docker was called"
+done
+ml --trial=cal-2 --scenario=t-4; rc=$?
+expect_code "13 --trial with --scenario: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "13b docker was not called" || fail "13b docker was called"
+ml --trial=cal-2 --predictions="$pred"; rc=$?
+expect_code "14 --trial with --predictions: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "14b docker was not called" || fail "14b docker was called"
+ml --trial=cal-3 --out="$work/out/ladder"; rc=$?
+expect_code "15 a trial's --out outside out/trial: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "15b docker was not called" || fail "15b docker was called"
+ml --scenario=t-4 --predictions="$pred" --out="$work/out/trial"; rc=$?
+expect_code "16 an ordinary run into out/trial: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "16b docker was not called" || fail "16b docker was called"
+echo '{"v":3}' >"$pred"            # the gate is closed again; a trial has no use for it, an ordinary run still stops at it
+ml --scenario=t-4 --predictions="$pred"; rc=$?
+expect_code "17 the ordinary path still stops at a closed gate" 12 $rc
+git -C "$repo" checkout -q HEAD -- poc/lab/predictions/p.json
+ml --trial=cal-2 --switch-scale; rc=$?
+[ "$rc" -ne 12 ] && [ "$rc" -ne 2 ] && pass "18 --trial=cal-2 goes past the arguments with no prediction file (exit $rc)" || fail "18 --trial=cal-2 was stopped (exit $rc: $(head -2 "$work/ml.out" | tr '\n' ' '))"
+[ "$(calls)" -ge 1 ] && pass "18b the trial reached docker" || fail "18b the trial never reached docker"
+grep -q '^PREDICTION OK' "$work/ml.out" && fail "18c a trial printed a prediction gate line" || pass "18c a trial prints no prediction gate line"
+[ -d "$work/out/trial" ] && pass "19 the trial's records are under out/trial" || fail "19 no out/trial directory"
+[ ! -d "$work/out/ladder/trial-cal-2-10000" ] && pass "19b nothing of the trial is in out/ladder" || fail "19b the trial wrote into out/ladder"
 
 echo
 echo "ladder gate tests: $passed passed, $failed failed, $skipped skipped"
