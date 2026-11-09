@@ -77,4 +77,50 @@ final class GeneratorPlannerTest extends PlannerTestCase
         $this->assertSame('insp', $point->tag);
         $this->assertSame(['mode' => 'global', 'n' => 100, 'base' => 5], $point->recipe);
     }
+
+    public function test_shared_n_tables_make_one_targeted_plan_for_every_route_whatever_its_own_candidate(): void
+    {
+        $planner = new GeneratorPlanner(5, ['references', 'entities', 'images']);
+        $a = $planner->sweepsFor(self::spec('/a', ['n_table' => 'entities']), self::SCALES);
+        $b = $planner->sweepsFor(self::spec('/b', ['n_table' => 'references', 'm_table' => 'items', 'm_per' => 'references']), self::SCALES);
+        $none = $planner->sweepsFor(self::spec('/c', ['n_table' => null]), self::SCALES);
+
+        foreach ([$a, $b, $none] as $sweeps) {
+            // one sweep, no M sweep, the empty system first, then the scales
+            $this->assertCount(1, $sweeps);
+            $this->assertSame('N', $sweeps[0]->axis);
+            $this->assertSame([0, 100, 1000, 10000], array_map(static fn ($p) => $p->scale, $sweeps[0]->points));
+            $this->assertSame(
+                ['mode' => 'targeted', 'n_tables' => ['entities', 'images', 'references'], 'm_table' => null, 'm_per' => null, 'n' => 1000, 'm' => 0, 'base' => 5],
+                $sweeps[0]->points[2]->recipe,
+            );
+        }
+    }
+
+    public function test_routes_with_shared_n_tables_use_the_same_database_at_each_scale(): void
+    {
+        $planner = new GeneratorPlanner(5, ['entities', 'images', 'references']);
+        $a = $planner->sweepsFor(self::spec('/a', ['n_table' => 'entities']), self::SCALES)[0]->points[1];
+        $b = $planner->sweepsFor(self::spec('/b', ['n_table' => 'images']), self::SCALES)[0]->points[1];
+        $ownOnly = (new GeneratorPlanner())->sweepsFor(self::spec('/a', ['n_table' => 'entities']), self::SCALES)[0]->points[1];
+
+        $this->assertSame($a->tag, $b->tag);
+        $this->assertSame($a->key(), $b->key());
+        $this->assertNotSame($a->tag, $ownOnly->tag, 'the shared database is not the one of a single table');
+        $this->assertMatchesRegularExpression('/^[a-z][a-z0-9]{0,7}$/D', $a->tag);
+    }
+
+    public function test_without_shared_n_tables_the_plans_are_those_of_each_route(): void
+    {
+        $sweeps = (new GeneratorPlanner(5, null))->sweepsFor(self::spec('/x', ['n_table' => 'orders']), self::SCALES);
+
+        $this->assertSame(['orders'], $sweeps[0]->points[1]->recipe['n_tables']);
+    }
+
+    public function test_the_inspection_database_stays_global_with_shared_n_tables(): void
+    {
+        $point = (new GeneratorPlanner(5, ['entities']))->inspectionPoint(self::SCALES);
+
+        $this->assertSame(['mode' => 'global', 'n' => 100, 'base' => 5], $point->recipe);
+    }
 }

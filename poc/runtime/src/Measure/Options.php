@@ -9,7 +9,10 @@ final class Options
 {
     public const DEFAULT_BASE = GeneratorPlanner::BASE;
 
-    /** @param list<string> $only */
+    /**
+     * @param list<string> $only
+     * @param list<string> $nTables the tables that grow together for every route (generator only); empty = each route's own
+     */
     private function __construct(
         public readonly string $data,
         public readonly array $only,
@@ -19,6 +22,7 @@ final class Options
         public readonly bool $gateBypass = true,
         public readonly bool $warm = true,
         public readonly ?string $tapDir = null,
+        public readonly array $nTables = [],
     ) {
     }
 
@@ -35,7 +39,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir', 'n-tables'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -89,7 +93,19 @@ final class Options
             throw new \InvalidArgumentException('--tap-dir must be an absolute path without ".."');
         }
 
-        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir);
+        // The tables that all grow together for every route (the lab database's way). Plain names, as the generator takes them.
+        $nTables = [];
+        if (isset($values['n-tables'])) {
+            if (preg_match('/^[a-z0-9_]+(,[a-z0-9_]+)*$/D', $values['n-tables']) !== 1) {
+                throw new \InvalidArgumentException('--n-tables takes table names (lowercase letters, digits and _) separated by commas');
+            }
+            if ($data !== 'generator') {
+                throw new \InvalidArgumentException('--n-tables is for the generator; the seeder has its own shape');
+            }
+            $nTables = explode(',', $values['n-tables']);
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir, $nTables);
     }
 
     /**

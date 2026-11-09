@@ -6,7 +6,7 @@ declare(strict_types=1);
 // inspect the app, then for each database a route needs: build it, measure the routes on it, drop it. Writes the
 // record into PEAK_MEASURE_OUT_DIR (default /out) and prints a short summary.
 //
-//   php measure.php [--data=generator|seeder] [--only=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>]
+//   php measure.php [--data=generator|seeder] [--only=a,b] [--n-tables=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>]
 //
 // Input comes from PEAK_MEASURE_* variables (MeasureConfig). Exit codes: see Measure\MeasureExit.
 
@@ -62,7 +62,7 @@ try {
 }
 
 $bin = dirname(__DIR__);
-$planner = $options->data === 'seeder' ? new SeederPlanner() : new GeneratorPlanner($options->base);
+$planner = $options->data === 'seeder' ? new SeederPlanner() : new GeneratorPlanner($options->base, $options->nTables === [] ? null : $options->nTables);
 $builder = new ProcessDatabaseBuilder($bin . '/inner/build-db.php', $env, $options->data, ProcessDatabaseBuilder::TIMEOUT, PHP_BINARY, $options->profile);
 $scales = $config->scales;
 

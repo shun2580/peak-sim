@@ -167,4 +167,30 @@ final class OptionsTest extends TestCase
         yield 'with dots' => ['--tap-dir=/out/../etc'];
         yield 'empty' => ['--tap-dir='];
     }
+
+    public function test_no_shared_n_tables_unless_the_run_names_them(): void
+    {
+        $this->assertSame([], Options::parse([])->nTables);
+        $this->assertSame(['entities', 'images', 'references'], Options::parse(['--n-tables=entities,images,references'])->nTables);
+        $this->assertSame(['entities'], Options::parse(['--n-tables=entities', '--data=generator'])->nTables);
+    }
+
+    #[DataProvider('badNTables')]
+    public function test_the_n_tables_are_plain_table_names(string ...$args): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse($args);
+    }
+
+    /** @return iterable<string, list<string>> */
+    public static function badNTables(): iterable
+    {
+        yield 'empty' => ['--n-tables='];
+        yield 'empty name between commas' => ['--n-tables=a,,b'];
+        yield 'trailing comma' => ['--n-tables=a,'];
+        yield 'upper case' => ['--n-tables=Entities'];
+        yield 'schema dot' => ['--n-tables=db.entities'];
+        yield 'quote' => ['--n-tables=en`tities'];
+        yield 'with the seeder, which has its own shape' => ['--data=seeder', '--n-tables=entities'];
+    }
 }

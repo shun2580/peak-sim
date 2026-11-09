@@ -14,6 +14,9 @@ use PeakSim\Runtime\Route\RouteSpec;
  * none gets a global plan (every table N), which says how the cost grows with the whole database and nothing finer;
  * it has no empty point, because a global plan cannot hold zero rows. A route with an m_table also gets a second
  * sweep: the n table fixed at 20 rows, the children per parent row M = 3, 30, 300.
+ *
+ * With shared n tables (`--n-tables`, the way the lab database is built) every route gets the same one plan instead: those
+ * tables all at N rows together, no m table, the empty system first. The routes then share each database of the sweep.
  */
 final class GeneratorPlanner implements DataPlanner
 {
@@ -27,12 +30,17 @@ final class GeneratorPlanner implements DataPlanner
     /** @var list<int> */
     public const M_SCALES = [3, 30, 300];
 
-    public function __construct(private readonly int $base = self::BASE)
+    /** @param list<string>|null $sharedNTables the tables that all grow together for every route; null = each route's own candidates */
+    public function __construct(private readonly int $base = self::BASE, private readonly ?array $sharedNTables = null)
     {
     }
 
     public function sweepsFor(RouteSpec $spec, array $scales): array
     {
+        if ($this->sharedNTables !== null) {
+            return [$this->sharedSweep($scales)];
+        }
+
         $nTables = [];
         foreach ([$spec->static['n_table'] ?? null, ...array_values((array) ($spec->static['n_table_alternatives'] ?? []))] as $table) {
             $bare = self::bare($table);
@@ -71,6 +79,19 @@ final class GeneratorPlanner implements DataPlanner
         }
 
         return $sweeps;
+    }
+
+    /** @param list<int> $scales */
+    private function sharedSweep(array $scales): Sweep
+    {
+        $nTables = array_values(array_unique($this->sharedNTables ?? []));
+        sort($nTables, SORT_STRING);
+        $tag = 'u' . substr(md5(json_encode($nTables, JSON_THROW_ON_ERROR)), 0, 6);
+
+        return new Sweep('N', array_map(
+            fn (int $n): DatabasePoint => new DatabasePoint($tag, $n, $this->targeted($nTables, null, null, $n, 0)),
+            [0, ...$scales],
+        ));
     }
 
     public function inspectionPoint(array $scales): DatabasePoint

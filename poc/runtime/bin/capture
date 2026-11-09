@@ -39,6 +39,8 @@ usage: bin/capture --app=<dir> --static=<analysis.json> [options]
   --scales=100,1000,10000   the sizes of the sweep (default 100,1000,10000); three or more, strictly ascending
   --only=<a>,<b>         capture only the routes whose uri contains one of these; a name that starts with = must equal the whole uri;
                          "GET /books/{slug}" (method, space, uri) names that one route
+  --n-tables=<a>,<b>     generator only: these tables all grow to N together for every route, in one database shared by the routes
+                         (the way the lab database is built); the others stay at the base. Default: each route's own n_table
   --base=N               generator only: rows of every table that is not scaled (default 5)
   --profile=<name>       generator only: app knowledge from profiles/<name>.php (same as bin/measure)
   --gate-bypass=on|off   as in bin/measure (default on)
@@ -59,7 +61,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" appname="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 gate="" timeout="" keep=0
+app="" static="" out="" appname="" data="generator" scales="100,1000,10000" only="" ntables="" ntables_given=0 base="" profile="" profile_given=0 gate="" timeout="" keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -70,6 +72,7 @@ for arg in "$@"; do
     --data=*) data="${arg#--data=}" ;;
     --scales=*) scales="${arg#--scales=}" ;;
     --only=*) only="${arg#--only=}" ;;
+    --n-tables=*) ntables="${arg#--n-tables=}"; ntables_given=1 ;;
     --base=*) base="${arg#--base=}" ;;
     --profile=*) profile="${arg#--profile=}"; profile_given=1 ;;
     --gate-bypass=*) gate="${arg#--gate-bypass=}" ;;
@@ -93,6 +96,10 @@ for s in "${scale_list[@]}"; do
 done
 if [ -z "$appname" ]; then appname="$(basename "$app")"; fi
 [[ "$appname" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,60}$ ]] || fail_usage "--app-name is letters, digits, . - and _"
+if [ "$ntables_given" = 1 ]; then
+  [[ "$ntables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || fail_usage "--n-tables takes table names (lowercase letters, digits and _) separated by commas"
+  [ "$data" = generator ] || fail_usage "--n-tables is for --data=generator"
+fi
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
 if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
 if [ -n "$gate" ]; then case "$gate" in on|off) ;; *) fail_usage "--gate-bypass takes on or off" ;; esac; fi
@@ -114,6 +121,7 @@ cp "$static" "$PEAK_OUT_DIR/static.json" || { echo "bin/capture: cannot write to
 # The driver writes the records of the statements here (inside the container, /out is --out).
 inner=(--data="$data" --warm=off --tap-dir=/out/capture-taps)
 [ -n "$only" ] && inner+=(--only="$only")
+[ "$ntables_given" = 1 ] && inner+=(--n-tables="$ntables")
 [ -n "$base" ] && inner+=(--base="$base")
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")

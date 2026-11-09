@@ -54,6 +54,10 @@ final class CaptureScriptUsageTest extends TestCase
         yield 'profile with a path' => [['--app=/x', '--static=/y', '--profile=../x']];
         yield 'app name with a slash' => [['--app=/x', '--static=/y', '--app-name=a/b']];
         yield 'gate bypass maybe' => [['--app=/x', '--static=/y', '--gate-bypass=maybe']];
+        yield 'n tables with a capital' => [['--app=/x', '--static=/y', '--n-tables=Entities']];
+        yield 'n tables with an empty name' => [['--app=/x', '--static=/y', '--n-tables=a,,b']];
+        yield 'n tables empty' => [['--app=/x', '--static=/y', '--n-tables=']];
+        yield 'n tables with the seeder' => [['--app=/x', '--static=/y', '--data=seeder', '--n-tables=entities']];
     }
 
     /** @param list<string> $args */
@@ -69,6 +73,14 @@ final class CaptureScriptUsageTest extends TestCase
     public function test_the_default_scales_pass_the_checks_and_it_stops_at_the_app(): void
     {
         [$code, , $err] = self::invoke(['--app=/nonexistent-app-dir', '--static=/y', '--scales=100,1000,10000', '--app-name=sample.app_1']);
+
+        $this->assertSame(2, $code, $err);
+        $this->assertStringContainsString('--app is not a directory', $err);
+    }
+
+    public function test_shared_n_tables_pass_the_checks_and_it_stops_at_the_app(): void
+    {
+        [$code, , $err] = self::invoke(['--app=/nonexistent-app-dir', '--static=/y', '--n-tables=entities,images,references', '--app-name=sample.app_1']);
 
         $this->assertSame(2, $code, $err);
         $this->assertStringContainsString('--app is not a directory', $err);
