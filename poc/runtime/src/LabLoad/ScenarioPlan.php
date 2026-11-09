@@ -45,13 +45,22 @@ final class ScenarioPlan
         return ['mix' => $mix, 'rps' => $rps, 'duration_sec' => $durationSec, 'warmup_sec' => $warmupSec, 'routes' => $out];
     }
 
-    /** @return array{0: int, 1: string} */
+    /** The longest time unit tried, in seconds. Every rung of the lab's ladder is found within 1000s. */
+    private const MAX_UNIT_SEC = 10000;
+
+    /**
+     * Per second first, then per 1000 seconds (what every earlier plan used), then the shortest other whole number of
+     * seconds in which the rate is a whole count: 0.00625 rps is 1 per 160s, 0.00875 rps is 7 per 800s.
+     *
+     * @return array{0: int, 1: string}
+     */
     private static function rate(float $rps): array
     {
-        foreach ([[1, '1s'], [1000, '1000s']] as [$factor, $unit]) {
+        $factors = array_merge([1, 1000], array_diff(range(2, self::MAX_UNIT_SEC), [1000]));
+        foreach ($factors as $factor) {
             $rate = (int) round($rps * $factor);
             if ($rate >= 1 && abs($rate / $factor - $rps) <= $rps * 0.001) {
-                return [$rate, $unit];
+                return [$rate, $factor . 's'];
             }
         }
 

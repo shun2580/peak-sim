@@ -53,6 +53,32 @@ final class ScenarioPlanTest extends TestCase
         }
     }
 
+    public function test_every_rung_of_the_ladder_can_be_written_in_every_mix_the_ladder_uses(): void
+    {
+        foreach ([RouteMix::EVEN, RouteMix::FIRST_80, RouteMix::LAST_80] as $mix) {
+            foreach ([0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0] as $rps) {
+                $plan = ScenarioPlan::build(self::routes(), $mix, $rps, 360, 60);
+                foreach ($plan['routes'] as $r) {
+                    [$count, $unit] = [$r['rate'], (int) rtrim($r['time_unit'], 's')];
+                    $this->assertGreaterThanOrEqual(1, $count);
+                    $this->assertEqualsWithDelta($r['rps'], $count / $unit, $r['rps'] * 0.001, "$mix at $rps");
+                }
+            }
+        }
+    }
+
+    public function test_a_rate_per_a_number_of_seconds_other_than_1_or_1000_is_found(): void
+    {
+        $plan = ScenarioPlan::build(self::routes(), RouteMix::EVEN, 0.05, 360, 60); // 0.00625 each = 1 per 160s
+        $this->assertSame(1, $plan['routes'][0]['rate']);
+        $this->assertSame('160s', $plan['routes'][0]['time_unit']);
+        // 0.00875 each: the shortest unit that is within 0.1% (the tolerance every plan has had) is found, and it is not 1s or 1000s
+        $plan = ScenarioPlan::build(self::routes(), RouteMix::EVEN, 0.07, 360, 60);
+        $unit = (int) rtrim($plan['routes'][0]['time_unit'], 's');
+        $this->assertNotContains($unit, [1, 1000]);
+        $this->assertEqualsWithDelta(0.00875, $plan['routes'][0]['rate'] / $unit, 0.00875 * 0.001);
+    }
+
     public function test_a_rate_k6_cannot_express_is_refused_not_rounded_silently(): void
     {
         $this->expectException(\InvalidArgumentException::class);
