@@ -1,0 +1,10 @@
+| route | status | ms (3) | queries meas. | rows meas. | DB CPU s (median of 3) | queries est ÷ meas | rows est ÷ meas (point / safe) | CPU est ÷ meas (point / safe) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GET /books/{bookSlug}/chapter/{chapterSlug}/references | 200,200,200 | 26,26,26 | 8 | 222 | 0.00292 (below the measurement floor) | 1 | 1.01 / 1.01 | withheld: would be 0.92 / 0.92 (below the measurement floor (empty-window / idle-drift rule)) |
+| GET /books/{bookSlug}/export/zip | 500,500,500 | 52668,52869,53574 | 1.2e+05 | 8.35e+05 | 25.2 | 1 | 1.78 / 1.79 | 1.46 / 1.46 |
+| GET /books/{bookSlug}/page/{pageSlug}/references | 200,200,200 | 25,26,26 | 8 | 229 | 0.00275 (below the measurement floor) | 1 | 0.981 / 0.981 | withheld: would be 0.978 / 0.978 (below the measurement floor (empty-window / idle-drift rule); the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
+| GET /books/{slug} | 200,200,200 | 9887,9730,10003 | 45 | 1.26e+06 | 1.13 | 1.1 | 2.02 / 2.02 | 4.4 / 4.4 |
+| GET /books/{slug}/references | 200,200,200 | 24,25,25 | 7 | 217 | 0.00346 (below the measurement floor) | 1 | 1.01 / 1.01 | withheld: would be 0.693 / 0.693 (the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
+| GET /images/edit/{id} | 200,200,200 | 21,20,20 | 6 | 199 | 0.000432 (below the measurement floor) | 1 | 1 / 1 | withheld: would be 4.81 / 4.81 (below the measurement floor (empty-window / idle-drift rule); the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
+| GET /oidc/callback | 302,302,302 | 12,12,12 | 0 | 0 | -0.00101 (below the measurement floor) | n/a | n/a / n/a | withheld: would be -0 / -0 (below the measurement floor (empty-window / idle-drift rule); the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
+| GET /shelves/{slug} | 200,200,200 | 34,35,35 | 18 | 236 | 0.00811 | 1 | 425 / 425 | 24.7 / 24.7 |

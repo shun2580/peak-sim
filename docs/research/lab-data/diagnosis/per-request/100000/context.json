@@ -1,0 +1,19 @@
+{
+ "scale": 100000,
+ "database": "peak_sim_measure_d60189cad0bc_lab_100000",
+ "label": "T1 100000 rows, in-process part for routes 2-8 (first attempt stopped on a non-UTF-8 output; routes 1 kept)",
+ "routes": [
+  "GET /books/{bookSlug}/export/zip",
+  "GET /books/{bookSlug}/page/{pageSlug}/references",
+  "GET /books/{slug}",
+  "GET /books/{slug}/references",
+  "GET /images/edit/{id}",
+  "GET /oidc/callback",
+  "GET /shelves/{slug}"
+ ],
+ "reps": 3,
+ "part": "inproc",
+ "started": "2026-11-10T19:28:15+09:00",
+ "k6_timeout_s": 180,
+ "targets_file": "targets-100000.json"
+}

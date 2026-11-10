@@ -1,0 +1,1126 @@
+{
+ "coefficients": {
+  "c_q": 0.00028170487399181373,
+  "c_row": 1.9506295351652024e-06
+ },
+ "conversion": "estimated DB CPU seconds of one request = c_q * queries + c_row * rows (spec section 5)",
+ "idle_rate_usec_per_s": 12564.564779336157,
+ "null_window": {
+  "counters": {
+   "Com_begin": 0.0,
+   "Com_commit": 0.0,
+   "Com_rollback": 0.0,
+   "Com_select": 1.0,
+   "Com_set_option": 0.0,
+   "Handler_read_first": 0.0,
+   "Handler_read_key": 13.0,
+   "Handler_read_last": 0.0,
+   "Handler_read_next": 0.0,
+   "Handler_read_prev": 0.0,
+   "Handler_read_rnd": 0.0,
+   "Handler_read_rnd_next": 14.0,
+   "Questions": 4.0
+  },
+  "cpu_usec": 21299.0,
+  "cpu_usec_all": [
+   40385,
+   21299,
+   22771,
+   20659,
+   20770
+  ],
+  "samples": 5,
+  "wall_s": 0.1167287826538086
+ },
+ "routes": [
+  {
+   "answered_after_s": [
+    0.27,
+    0.28,
+    0.25
+   ],
+   "body_bytes": [
+    23577,
+    23577,
+    23577
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": 0.0033492352582714826,
+   "cpu_minus_null_only_s": [
+    0.006842,
+    0.006218,
+    0.006842
+   ],
+   "cpu_net_s": [
+    0.0033492352582714826,
+    0.0029104727679262503,
+    0.0035654954674861307
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 0.0026899297979664665,
+    "cpu_s_safe": 0.0026899297979664665,
+    "marked": false,
+    "queries": 8.0,
+    "rows": 223.66666666666998,
+    "rows_safe": 223.66666666666998
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": 0.8031474621925248,
+    "cpu_point_vs_converted_counts": 1.001210062508145,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": 0.8031474621925248,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)"
+    ],
+    "queries": 1.0,
+    "rows_point": 1.0075075075075224,
+    "rows_safe": 1.0075075075075224
+   },
+   "fpm_com_select_net": [
+    13.0,
+    13.0,
+    13.0
+   ],
+   "fpm_handlers_net": [
+    234.0,
+    234.0,
+    234.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    10.0,
+    10.0,
+    10.0
+   ],
+   "fpm_questions_net": [
+    18.0,
+    18.0,
+    18.0
+   ],
+   "http_ms": [
+    34,
+    28,
+    26
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.0034927647417285173,
+    0.0033075272320737498,
+    0.0032765045325138693
+   ],
+   "inproc_cold_queries": [
+    8,
+    8,
+    8
+   ],
+   "inproc_cold_rows_examined": [
+    222,
+    222,
+    222
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    11,
+    11,
+    11
+   ],
+   "inproc_first_rows_examined": [
+    233,
+    233,
+    233
+   ],
+   "measured_cpu_from_counts_s": 0.002686678748741185,
+   "measured_queries": 8.0,
+   "measured_rows": 222.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0291825,
+    0.0236555,
+    0.0211965
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references"
+  },
+  {
+   "answered_after_s": [
+    21.16,
+    21.29,
+    21.29
+   ],
+   "body_bytes": [
+    170319,
+    170322,
+    171033
+   ],
+   "cpu_below_floor_by_null_rule": false,
+   "cpu_below_measurement_floor": false,
+   "cpu_median_s": 9.937393335427446,
+   "cpu_minus_null_only_s": [
+    10.206821,
+    10.284908,
+    10.227514
+   ],
+   "cpu_net_s": [
+    9.918716211773702,
+    9.994836385802358,
+    9.937393335427446
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 10.620523563935018,
+    "cpu_s_safe": 10.547291459442894,
+    "marked": true,
+    "queries": 36001.7032967,
+    "rows": 245391.68746203848,
+    "rows_safe": 207848.8823460882
+   },
+   "estimate_over_measured": {
+    "cpu_point": 1.0687434023640958,
+    "cpu_point_if_not_withheld": null,
+    "cpu_point_vs_converted_counts": 0.9989659292367709,
+    "cpu_safe": 1.06137405488833,
+    "cpu_safe_if_not_withheld": null,
+    "cpu_withheld_because": [],
+    "queries": 0.999936209773914,
+    "rows_point": 0.9788416546815205,
+    "rows_safe": 0.8290873502013921
+   },
+   "fpm_com_select_net": [
+    36008.0,
+    36008.0,
+    36008.0
+   ],
+   "fpm_handlers_net": [
+    250707.0,
+    250707.0,
+    250707.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    17.0,
+    17.0,
+    16.0
+   ],
+   "fpm_questions_net": [
+    36021.0,
+    36021.0,
+    36020.0
+   ],
+   "http_ms": [
+    20905,
+    21039,
+    21063
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.2881047882262978,
+    0.29007161419764127,
+    0.2901206645725537
+   ],
+   "inproc_cold_queries": [
+    36004,
+    36004,
+    36004
+   ],
+   "inproc_cold_rows_examined": [
+    250696,
+    250696,
+    250696
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    36006,
+    36006,
+    36006
+   ],
+   "inproc_first_rows_examined": [
+    250706,
+    250706,
+    250706
+   ],
+   "measured_cpu_from_counts_s": 10.631517305149037,
+   "measured_queries": 36004.0,
+   "measured_rows": 250696.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    12.030434,
+    12.09774,
+    12.145651
+   ],
+   "php_finished_after_answer_s": [
+    1.8,
+    1.8,
+    1.8
+   ],
+   "processlist_after_window": [
+    {
+     "error": "",
+     "readable": true,
+     "rows": [
+      {
+       "command": "Daemon",
+       "db": "NULL",
+       "id": "5",
+       "info": "NULL",
+       "state": "Waiting on empty queue",
+       "time_s": "41735",
+       "user": "event_scheduler"
+      }
+     ]
+    },
+    {
+     "error": "",
+     "readable": true,
+     "rows": [
+      {
+       "command": "Daemon",
+       "db": "NULL",
+       "id": "5",
+       "info": "NULL",
+       "state": "Waiting on empty queue",
+       "time_s": "41759",
+       "user": "event_scheduler"
+      }
+     ]
+    },
+    {
+     "error": "",
+     "readable": true,
+     "rows": [
+      {
+       "command": "Daemon",
+       "db": "NULL",
+       "id": "5",
+       "info": "NULL",
+       "state": "Waiting on empty queue",
+       "time_s": "41782",
+       "user": "event_scheduler"
+      }
+     ]
+    }
+   ],
+   "route": "GET /books/{bookSlug}/export/zip"
+  },
+  {
+   "answered_after_s": [
+    0.29,
+    0.27,
+    0.27
+   ],
+   "body_bytes": [
+    23505,
+    23505,
+    23505
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": 0.002631647865650952,
+   "cpu_minus_null_only_s": [
+    0.006192,
+    0.006081,
+    0.00562
+   ],
+   "cpu_net_s": [
+    0.0028921984865594025,
+    0.002631647865650952,
+    0.002349765312037968
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 0.0026918804275016905,
+    "cpu_s_safe": 0.0030131128006760863,
+    "marked": true,
+    "queries": 8.0,
+    "rows": 224.6666666667,
+    "rows_safe": 389.34805151366436
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": 1.0228877740965696,
+    "cpu_point_vs_converted_counts": 0.9968697462502084,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": 1.1449528791462291,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)"
+    ],
+    "queries": 1.0,
+    "rows_point": 0.9810771470161572,
+    "rows_safe": 1.700209831937399
+   },
+   "fpm_com_select_net": [
+    13.0,
+    13.0,
+    13.0
+   ],
+   "fpm_handlers_net": [
+    241.0,
+    241.0,
+    241.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    10.0,
+    10.0,
+    10.0
+   ],
+   "fpm_questions_net": [
+    18.0,
+    18.0,
+    18.0
+   ],
+   "http_ms": [
+    26,
+    26,
+    26
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.003299801513440597,
+    0.003449352134349048,
+    0.003270234687962032
+   ],
+   "inproc_cold_queries": [
+    8,
+    8,
+    8
+   ],
+   "inproc_cold_rows_examined": [
+    229,
+    229,
+    229
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    11,
+    11,
+    11
+   ],
+   "inproc_first_rows_examined": [
+    240,
+    240,
+    240
+   ],
+   "measured_cpu_from_counts_s": 0.0027003331554873414,
+   "measured_queries": 8.0,
+   "measured_rows": 229.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0237515,
+    0.0214155,
+    0.0212255
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /books/{bookSlug}/page/{pageSlug}/references"
+  },
+  {
+   "answered_after_s": [
+    3.24,
+    3.21,
+    3.21
+   ],
+   "body_bytes": [
+    14613683,
+    14613683,
+    14613683
+   ],
+   "cpu_below_floor_by_null_rule": false,
+   "cpu_below_measurement_floor": false,
+   "cpu_median_s": 0.34198127062603495,
+   "cpu_minus_null_only_s": [
+    0.38228,
+    0.370108,
+    0.395998
+   ],
+   "cpu_net_s": [
+    0.34198127062603495,
+    0.330221567575487,
+    0.35555195474188506
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 0.7786523572122572,
+    "cpu_s_safe": 1.2187744493872432,
+    "marked": true,
+    "queries": 47.87127218593045,
+    "rows": 392266.5850788978,
+    "rows_safe": 617897.3797739609
+   },
+   "estimate_over_measured": {
+    "cpu_point": 2.276885970354011,
+    "cpu_point_if_not_withheld": null,
+    "cpu_point_vs_converted_counts": 1.0369584203268989,
+    "cpu_safe": 3.5638631529619746,
+    "cpu_safe_if_not_withheld": null,
+    "cpu_withheld_because": [],
+    "queries": 1.0638060485762322,
+    "rows_point": 1.0364973948720262,
+    "rows_safe": 1.6326881992896387
+   },
+   "fpm_com_select_net": [
+    49.0,
+    49.0,
+    49.0
+   ],
+   "fpm_handlers_net": [
+    378466.0,
+    378466.0,
+    378466.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    11.0,
+    11.0,
+    11.0
+   ],
+   "fpm_questions_net": [
+    56.0,
+    56.0,
+    56.0
+   ],
+   "http_ms": [
+    2974,
+    2935,
+    2970
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.04029872937396506,
+    0.03988643242451304,
+    0.040446045258114946
+   ],
+   "inproc_cold_queries": [
+    45,
+    45,
+    45
+   ],
+   "inproc_cold_rows_examined": [
+    378454,
+    378454,
+    378454
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    48,
+    48,
+    48
+   ],
+   "inproc_first_rows_examined": [
+    378465,
+    378465,
+    378465
+   ],
+   "measured_cpu_from_counts_s": 0.7509002694310432,
+   "measured_queries": 45.0,
+   "measured_rows": 378454.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    2.6212475,
+    2.5922995,
+    2.6170655
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /books/{slug}"
+  },
+  {
+   "answered_after_s": [
+    0.24,
+    0.29,
+    0.26
+   ],
+   "body_bytes": [
+    21082,
+    21082,
+    21082
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": 0.00370283807824395,
+   "cpu_minus_null_only_s": [
+    0.005643,
+    0.007366,
+    0.040898
+   ],
+   "cpu_net_s": [
+    0.002739172271671729,
+    0.00370283807824395,
+    0.03768026664773577
+   ],
+   "cpu_readings_scatter_more_than_median": true,
+   "estimate": {
+    "cpu_s": 0.002397821566453759,
+    "cpu_s_safe": 0.002397821566453759,
+    "marked": false,
+    "queries": 7.0,
+    "rows": 218.33333333333,
+    "rows_safe": 218.33333333333
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": 0.6475631706776961,
+    "cpu_point_vs_converted_counts": 1.0010858453882001,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": 0.6475631706776961,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)",
+     "the three readings scatter by more than their median (rule added after the 100,000-row reading)"
+    ],
+    "queries": 1.0,
+    "rows_point": 1.006144393241152,
+    "rows_safe": 1.006144393241152
+   },
+   "fpm_com_select_net": [
+    12.0,
+    12.0,
+    12.0
+   ],
+   "fpm_handlers_net": [
+    229.0,
+    229.0,
+    229.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    10.0,
+    10.0,
+    11.0
+   ],
+   "fpm_questions_net": [
+    17.0,
+    17.0,
+    18.0
+   ],
+   "http_ms": [
+    25,
+    30,
+    27
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.002903827728328271,
+    0.0036631619217560502,
+    0.003217733352264227
+   ],
+   "inproc_cold_queries": [
+    7,
+    7,
+    7
+   ],
+   "inproc_cold_rows_examined": [
+    217,
+    217,
+    217
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    10,
+    10,
+    10
+   ],
+   "inproc_first_rows_examined": [
+    228,
+    228,
+    228
+   ],
+   "measured_cpu_from_counts_s": 0.002395220727073545,
+   "measured_queries": 7.0,
+   "measured_rows": 217.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0215215,
+    0.0256975,
+    0.0221635
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /books/{slug}/references"
+  },
+  {
+   "answered_after_s": [
+    0.27,
+    0.24,
+    0.27
+   ],
+   "body_bytes": [
+    4175,
+    4175,
+    4175
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": 0.0002803820124551712,
+   "cpu_minus_null_only_s": [
+    0.003577,
+    0.003384,
+    0.003483
+   ],
+   "cpu_net_s": [
+    0.0001736846411276074,
+    0.0002803820124551712,
+    0.00034367415432908226
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 0.0020784045214487577,
+    "cpu_s_safe": 0.0020784045214487577,
+    "marked": false,
+    "queries": 6.0,
+    "rows": 199.0,
+    "rows_safe": 199.0
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": 7.412759838796944,
+    "cpu_point_vs_converted_counts": 1.0,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": 7.412759838796944,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)"
+    ],
+    "queries": 1.0,
+    "rows_point": 1.0,
+    "rows_safe": 1.0
+   },
+   "fpm_com_select_net": [
+    9.0,
+    9.0,
+    9.0
+   ],
+   "fpm_handlers_net": [
+    201.0,
+    201.0,
+    201.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    8.0,
+    8.0,
+    8.0
+   ],
+   "fpm_questions_net": [
+    14.0,
+    14.0,
+    14.0
+   ],
+   "http_ms": [
+    21,
+    21,
+    20
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.003403315358872393,
+    0.003103617987544829,
+    0.0031393258456709175
+   ],
+   "inproc_cold_queries": [
+    6,
+    6,
+    6
+   ],
+   "inproc_cold_rows_examined": [
+    199,
+    199,
+    199
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    7,
+    7,
+    7
+   ],
+   "inproc_first_rows_examined": [
+    200,
+    200,
+    200
+   ],
+   "measured_cpu_from_counts_s": 0.0020784045214487577,
+   "measured_queries": 6.0,
+   "measured_rows": 199.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0180165,
+    0.0178385,
+    0.0172555
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /images/edit/{id}"
+  },
+  {
+   "answered_after_s": [
+    0.26,
+    0.27,
+    0.27
+   ],
+   "body_bytes": [
+    334,
+    334,
+    334
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": -0.0014554591803798303,
+   "cpu_minus_null_only_s": [
+    0.001457,
+    0.001559,
+    0.001696
+   ],
+   "cpu_net_s": [
+    -0.0018612216157574862,
+    -0.0014554591803798303,
+    -0.0012221108715787063
+   ],
+   "cpu_readings_scatter_more_than_median": false,
+   "estimate": {
+    "cpu_s": 0.0,
+    "cpu_s_safe": 0.0,
+    "marked": false,
+    "queries": 0.0,
+    "rows": 0.0,
+    "rows_safe": 0.0
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": -0.0,
+    "cpu_point_vs_converted_counts": null,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": -0.0,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)"
+    ],
+    "queries": null,
+    "rows_point": null,
+    "rows_safe": null
+   },
+   "fpm_com_select_net": [
+    2.0,
+    2.0,
+    2.0
+   ],
+   "fpm_handlers_net": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    7.0,
+    7.0,
+    7.0
+   ],
+   "fpm_questions_net": [
+    7.0,
+    7.0,
+    7.0
+   ],
+   "http_ms": [
+    12,
+    12,
+    12
+   ],
+   "http_status": [
+    302,
+    302,
+    302
+   ],
+   "idle_drift_s": [
+    0.0033182216157574863,
+    0.00301445918037983,
+    0.002918110871578706
+   ],
+   "inproc_cold_queries": [
+    0,
+    0,
+    0
+   ],
+   "inproc_cold_rows_examined": [
+    0,
+    0,
+    0
+   ],
+   "inproc_cold_status": [
+    302,
+    302,
+    302
+   ],
+   "inproc_first_queries": [
+    1,
+    1,
+    1
+   ],
+   "inproc_first_rows_examined": [
+    1,
+    1,
+    1
+   ],
+   "measured_cpu_from_counts_s": 0.0,
+   "measured_queries": 0.0,
+   "measured_rows": 0.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0116375,
+    0.0112405,
+    0.0104535
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /oidc/callback"
+  },
+  {
+   "answered_after_s": [
+    0.28,
+    0.28,
+    0.29
+   ],
+   "body_bytes": [
+    33490,
+    33490,
+    33490
+   ],
+   "cpu_below_floor_by_null_rule": true,
+   "cpu_below_measurement_floor": true,
+   "cpu_median_s": 0.008790075423901393,
+   "cpu_minus_null_only_s": [
+    0.012335,
+    0.039477,
+    0.012085
+   ],
+   "cpu_net_s": [
+    0.008790075423901393,
+    0.03619174524486983,
+    0.008350736902688354
+   ],
+   "cpu_readings_scatter_more_than_median": true,
+   "estimate": {
+    "cpu_s": 0.06404927214726272,
+    "cpu_s_safe": 0.06404927214726272,
+    "marked": true,
+    "queries": 18.0,
+    "rows": 30235.6666666667,
+    "rows_safe": 30235.6666666667
+   },
+   "estimate_over_measured": {
+    "cpu_point": null,
+    "cpu_point_if_not_withheld": 7.286544091886193,
+    "cpu_point_vs_converted_counts": 11.57997681598055,
+    "cpu_safe": null,
+    "cpu_safe_if_not_withheld": 7.286544091886193,
+    "cpu_withheld_because": [
+     "below the measurement floor (empty-window / idle-drift rule)",
+     "the three readings scatter by more than their median (rule added after the 100,000-row reading)"
+    ],
+    "queries": 1.0,
+    "rows_point": 128.11723163841822,
+    "rows_safe": 128.11723163841822
+   },
+   "fpm_com_select_net": [
+    22.0,
+    22.0,
+    22.0
+   ],
+   "fpm_handlers_net": [
+    248.0,
+    248.0,
+    248.0
+   ],
+   "fpm_questions_minus_counted_queries": [
+    10.0,
+    11.0,
+    10.0
+   ],
+   "fpm_questions_net": [
+    28.0,
+    29.0,
+    28.0
+   ],
+   "http_ms": [
+    41,
+    36,
+    37
+   ],
+   "http_status": [
+    200,
+    200,
+    200
+   ],
+   "idle_drift_s": [
+    0.0035449245760986064,
+    0.0032852547551301702,
+    0.0037342630973116473
+   ],
+   "inproc_cold_queries": [
+    18,
+    18,
+    18
+   ],
+   "inproc_cold_rows_examined": [
+    236,
+    236,
+    236
+   ],
+   "inproc_cold_status": [
+    200,
+    200,
+    200
+   ],
+   "inproc_first_queries": [
+    21,
+    21,
+    21
+   ],
+   "inproc_first_rows_examined": [
+    247,
+    247,
+    247
+   ],
+   "measured_cpu_from_counts_s": 0.005531036302151635,
+   "measured_queries": 18.0,
+   "measured_rows": 236.0,
+   "other_requests_seen": [
+    0,
+    0,
+    0
+   ],
+   "php_cpu_s": [
+    0.0333005,
+    0.0295985,
+    0.0297815
+   ],
+   "php_finished_after_answer_s": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "processlist_after_window": [
+    null,
+    null,
+    null
+   ],
+   "route": "GET /shelves/{slug}"
+  }
+ ],
+ "scale": 30000
+}

@@ -1,0 +1,10 @@
+| route | status | ms (3) | queries meas. | rows meas. | DB CPU s (median of 3) | queries est ÷ meas | rows est ÷ meas (point / safe) | CPU est ÷ meas (point / safe) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GET /books/{bookSlug}/chapter/{chapterSlug}/references | 200,200,200 | 34,28,26 | 8 | 222 | 0.00335 (below the measurement floor) | 1 | 1.01 / 1.01 | withheld: would be 0.803 / 0.803 (below the measurement floor (empty-window / idle-drift rule)) |
+| GET /books/{bookSlug}/export/zip | 200,200,200 | 20905,21039,21063 | 3.6e+04 | 2.51e+05 | 9.94 | 1 | 0.979 / 0.829 | 1.07 / 1.06 |
+| GET /books/{bookSlug}/page/{pageSlug}/references | 200,200,200 | 26,26,26 | 8 | 229 | 0.00263 (below the measurement floor) | 1 | 0.981 / 1.7 | withheld: would be 1.02 / 1.14 (below the measurement floor (empty-window / idle-drift rule)) |
+| GET /books/{slug} | 200,200,200 | 2974,2935,2970 | 45 | 3.78e+05 | 0.342 | 1.06 | 1.04 / 1.63 | 2.28 / 3.56 |
+| GET /books/{slug}/references | 200,200,200 | 25,30,27 | 7 | 217 | 0.0037 (below the measurement floor) | 1 | 1.01 / 1.01 | withheld: would be 0.648 / 0.648 (below the measurement floor (empty-window / idle-drift rule); the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
+| GET /images/edit/{id} | 200,200,200 | 21,21,20 | 6 | 199 | 0.00028 (below the measurement floor) | 1 | 1 / 1 | withheld: would be 7.41 / 7.41 (below the measurement floor (empty-window / idle-drift rule)) |
+| GET /oidc/callback | 302,302,302 | 12,12,12 | 0 | 0 | -0.00146 (below the measurement floor) | n/a | n/a / n/a | withheld: would be -0 / -0 (below the measurement floor (empty-window / idle-drift rule)) |
+| GET /shelves/{slug} | 200,200,200 | 41,36,37 | 18 | 236 | 0.00879 (below the measurement floor) | 1 | 128 / 128 | withheld: would be 7.29 / 7.29 (below the measurement floor (empty-window / idle-drift rule); the three readings scatter by more than their median (rule added after the 100,000-row reading)) |
