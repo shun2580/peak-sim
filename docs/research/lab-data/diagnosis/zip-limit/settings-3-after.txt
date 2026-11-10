@@ -1,0 +1,27 @@
+== T2 after: ini restored, app recreated  2026-11-10 19:45:48
+-- host file poc/lab/compose/php/zz-lab.ini: sha256 and the line(s) naming the limit
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+(no max_execution_time line)
+-- git status / git diff of the file
+(end of git output)
+-- the file as the app container sees it
+(no max_execution_time line in the container)
+-- php-fpm -tt (pool configuration as php-fpm parses it), terminate/timeout lines
+[10-Nov-2026 10:45:48] NOTICE: 	process_control_timeout = 0s
+[10-Nov-2026 10:45:48] NOTICE: 	pm = static
+[10-Nov-2026 10:45:48] NOTICE: 	pm.max_children = 16
+[10-Nov-2026 10:45:48] NOTICE: 	request_slowlog_timeout = 0s
+[10-Nov-2026 10:45:48] NOTICE: 	request_terminate_timeout = 0s
+[10-Nov-2026 10:45:48] NOTICE: 	request_terminate_timeout_track_finished = no
+-- one request through php-fpm (FastCGI, ini-probe.php): the value its PHP holds
+{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"30","memory_limit":"512M","default_socket_timeout":"3","ini_files":["/usr/local/etc/php/conf.d/docker-fpm.ini","/usr/local/etc/php/conf.d/docker-php-ext-bcmath.ini","/usr/local/etc/php/conf.d/docker-php-ext-exif.ini","/usr/local/etc/php/conf.d/docker-php-ext-gd.ini","/usr/local/etc/php/conf.d/docker-php-ext-intl.ini","/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini","/usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini","/usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini","/usr/local/etc/php/conf.d/docker-php-ext-sodium.ini","/usr/local/etc/php/conf.d/docker-php-ext-zip.ini","/usr/local/etc/php/conf.d/zz-lab.ini"]}
+-- the web server: fastcgi timeouts in the loaded configuration
+16:    keepalive_timeout 65;
+42:            fastcgi_read_timeout 120s;
+-- does the limit count waiting or CPU? (limit set to 2 s inside the request; sleep 4 s / burn CPU 6 s), through php-fpm
+sleep:
+{"mode":"sleep","finished_the_sleep":true}
+{"mode":"sleep","ended_by_the_limit":false,"wall_s":4,"cpu_s":0}
+spin:
+
+{"mode":"spin","ended_by_the_limit":true,"wall_s":2,"cpu_s":2}

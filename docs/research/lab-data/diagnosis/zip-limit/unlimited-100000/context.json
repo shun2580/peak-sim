@@ -1,0 +1,13 @@
+{
+ "scale": 100000,
+ "database": "peak_sim_measure_d60189cad0bc_lab_100000",
+ "label": "T2 100000 rows, export/zip, max_execution_time=0 (diagnosis only)",
+ "routes": [
+  "GET /books/{bookSlug}/export/zip"
+ ],
+ "reps": 3,
+ "part": "http",
+ "started": "2026-11-10T19:40:10+09:00",
+ "k6_timeout_s": 180,
+ "targets_file": "targets-100000.json"
+}
