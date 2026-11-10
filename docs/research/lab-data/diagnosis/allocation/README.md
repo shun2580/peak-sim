@@ -18,6 +18,8 @@ Coefficient sets (read from the committed prediction file, none typed by hand):
 
 `i_min`/`i_max` keep `c_query` as it is in the same leave-one-out fit; `ii_min`/`ii_max` keep `c_query` at the value of the main fit and move `c_row` alone.
 
+Reading order: (i) is the primary reading, because each leave-one-out fit is the calibration's own width (simulator-spec section 6.3) and fits three of the four calibration runs; (ii) is set beside it as the literal answer to "put `c_row` alone at the ends", and it makes a pair that does not fit the calibration record. The (i) values are the ones already in the committed prediction's calibration range. This order was fixed before the per-route measurements were read.
+
 ### Limit rps (total over all routes) and its distance from the measured limit
 
 | scenario | rows | measured | main | `i_min` | `i_max` | `ii_min` | `ii_max` |
