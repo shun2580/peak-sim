@@ -255,7 +255,7 @@ The score was made by the tool in `poc/lab/score/` from the committed prediction
 | 3. "exceeded the threshold" agrees, all valid stages (80% or more) | 44/47 = 93.6% (naive 87.2%) | met | met |
 | 4. predicted limit rps within ±20.0% / ±10.0% of the measured one (80% or more) | 2/5 and 1/5 | not met | not met |
 
-Item 4 for the other two predictions, for the record (not used for the verdict): safe side 1/5 and 0/5; naive estimate 0/5 and 0/5 (within the minimum and the target tolerance).
+The figures in brackets and the line below are for reference only and are not the numbers of the verdict. The verdict is made on the point prediction for each item (for item 3, the share of the prediction, 44/47; the naive 87.2% is a reference value). Item 4 for the other two predictions, for reference (not used for the verdict): safe side 1/5 and 0/5; naive estimate 0/5 and 0/5 (within the minimum and the target tolerance).
 
 Items 1 and 3 are met at both levels, and item 2 at the lowest standard (12.25 points against the line of 15) but not at the goal (5 points). Item 4 is where it fails: the predicted limit rps (point) is within ±20% of the measured one in 2 of 5 scenarios, and within ±10% in 1 of 5, where 80% (4 of 5) is needed.
 
@@ -385,8 +385,8 @@ All five steps have an observed utilization below 10%, so none of them is a usab
 ### 7.7 Comparison with the naive estimate
 
 - **Item 1** (the mean absolute difference over the usable steps): 12.25 points for the prediction and 23.10 points for the naive estimate. The prediction is closer, at both levels of the standard.
-- **Item 3** (the judgement "threshold exceeded or not", all 47 valid steps): the prediction agrees on 44 (93.6%), the naive estimate on 87.2%. The three steps on which the prediction does not agree are `t-2` at 0.45 rps, `t-3` at 0.2 rps and `t-5` at 1.0 rps: in each the prediction was over the threshold and the measurement was not (117.8%, 83.5% and 106.3% predicted; 75.6%, 54.8% and 67.6% measured).
-- **Item 4** (the limit rps, for the record; beating the naive estimate on it is not used for the verdict): within ±20% / ±10% of the measured limit, the point is in 2/5 and 1/5, the safe side in 1/5 and 0/5, and the naive estimate in 0/5 and 0/5.
+- **Item 3** (the judgement "threshold exceeded or not", all 47 valid steps): the prediction agrees on 44 (93.6%; this is the number of the verdict); the naive estimate agrees on 87.2% (for reference only). The three steps on which the prediction does not agree are `t-2` at 0.45 rps, `t-3` at 0.2 rps and `t-5` at 1.0 rps: in each the prediction was over the threshold and the measurement was not (117.8%, 83.5% and 106.3% predicted; 75.6%, 54.8% and 67.6% measured).
+- **Item 4** (the limit rps; the verdict uses the point prediction only, and the safe side and the naive estimate below are for reference): within ±20% / ±10% of the measured limit, the point is in 2/5 and 1/5, the safe side in 1/5 and 0/5, and the naive estimate in 0/5 and 0/5.
 
 The measured limit rps and the three predictions, with the relative error of each (copied from the score):
 
