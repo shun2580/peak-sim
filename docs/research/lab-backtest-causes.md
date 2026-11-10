@@ -1,6 +1,6 @@
 # Lab backtest (B): where did the limit rps miss at 100,000 rows, and why?
 
-Status: IN PROGRESS. Sections 1 and 2 (what test B found, and how the cause is looked for) are written before the results of the four parts of the investigation and are not changed by them. Section 3 (results) and sections 4 and 5 (the reading of the cause, and the proposals) are filled in after the four parts are done. Every figure in this file is copied from the output of a tool or from a record; none is worked out by hand.
+Status: DONE for the separation of causes; the proposals of section 5 are not carried out and wait for the project owner's judgment. Sections 1 and 2 (what test B found, and how the cause is looked for) were written before the results of the four parts of the investigation and are not changed by them. Section 3 gives the results, section 4 the reading of the cause (what can be stated and what cannot), and section 5 the proposals. Every figure in this file is copied from the output of a tool or from a record; none is worked out by hand.
 
 This file follows `docs/research/lab-backtest.md`, the record of test B of `docs/simulator-spec.md` (version 0.2, sections 7.2 to 7.4), which did not pass. It asks one question: **why did the predicted limit rps come out lower than the measured one at 100,000 rows?** It is a separation of causes, not a second score. Nothing in the records of test B is changed, nothing is repaired, and no estimate, calibration, formula or prediction tool is touched. Where a repair is thought of, it is written in section 5 as a proposal and not carried out.
 
@@ -125,12 +125,155 @@ U3_j  = U2_j with k_r^full and k_zip^trunc replaced by the database CPU times of
 
 ## 3. Results
 
-To be filled after parts 1 to 4 are done: the table of part 1 (per route and row count: measured, estimate, "estimate ÷ measured" in rows, queries and database CPU time), part 2 (the cut-off and the finished request side by side, and the proof that the pool's setting was restored), part 3 (the division of the gap for the five scenarios, and the movement of the three predictions at the two ends of the range of `c_row`), and part 4 (the time-out, the routes of the requests without a response, and the effect on the measurement).
+The records are in `docs/research/lab-data/diagnosis/` (`per-request/`, `zip-limit/`, `allocation/`, `no-response/`; the guide is its `README.md`). The tables below are copied from them. None of it is a prediction or a score: the records of test B and its verdict are as they were committed.
+
+### 3.1 Part 1: the weight of one request
+
+One request at a time, no load. The web server's request counter between the two readings of the database's CPU time showed no other request in all 72 cold readings (3 row counts × 8 routes × 3 requests). Each count was checked to hold exactly that many rows in each of `entities`, `images` and `references`. A reading no larger than three times the spread of the five empty windows (or the idle drift) is below the measurement floor and no CPU ratio is made on it; a second rule, added after the 100,000-row readings were seen, also withholds the ratio where a route's three readings scatter by more than their median. Every withheld ratio is listed with its value in `per-request/README.md`.
+
+**Five of the eight routes cost almost nothing and the estimate counts them right.** `chapter/references`, `page/references`, `books/{slug}/references`, `images/edit/{id}` and `oidc/callback` use 0 to 8 statements and read 0 to 229 rows at every count; the estimate's statements equal the measured ones and its rows are within 2% of them. Their database CPU time (0.0003 to 0.0044 s) is below the measurement floor, so no CPU ratio is made.
+
+**The three routes that carry the load.** "Est ÷ meas" is the estimate at its point divided by the measurement; the estimated CPU is `c_q × statements + c_row × rows` with the coefficients of the committed prediction.
+
+| Route | Rows | Rows read, est ÷ meas | Database CPU measured (s) | CPU, est ÷ meas |
+| --- | --- | --- | --- | --- |
+| `GET /books/{bookSlug}/export/zip` | 10,000 | 1 | 3.3 | 1.06 |
+| | 30,000 | 0.979 | 9.94 | 1.07 |
+| | 100,000 | 1.78 | 25.2 (request cut by PHP's limit, HTTP 500) | 1.46 |
+| `GET /books/{slug}` | 10,000 | 1 | 0.103 | 1.62 |
+| | 30,000 | 1.04 | 0.342 | 2.28 |
+| | 100,000 | 2.02 | 1.13 | 4.4 |
+| `GET /shelves/{slug}` | 10,000 | 43.2 | below the floor, ratio withheld | withheld |
+| | 30,000 | 128 | below the floor, ratio withheld | withheld |
+| | 100,000 | 425 | 0.00811 | 24.7 |
+
+- The ZIP route's statements are estimated almost exactly at all three counts (119,994 estimated against 120,004 measured at 100,000 rows). Its estimated rows are close at 10,000 and 30,000 rows and 1.78 times the measured at 100,000.
+- For `GET /shelves/{slug}` the estimated rows are about N + 236 at every count (10,236, 30,236, 100,236) and the measured rows are 236, 236 and 237: the target shelf of the lab's data holds one book at every count. The estimate marks this route's statement `plan_unstable` and takes its heaviest plan state; that the numbers come from this was not tested.
+- At 100,000 rows the ZIP route's measured CPU (25.2 s, the cut request) is 96% of the sum of the eight routes' measured CPU (26.3 s); in the estimate its 36.7 s is 88% of the sum (41.9 s). `GET /books/{slug}` is the next heaviest (1.13 s measured, 4.97 s estimated). For that request php-fpm used about 8.7 s of CPU against 1.13 s of database CPU.
+- The server's own counters over the same windows agree with the counted statements and rows to within a small difference that is the same at every count for a route, except for the cut ZIP request (96,024 statements counted by the server against 120,004 counted for the uncut cold request).
+
+### 3.2 Part 2: the ZIP route with and without PHP's limit
+
+Three cold requests each, at 100,000 rows, on the same database, read the same way. The window closes when php-fpm has finished (the application container's CPU stops growing), not when the client got its answer. No other request was seen by the web server in either record.
+
+| Measure (median of 3) | limit on (cut) | limit off | off ÷ on |
+| --- | --- | --- | --- |
+| HTTP status | 500, 500, 500 | 200, 200, 200 | |
+| elapsed until the answer (s) | 53.1 | 71.1 | 1.34 |
+| php-fpm CPU time (s) | 30.4 | 40.9 | 1.34 |
+| database CPU time (s) | 25.2 | 33.4 | 1.33 |
+| rows read by the server | 799,197 | 835,207 | 1.05 |
+| statements counted by the server | 96,024 | 120,036 | 1.25 |
+
+Against the estimate (119,994 statements, 1,489,446 rows, 36.71 s converted): statements 1.25 (cut) and 1.00 (uncut); rows 1.86 and 1.78; database CPU time 1.46 and 1.10.
+
+**The limit counts the process's CPU time, not its waiting.** Through php-fpm with the limit set to 2 seconds inside the request: a request that waits 4 seconds and uses no CPU was not stopped (`wall_s` 4, `cpu_s` 0); a request that uses CPU for 6 seconds was stopped at 2 seconds of CPU (`cpu_s` 2). The cut ZIP request answered after 52.9 to 53.8 s while php-fpm had used 30.2 to 30.7 s of CPU.
+
+**How the setting was changed and put back.** `max_execution_time=0` was appended to the lab's PHP ini file (a copy of the file, with its SHA-256, was kept outside the repository first), and the application and web containers were recreated with the lab's own `use-db` script (no `kill`-type command). After the three requests the copy was written back and the containers were recreated again. The evidence is read from the php-fpm side, at three times, and not by the command-line `php -i`, whose value is a different setting:
+
+| | before | unlimited | after |
+| --- | --- | --- | --- |
+| `max_execution_time` seen by a request through php-fpm | 30 | 0 | 30 |
+| ini file SHA-256 (first 8 characters) | f495eab5 | 28396641 | f495eab5 |
+| `request_terminate_timeout` / `request_slowlog_timeout` (pool, `php-fpm -tt`) | 0s / 0s | 0s / 0s | 0s / 0s |
+| nginx `fastcgi_read_timeout` | 120s | 120s | 120s |
+
+After the restoration `git status` and `git diff` of the lab's compose directory were empty. The change was never committed.
+
+### 3.3 Part 3: giving the gap to its sources
+
+The method of section 2.3 was applied as fixed. Sums over the usable steps (31 of the 47), in utilization points; shares are of the sum of the difference `Δ = U0 − M`.
+
+| Scenario | Rows | Usable steps | Sum of Δ | (a) | (b) | (c) | Share (a) | Share (b) | Share (c) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| t-2 | 100,000 | 6 | +115.56 | +31.40 | +54.25 | +29.90 | 27% | 47% | 26% |
+| t-3 | 100,000 | 6 | +124.25 | +33.15 | +59.46 | +31.64 | 27% | 48% | 25% |
+| t-5 | 100,000 | 6 | +105.37 | +31.79 | +47.84 | +25.74 | 30% | 45% | 24% |
+| t-1 | 30,000 | 7 | +30.05 | +2.02 | 0 | +28.02 | (points are the reading) | | |
+| t-4 | 10,000 | 6 | +4.05 | +1.14 | 0 | +2.91 | (points are the reading) | | |
+
+- **Stability.** Within each of the three 100,000-row scenarios the split is similar at every usable step (each of (a), (b), (c) moves within about 12 points). The other order, (b) then (a), moves only the split between (a) and (b), by 2 points of `Δ` or less; (c) does not depend on the order. The (a) aligned to 10,000 rows is +31.24, +33.09 and +31.24 (shares 27%, 27%, 30%), within 0.5 point of the main shares, so the border between (a) and (c) is fixed for these three. For `t-4` the aligned (a) is 0 by construction and the main (a) share is 28%, so the border is not fixed there: (a) is 0% to 28% of a `Δ` sum of 4.05 points.
+- **What is in (a) at 100,000 rows.** The estimate's rows are too large for two routes: `GET /books/{slug}` (2,539,961 rows estimated against 1,260,454 measured; +17.5 to +21.7 points in the sums) and the ZIP route (+8.9 to +11.0); `GET /shelves/{slug}` adds +0.4 to +5.5.
+- **What is in (b).** Every ZIP request counted in the usable steps of these three scenarios did not return 200 (the share `f` is 1.00), so each was put at the cost of a cut request (25.2 s of database CPU, 96,024 statements, 799,197 rows) instead of an uncut one (33.4 s, 120,036 statements, 835,207 rows). The ZIP requests that returned no response (status 0) are counted as cut; whether php-fpm kept running them after the load tool gave up was not checked.
+- **What is in (c).** Its two parts, (c1) +32% to +33% of `Δ` and (c2) −7% to −8%, compare the converted counts with the measured CPU time of one cold request and the measured utilization with the sum of those times. For example `GET /books/{slug}` at 100,000 rows is 1.13 s measured against 2.47 s from its counts, and the cut ZIP request 25.2 s against 28.6 s. A third piece, (c3), is the difference between the decided rps and the rps that came out; it is a difference of counting inside (c2), not a difference of load (every step is within 5%, the load tool dropped no request in any step), and it is not read as a cause. Its values are in `allocation/allocation-tables.md`.
+- **Why `t-4` and `t-1` came out close.** The estimate is close at those counts: (a) is +1.14 and +2.02 points (the ZIP route's statements and rows equal the measured ones within −0.00 and −0.30 points, `GET /books/{slug}` +0.03 and +0.75, `GET /shelves/{slug}` +1.12 and +1.57), and the ZIP route is not cut there (its PHP CPU time is 4.1 s at 10,000 rows and 12.1 s at 30,000 rows against the 30-second limit), so (b) is 0. What is left, (c), is small at the steps below 1.0 rps (about 0.1 to 1.9 points in `t-4`, 0.1 to 4.3 in `t-1`). Its two parts cancel (`t-4`: (c1) +14.35 and (c2) −11.44; `t-1`: +29.64 and −1.62). In `t-1`, one step carries most of the sum: 1.5 rps (measured 87.8%, predicted 107.6%, where the requests with no response begin) has `Δ` +19.77 of which (c) is +19.07; without it `Δ` is +10.28 and (c) +8.95 over six steps.
+
+**The sensitivity of the prediction to `c_row`.** `c_row` and `c_q` were put at the ends of the calibration's own width: the primary reading (i) takes each leave-one-out fit as it is (smallest `c_row` 1.37851e-6 with `c_q` 2.87058e-4, largest `c_row` 1.12854e-5 with `c_q` 1.74879e-4; each fits three of the four calibration runs); the reading (ii) keeps `c_q` at 2.81705e-4 and moves `c_row` alone (this pair does not fit the calibration runs). Change of the predicted limit rps against the committed point:
+
+| Scenario | (i) smallest `c_row` | (i) largest `c_row` | (ii) smallest `c_row` | (ii) largest `c_row` |
+| --- | --- | --- | --- | --- |
+| t-2 (100,000) | +4.3% | −38.1% | +6.0% | −47.9% |
+| t-3 (100,000) | +4.2% | −37.5% | +5.9% | −47.6% |
+| t-5 (100,000) | +4.7% | −40.2% | +6.3% | −49.3% |
+| t-1 (30,000) | +1.7% | −17.2% | +3.4% | −35.2% |
+| t-4 (10,000) | +0.5% | −1.2% | +2.3% | −26.6% |
+
+To reach the measured limit rps the predicted limit would have to rise by 63% (`t-2`), 54% (`t-3`) and 61% (`t-5`).
+
+### 3.4 Part 4: the steps without any response
+
+- **The time-out.** The load tool's limit for one request is 60 seconds. It is written nowhere in the repository: the load script passes no `timeout`, the measuring script gives the tool only the three file paths, and the compose file sets no `K6_` variable, so it is k6's default (k6 2.3.0). In the 10 steps with status 0 the longest request lasted 59.998 or 59.999 s; in the 37 steps without it, 57.719 s. Other limits on the same requests: k6's wait of 30 s at the end of a step (its default), nginx's `fastcgi_read_timeout` of 120 s (never reached), and PHP's 30-second execution limit.
+- **Which routes.** The records of a step keep the status counts as one total and the requests per route only as a count, so they do not say. The web server's log (kept outside the repository) does: counting its status-499 lines of 59 s or more in the kept window gives the same number as k6's status 0 in 8 of the 10 steps, and one more in the other two. At 100,000 rows, at the first step where status 0 appears, every one of the requests with no response is the ZIP export (`t-2` step 7: 18 of 18; `t-3` step 6: 22 of 22; `t-5` step 9: 8 of 8 and step 10: 22 of 22). The exception is `t-2` step 8 (database at 99.0%): 27 of the 62 are ZIP and the other 35 are spread over the seven other routes. At 10,000 and 30,000 rows they are spread over all routes and ZIP is a minority (4 of 29 and 14 of 148).
+- **From HTTP 500 to no response.** The ZIP route's 500 comes 52 to 60 seconds after the request began (steps' means 53.2 to 59.4 s) and later as the load rises; at the step where the load takes it past 60 seconds the load tool gives up first and the request is recorded as status 0 (`t-5` step 9: 7 ZIP requests came back with 500 and 8 got no response; in the next step none got a response). It is the same request ended by whichever of the two timers comes first.
+- **How it touches the utilization.** The utilization is the change of the database container's CPU time over the kept window, and no rule reads a request's status or whether its client is still there. The database keeps working after the load tool has given up: in `t-2` step 8 the database stayed at 0.97 to 0.98 for the 30 s after the load tool had exited (114.1 CPU seconds after the window against 679.1 inside it). The records cannot say how much of that work belongs to abandoned requests alone. Below saturation, the utilization per achieved rps at the first step with status 0 differs from the step before it by −0.9% (`t-2` step 7), −0.9% (`t-3` step 6) and −1.1% (`t-5` step 9), the same size as the changes between steps without status 0 (−1.9% to +0.8%): about 1 to 2% at most, on the condition that the utilization per rps would otherwise stay flat.
+- **Saturated steps are capped.** A step cannot show more than 100%. The steps at 87.8% to 99.0% have a utilization per achieved rps below the step before by 13.0% (`t-2` step 8), 13.0% (`t-4` step 13), 11.7% (`t-1` step 10) and 4.2% (`t-5` step 10). Drawing the measured limit with the upper step kept on the straight line of the step before it would lower the measured limit rps by 0.8% to 8.5% in all five scenarios, the ones that matched as much as the ones that did not (an illustration of the size, not a score).
+- **The next scenario's window.** `t-3` step 1 began 14 s after `t-2` step 8 was recorded as ended, while the database still worked at 0.93 to 0.98 for about 30 s; at most 9.2 of the 1600 CPU seconds of that window, 0.6 points of its 14.6%, can be carry-over (an upper bound).
+- **The edge of the rps check.** `t-2` step 8 had 229 requests counted in its window (240 planned; 11 were cut by the load tool at the end of its wait and are not counted), which is the least number that keeps the step within 5% of the decided rps (its achieved rps is 0.6676 against 0.7, −4.6%): it had no request to spare, and one more request cut at the end of the step would have made it invalid. Every other step of the 47 has at least 2 requests above its minimum. Had that step been invalid, the limit would have been read as extended from the two top valid steps and would have been 0.4767 instead of 0.4966 (−4.0%). The verdict does not change; the edge was close.
 
 ## 4. Reading of the cause
 
-To be filled after section 3: what can be stated as established, and what cannot, kept apart. A cause is called established only where a measurement of this file shows it directly. The file sets no threshold in advance for the size of a share; it reports the shares and says, for each measurement, what it shows and what it does not.
+A cause is called established below only where a measurement of this file shows it directly. The file set no threshold in advance for the size of a share.
+
+### 4.1 What can be stated
+
+1. **The miss at 100,000 rows is not one thing.** For `t-2`, `t-3` and `t-5` the difference between the predicted and the measured utilization splits into the estimate of one request of each route (27% to 30%), the ZIP requests that were cut (45% to 48%) and the rest (24% to 26%). The split is stable across steps, across the order of (a) and (b), and across the aligned reading of (a).
+2. **The ZIP route carries almost all of the cost at 100,000 rows, and PHP stops it.** Its measured CPU is 96% of the sum of the eight routes'. PHP's execution limit counts CPU time, not waiting (shown through php-fpm), and a cut request does less database work than an uncut one: 25.2 s against 33.4 s of database CPU, 96,024 against 120,036 statements, 799,197 against 835,207 rows. The estimate counts the full request (its statements, 119,994, against 120,036 counted for the uncut request: a ratio of 1.00), so the part (b) is not an error in the estimate of the full request: it is the work that the lab's run never asked of the database because PHP stopped the request first.
+3. **Two routes of the estimate are off at 100,000 rows and not at 10,000 and 30,000.** `GET /books/{slug}` has 2.02 times the measured rows at 100,000 rows (1.00 and 1.04 at 10,000 and 30,000), and `GET /shelves/{slug}` has estimated rows that grow with the row count while the measured stay at 236 or 237. The ZIP route's rows are 1.78 times the measured at 100,000 rows (statements are right). The five small routes are right at every count.
+4. **The width of `c_row` alone does not explain the miss.** Putting `c_row` at the end of the calibration's width that most favours the prediction raises the predicted limit rps of the three scenarios by +6.3% at most (reading (ii)), against the 54% to 63% that would be needed; the other end widens the miss.
+5. **`t-4` and `t-1` came out close because the estimate is close at those counts and the ZIP route is not cut there.** Not because errors cancel in (a); (c1) and (c2) do cancel in part, and `t-1` rests mostly on one step.
+6. **The requests with no response do not explain the miss.** No rule of the score reads a status; below saturation they leave no change in the utilization per rps larger than about 1 to 2% (on the condition of flatness); the cap of the saturated steps lowers the measured limit by 0.8% to 8.5% in all five scenarios, the matched ones included, against a miss of 35% to 38% in three.
+7. **One step was at the edge of the rps check.** `t-2` step 8 had no request to spare (229 against a minimum of 229). The verdict does not change.
+
+### 4.2 What cannot be stated
+
+1. **Why a cold request's database CPU time is below the conversion of its counts** ((c1), +32% to +33% of `Δ`; for the two heavy routes it is 1.13 s against 2.47 s, and 25.2 s against 28.6 s). Whether another pair of coefficients would remove it was not tested; the sensitivity says only that `c_row` moved inside the calibration's own width does not.
+2. **What (c2) is** (−7% to −8% at 100,000 rows; about −1 point at the lowest steps). The database's idle CPU rate read in the per-request records (0.63 to 0.65 points of utilization) is of the same size; it was not tested as the cause.
+3. **Whether a request cut under load does the same database work as a cut request alone.** (b) puts every ZIP request that did not return 200 at the cost of the cold single request that was cut. Under load the interleaving, the database's speed and the time PHP spends waiting differ, and requests with no response were counted as cut without a check that php-fpm kept running. The size of (b) rests on this substitution; its existence (a cut request does less work than an uncut one) does not.
+4. **Whether the estimate of `GET /shelves/{slug}` is wrong or the lab's data is unlike a deployment's.** The lab's target shelf holds one book at every count, so the measured rows stay at 236; a shelf of a real deployment may hold more books as the data grows. This file cannot separate the two.
+5. **The border between (a) and (c) for `t-4`** (0% to 28% of a `Δ` sum of 4.05 points).
+6. **What the limit rps would be if each part were corrected one at a time.** That is a prediction; this file makes none.
+7. **Whether the cut of the ZIP route would show at counts between 30,000 and 100,000 rows.** At 30,000 rows PHP used 12.1 s of CPU for it, at 100,000 rows the limit was reached; the counts in between were not looked at.
 
 ## 5. Proposals
 
-To be filled after section 4. Proposals only: nothing in them is carried out, and the project owner judges them. Two groups: ways to repair the estimate or the calibration cause by cause, with the check of any repair to be made on new prediction scenarios at 5 × N_0 and 20 × N_0 (the row counts that test B has not seen, as `docs/simulator-spec.md` section 7.4 requires); and a mark that tells, at the time of the prediction, that for a given row count a route is likely to stop at a limit of the application (for example PHP's execution time) before the database, with what it would rest on, where it would be shown, and how it would be tested.
+These are proposals only. Nothing in them is carried out, no estimate, calibration, formula or prediction tool was changed to write them, and the project owner judges them. Two rules hold for all of them. Data already seen (the three row counts of part 1 and the five scenarios of test B) are not used to confirm a repair made from them: a repair is checked on new prediction scenarios at 5 × N_0 and 20 × N_0 (50,000 and 200,000 rows in each of the eight N tables), as `docs/simulator-spec.md` section 7.4 requires. And what is proposed to fix is fixed before those scenarios are predicted, in the order of test B (the prediction is committed before any step of them is measured). Whether the lab can build and measure at 200,000 rows has not been examined.
+
+### 5.1 Ways to repair, cause by cause
+
+**R1. The ZIP cut ((b), the largest part).** The cut is not an error in the estimate of a full request, so shrinking the estimate would be wrong for a route that is not cut. Two options:
+
+- *R1a (smaller change).* Keep the estimate of the full request, and make the prediction say, beside the limit rps, that the limit rps counts the route as completing. This does not close the gap in the number; it stops the number from being read as more than it is (see the mark of section 5.2).
+- *R1b (larger change).* Predict the database work of a route that is stopped by the limit, as a share of the full work. The only measurement of that share is one pair of requests at one route and one row count (database CPU 25.2 s cut against 33.4 s uncut, statements 96,024 against 120,036), so a share taken from it would be one data point. It would need measurements of the cut share at more than one route and count, under load as well as alone (section 4.2, item 3), before it is a rule. R1a is the part that can be done on the evidence in hand.
+
+**R2. The estimate of a route's rows ((a)).** Where: the estimate of rows per statement at the target row count (the EXPLAIN-based estimate and the row fit of `bin/estimate`, section 4 of the spec). For `GET /books/{slug}` (2.02 times at 100,000 rows) and the ZIP route (1.78 times) find which statements carry the excess by comparing the estimate with the per-statement `Handler_read_*` counts of the cold request, and repair the rule that produced it, not the two numbers. For `GET /shelves/{slug}` first settle whether the estimate or the lab's data is unlike a deployment's (section 4.2, item 4): if the data, the lab's data generator (a shelf with more books) is what to change, not the estimate. Check: the route-level counts of the estimate against one cold request per route at 50,000 and 200,000 rows, then the new scenarios.
+
+**R3. The conversion of counts to database time ((c1)).** The calibration was made at 10,000 rows and at 3,000 rows only, and `c_row` is the less certain coefficient (a factor of 8.2 between the ends of its width). Proposal: add one calibration run at a row count where no route is cut and the count is not one of the new check counts (30,000 rows: the ZIP route used 12.1 s of PHP CPU there against the 30-second limit), and look at whether the width of `c_row` narrows; a calibration at 100,000 rows would put the cut route into the fit. This is a proposal to look at the width, not a claim that a better pair exists (section 4.2, item 1). Check: the new scenarios. The unexplained (c2) is not repaired; it is first measured (the same step measured once with and once without the single requests of part 1, or the database's idle rate subtracted) so that it is known whether it belongs to the prediction at all.
+
+**R4. Order.** R1a and the mark (section 5.2) first, because they change what a limit rps says without changing any number and can be tested on the new scenarios without a re-fit; R2 and R3 after, each checked alone on the new scenarios so that its effect on the limit rps is seen.
+
+### 5.2 The mark: "this route is likely to stop at the application's limit before the database"
+
+**What it tells.** At the time of the prediction, for the given row count, that a route is likely to be stopped by a limit of the application (PHP's execution time first) before the database is the limit, so the limit rps that the prediction gives counts that route as completing and the application would fail first for it.
+
+**What it rests on.** The converted database time of one request of the route, `c_q × statements + c_row × rows` at the target row count, set against the application's execution limit. For the ZIP route at 100,000 rows it is 36.71 s (point and safe side) against a limit of 30 s; the measured values were 25.2 s of database CPU and 30.4 s of PHP CPU for the cut request, and 33.4 s and 40.9 s for the uncut one. The limit counts PHP's CPU time and the estimate has no PHP time, so database time is a proxy: for `GET /books/{slug}` at 100,000 rows php-fpm used about 8.7 s of CPU against 1.13 s of database CPU, and for the ZIP route 40.9 s against 33.4 s. A mark on database time alone can miss a route whose PHP work is heavy, so it is proposed as a warning, not as a guarantee, and the file proposes to measure the PHP CPU time of the routes it names (or of the heavy routes) at the new counts to see how far the proxy is from it.
+
+**Where the limit comes from.** From an input of the prediction (the application's `max_execution_time`, 30 s by default in the lab), not from a constant in the tool, because a deployment's value differs. The threshold at which a route is marked (the share of the limit that the converted time must reach) is fixed before the new scenarios are predicted, and not from the values of the scenarios already seen.
+
+**Where it is shown.** In the output of the prediction, in the line that gives the limit rps, so that a limit rps is never printed without the routes marked for it; and, per route, in the list of marks beside the existing marks (`plan_unstable`, `plan_changes_at_scale`). It does not change the utilization or the limit rps themselves.
+
+**How it is tested.**
+
+1. *Unit tests, no lab.* On a made-up estimate, a route whose converted time is above the limit is marked, one below is not, and the mark follows the input limit; the output without a mark is byte-identical to the output now.
+2. *Before the new scenarios are measured.* Fix and commit the threshold, then list which routes the mark names at 50,000 and 200,000 rows; at 10,000 and 30,000 rows the ZIP route is not cut, so a mark there is a false alarm to be counted.
+3. *In the lab, on the new scenarios.* Once at each count, one cold request per route (one at a time, no load, as in part 1) and the HTTP status and PHP CPU time of each; then in the steps of the ladder, the status counts per route (kept per route from the start, not recovered afterwards from the web server's log as in part 4). The mark is scored for each route and count: marked and cut, marked and not cut, not marked and cut. A route cut without a mark is the case that matters most, since it is a limit rps that the application could not reach and the prediction said nothing about.
+4. *What counts as a hit* is also fixed before the measurement.
