@@ -137,5 +137,47 @@ class EstimateTest(unittest.TestCase):
         json.dumps(rep)  # the report is JSON
 
 
+class ProcessListAndCountsTest(unittest.TestCase):
+    def test_process_list_leaves_out_its_own_statement(self):
+        text = ("5\troot\tlocalhost\tdb\tQuery\t30\texecuting\tSELECT 1\n"
+                "9\troot\tlocalhost\tNULL\tQuery\t0\tinit\tSHOW FULL PROCESSLIST\n")
+        rows = rp.parse_process_list(text)
+        self.assertEqual(1, len(rows))
+        self.assertEqual("5", rows[0]["id"])
+        self.assertEqual("30", rows[0]["time_s"])
+
+    def test_process_list_skips_short_lines(self):
+        self.assertEqual([], rp.parse_process_list("garbage\n"))
+
+    def test_table_counts_keep_the_three_tables(self):
+        self.assertEqual({"entities": 100000, "images": 100000, "references": 100000},
+                         rp.parse_table_counts("entities\t100000\nimages\t100000\nreferences\t100000\nother\t5\n"))
+
+    def test_table_counts_ignore_non_numbers(self):
+        self.assertEqual({}, rp.parse_table_counts("entities\tNULL\n"))
+
+
+class ShellHelperTest(unittest.TestCase):
+    def test_sh_survives_output_that_is_not_utf8(self):
+        r = rp.sh(["python3", "-c", "import sys; sys.stdout.buffer.write(b'ok \\xe3 end')"])
+        self.assertEqual(0, r.returncode)
+        self.assertIn("ok", r.stdout)
+
+    def test_sh_passes_stdin(self):
+        r = rp.sh(["cat"], stdin="SELECT `references`")
+        self.assertEqual("SELECT `references`", r.stdout)
+
+
+class ScatterTest(unittest.TestCase):
+    def test_range_larger_than_median_is_scatter(self):
+        self.assertTrue(rp.scatter_exceeds_value([0.0014, 0.0035, 0.0089]))
+
+    def test_steady_readings_are_not(self):
+        self.assertFalse(rp.scatter_exceeds_value([0.0065, 0.0081, 0.0086]))
+
+    def test_one_reading_is_not(self):
+        self.assertFalse(rp.scatter_exceeds_value([1.0]))
+
+
 if __name__ == "__main__":
     unittest.main()

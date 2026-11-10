@@ -20,8 +20,14 @@ Two parts, kept apart so they never overlap in time:
 Usage:
   request_probe.py run    --scale=N --out=DIR [--routes=1,2] [--reps=3] [--part=both|http|inproc] [--timeout=180] [--label=text]
   request_probe.py report --scale=N --dir=DIR --estimate=FILE --prediction=FILE [--out=DIR]
+  request_probe.py counts --scale=N --out=DIR     the row counts of the three N tables (entities, images, references)
 
-Exit codes: 0 done / 2 usage / 3 the lab is not in the state the run needs (wrong scale, other requests seen, no stack).
+"Other requests" (the web server's request counter between the two probes, less the probes themselves) is recorded for every
+request and is not checked by the run: it does not stop. The record's own column shows whether it was 0 on each request.
+After a request that did not come back quickly and in full, one SHOW FULL PROCESSLIST is taken after the window has closed, as the
+user the probe already uses (it adds no grant and no other user); where it cannot be read, the record says so.
+
+Exit codes: 0 done / 2 usage / 3 the lab is not in the state the run needs (wrong scale, no stack, targets for another scale).
 """
 from __future__ import annotations
 
@@ -156,6 +162,15 @@ def below_floor(cpu_net_usec: float, null: dict[str, Any], idle_drift_usec: floa
     return cpu_net_usec <= 3.0 * spread or cpu_net_usec <= idle_drift_usec
 
 
+def scatter_exceeds_value(values: list[float]) -> bool:
+    """The three readings of one route scatter by more than their own median: the median says nothing the spread does not
+    cover, so a ratio on it would be noise. (Added in the diagnosis, after the 100,000 reading, to name a case the null-window rule
+    did not catch; it only withholds a ratio, it changes no number.)"""
+    if len(values) < 2:
+        return False
+    return (max(values) - min(values)) > abs(median_of(values))
+
+
 def ratio(estimate: float | None, measured: float | None) -> float | None:
     if estimate is None or measured is None or measured == 0:
         return None
@@ -193,6 +208,33 @@ def parse_probe_line(text: str) -> dict[str, Any] | None:
     return None
 
 
+N_TABLES = ["entities", "images", "references"]
+
+
+def parse_process_list(text: str) -> list[dict[str, Any]]:
+    """The tab-separated rows of SHOW FULL PROCESSLIST (Id, User, Host, db, Command, Time, State, Info), the probe's own
+    statement left out."""
+    rows = []
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 8:
+            continue
+        info = parts[7]
+        if "PROCESSLIST" in info.upper():
+            continue
+        rows.append({"id": parts[0], "user": parts[1], "db": parts[3], "command": parts[4], "time_s": parts[5], "state": parts[6], "info": info[:200]})
+    return rows
+
+
+def parse_table_counts(text: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 2 and parts[0] in N_TABLES and parts[1].isdigit():
+            out[parts[0]] = int(parts[1])
+    return out
+
+
 def parse_attempts(text: str) -> list[dict[str, Any]]:
     out = []
     for line in text.splitlines():
@@ -204,8 +246,9 @@ def parse_attempts(text: str) -> list[dict[str, Any]]:
 
 # ---------------------------------------------------------------- the lab (docker)
 
-def sh(cmd: list[str], timeout: float | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+def sh(cmd: list[str], timeout: float | None = None, stdin: str | None = None) -> subprocess.CompletedProcess:
+    # errors="replace": a route's output may hold bytes that are not UTF-8 (a ZIP's), which must not stop the run.
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, input=stdin, encoding="utf-8", errors="replace")
 
 
 def snapshot(which: str) -> tuple[dict[str, Any], float]:
@@ -263,6 +306,23 @@ def app_poll_overhead() -> float:
         time.sleep(POLL_INTERVAL_S)
         h.append(app_usage())
     return median_of([h[i + 1] - h[i] for i in range(6)])
+
+
+def process_list() -> dict[str, Any]:
+    """One SHOW FULL PROCESSLIST as the user the probe already uses. {'readable': bool, 'rows': [...], 'error': str}."""
+    r = sh(["docker", "exec", DB, "sh", "-c", 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N -B -e "SHOW FULL PROCESSLIST"'], timeout=60)
+    if r.returncode != 0:
+        return {"readable": False, "rows": [], "error": r.stderr.strip()[:200]}
+    return {"readable": True, "rows": parse_process_list(r.stdout), "error": ""}
+
+
+def table_counts(database: str) -> dict[str, int]:
+    # the SQL goes in on stdin: `references` is a reserved word and needs its backticks, which a shell would take for a command
+    sql = " UNION ALL ".join("SELECT '%s', COUNT(*) FROM `%s`.`%s`" % (t, database, t) for t in N_TABLES)
+    r = sh(["docker", "exec", "-i", DB, "sh", "-c", 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot -N -B'], timeout=120, stdin=sql)
+    if r.returncode != 0:
+        raise RuntimeError("cannot count the N tables: " + r.stderr.strip()[:200])
+    return parse_table_counts(r.stdout)
 
 
 def nginx_requests() -> int:
@@ -358,12 +418,15 @@ def http_part(args, root: str, routes: list[str], targets: dict[str, Any], log) 
                 raw = window(act)
                 n1 = nginx_requests()
                 res = raw.pop("result")
+                quick = res["error"] is None and 200 <= res["status"] < 400 and res["answered_after_s"] < FAST_ANSWER_S
+                plist = None if quick else process_list()
                 res["php_cpu_usec_raw"] = res["settle"]["app_usage_usec"] - app0
                 res["php_cpu_usec"] = res["php_cpu_usec_raw"] - res["settle"]["polls"] * app_overhead
                 row = {
                     "kind": "request", "route": route, "path": t["path"], "rep": rep, "phase": "warmup" if rep == 0 else "cold",
                     "scale": args.scale, "result": res, "raw": raw,
                     "nginx_requests_between_probes": n1 - n0,
+                    "processlist_after_window": plist,
                     "net": None if rep == 0 else net_window(raw, null, rate),
                     "started": datetime.now().astimezone().isoformat(timespec="seconds"),
                 }
@@ -426,6 +489,10 @@ def run(args) -> int:
                    "reps": args.reps, "part": args.part, "started": datetime.now().astimezone().isoformat(timespec="seconds"),
                    "k6_timeout_s": args.timeout, "targets_file": "targets-%d.json" % args.scale}, fh, indent=1)
     log("scale %d, %d routes, part %s" % (args.scale, len(picked), args.part))
+    counts = table_counts(targets["database"])
+    with open(os.path.join(args.out, "table-counts.json"), "w") as fh:
+        json.dump({"database": targets["database"], "counts": counts, "taken": datetime.now().astimezone().isoformat(timespec="seconds")}, fh, indent=1)
+    log("rows in the N tables: " + ", ".join("%s %d" % (k, v) for k, v in sorted(counts.items())))
     if args.part in ("both", "http"):
         http_part(args, root, picked, targets, log)
     if args.part in ("both", "inproc"):
@@ -462,7 +529,9 @@ def build_report(scale: int, http: list[dict], inproc: list[dict], estimate: dic
         cpu_s = [r["net"]["cpu_net_usec"] / 1e6 for r in cold]
         m_cpu = median_of(cpu_s) if cpu_s else None
         drift_med = median_of([r["net"]["idle_drift_usec"] for r in cold]) if cold else 0.0
-        floor = bool(m_cpu is not None and null is not None and below_floor(m_cpu * 1e6, null, drift_med))
+        floor_null = bool(m_cpu is not None and null is not None and below_floor(m_cpu * 1e6, null, drift_med))
+        scattered = scatter_exceeds_value(cpu_s)
+        floor = floor_null or scattered
         m_q = median_of([a["queries"] for a in att]) if att else None
         m_rows = median_of([a["rows_examined"] for a in att if a["rows_examined"] is not None]) if att else None
         entry: dict[str, Any] = {
@@ -474,12 +543,15 @@ def build_report(scale: int, http: list[dict], inproc: list[dict], estimate: dic
             "cpu_net_s": cpu_s,
             "cpu_median_s": m_cpu,
             "cpu_below_measurement_floor": floor,
+            "cpu_below_floor_by_null_rule": floor_null,
+            "cpu_readings_scatter_more_than_median": scattered,
             "cpu_minus_null_only_s": [r["net"]["cpu_minus_null_usec"] / 1e6 for r in cold],
             "idle_drift_s": [r["net"]["idle_drift_usec"] / 1e6 for r in cold],
             "php_cpu_s": [r["result"]["php_cpu_usec"] / 1e6 for r in cold],
             "answered_after_s": [round(r["result"]["answered_after_s"], 2) for r in cold],
             "php_finished_after_answer_s": [round(r["result"]["settle"]["waited_s"], 1) for r in cold],
             "fpm_questions_net": [r["net"]["questions_net"] for r in cold],
+            "fpm_com_select_net": [r["net"].get("counters_net", {}).get("Com_select", 0.0) for r in cold],
             "fpm_handlers_net": [r["net"]["handlers_net"] for r in cold],
             "inproc_cold_queries": [a["queries"] for a in att],
             "inproc_cold_rows_examined": [a["rows_examined"] for a in att],
@@ -487,6 +559,10 @@ def build_report(scale: int, http: list[dict], inproc: list[dict], estimate: dic
             "inproc_first_queries": [a["queries"] for a in first],
             "inproc_first_rows_examined": [a["rows_examined"] for a in first],
             "measured_queries": m_q, "measured_rows": m_rows,
+            # the database's own count beside the in-process count: the net rise of Questions over one request, less the statements
+            # the cold in-process request counted (php-fpm boots the app from nothing, so one or two more are expected)
+            "fpm_questions_minus_counted_queries": [q - m_q for q in [r["net"]["questions_net"] for r in cold]] if m_q is not None else [],
+            "processlist_after_window": [r.get("processlist_after_window") for r in cold],
         }
         if e is not None:
             est_cpu = per_request_cpu(c_q, c_row, e["queries"], e["rows"])
@@ -547,6 +623,17 @@ def report(args) -> int:
     return 0
 
 
+def counts_cmd(args) -> int:
+    lab_out = os.environ.get("PEAK_LAB_OUT_DIR", os.path.expanduser("~/.cache/peak-lab/out"))
+    targets = load_targets(args.scale, lab_out)
+    counts = table_counts(targets["database"])
+    os.makedirs(args.out, exist_ok=True)
+    with open(os.path.join(args.out, "table-counts.json"), "w") as fh:
+        json.dump({"database": targets["database"], "counts": counts, "taken": datetime.now().astimezone().isoformat(timespec="seconds")}, fh, indent=1)
+    print(json.dumps(counts))
+    return 0
+
+
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -564,7 +651,12 @@ def main(argv: list[str]) -> int:
     q.add_argument("--estimate", required=True)
     q.add_argument("--prediction", required=True)
     q.add_argument("--out", default=None)
+    c = sub.add_parser("counts")
+    c.add_argument("--scale", type=int, required=True)
+    c.add_argument("--out", required=True)
     args = p.parse_args(argv)
+    if args.cmd == "counts":
+        return counts_cmd(args)
     return run(args) if args.cmd == "run" else report(args)
 
 
