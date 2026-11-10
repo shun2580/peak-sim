@@ -12,7 +12,7 @@ The order of work was by row count: `t-4` at 10,000 rows, `t-1` at 30,000, then 
 
 - `302` is the answer of `GET /oidc/callback`, by design (`poc/lab/load/README.md`); it is counted as a non-2xx response by k6.
 - `0` means that no HTTP response was received for the request (k6 status 0).
-- `500` appears only at 100,000 rows. The app's log shows PHP stopping a request at its 30-second execution limit inside the database layer (`Illuminate\Database\Connection`). The log keeps no request path, so the route is not named by it; the counts per step (in `t-2`, one route of the eight; in `t-3` and `t-5`, one route of the first four of the route list) say that it is always a single route of the first four. The database utilization of a step includes the database time of those requests.
+- `500` appears only at 100,000 rows. The app's log shows PHP stopping a request at its 30-second execution limit inside the database layer (`Illuminate\Database\Connection`). The log keeps no request path, so the route is not named by it; the counts per step (in `t-2`, one route of the eight; in `t-3` and `t-5`, one route of the first four of the route list) say that it is always a single route of the first four. The database utilization of a step includes the database time of those requests. After the measurements, one request to each of the first four routes at 100,000 rows (one at a time, with curl from inside the closed network) singled the route out: `GET /books/{bookSlug}/export/zip` gave no response within 45 s, while the other three answered (`chapter/references` and `page/references` in about 0.03 s, `GET /books/{slug}` in 9.9 s with a 48 MB body).
 
 ## The steps
 
