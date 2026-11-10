@@ -91,3 +91,60 @@ docker run --rm --network none -v "$PWD":/app:ro -v "$OUT":/out -w /app <php ima
 ```
 
 The output `sensitivity.json` of that run is kept here as `c-row-sensitivity.json`.
+
+## Allocation of the miss to three causes
+
+The miss of a usable stage is `delta = U0 - M`: the committed prediction's point utilisation `U0` minus the measured utilisation `M`, in points of the database's 2-core utilisation. It is split into three parts by replacing, one at a time, what the prediction reads with what was measured in `../per-request/` and `../zip-limit/`. `allocate.py` makes the numbers (`python3 -I allocate.py`; it reads committed records only, uses no lab container, and writes `allocation.json` and `allocation-tables.md`). Nothing here is a prediction or a score: the prediction, the estimate, the calibration, the formula and the score are as committed, and no usable-stage rule was changed (the stages are those the score marks usable: 31 of the 47).
+
+The method and its order were fixed before the per-request and ZIP records were read (`docs/research/lab-backtest-causes.md` section 2.3, commit a6a5466); the inputs, the definitions and the one filling-in that the records called for are below.
+
+| name | what is put in place of what | reads |
+|---|---|---|
+| `U0` | the committed point utilisation (`sum(rps_r x k_r^est) / 2`, the estimate's statements and rows at the scenario's row count, `c_q` and `c_row` as committed) | checked: `U0` rebuilt from the per-request table's estimate equals the committed value, largest difference 2.2e-16 |
+| `U1` | every route's estimate replaced by its measured statements and rows, converted with the same `c_q` and `c_row` | (a) = `U0 - U1`: the estimate's error per request |
+| `U2` | the ZIP route replaced by `f x k^trunc + (1 - f) x k^full` (the share `f` of its requests that did not return 200 cost what a request cut by php's 30-second limit costs, the rest what an uncut one costs) | (b) = `U1 - U2`: the work the cut left undone |
+| `M` | the measured utilisation | (c) = `U2 - M`: what is left |
+| `U3` | `U2` with the converted counts replaced by the measured database CPU time of one request | (c1) = `U2 - U3`: the conversion of counts to CPU; (c2) = `U3 - M`: the rest, which includes load, caching, and how the two are measured. (c1) + (c2) = (c) |
+
+Where each input comes from:
+
+- Statements and rows measured: the cold request of `measure-one` (`../per-request/<rows>/table.json`), the median of three. The ZIP route at 100,000 rows is the exception, and both its values are read the same way, from the server's own counters over the HTTP window: with php's limit as it is (cut: 96,024 statements and 799,197 rows read, `../per-request/100000/`) and with the limit off (uncut: 120,036 statements and 835,207 rows read, `../zip-limit/`). The per-request table's 100,000-row ZIP line (120,004 statements and 835,196 rows) is the uncut `measure-one` count and was not used for the cut side, because it would show no cut. The server's counters include the few statements and reads of booting the app (about 7 to 17 statements, about 12 rows); that is small against the ZIP route's tens of thousands.
+- `f`, 100,000 rows only: ZIP requests that did not return 200 (HTTP 500 from `ladder.json`, which is only ever this route, plus the ZIP requests with no response from `../no-response/status0-by-route.csv`) over the ZIP requests counted in the stage (`per_route`). It is 1.00 in every usable stage of `t-2`, `t-3` and `t-5`. Under 100,000 rows the ZIP route's php CPU time is 4.1 s (10,000) and 12.1 s (30,000) against the 30-second limit, so no request is cut there and `f` is 0; the ZIP requests with no response at those counts (1 in `t-4` step 11, 4 in `t-1` step 10) are k6's own time limit, not a cut. Whether php-fpm kept running for a request k6 had given up on was not checked; counting those as cut follows the fixed method.
+- Database CPU time of one request: `cpu_median_s` of `table.json` (the HTTP part, after the empty window and the idle drift are taken off); the ZIP route at 100,000 rows is 25.2 s cut and 33.4 s uncut (`../zip-limit/compare.json`).
+- **Filled in because the record called for it.** Where the database CPU time was withheld in `../per-request/` (below the measurement floor, negative, or scattering by more than its median), a CPU time cannot be put in; `U3` takes the converted counts (`k^full`) of that route instead. These are the five small routes at every count and `/shelves/{slug}` at 10,000 and 30,000 rows. They carry 0.0% to 0.1% of the load of `U1` in `t-1`, `t-2`, `t-3` and `t-5` and 0.4% in `t-4` (last column of the per-stage tables). This is a rule of "no ratio, so no value", not a choice made from which way the value falls.
+
+### Result
+
+Sums over the usable stages, in points; shares are of the sum of `delta`. The per-stage tables, the per-route table and the single inputs are in `allocation-tables.md` and `allocation.json`.
+
+| scenario | rows | usable stages | sum of delta | (a) | (b) | (c) | (c1) | (c2) | share (a) | share (b) | share (c) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `t-2` | 100,000 | 6 | +115.56 | +31.40 | +54.25 | +29.90 | +37.74 | -7.83 | 27% | 47% | 26% |
+| `t-3` | 100,000 | 6 | +124.25 | +33.15 | +59.46 | +31.64 | +41.38 | -9.74 | 27% | 48% | 25% |
+| `t-5` | 100,000 | 6 | +105.37 | +31.79 | +47.84 | +25.74 | +33.22 | -7.48 | 30% | 45% | 24% |
+| `t-1` | 30,000 | 7 | +30.05 | +2.02 | +0.00 | +28.02 | +29.64 | -1.62 | (points are the reading; see below) | | |
+| `t-4` | 10,000 | 6 | +4.05 | +1.14 | +0.00 | +2.91 | +14.35 | -11.44 | (points are the reading; see below) | | |
+
+Range of each share over the single stages (stages with `delta` above 0.5 points): `t-2` (a) 26% to 30%, (b) 46% to 52%, (c) 19% to 28%; `t-3` (a) 26% to 30%, (b) 47% to 54%, (c) 16% to 27%; `t-5` (a) 29% to 33%, (b) 44% to 50%, (c) 17% to 26%. Within each of those three scenarios the split is similar at every stage (each of (a), (b) and (c) moves within about 12 points).
+
+The other order, and the (a) aligned to 10,000 rows (both fixed before the results were read; neither is chosen from its result):
+
+- Other order (ZIP cut first, then the estimate's error; `(b'')`, `(a'')`): `t-2` (b'') +56.18 and (a'') +29.47; `t-3` +61.58 and +31.03; `t-5` +49.55 and +30.09. Only the split between (a) and (b) moves, by 2 points of `delta` or less in each; (c) does not depend on the order.
+- The estimate divided by (ratio at N) / (ratio at 10,000), ratio = estimate / measured, so that the part the calibration absorbed at 10,000 rows is not counted as (a): (a) aligned is +31.24, +33.09 and +31.24 for `t-2`, `t-3`, `t-5`, shares 27%, 27% and 30%, within 0.5 point of the main shares. In `t-1` it is +1.48 against +2.02 (shares 5% and 7%, 1.8 points apart). In `t-4` it is 0 by construction (the row count is 10,000); the main (a) share there is 28%, so for `t-4` the border between (a) and (c) is not decided and (a) is a range of 0% to 28% of a `delta` sum of 4.05 points.
+
+### What the numbers say
+
+- **At 100,000 rows (`t-2`, `t-3`, `t-5`) the predicted utilisation is 43% to 57% above the measured one at every usable stage, and the three parts are about a quarter, a half and a quarter.** (a) is 27% to 30% of `delta`: the estimate's statements and rows are too large for two routes, `/books/{slug}` (2,539,961 rows against 1,260,454 measured; +17.5 to +21.7 points in the sums) and the ZIP route (+8.9 to +11.0), and `/shelves/{slug}` adds +0.4 to +5.5 (estimated rows grow with N, measured rows stay at 236). The ZIP route's statements are estimated right (119,994 against 120,036 uncut). (b) is 45% to 48% and is the largest single part: every ZIP request counted in these stages was cut by php's limit (`f` = 1.00), and a cut request does 80% of the statements and 96% of the rows of an uncut one, 25.2 s of database CPU against 33.4 s. (c) is 24% to 26%, and splits into (c1) +32% to +33% of `delta` (a cold request's database CPU time is below what its counts convert to: for example `/books/{slug}` at 100,000 rows 1.13 s against 2.47 s from counts, the cut ZIP request 25.2 s against 28.6 s) and (c2) -7% to -8%.
+- **(c1) compares the converted counts with the measured CPU time of one cold request.** It shows that `c_q x statements + c_row x rows` gives more than the measured CPU time for the two heavy routes. Whether another pair of coefficients would remove that was not tested; the sensitivity above shows that `c_row` moved to the ends of the calibration's own range does not close the 100,000-row gap. The two readings are set side by side and not combined.
+- **`t-4` (10,000 rows) and `t-1` (30,000 rows) were close because the estimate is close at those counts, not because errors cancel in (a).** (a) is +1.14 and +2.02 points of sums: the point statements and rows of the ZIP route equal the measured ones (-0.00 and -0.30), `/books/{slug}` is +0.03 and +0.75, and `/shelves/{slug}` is +1.12 and +1.57 (the one route whose rows are estimated far too high, at a few ms of CPU). ZIP at these counts is not cut (`f` = 0), so (b) is 0. What is left, (c), is small at the stages below 1.0 rps (about 0.1 to 1.9 points in `t-4`, 0.1 to 4.3 in `t-1`).
+- **(c1) and (c2) cancel at 10,000 and 30,000 rows.** In `t-4`, (c1) is +14.35 and (c2) is -11.44; in `t-1`, +29.64 and -1.62. The converted counts are above the cold CPU time of one request (about 7% at 10,000 rows) and the measured utilisation is above the sum of those CPU times (-1.0 point at the lowest stages, down to -3.3 at 3.3 rps). The database's idle CPU rate read in the per-request records is 0.65, 0.63 and 0.64 points of utilisation at 10,000, 30,000 and 100,000 rows; (c2) at the lowest stages is about -1 point. The two are of the same size; this was not tested as the cause.
+- **`t-1`'s sum is mostly one stage.** Stage 10 (1.5 rps, `M` = 87.8%, `U0` = 107.6%) has `delta` +19.77, of which (c) is +19.07. It is the stage where requests with no response begin (29, of which 4 are ZIP requests), and `M` cannot rise past the database's capacity; without stage 10 `delta` is +10.28 and (c) is +8.95 over six stages. The same stage is why `t-1`'s (c1) and (c2) shares are not stable (see the range table in `allocation-tables.md`).
+- What the tables cannot say: why a cold request's CPU is below its counts' conversion (not tested); whether (c2) at 100,000 rows (-7% to -8%, about -1 to -2 points per stage) is the idle rate, the loaded run against the cold request, or the measuring; and what the limit rps would be if each part were corrected one at a time (that is a prediction, and this record makes none).
+
+### Files
+
+| File | |
+|---|---|
+| `allocate.py` | the reading of the committed records (no lab use; the definitions are in its docstring) |
+| `allocation.json` | every number: per stage, per scenario, per route and row count |
+| `allocation-tables.md` | the same as tables: per scenario, per stage, ranges, the other order, the aligned (a), (a) by route, and what one request is taken as |
