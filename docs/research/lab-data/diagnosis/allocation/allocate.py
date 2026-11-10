@@ -28,7 +28,8 @@ Definitions (fixed before the per-request and ZIP records were read):
   U3 = U2 with k^full and k^trunc replaced by the measured database CPU time of one request (k^full where that time is withheld)
   (a) = U0 - U1   (b) = U1 - U2   (c) = U2 - M      delta = U0 - M = (a) + (b) + (c)
   (c1) = U2 - U3  (c2) = U3 - M   (c1) + (c2) = (c)
-  (c3) = U2 at the achieved rps minus U2 at the decided rps (all routes scaled alike); it is inside (c2), not added to it
+  (c3) = U2 at the decided rps minus U2 at the achieved rps (all routes scaled alike): the part of delta that the difference between the
+         decided and the achieved rps carries, signed like (a), (b) and (c) (a positive value raises delta); it is inside (c2), not added to it
   other order: (b'') = U0 - U1', (a'') = U1' - U2, U1' = U0 with ZIP at k_zip^est x k_zip,j^run / k_zip^full
   aligned (a): the estimate of every route's statements and rows divided by (ratio at N) / (ratio at 10,000), ratio = estimate / measured;
                where a ratio does not exist the measured value is put in, as in U1
@@ -185,7 +186,7 @@ for sc in score['scenarios']:
             'rung': int(ru['rung']), 'rps_decided': float(ru['decided_rps']), 'rps_achieved': float(ru['achieved_rps']),
             'zip_requests_counted': pz['requests'], 'zip_requests_not_200': non200, 'f': f,
             'M': m, 'U0': u0, 'U0_committed': u0_commit, 'U1': u1, 'U2': u2, 'U3': u3,
-            'delta': u0 - m, 'a': u0 - u1, 'b': u1 - u2, 'c': u2 - m, 'c1': u2 - u3, 'c2': u3 - m, 'c3': u2_at_achieved - u2,
+            'delta': u0 - m, 'a': u0 - u1, 'b': u1 - u2, 'c': u2 - m, 'c1': u2 - u3, 'c2': u3 - m, 'c3': u2 - u2_at_achieved,
             'b_other_order': u0 - u1b, 'a_other_order': u1b - u2,
             'a_aligned': u0 - u1_aligned,
             'a_by_route': a_route, 'b_zip': b_zip,
@@ -233,7 +234,7 @@ def pc(x):
 
 
 lines = []
-lines.append('Utilisation in percentage points. delta = U0 - M (predicted minus measured). Shares are of the sum of delta over the usable stages.\n')
+lines.append('Utilisation in percentage points. delta = U0 - M (predicted minus measured). Shares are of the sum of delta over the usable stages. Every part is signed as a contribution to delta (positive raises delta); (c3) is U2 at the decided rps minus U2 at the achieved rps, and is inside (c2), not added to it.\n')
 lines.append('### Per scenario (sum over the usable stages)\n')
 lines.append('| scenario | rows | usable stages | sum delta | (a) | (b) | (c) | (c1) | (c2) | (a) share | (b) share | (c) share | (c1) share | (c2) share |')
 lines.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
