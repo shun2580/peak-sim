@@ -6,6 +6,7 @@ never change the lab: no setting, no data, no container. They are not part of th
 | File | What it does |
 | --- | --- |
 | `request_probe.py` | `run`: per route, one warm-up request and N (default 3) requests, one at a time, through the web server and php-fpm. Around each one it reads the database container's `cpu.stat` (`usage_usec`) and the server's global counters (`Handler_read_*`, `Questions`, ...), and the app container's `cpu.stat` (the PHP side). It also runs `measure-one` (the measurement's own process: a warm-up request, then the cold one) N times per route, which gives the statements and the rows the database looked at (the session's `Handler_read_*`; D96, D101, D102). `report`: sets the records beside an estimate (point and safe side) and the calibration's coefficients and works out `estimate / measured`. |
+| `request_probe.py compare` | two records of one route side by side (the cut and the uncut one): elapsed time, PHP's CPU, the database's CPU, the rows the server read and the statements it counted, each as the median of the cold requests, with the two ratios. |
 | `test_request_probe.py` | tests of the pure parts (parsing, the empty-window and idle-drift correction, the floor, the ratios). `python3 -m unittest poc/lab/diagnosis/test_request_probe.py`; no Docker. |
 | `fcgi_get.php`, `ini-probe.php` | read a setting **through php-fpm** (the CLI's `php -i` shows the CLI's own values): a minimal FastCGI client run in the tools container, and a script it asks php-fpm to run. `ini-probe.php` opens no database connection; with `mode=sleep` / `mode=spin` it shows whether the execution-time limit counts waiting or CPU time. |
 
@@ -16,7 +17,7 @@ never change the lab: no setting, no data, no container. They are not part of th
 - The database is never quite idle (MySQL's own background work). An **idle reading** (ten quiet seconds) gives that rate; the rate times
   the window's extra length is taken off as well. A reading that is no larger than three times the spread of the null windows, or than the
   idle drift taken off it, is written as **below the measurement floor** and no ratio is made on it.
-- A route whose three readings scatter by more than their own median is also written as below the measurement floor (no ratio on it).
+- A ratio that is withheld is not dropped from the table: the report keeps the number that would have stood (`cpu_point_if_not_withheld`) and the reason(s) (`cpu_withheld_because`), and the markdown shows both. A route whose three readings scatter by more than their own median is also written as below the measurement floor (no ratio on it).
   This second rule was added after the 100,000-row reading, to name one route the null-window rule left in; the report keeps both flags
   (`cpu_below_floor_by_null_rule`, `cpu_readings_scatter_more_than_median`) so each reading can be told apart.
 - The window closes after php-fpm has finished, not when the client got its answer: for an answer that was not a quick success the tool

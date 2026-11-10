@@ -179,5 +179,36 @@ class ScatterTest(unittest.TestCase):
         self.assertFalse(rp.scatter_exceeds_value([1.0]))
 
 
+class WithheldRatioTest(unittest.TestCase):
+    def test_a_withheld_ratio_is_shown_with_its_value_and_reason(self):
+        cell = rp.cpu_cell({"cpu_withheld_because": ["scatter"], "cpu_point_if_not_withheld": 0.693, "cpu_safe_if_not_withheld": 0.7})
+        self.assertIn("withheld", cell)
+        self.assertIn("0.693", cell)
+        self.assertIn("scatter", cell)
+
+    def test_a_kept_ratio_is_just_the_numbers(self):
+        self.assertEqual("1.46 / 1.47", rp.cpu_cell({"cpu_withheld_because": [], "cpu_point": 1.46, "cpu_safe": 1.47}))
+
+
+def _req(route, status, el, php, cpu, handlers, q):
+    return {"kind": "request", "phase": "cold", "route": route, "result": {"status": status, "answered_after_s": el, "php_cpu_usec": php * 1e6},
+            "net": {"cpu_net_usec": cpu * 1e6, "cpu_minus_null_usec": cpu * 1e6 + 5, "handlers_net": handlers, "questions_net": q}}
+
+
+class CompareTest(unittest.TestCase):
+    def test_only_cold_requests_of_the_route_are_taken(self):
+        rows = [_req("GET /a/zip", 500, 50, 30, 25, 800, 96), _req("GET /b", 200, 1, 1, 1, 1, 1),
+                {"kind": "request", "phase": "warmup", "route": "GET /a/zip", "result": {}, "net": None}]
+        self.assertEqual(1, len(rp.cold_requests(rows, "/zip")))
+
+    def test_medians_and_ratios(self):
+        cut = rp.summarize_cold([_req("z", 500, 50, 30, 25, 800, 96), _req("z", 500, 52, 31, 26, 810, 97), _req("z", 500, 51, 30, 25, 805, 96)])
+        unc = rp.summarize_cold([_req("z", 200, 70, 40, 34, 835, 120)] * 3)
+        c = rp.compare_records(cut, unc)
+        self.assertEqual(51, c["elapsed_s"]["cut"])
+        self.assertAlmostEqual(34 / 25, c["db_cpu_net_s"]["uncut_over_cut"])
+        self.assertAlmostEqual(96 / 120, c["questions"]["cut_over_uncut"])
+
+
 if __name__ == "__main__":
     unittest.main()

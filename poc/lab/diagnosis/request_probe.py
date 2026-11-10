@@ -20,6 +20,7 @@ Two parts, kept apart so they never overlap in time:
 Usage:
   request_probe.py run    --scale=N --out=DIR [--routes=1,2] [--reps=3] [--part=both|http|inproc] [--timeout=180] [--label=text]
   request_probe.py report --scale=N --dir=DIR --estimate=FILE --prediction=FILE [--out=DIR]
+  request_probe.py compare --cut=DIR --uncut=DIR --route-contains=TEXT --out=DIR   two records of one route side by side
   request_probe.py counts --scale=N --out=DIR     the row counts of the three N tables (entities, images, references)
 
 "Other requests" (the web server's request counter between the two probes, less the probes themselves) is recorded for every
@@ -576,6 +577,11 @@ def build_report(scale: int, http: list[dict], inproc: list[dict], estimate: dic
                 "queries": ratio(e["queries"], m_q),
                 "cpu_point": None if floor else ratio(est_cpu, m_cpu),
                 "cpu_safe": None if floor else ratio(est_cpu_safe, m_cpu),
+                # the ratio as it would have been, kept beside the withheld one (a rule added after seeing a reading must not hide it)
+                "cpu_point_if_not_withheld": ratio(est_cpu, m_cpu) if floor else None,
+                "cpu_safe_if_not_withheld": ratio(est_cpu_safe, m_cpu) if floor else None,
+                "cpu_withheld_because": [w for w, on in (("below the measurement floor (empty-window / idle-drift rule)", floor_null),
+                                                         ("the three readings scatter by more than their median (rule added after the 100,000-row reading)", scattered)) if on],
                 "cpu_point_vs_converted_counts": ratio(est_cpu, meas_cpu_from_counts),
             }
         routes.append(entry)
@@ -593,15 +599,23 @@ def fmt(v: Any, digits: int = 3) -> str:
     return str(v)
 
 
+def cpu_cell(eo: dict[str, Any]) -> str:
+    """The CPU ratio column: the numbers, or, where they were withheld, the number that would have stood and why it did not."""
+    if eo.get("cpu_withheld_because"):
+        return "withheld: would be %s / %s (%s)" % (fmt(eo.get("cpu_point_if_not_withheld")), fmt(eo.get("cpu_safe_if_not_withheld")),
+                                                      "; ".join(eo["cpu_withheld_because"]))
+    return "%s / %s" % (fmt(eo.get("cpu_point")), fmt(eo.get("cpu_safe")))
+
+
 def render_markdown(rep: dict[str, Any]) -> str:
     lines = ["| route | status | ms (3) | queries meas. | rows meas. | DB CPU s (median of 3) | queries est ÷ meas | rows est ÷ meas (point / safe) | CPU est ÷ meas (point / safe) |",
              "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rep["routes"]:
         eo = r.get("estimate_over_measured", {})
-        lines.append("| %s | %s | %s | %s | %s | %s | %s | %s / %s | %s / %s |" % (
+        lines.append("| %s | %s | %s | %s | %s | %s | %s | %s / %s | %s |" % (
             r["route"], ",".join(map(str, r["http_status"])), ",".join(map(str, r["http_ms"])), fmt(r["measured_queries"]),
             fmt(r["measured_rows"]), fmt(r["cpu_median_s"]) + (" (below the measurement floor)" if r["cpu_below_measurement_floor"] else ""), fmt(eo.get("queries")), fmt(eo.get("rows_point")), fmt(eo.get("rows_safe")),
-            fmt(eo.get("cpu_point")), fmt(eo.get("cpu_safe"))))
+            cpu_cell(eo)))
     return "\n".join(lines) + "\n"
 
 
@@ -620,6 +634,55 @@ def report(args) -> int:
     with open(os.path.join(out, "table.md"), "w") as fh:
         fh.write(render_markdown(rep))
     print(render_markdown(rep))
+    return 0
+
+
+def cold_requests(http: list[dict], route_contains: str) -> list[dict]:
+    return [r for r in http if r["kind"] == "request" and r["phase"] == "cold" and route_contains in r["route"]]
+
+
+def summarize_cold(rows: list[dict]) -> dict[str, Any]:
+    """Per measure: the readings of the cold requests and their median (DB CPU net of the empty window and idle drift, the rows the
+    server read, the statements it counted, PHP's CPU time and the elapsed time)."""
+    def pick(f):
+        vals = [f(r) for r in rows]
+        return {"readings": vals, "median": median_of(vals)}
+    return {
+        "n": len(rows),
+        "http_status": [r["result"]["status"] for r in rows],
+        "elapsed_s": pick(lambda r: r["result"]["answered_after_s"]),
+        "php_cpu_s": pick(lambda r: r["result"]["php_cpu_usec"] / 1e6),
+        "db_cpu_net_s": pick(lambda r: r["net"]["cpu_net_usec"] / 1e6),
+        "db_cpu_minus_null_only_s": pick(lambda r: r["net"]["cpu_minus_null_usec"] / 1e6),
+        "handler_reads": pick(lambda r: r["net"]["handlers_net"]),
+        "questions": pick(lambda r: r["net"]["questions_net"]),
+    }
+
+
+def compare_records(cut: dict[str, Any], uncut: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for k in ("elapsed_s", "php_cpu_s", "db_cpu_net_s", "db_cpu_minus_null_only_s", "handler_reads", "questions"):
+        c, u = cut[k]["median"], uncut[k]["median"]
+        out[k] = {"cut": c, "uncut": u, "uncut_over_cut": ratio(u, c), "cut_over_uncut": ratio(c, u),
+                  "uncut_minus_cut": u - c}
+    return out
+
+
+def compare_cmd(args) -> int:
+    cut = summarize_cold(cold_requests(read_jsonl(os.path.join(args.cut, "http.jsonl")), args.route_contains))
+    unc = summarize_cold(cold_requests(read_jsonl(os.path.join(args.uncut, "http.jsonl")), args.route_contains))
+    res = {"route_contains": args.route_contains, "cut": cut, "uncut": unc, "compare": compare_records(cut, unc)}
+    os.makedirs(args.out, exist_ok=True)
+    with open(os.path.join(args.out, "compare.json"), "w") as fh:
+        json.dump(res, fh, indent=1, sort_keys=True)
+        fh.write("\n")
+    lines = ["| measure | cut (median of %d) | uncut (median of %d) | uncut ÷ cut | cut share of uncut |" % (cut["n"], unc["n"]), "| --- | --- | --- | --- | --- |"]
+    for k, v in res["compare"].items():
+        lines.append("| %s | %s | %s | %s | %s |" % (k, fmt(v["cut"], 5), fmt(v["uncut"], 5), fmt(v["uncut_over_cut"]), fmt(v["cut_over_uncut"])))
+    text = "\n".join(lines) + "\n"
+    with open(os.path.join(args.out, "compare.md"), "w") as fh:
+        fh.write(text)
+    print(text)
     return 0
 
 
@@ -651,12 +714,19 @@ def main(argv: list[str]) -> int:
     q.add_argument("--estimate", required=True)
     q.add_argument("--prediction", required=True)
     q.add_argument("--out", default=None)
+    k = sub.add_parser("compare")
+    k.add_argument("--cut", required=True)
+    k.add_argument("--uncut", required=True)
+    k.add_argument("--route-contains", dest="route_contains", required=True)
+    k.add_argument("--out", required=True)
     c = sub.add_parser("counts")
     c.add_argument("--scale", type=int, required=True)
     c.add_argument("--out", required=True)
     args = p.parse_args(argv)
     if args.cmd == "counts":
         return counts_cmd(args)
+    if args.cmd == "compare":
+        return compare_cmd(args)
     return run(args) if args.cmd == "run" else report(args)
 
 
