@@ -1,0 +1,99 @@
+{
+    "mix": "last80",
+    "scheme": "B",
+    "rps": {
+        "target_rps": 0.07,
+        "achieved_rps": 0.07005253940455342,
+        "ratio": 1.0007505629221916,
+        "deviation": 0.0007505629221915555,
+        "valid": true,
+        "status": "valid"
+    },
+    "window_sec": 571,
+    "window_epoch": {
+        "from": 1794296106.0460646,
+        "to": 1794296677.0460646
+    },
+    "db_utilization": {
+        "utilization": 0.05547698395837627,
+        "percent": 5.547698395837627,
+        "delta_usage_usec": 63354715.6804657,
+        "delta_sec": 571.0,
+        "cpus": 2
+    },
+    "requests": {
+        "in_window": 40,
+        "failed": 10,
+        "dropped_iterations": 0,
+        "http_status": {
+            "200": 30,
+            "302": 8,
+            "500": 2
+        }
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.0035000000000000005,
+            "achieved_rps": 0.0035026269702276708,
+            "requests": 2,
+            "planned_requests": 2
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.0035000000000000005,
+            "achieved_rps": 0.0035026269702276708,
+            "requests": 2,
+            "planned_requests": 2
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.0035000000000000005,
+            "achieved_rps": 0.0035026269702276708,
+            "requests": 2,
+            "planned_requests": 2
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.0035000000000000005,
+            "achieved_rps": 0.0035026269702276708,
+            "requests": 2,
+            "planned_requests": 2
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.014000000000000002,
+            "achieved_rps": 0.014010507880910683,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.014000000000000002,
+            "achieved_rps": 0.014010507880910683,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.014000000000000002,
+            "achieved_rps": 0.014010507880910683,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.014000000000000002,
+            "achieved_rps": 0.014010507880910683,
+            "requests": 8,
+            "planned_requests": 8
+        }
+    ],
+    "app_cpu_utilization": {
+        "utilization": 0.02390046554368042,
+        "percent": 2.390046554368042,
+        "delta_usage_usec": 81882994.95264912,
+        "delta_sec": 571.0,
+        "cpus": 6
+    }
+}

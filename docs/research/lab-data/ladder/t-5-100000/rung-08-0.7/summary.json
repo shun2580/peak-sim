@@ -1,0 +1,27 @@
+{
+  "scenario_start_ms": 1794299447892.9329,
+  "measure_requests": 239,
+  "measure_failed": 59,
+  "measure_ok": 180,
+  "dropped_iterations": 0,
+  "http_status": {
+    "200": 180,
+    "302": 48,
+    "500": 11
+  },
+  "duration_ms": {
+    "avg": 3049.0814520753124,
+    "p95": 10177.801334599999,
+    "max": 55732.938254
+  },
+  "per_route": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 12,
+    "GET /books/{bookSlug}/export/zip": 11,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 12,
+    "GET /books/{slug}": 12,
+    "GET /books/{slug}/references": 48,
+    "GET /images/edit/{id}": 48,
+    "GET /oidc/callback": 48,
+    "GET /shelves/{slug}": 48
+  }
+}

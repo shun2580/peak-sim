@@ -1,0 +1,100 @@
+{
+    "scenario": "t-3",
+    "scale": 100000,
+    "mix": "first80",
+    "scheme": "B",
+    "rung": 5,
+    "decided_rps": 0.2,
+    "achieved_rps": 0.1975,
+    "rps_ratio": 0.9875,
+    "rps_valid": true,
+    "rps_status": "valid",
+    "db_utilization": 0.5482813371217108,
+    "db_utilization_percent": 54.82813371217108,
+    "app_cpu_utilization": 0.2676322015795978,
+    "app_cpu_percent": 26.76322015795978,
+    "k6_dropped_iterations": 0,
+    "requests_in_window": 79,
+    "requests_not_2xx": 19,
+    "http_status": {
+        "200": 60,
+        "302": 4,
+        "500": 15
+    },
+    "window_sec": 400,
+    "window_epoch": {
+        "from": 1794294119.592746,
+        "to": 1794294519.592746
+    },
+    "started_at": "2026-11-10T16:00:54+09:00",
+    "ended_at": "2026-11-10T16:09:37+09:00",
+    "decision": {
+        "stop": false,
+        "reasons": [],
+        "note": null
+    },
+    "trial": false,
+    "prediction": {
+        "file": "poc/lab/predictions/ladder-prediction.json",
+        "commit": "5bdf6e88254439dd6127b39a503cf046384bac91",
+        "commit_time": "2026-11-10T10:18:07+09:00"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.04000000000000001,
+            "achieved_rps": 0.04,
+            "requests": 16,
+            "planned_requests": 16
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.04000000000000001,
+            "achieved_rps": 0.0375,
+            "requests": 15,
+            "planned_requests": 16
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.04000000000000001,
+            "achieved_rps": 0.04,
+            "requests": 16,
+            "planned_requests": 16
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.04000000000000001,
+            "achieved_rps": 0.04,
+            "requests": 16,
+            "planned_requests": 16
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.010000000000000002,
+            "achieved_rps": 0.01,
+            "requests": 4,
+            "planned_requests": 4
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.010000000000000002,
+            "achieved_rps": 0.01,
+            "requests": 4,
+            "planned_requests": 4
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.010000000000000002,
+            "achieved_rps": 0.01,
+            "requests": 4,
+            "planned_requests": 4
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.010000000000000002,
+            "achieved_rps": 0.01,
+            "requests": 4,
+            "planned_requests": 4
+        }
+    ]
+}
