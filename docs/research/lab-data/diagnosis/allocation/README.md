@@ -115,7 +115,7 @@ Where each input comes from:
 
 ### Result
 
-Sums over the usable stages, in points; shares are of the sum of `delta`. The per-stage tables, the per-route table and the single inputs are in `allocation-tables.md` and `allocation.json`.
+Sums over the usable stages, in points; shares are of the sum of `delta`. The per-stage tables, the per-route table and the single inputs are in `allocation-tables.md` and `allocation.json`. Every part, (c3) included, is signed as a contribution to `delta` (positive raises it); (c3), the part carried by the difference between the decided and the achieved rps (U2 at the decided rps minus U2 at the achieved rps), is inside (c2) and is not added to it.
 
 | scenario | rows | usable stages | sum of delta | (a) | (b) | (c) | (c1) | (c2) | share (a) | share (b) | share (c) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
