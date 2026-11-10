@@ -74,9 +74,42 @@ The load of one route in the prediction is its calibrated cost per request, `c_q
 
 **Question.** For `t-2`, `t-3` and `t-5`, how much of the difference between the predicted and the measured utilization belongs to (a) the estimate of one request of each route, (b) the stopped ZIP requests, and (c) the rest, which holds the calibrated coefficients and, in particular, the width of `c_row`?
 
-**How.** From the usable steps of the three scenarios in the records of test B, the difference between the predicted and the measured utilization is divided into the three parts. The division uses only the measurements of parts 1 and 2 and the input of the prediction committed in `5bdf6e8`; no new load is applied, and no prediction is made again. (a) is what the difference becomes when the estimate's cost of each route is replaced by the measured cost of part 1; (b) is the part that remains for the ZIP route when the stopped request's work of part 2 is put in place of the finished one; (c) is what is left. The way the replacements are ordered is given with the result. Where a share depends on the order, the file shows another order beside it so that the dependence is visible.
+**Fixed before the per-request measurements.** The method below was fixed before any per-request measurement of parts 1 and 2 was taken, and is not changed after the results are seen: neither the formulas, nor the order, nor which of two readings is the primary one. Where a second reading is shown beside the primary one, both are reported whatever they say.
 
-**The test of (c).** The `c_row` of the four-run fit is replaced by the two ends of its range in the fits that leave one run out (1.379e-6 and 1.129e-5), the matching `c_q` of the same fit is taken with it, and the predictions of the three scenarios at 100,000 rows are recomputed from the committed input. The result is how far the predictions move when only the coefficients move inside the width the calibration itself reported.
+**Definitions.** For a scenario and a usable step `j` (a valid step whose measured utilization is between 10% and 90%), let `λ_rj` be the decided rps of route `r` in that step, taken from the committed prediction, and `M_j` the measured utilization of the step.
+
+- `k_r^est = c_q · count_r^est(N) + c_row · rows_r^est(N)`: the estimate's cost of one request, in CPU seconds of the database, from the input of the prediction committed in `5bdf6e8` and the coefficients of its four-run fit. The utilization it gives, `U0_j = Σ_r λ_rj · k_r^est / 2`, is the committed point prediction.
+- `k_r^full = c_q · count_r^meas(N) + c_row · rows_r^meas(N)`: the same coefficients applied to the query count and the rows read measured in part 1 (the median of the three cold requests), except for the ZIP route at 100,000 rows, where the three requests of part 2 without the limit are used.
+- `k_zip^trunc`: the same formula for the ZIP route at 100,000 rows as measured in part 1, where PHP stops it.
+- `f_j`: the share of the ZIP requests of step `j` that did not return 200 (500 and no response), from the status counts of the step and the per-route breakdown of part 4. Where part 4 gives no breakdown, the number of 500 over the number of ZIP requests is used, capped at 1, and the file says so. `k_zip,j^run = f_j · k_zip^trunc + (1 − f_j) · k_zip^full`.
+- `U1_j = Σ_r λ_rj · k_r^full / 2`: the prediction with the estimate replaced by the measured counts. `U2_j` is `U1_j` with the ZIP route's cost replaced by `k_zip,j^run`.
+
+**The division.** The difference `Δ_j = U0_j − M_j` is divided as
+
+```
+(a)_j = U0_j − U1_j     the estimate of one request of each route
+(b)_j = U1_j − U2_j     the database work that the stopped ZIP requests did not do
+(c)_j = U2_j − M_j      the rest
+```
+
+Each scenario's value is the sum over its usable steps, in utilization points; the share of a part is its sum over the sum of `Δ`, with its sign (a negative share, or one above 100%, is printed as it is). Where the sum of `Δ` is small, as it can be for `t-4` and `t-1`, a share is unstable, so the points are the main figure and the share is added only beside them. The table by step is given too. At 10,000 and 30,000 rows, where the ZIP route returns 200, `f_j` is 0 and (b) is 0; if part 1 shows the ZIP route stopped at 30,000 rows, the same formulas give (b) there.
+
+**The order.** The primary order is (a) then (b): (a) is the miss of the estimate against the work one request does, and the stop is an event that happens at run time on top of that work. The other order, (b) then (a), is shown beside it: `U1'_j` is `U0_j` with the ZIP route's cost multiplied by `k_zip,j^run / k_zip^full`, `(b')_j = U0_j − U1'_j` and `(a')_j = U1'_j − U2_j`. The sum (a)+(b) and the part (c) do not depend on the order; only the split between (a) and (b) does, and the file says so wherever it quotes them.
+
+**What goes into (a) and what into (c).** Part (a) uses the measured query counts and rows read, each in its own term, with the coefficients as committed. The measured database CPU time of a request is not used to replace `k_r` in (a), because it already holds the error of the coefficients (what one row or one query costs at that row count), and (a) and (c) would overlap. It is used inside (c), which is divided further and the three pieces are put under (c) without changing the three parts above:
+
+```
+U3_j  = U2_j with k_r^full and k_zip^trunc replaced by the database CPU times of parts 1 and 2
+(c1)_j = U2_j − U3_j    the error of the cost of a row or a query (the effect of the width of c_row shows here)
+(c2)_j = U3_j − M_j     what a cold single request does not carry into a loaded run (cache warming,
+                         ordering, contention) and differences of measuring; it can be negative
+(c3)                    the part due to the difference between the decided rps and the rps that came out
+                         (U2 rebuilt with the rps that came out); small, since every step is within 5%
+```
+
+**The reading of (a) against the calibration.** The main reading of (a) uses the ratio of the estimate to the measurement as it is at each row count. A second reading is shown beside it, in which, for each of the query-count term and the row term, the ratio at the row count concerned is divided by the ratio at 10,000 rows. The reason is that the calibration fitted the coefficients to the estimate at 10,000 rows (and 3,000), so a bias of the estimate at 10,000 rows has been absorbed by the coefficients; the absolute ratio can count that absorbed part into (a). For a route whose ratio cannot be formed (a zero in the denominator, as for a route with no statement in the estimate), the replacement formula needs no ratio, since the measured value is put in, and the second reading uses the absolute ratio for that route. If the share of (a) differs by more than 10 points between the two readings, the file says that the border between (a) and (c) cannot be fixed, and gives (a) as the range of the two values. It does not choose one of the two after seeing the results.
+
+**The test of (c): the sensitivity to `c_row`.** The primary reading takes the fits that leave one run out as the calibration width defines it (spec section 6.3): `c_q` and `c_row` are moved together to the pair of the fit with the smallest `c_row` (1.37851e-6, with `c_q` = 2.87058e-4) and to the pair of the fit with the largest (1.12854e-5, with `c_q` = 1.74879e-4). Each of these pairs fits three of the four calibration runs, so the pair is one that the calibration itself allows. Beside it, a second reading moves only `c_row` to the same two ends with `c_q` kept at its value of the four-run fit; this answers the question in its literal form, but the pair it makes does not fit the calibration runs. For each of `t-2`, `t-3` and `t-5` the file gives the predicted limit rps at the point and at both ends, as a change from the committed point, read from the committed prediction where it already holds the pair.
 
 **The same division for `t-4` and `t-1`.** It is made for the two scenarios that came out close (10,000 and 30,000 rows), so that it is visible why they came out close: whether the three parts are small, or whether larger parts cancel.
 
