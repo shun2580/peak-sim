@@ -15,8 +15,10 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `bin/build-db`, `bin/use-db` | build the database of one scale; point the app at one |
 | `bin/predict-ladder` | the ladder prediction (`docs/simulator-spec.md` 7.2 and 7.3): for each target scenario, the utilisation at each of the 13 rps stages (point and safe side), the naive estimate, and the limit rps solved from the proportional form. The point is one estimate; the safe side takes the marks of the estimate made at the scenario's own count of rows (`--safe-estimate=<dir>`, one per count; a count with no estimate stops it). The naive estimate is chosen among the calibration scenarios at the largest count only. It writes, as a record that is not used for a pass or a failure, the calibration's range per scenario (each leave-one-out fit's coefficients, utilisation at every stage and limit rps). It makes no prediction when a calibration coefficient was cut to 0 or `cal-3-orig` is among the calibration scenarios. Sends no request; the code is `poc/runtime/src/Simulate/Ladder/`, which calls the calibration and prediction parts of `bin/simulate` |
 | `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file |
+| `bin/check-limits` | read the lab's three limits (PHP `max_execution_time`, php-fpm `request_terminate_timeout`, nginx `fastcgi_read_timeout`) and refuse (exit 13) unless they are the ones the measurement needs: `--require=unlimited --request-timeout=<k6 duration>` (PHP 0, pool 0, nginx at least the load tool's timeout), `--require=limited` (PHP 30, the mark's check), `--require=none` (read and record only). It only reads; a limit that cannot be read refuses too |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
+| `tests/limits-guard.sh` | the tests of `bin/check-limits` and of its place in front of every step of `r-1`..`r-5` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured) |
 | `tests/scenario-timeout.sh` | the tests of `load/scenario.js`'s `REQUEST_TIMEOUT` and its status counts by route, with the real k6 against a stand-in server in throw-away containers (needs Docker; never touches the lab) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
 
@@ -58,7 +60,12 @@ app-side stall, with the app's CPU utilization.
 - **The re-check (`r-1`..`r-5`, spec 7.4.1).** `--scenario=r-N` measures 5 x N_0 and 20 x N_0 with the same steps, window and stopping rule.
   It requires `--request-timeout=<k6 duration>` (600s in the spec) so that the load tool's timeout is stated and not left to its default;
   for `t-*` the option is optional and without it the load is sent as before. The limits of the lab itself (PHP, nginx) are set outside this
-  tool and only read and recorded by it.
+  tool, but a step of `r-*` does not start unless they are the ones this measurement needs: before every step `bin/check-limits
+  --require=unlimited` reads them, and if PHP's `max_execution_time` or the pool's `request_terminate_timeout` is not 0, or nginx's
+  `fastcgi_read_timeout` is shorter than `--request-timeout`, or any of them cannot be read, the scenario stops with exit 13 and nothing is
+  measured (a switch that was forgotten would otherwise be found only after the step's load had been spent). `t-*` and a trial are read and
+  recorded as before and not required to be anything. The same check can be put in front of the one-request-at-a-time probe with
+  `diagnosis/request_probe.py run --require-limits=unlimited|limited`, and run by hand before any other measurement.
 - **What it uses.** `load/make-plan.php`, `load/scenario.js`, `load/summarize-run.php`, `observe/sample-cpu`; the steps, the stopping rule
   and the record are in `poc/runtime/src/LabLoad/Ladder.php` (`load/ladder.php` is its command line).
 

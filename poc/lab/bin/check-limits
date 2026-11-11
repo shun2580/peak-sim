@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Reads the three limits that can end a request in the lab, as the containers hold them right now, and refuses (exit 13) unless they
+# are the ones the coming measurement needs (docs/simulator-spec.md section 7.4.1). It only reads: `nginx -T` and `php-fpm -tt` print
+# a configuration, and ini-probe.php is one request through php-fpm that opens no database connection. It sends no load and changes
+# nothing, so it can be run before a measurement and costs the lab nothing.
+#
+#   poc/lab/bin/check-limits --require=<unlimited|limited|none> [--request-timeout=<k6 duration>] [--dir=<dir under the out directory>]
+#
+#   --require=unlimited  the ladder measurement of the re-check (B) and any measurement that is made with the limit off: PHP's
+#                        max_execution_time is 0, php-fpm's request_terminate_timeout is 0, and nginx's fastcgi_read_timeout is at
+#                        least --request-timeout (which is then required: it is what nginx is compared with)
+#   --require=limited    the mark's one-request-at-a-time check: max_execution_time is 30 (the limit the application really has)
+#   --require=none       read and record only (what measure-ladder does for t-1 .. t-5 and a trial, which are measured as before)
+#
+# A value that cannot be read (a container that does not answer, a configuration that does not parse, no JSON from the probe) refuses
+# too: the guard fails closed. The raw outputs are kept in --dir (settings-nginx.txt, settings-fpm.txt, settings-ini.txt) with the
+# readings (settings.json) and the reason of a refusal (settings.err). Default --dir: <out>/limits/<time>.
+#
+# Callers: `bin/measure-ladder` runs it before every step of r-1 .. r-5 (unlimited); `diagnosis/request_probe.py run --require-limits=...`
+# runs it before the first request; the calibration that is measured with the limit off is to run it by hand first.
+#
+# exit codes: 0 the lab is as the measurement needs (or --require=none and everything was read) / 2 usage / 13 refused: not as needed,
+# or a limit could not be read (the cause is printed; nothing was measured)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+usage() { sed -n '8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+require="" ; request_timeout="" ; dir=""
+for arg in "$@"; do
+  case "$arg" in
+    --require=*) require="${arg#--require=}" ;;
+    --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
+    --dir=*) dir="${arg#--dir=}" ;;
+    *) usage ;;
+  esac
+done
+[[ "$require" =~ ^(unlimited|limited|none)$ ]] || usage
+if [ -n "$request_timeout" ] && ! [[ "$request_timeout" =~ ^[0-9]+(\.[0-9]+)?(ms|s|m|h)$ ]]; then
+  echo "check-limits: --request-timeout must be a k6 duration with a unit, such as 600s (got '$request_timeout')" >&2
+  exit 2
+fi
+if [ "$require" = unlimited ] && [ -z "$request_timeout" ]; then
+  echo "check-limits: --require=unlimited needs --request-timeout=<the k6 duration of the measurement> to compare nginx's limit with" >&2
+  exit 2
+fi
+
+lab_out="$(cd "$PEAK_LAB_OUT_DIR" && pwd)"
+[ -n "$dir" ] || dir="$lab_out/limits/$(date +%Y%m%dT%H%M%S)"
+mkdir -p "$dir"
+dir="$(cd "$dir" && pwd)"
+case "$dir" in "$lab_out"/*) ;; *) echo "check-limits: --dir must be inside $lab_out (the tools container sees only that directory, as /out)" >&2; exit 2 ;; esac
+in_container() { echo "/out/${1#"$lab_out"/}"; }
+
+rm -f "$dir/settings.json" "$dir/settings.err"
+docker exec peak-lab-web nginx -T >"$dir/settings-nginx.txt" 2>&1
+docker exec peak-lab-app php-fpm -tt >"$dir/settings-fpm.txt" 2>&1
+docker exec peak-lab-tools php /peak-sim/poc/lab/diagnosis/fcgi_get.php lab-app:9000 /peak-sim/poc/lab/diagnosis/ini-probe.php >"$dir/settings-ini.txt" 2>&1
+
+args=(--nginx="$(in_container "$dir/settings-nginx.txt")" --fpm="$(in_container "$dir/settings-fpm.txt")" --ini="$(in_container "$dir/settings-ini.txt")")
+[ -z "$request_timeout" ] || args+=(--k6-timeout="$request_timeout")
+[ "$require" = none ] || args+=(--require="$require")
+docker exec -i peak-lab-tools php /peak-sim/poc/lab/load/ladder.php settings "${args[@]}" >"$dir/settings.json" 2>"$dir/settings.err"
+rc=$?
+if [ "$rc" != 0 ]; then
+  # exit 3 = a limit could not be read, 4 = read but not as needed, anything else (docker could not run it) is a refusal as well
+  echo "LIMITS REFUSED (require $require): $(tr '\n' ' ' <"$dir/settings.err"| sed 's/ *$//') [exit $rc; readings in $dir]" >&2
+  exit 13
+fi
+echo "LIMITS OK (require $require): $(tr '\n' ' ' <"$dir/settings.json" | tr -s ' ')"
+exit 0

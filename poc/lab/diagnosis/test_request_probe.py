@@ -210,5 +210,76 @@ class CompareTest(unittest.TestCase):
         self.assertAlmostEqual(96 / 120, c["questions"]["cut_over_uncut"])
 
 
+class LimitsGuardTest(unittest.TestCase):
+    """--require-limits: the run asks bin/check-limits before it sends anything, and a refusal stops it with 13."""
+
+    ROOT = "/repo"
+
+    def args(self, require, timeout=180):
+        class A:
+            pass
+        a = A()
+        a.require_limits = require
+        a.timeout = timeout
+        return a
+
+    class FakeProc:
+        def __init__(self, rc, out="", err=""):
+            self.returncode, self.stdout, self.stderr = rc, out, err
+
+    def with_check(self, rc):
+        """Runs `fn` with subprocess.run replaced; returns (commands that were run, what check_limits said)."""
+        calls = []
+
+        def fake_run(cmd, **kw):
+            calls.append(cmd)
+            return LimitsGuardTest.FakeProc(rc, "", "LIMITS REFUSED" if rc else "LIMITS OK")
+
+        return calls, fake_run
+
+    def test_without_the_flag_nothing_is_checked_and_nothing_is_run(self):
+        calls, fake = self.with_check(13)
+        old, rp.subprocess.run = rp.subprocess.run, fake
+        try:
+            self.assertEqual(0, rp.check_limits(self.args(None), self.ROOT, lambda s: None))
+        finally:
+            rp.subprocess.run = old
+        self.assertEqual([], calls)
+
+    def test_unlimited_is_checked_against_the_probes_own_timeout(self):
+        self.assertEqual(["/repo/poc/lab/bin/check-limits", "--require=unlimited", "--request-timeout=600s"],
+                         rp.limits_check_command(self.ROOT, "unlimited", 600))
+        self.assertEqual(["/repo/poc/lab/bin/check-limits", "--require=limited"], rp.limits_check_command(self.ROOT, "limited", 600))
+
+    def test_a_refusal_is_13_and_a_pass_is_0(self):
+        for rc, want in ((0, 0), (13, 13), (2, 13), (1, 13)):   # anything that is not a pass stops the run
+            calls, fake = self.with_check(rc)
+            old, rp.subprocess.run = rp.subprocess.run, fake
+            try:
+                self.assertEqual(want, rp.check_limits(self.args("unlimited", 600), self.ROOT, lambda s: None), "exit %d" % rc)
+            finally:
+                rp.subprocess.run = old
+            self.assertEqual(1, len(calls))
+
+    def test_run_stops_at_13_before_it_reads_the_lab_or_sends_anything(self):
+        calls, fake = self.with_check(13)
+        touched = []
+        old_run, old_scale = rp.subprocess.run, rp.current_scale
+        rp.subprocess.run = fake
+        rp.current_scale = lambda: touched.append("current_scale") or 1
+        try:
+            rc = rp.main(["run", "--scale=1", "--out=/nonexistent/never-made", "--require-limits=limited"])
+        finally:
+            rp.subprocess.run, rp.current_scale = old_run, old_scale
+        self.assertEqual(13, rc)
+        self.assertEqual([], touched)
+        self.assertFalse(os.path.exists("/nonexistent/never-made"))
+        self.assertEqual(1, len(calls))
+
+    def test_the_flag_takes_only_the_two_requirements(self):
+        with self.assertRaises(SystemExit):
+            rp.main(["run", "--scale=1", "--out=/nonexistent/x", "--require-limits=none"])
+
+
 if __name__ == "__main__":
     unittest.main()

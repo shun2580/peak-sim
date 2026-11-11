@@ -27,11 +27,14 @@
 #   2. the closed-network check (bin/preflight, exit 11), then the app must read the scenario's scale.
 #   3. each step: make-plan -> read the three limits (outside the window, before the samplers start) -> sample-cpu (DB and app, in
 #      the background) -> k6 -> summarize-run -> the record.
-# The three limits (section 7.4.1) are read in the containers at the start of every step and kept in the step's directory
-# (settings-nginx.txt, settings-fpm.txt, settings-ini.txt, settings.json) and in record.json under "settings": the PHP
+# The three limits (section 7.4.1) are read in the containers at the start of every step (bin/check-limits) and kept in the step's
+# directory (settings-nginx.txt, settings-fpm.txt, settings-ini.txt, settings.json) and in record.json under "settings": the PHP
 # max_execution_time as a request through php-fpm sees it (poc/lab/diagnosis/ini-probe.php over FastCGI; `php -i` would show the CLI's
 # value), the web server's fastcgi_read_timeout (`nginx -T`), and the timeout given to k6 (php-fpm's request_terminate_timeout
 # from `php-fpm -tt` is kept beside them). A limit that cannot be read stops the scenario (exit 13) before the step is measured.
+# THE LIMITS GUARD: for r-1 .. r-5 the values must also be the ones B needs (max_execution_time 0, request_terminate_timeout 0,
+# fastcgi_read_timeout >= --request-timeout), or the scenario stops with exit 13 at that step and nothing is measured. t-1 .. t-5 and
+# a trial are read and recorded only, as before.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -214,17 +217,18 @@ if [ "$app_scale" != "$scale" ]; then
   fi
 fi
 
-# read_settings <dir>: what the three limits are right now, as the containers hold them. It only reads (nginx -T and php-fpm -tt print
-# the configuration; ini-probe.php is one request through php-fpm that opens no database connection) and is done before the samplers
-# start, so nothing of it is in a window. The raw outputs are kept; a limit that cannot be worked out from them returns 1.
+# read_settings <dir>: the three limits right now, as the containers hold them, and (for r-1 .. r-5) whether they are the ones B needs.
+# That is bin/check-limits: it only reads (nginx -T and php-fpm -tt print the configuration; ini-probe.php is one request through
+# php-fpm that opens no database connection) and it runs before the samplers start, so nothing of it is in a window. The raw outputs and
+# settings.json are kept in the step's directory. A limit that cannot be worked out returns 1, and so does a lab that is not set for
+# the measurement: the re-check is measured with PHP's max_execution_time and request_terminate_timeout at 0 and nginx's
+# fastcgi_read_timeout at least --request-timeout (a switch that was forgotten would otherwise spend a scale that is seen once).
+# t-1 .. t-5 and a trial are measured as before: read and recorded, not required to be anything.
 read_settings() {
-  local d="$1" timeout_args=()
-  docker exec peak-lab-web nginx -T >"$d/settings-nginx.txt" 2>&1
-  docker exec peak-lab-app php-fpm -tt >"$d/settings-fpm.txt" 2>&1
-  docker exec peak-lab-tools php /peak-sim/poc/lab/diagnosis/fcgi_get.php lab-app:9000 /peak-sim/poc/lab/diagnosis/ini-probe.php >"$d/settings-ini.txt" 2>&1
-  [ -z "$request_timeout" ] || timeout_args=(--k6-timeout="$request_timeout")
-  php_tool poc/lab/load/ladder.php settings --nginx="$(in_container "$d/settings-nginx.txt")" --fpm="$(in_container "$d/settings-fpm.txt")" \
-    --ini="$(in_container "$d/settings-ini.txt")" "${timeout_args[@]}" >"$d/settings.json" 2>"$d/settings.err"
+  local d="$1" need=none timeout_args=()
+  [[ "$scenario" =~ ^r- ]] && need=unlimited
+  [ -z "$request_timeout" ] || timeout_args=(--request-timeout="$request_timeout")
+  "$bindir/check-limits" --require="$need" "${timeout_args[@]}" --dir="$d" >"$d/check-limits.out" 2>"$d/check-limits.err"
 }
 
 # 3. the steps ----------------------------------------------------------------------------------------------------------------------
@@ -240,7 +244,7 @@ for rps in "${rungs[@]}"; do
   fi
   rm -rf "$d"; mkdir -p "$d"
   make_plan "$rps" "$d/plan.json" "$scheme" || { echo "measure-ladder: the plan failed for rps $rps (scheme $scheme)" >&2; exit 13; }
-  read_settings "$d" || { echo "measure-ladder: the limits (PHP, k6, web server) could not be read at rung $i: $(cat "$d/settings.err"). Stopped; nothing was measured." >&2; exit 13; }
+  read_settings "$d" || { echo "measure-ladder: the limits (PHP, k6, web server) are not as $scenario needs them, or could not be read, at rung $i: $(cat "$d/check-limits.err" 2>/dev/null). Stopped; nothing was measured." >&2; exit 13; }
   echo "RUNG SETTINGS $scenario rung $i: $(tr '\n' ' ' <"$d/settings.json" | tr -s ' ')"
   started_epoch="$(date +%s)"; started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
   echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s)"

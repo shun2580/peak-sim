@@ -19,6 +19,7 @@ Two parts, kept apart so they never overlap in time:
 
 Usage:
   request_probe.py run    --scale=N --out=DIR [--routes=1,2] [--reps=3] [--part=both|http|inproc] [--timeout=180] [--label=text]
+                          [--require-limits=unlimited|limited]
   request_probe.py report --scale=N --dir=DIR --estimate=FILE --prediction=FILE [--out=DIR]
   request_probe.py compare --cut=DIR --uncut=DIR --route-contains=TEXT --out=DIR   two records of one route side by side
   request_probe.py counts --scale=N --out=DIR     the row counts of the three N tables (entities, images, references)
@@ -28,7 +29,13 @@ request and is not checked by the run: it does not stop. The record's own column
 After a request that did not come back quickly and in full, one SHOW FULL PROCESSLIST is taken after the window has closed, as the
 user the probe already uses (it adds no grant and no other user); where it cannot be read, the record says so.
 
-Exit codes: 0 done / 2 usage / 3 the lab is not in the state the run needs (wrong scale, no stack, targets for another scale).
+--require-limits=unlimited|limited (off by default, so a run without it is exactly as before) runs poc/lab/bin/check-limits before the
+first request and stops if the lab's limits are not the ones the run needs: `unlimited` is PHP max_execution_time 0, request_terminate_timeout
+0 and nginx fastcgi_read_timeout at least --timeout; `limited` is max_execution_time 30 (the mark's check, with the limit on). A limit
+that cannot be read stops it too. Nothing is sent when it stops.
+
+Exit codes: 0 done / 2 usage / 3 the lab is not in the state the run needs (wrong scale, no stack, targets for another scale) /
+13 --require-limits: the limits are not as needed, or could not be read.
 """
 from __future__ import annotations
 
@@ -464,10 +471,30 @@ def inproc_part(args, root: str, routes: list[str], targets: dict[str, Any], log
                 log("%s rep %d: %d attempts, exit %d, %.1f s" % (route, rep, len(parse_attempts(r.stdout)), r.returncode, wall))
 
 
+def limits_check_command(root: str, require: str, timeout_s: int) -> list[str]:
+    """The command that checks the lab's limits (bin/check-limits) for the run's requirement. `unlimited` is compared with the
+    probe's own one-request timeout, which is what k6 is given."""
+    cmd = [os.path.join(root, "poc", "lab", "bin", "check-limits"), "--require=" + require]
+    if require == "unlimited":
+        cmd.append("--request-timeout=%ds" % timeout_s)
+    return cmd
+
+
+def check_limits(args, root: str, log) -> int:
+    """0 when the run may go on, 13 when the lab is not set for it. The check itself fails closed (see bin/check-limits)."""
+    if not args.require_limits:
+        return 0
+    r = subprocess.run(limits_check_command(root, args.require_limits, args.timeout), capture_output=True, text=True)
+    log("limits check (%s): %s" % (args.require_limits, (r.stdout + r.stderr).strip() or "no output"))
+    return 0 if r.returncode == 0 else 13
+
+
 def run(args) -> int:
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     lab_out = os.environ.get("PEAK_LAB_OUT_DIR", os.path.expanduser("~/.cache/peak-lab/out"))
     log = lambda s: print(datetime.now().strftime("%H:%M:%S ") + s, flush=True)
+    if check_limits(args, root, log) != 0:
+        return 13
     try:
         scale = current_scale()
     except Exception as e:  # noqa: BLE001
@@ -708,6 +735,8 @@ def main(argv: list[str]) -> int:
     r.add_argument("--part", choices=["both", "http", "inproc"], default="both")
     r.add_argument("--timeout", type=int, default=180, help="k6's timeout for one request, seconds")
     r.add_argument("--label", default="")
+    r.add_argument("--require-limits", dest="require_limits", choices=["unlimited", "limited"], default=None,
+                   help="refuse to start unless the lab's PHP, pool and web server limits are those of the measurement (bin/check-limits)")
     q = sub.add_parser("report")
     q.add_argument("--scale", type=int, required=True)
     q.add_argument("--dir", required=True)

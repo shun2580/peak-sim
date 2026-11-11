@@ -37,6 +37,82 @@ final class LabSettings
         ];
     }
 
+    /** What the measurement of the ladder (the re-check, B) needs: no PHP limit, no pool limit, a web server that waits as long as k6. */
+    public const UNLIMITED = 'unlimited';
+
+    /** What the mark's one-request-at-a-time check needs: the PHP limit the application really has. */
+    public const LIMITED = 'limited';
+
+    /** The PHP limit of the mark, in seconds (the lab's default, left as it is for the mark; docs/simulator-spec.md section 6.4). */
+    public const LIMITED_PHP_SECONDS = 30;
+
+    /**
+     * Whether the limits read from the lab are the ones a measurement needs. Fails closed: a value that is missing or that cannot be
+     * read as a duration is a violation, never a pass.
+     *
+     * - `unlimited` (B and the calibration that is measured with the limit off): `max_execution_time` is 0, php-fpm's
+     *   `request_terminate_timeout` is 0, and the web server's `fastcgi_read_timeout` is at least the timeout given to the load tool
+     *   (which must be given, or there is nothing to compare with);
+     * - `limited` (the mark, measured with the limit on): `max_execution_time` is 30.
+     *
+     * @param array<string, mixed> $settings what `fromReadings` returned
+     *
+     * @return list<string> what does not match, one sentence each; empty when the lab is as the measurement needs
+     *
+     * @throws \InvalidArgumentException the requirement is not one of the two
+     */
+    public static function violations(array $settings, string $require, ?string $k6Timeout): array
+    {
+        if ($require === self::LIMITED) {
+            $php = self::seconds($settings['php_max_execution_time'] ?? null);
+            if ($php === null || $php !== (float) self::LIMITED_PHP_SECONDS) {
+                return [sprintf('max_execution_time is %s, the mark is measured with %d', self::show($settings['php_max_execution_time'] ?? null), self::LIMITED_PHP_SECONDS)];
+            }
+
+            return [];
+        }
+        if ($require !== self::UNLIMITED) {
+            throw new \InvalidArgumentException("the requirement must be '" . self::UNLIMITED . "' or '" . self::LIMITED . "' (got '$require')");
+        }
+        $found = [];
+        $php = self::seconds($settings['php_max_execution_time'] ?? null);
+        if ($php !== 0.0) {
+            $found[] = sprintf('max_execution_time is %s, this measurement needs 0 (no limit)', self::show($settings['php_max_execution_time'] ?? null));
+        }
+        $pool = self::seconds($settings['php_fpm_request_terminate_timeout'] ?? null);
+        if ($pool !== 0.0) {
+            $found[] = sprintf('request_terminate_timeout is %s, this measurement needs 0', self::show($settings['php_fpm_request_terminate_timeout'] ?? null));
+        }
+        $k6 = $k6Timeout === null ? null : self::seconds($k6Timeout);
+        $nginx = self::seconds($settings['nginx_fastcgi_read_timeout'] ?? null);
+        if ($k6 === null) {
+            $found[] = 'the timeout given to the load tool is missing or not a duration, so the web server\'s limit cannot be compared with it';
+        } elseif ($nginx === null || $nginx < $k6) {
+            $found[] = sprintf('fastcgi_read_timeout is %s, shorter than the load tool\'s %s: nginx would cut a slow response first', self::show($settings['nginx_fastcgi_read_timeout'] ?? null), $k6Timeout);
+        }
+
+        return $found;
+    }
+
+    /** @return float|null seconds of a plain number or a number with ms, s, m, h or d; null when it is anything else */
+    private static function seconds(mixed $value): ?float
+    {
+        if (!is_string($value) && !is_int($value)) {
+            return null;
+        }
+        if (preg_match('/^(\d+(?:\.\d+)?)(ms|s|m|h|d)?$/', trim((string) $value), $m) !== 1) {
+            return null;
+        }
+        $unit = ['ms' => 0.001, 's' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400][$m[2] ?? 's'];
+
+        return (float) $m[1] * $unit;
+    }
+
+    private static function show(mixed $value): string
+    {
+        return is_scalar($value) ? "'" . $value . "'" : 'missing';
+    }
+
     /** The value a request through php-fpm sees ("0" is no limit). */
     private static function iniMaxExecutionTime(string $body): string
     {

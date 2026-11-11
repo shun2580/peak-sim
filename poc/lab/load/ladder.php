@@ -10,8 +10,12 @@ declare(strict_types=1);
  *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
  *   php ladder.php scenario <cal-2|cal-3> --trial [--line]   the same for a trial (N_0; a prediction scenario id is refused)
  *   php ladder.php order [--set=<t|r>]            the order of the measurement by scale (JSON; t = t-1..t-5, the default; r = r-1..r-5)
- *   php ladder.php settings --nginx=<file> --fpm=<file> --ini=<file> [--k6-timeout=<duration>]
- *                                                 the three limits of the lab (JSON), worked out from what was read in the containers
+ *   php ladder.php settings --nginx=<file> --fpm=<file> --ini=<file> [--k6-timeout=<duration>] [--require=<unlimited|limited>]
+ *                                                 the three limits of the lab (JSON), worked out from what was read in the containers;
+ *                                                 with --require, also whether they are the ones the measurement needs (the JSON is
+ *                                                 still printed, the mismatches go to stderr, exit 4): unlimited = max_execution_time 0,
+ *                                                 request_terminate_timeout 0, fastcgi_read_timeout >= --k6-timeout; limited =
+ *                                                 max_execution_time 30
  *   php ladder.php shape --scheme=<spec|A|B> --rps=<n>   "<duration> <warmup>" in seconds of a step under the scheme
  *   php ladder.php stagger --scheme=<spec|A|B> <plan.json>   the plan with each route's start time and planned count (JSON)
  *   php ladder.php preview <plan.json>            what the plan would count in the kept window if the requests arrived evenly (JSON)
@@ -25,7 +29,8 @@ declare(strict_types=1);
  *   php ladder.php collect --dir=<scenario dir>   the records of the steps in the directory, in one file (JSON on stdout)
  *
  * exit codes: 0 done (for `record` and `decision`: go on to the next step) / 6 `record` and `decision`: the scenario stops after
- * this step (not an error) / 2 wrong usage or an unreadable input / 3 `settings`: a limit could not be read from what was collected
+ * this step (not an error) / 2 wrong usage or an unreadable input / 3 `settings`: a limit could not be read from what was collected /
+ * 4 `settings --require`: the limits read are not the ones the measurement needs
  */
 
 require __DIR__ . '/../../runtime/bootstrap.php';
@@ -104,6 +109,16 @@ switch ($command) {
             fail($e->getMessage(), 3);
         }
         echo json_encode($settings, JSON_FLAGS), "\n";
+        if (isset($opts['require'])) {
+            try {
+                $violations = LabSettings::violations($settings, $opts['require'], $opts['k6-timeout'] ?? null);
+            } catch (InvalidArgumentException $e) {
+                fail($e->getMessage());
+            }
+            if ($violations !== []) {
+                fail('the lab is not set for this measurement (' . $opts['require'] . '): ' . implode('; ', $violations), 4);
+            }
+        }
         exit(0);
 
     case 'shape':
@@ -240,5 +255,5 @@ switch ($command) {
         exit(0);
 
     default:
-        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order [--set=t|r] | settings --nginx=<f> --fpm=<f> --ini=<f> | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order [--set=t|r] | settings --nginx=<f> --fpm=<f> --ini=<f> [--require=<unlimited|limited>] | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
 }

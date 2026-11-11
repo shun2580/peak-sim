@@ -149,6 +149,47 @@ final class LadderCliTest extends TestCase
         $this->assertStringContainsString('max_execution_time', $err);
     }
 
+    public function test_settings_require_unlimited_passes_a_lab_set_for_b_and_stops_a_lab_left_at_the_default_with_exit_4(): void
+    {
+        $b = array_merge(['settings'], $this->settingsFiles('0', '600s'), ['--k6-timeout=600s', '--require=unlimited']);
+        [$code, $out, $err] = self::tool('ladder.php', $b);
+        $this->assertSame([0, ''], [$code, $err]);
+        $this->assertSame('0', json_decode($out, true)['php_max_execution_time']);
+
+        // the lab as it is when nobody switched it: PHP 30, nginx 120s
+        [$code, $out, $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s'), ['--k6-timeout=600s', '--require=unlimited']));
+        $this->assertSame(4, $code);
+        $this->assertStringContainsString('max_execution_time', $err);
+        $this->assertStringContainsString('fastcgi_read_timeout', $err);
+        // the readings are still printed, so that what was read is kept with the refusal
+        $this->assertSame('30', json_decode($out, true)['php_max_execution_time']);
+    }
+
+    public function test_settings_require_unlimited_without_the_k6_timeout_stops_and_so_does_an_unknown_requirement(): void
+    {
+        $files = $this->settingsFiles('0', '600s');
+        $this->assertSame(4, self::tool('ladder.php', array_merge(['settings'], $files, ['--require=unlimited']))[0]);
+        $this->assertSame(2, self::tool('ladder.php', array_merge(['settings'], $files, ['--k6-timeout=600s', '--require=sometimes']))[0]);
+        // without --require nothing is judged (what t-1 .. t-5 and a trial do): a lab at the default is read, exit 0
+        $this->assertSame(0, self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s')))[0]);
+    }
+
+    public function test_settings_require_limited_wants_30(): void
+    {
+        $this->assertSame(0, self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s'), ['--require=limited']))[0]);
+        [$code, , $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('0', '600s'), ['--require=limited']));
+        $this->assertSame(4, $code);
+        $this->assertStringContainsString('max_execution_time', $err);
+    }
+
+    public function test_settings_require_with_an_unreadable_limit_still_stops_with_exit_3_first(): void
+    {
+        $files = $this->settingsFiles('0', '600s');
+        file_put_contents($this->dir . '/ini.txt', 'cannot connect: Connection refused');
+        $this->assertSame(3, self::tool('ladder.php', array_merge(['settings'], $files, ['--k6-timeout=600s', '--require=unlimited']))[0]);
+        $this->assertSame(3, self::tool('ladder.php', array_merge(['settings'], $files, ['--require=limited']))[0]);
+    }
+
     public function test_a_trial_record_is_written_with_trial_true_and_no_prediction_and_refuses_one(): void
     {
         $common = ['--rung=1', '--summary=' . $this->runJson(0.4, true), '--started=2026-11-10T10:00:00+09:00', '--ended=2026-11-10T10:06:00+09:00'];
