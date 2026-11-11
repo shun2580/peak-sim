@@ -108,3 +108,61 @@ What this means for the next step, as a fact of the tools: `bin/predict-ladder` 
 the ladder prediction.
 
 For comparison, the first calibration on four runs (`../calibration/fit-4runs/`, measured with the limit on and on databases whose statistics had not been brought up to date) had `c_query` 2.81705e-4 and `c_row` 1.95063e-6, nothing cut.
+
+## The search for the book-page run at 30,000 rows (`cal-6-search/`)
+
+The two extra runs `cal-6` and `cal-7` (30,000 rows, `GET /books/{slug}` 80%, the ZIP export 0%, the other six routes sharing the remaining 20%) were to be measured at 2.2 requests per
+second first (`docs/decisions.md` D186). Only this first run was made. It stopped the sequence by the rule written down before it (D186: "at 2.2 rps below 20%: stop and report"), and **it is not a valid
+calibration run and is not used in any fit**. It is kept here as a record of what the lab did.
+
+### What was fixed before the run, and when
+
+The rule and the definition were committed before the first request of the run. The calibration gate (`poc/lab/bin/measure-calibration`) had been committed before too, and the named route mix
+(`bookpage80zip0`) was the last commit before the run.
+
+| What | Commit | Time (local, 2026-11-11) |
+| --- | --- | --- |
+| Two calibration rules added to the spec (7.4.1) | `991fa73` | 16:47:23 |
+| Definition of `cal-6`, `cal-7` and the rps rule (D186) | `bb3448f`, `c21ed6f` | 16:48:30, 16:48:51 |
+| Calibration gate and its decision | `42e71c2`, `6a8b904` | 16:56:42, 16:57:29 |
+| Named route mix `bookpage80zip0` (the last commit before the run) | `70b8fea` | 17:03:22 |
+| **First request of the run (`cal-6` at 2.2 rps)** | | **17:07:48** |
+
+### The run (`cal-6-search/rps-2.2/`)
+
+Started 17:07:48, ended 17:18:51 (10 minutes at a constant arrival rate, the first 2 minutes discarded, 480 s kept; 30,000 rows, the 2-CPU database, 600 s request timeout). The calibration gate was
+passed before it (smallest degree 0.939181, threshold 0.5; `calibration-gate.json`, `run.log`) and `bin/check-limits --require=unlimited --request-timeout=600s` exited 0 just before it (`limits.txt`).
+
+| | Target | Reached |
+| --- | --- | --- |
+| Requests per second | 2.2 | **0.398** (ratio 0.181, status `invalid`) |
+| `GET /books/{slug}` per second | 1.76 | 0.396 (190 requests in the kept window) |
+| Other routes | 0.0733 each | 1 request in all (`GET /books/{bookSlug}/page/{pageSlug}/references`), none on the other five |
+| Arrivals the tool could not start (dropped iterations) | | 489 |
+| Failed requests / HTTP status | | 0 / 200 on all 191 |
+| Database utilization (2 CPUs) | | **7.93%** (D186's desk estimate for 2.2 rps was about 28.6%) |
+| App CPU (6 CPUs) | | **18.0%**, about 1.08 CPUs (one php-fpm worker) |
+| Duration of a request (the load tool) | | average 39.07 s, p95 39.92 s, maximum 40.22 s |
+
+The database utilization is below 20% at 2.2 rps, so the run stopped at the rule of D186 ("below 20% at 2.2 rps: stop and report"); 1.82 and 1.5 rps were not tried. The statistics tables of the
+database were the same before and after the run (`stats-before.tsv`, `stats-after.tsv` are identical; `last_update` 05:17 UTC, the clock of the database server). No `ANALYZE` was run.
+
+### What it was read as
+
+In the review of this run the stop was read as a serialization of the book page on the lock of its view-count row: the lab's entry script wraps each request in a transaction that is rolled back,
+and the lock on the view-count row of a book page is held until after the response, so book-page requests go one after another. What the record shows of this is the load tool's duration per request
+(about 39 s, all alike) and an app CPU of about one php-fpm worker out of 6 CPUs while 1.76 book pages per second were offered. The lock itself was not measured in this run; the reading is the
+reviewer's, and the record is what is kept. How the rps of such a run should be fixed is not decided here.
+
+### The limits were put back
+
+The settings were changed for the run in the same two files as for the five runs above, and put back after it (`cal-6-search/rps-2.2/limits/`, readings made with `bin/check-limits`' reader).
+
+| | before the change (17:07:03) | limits off (17:07:25) | restored (17:19:43) |
+| --- | --- | --- | --- |
+| `max_execution_time` as a request through php-fpm sees it | 30 | 0 | 30 |
+| `request_terminate_timeout` | 0s | 0s | 0s |
+| nginx `fastcgi_read_timeout` | 120s | 600s | 120s |
+
+The limits were off from 17:07:10 (`LIMITS OFF START`) to 17:19:27 (`RESTORE START`); the restore finished at 17:19:42 (`times.txt`). After the restore `git diff` of `poc/lab/compose/` is empty
+(0 lines). Nothing else was measured in the lab after this run.
