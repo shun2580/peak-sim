@@ -12,7 +12,9 @@ use PeakSim\Runtime\Simulate\Yaml\YamlError;
  *
  * Known keys only (a typo such as `table:` stops the run, it is not ignored): top `schema_version` `resources` `scenarios`;
  * `resources.db_cpu.cores` (required) `resources.db_cpu.threshold` (default 0.8, above 0 and at most 1) `resources.php_memory_limit` (optional here:
- * bytes, or a number with K/M/G; the tool cannot read the app's php.ini, so it is null when not given and the memory part says so);
+ * bytes, or a number with K/M/G; the tool cannot read the app's php.ini, so it is null when not given and the memory part says so)
+ * `resources.app_cpu_time_limit` (optional: the app's execution limit in seconds, a number above 0; there is no default, and with none given the
+ * `app_limit_risk` mark is not made, see {@see \PeakSim\Runtime\Simulate\Predict\AppLimitRisk});
  * per scenario `id` `kind` (`calibration`|`target`) `tables` (table => count, a whole number from 0) `rps` (route => number from 0) `observed`.
  *
  * The first stage uses {@see parseStageOne}: the text it parses has the `observed` of the target scenarios already cut out.
@@ -102,7 +104,7 @@ final class ScenarioReader
     }
 
     /**
-     * @return array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null}
+     * @return array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null, app_cpu_time_limit_s?: float}
      *
      * @throws LoadFailure
      */
@@ -112,7 +114,7 @@ final class ScenarioReader
             throw self::invalid('resources must be a mapping');
         }
         $r ??= [];
-        self::onlyKeys($r, ['db_cpu', 'php_memory_limit'], 'resources');
+        self::onlyKeys($r, ['db_cpu', 'php_memory_limit', 'app_cpu_time_limit'], 'resources');
         $cpu = $r['db_cpu'] ?? null;
         if ($cpu !== null && (!is_array($cpu) || ($cpu !== [] && array_is_list($cpu)))) {
             throw self::invalid('resources.db_cpu must be a mapping');
@@ -130,11 +132,21 @@ final class ScenarioReader
             throw self::invalid('resources.db_cpu.threshold must be above 0 and at most 1');
         }
 
-        return [
+        $out = [
             'cores' => $cpu['cores'],
             'threshold' => (float) $threshold,
             'php_memory_limit_bytes' => self::bytes($r['php_memory_limit'] ?? null),
         ];
+        // only when given: a file with no limit loads to the same array as before the mark existed
+        if (array_key_exists('app_cpu_time_limit', $r)) {
+            $limit = $r['app_cpu_time_limit'];
+            if ((!is_int($limit) && !is_float($limit)) || !($limit > 0)) {
+                throw self::invalid('resources.app_cpu_time_limit must be a number of seconds above 0 (leave it out when there is no limit to give)');
+            }
+            $out['app_cpu_time_limit_s'] = (float) $limit;
+        }
+
+        return $out;
     }
 
     /** @throws LoadFailure */

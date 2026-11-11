@@ -1,0 +1,28 @@
+peak-sim simulate of demo: 2 cores, threshold 80.0%, calibrated by two_coefficient on 2 scenario(s)
+NOTE a calibration coefficient was cut to 0 or pinned (see the notes of the fits in the JSON)
+  fit two_coefficient  c_query 0.001  c_row 0.0001  squared residual (load) 0
+  fit queries_only     c_query 0.0005  c_row 0  squared residual (load) 0  (shown only; not used for the point or the width)
+  fit rows_only        c_query 0  c_row 0.0002  squared residual (load) 0  (shown only; not used for the point or the width)
+  width of the calibration: NOT AVAILABLE. fewer than three calibration scenarios: the width of the calibration cannot be given
+
+scenario peak-1
+  utilization  point 63.0%   upper side 153.0%   range 63.0% to 153.0%   (threshold 80.0%: point under, upper side over)
+               range basis: estimate point/upper x calibration two_coefficient
+  width        upper end = x2.43 of the point, point = x1.00 of the lower end
+               from the estimate alone 63.0% to 153.0%; from the calibration alone not available (no width of the calibration)
+  limit        point 1.3x   safe side 0.6x (already over at today's rps)
+  coverage     3 route(s): 1 marked (31.2% of rps), 1 unmarked, 1 with no cost (6.2% of rps); extrapolated 2, interpolated 0, measured 0
+  dominant routes (share of load):
+    83.3%  GET /a
+    16.7%  GET /b  [marked]
+  no cost: GET /u (rps 1): no_estimate
+  most influential inputs (+10% of one input, change of the limit multiplier):
+    rps GET /a                               1.3x -> 1.2x  (-0.1x; unrounded -0.098x)
+    rps GET /b                               1.3x -> 1.3x  (+0.0x; unrounded -0.021x)
+  not evaluated for sensitivity: table items
+
+PHP memory (line = 80.0% of the limit; shown only for routes whose formula held within +-30%):
+  GET /a                                                       N = 107,375 (items)
+  1 route(s) not shown: no_formula
+
+accuracy on this app: not checked (no selfcheck result was given)

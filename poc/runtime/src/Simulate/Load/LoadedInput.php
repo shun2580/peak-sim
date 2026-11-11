@@ -14,7 +14,7 @@ final class LoadedInput
     public const SCHEMA_VERSION = '0.1';
 
     /**
-     * @param array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null} $resources
+     * @param array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null, app_cpu_time_limit_s?: float} $resources
      * @param list<array<string, mixed>>                                                    $scenarios
      */
     public function __construct(

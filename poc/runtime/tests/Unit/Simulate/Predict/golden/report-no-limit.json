@@ -1,0 +1,327 @@
+{
+    "schema_version": "0.1",
+    "app": "demo",
+    "estimate_at": 200000,
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8,
+        "php_memory_limit_bytes": 134217728
+    },
+    "low_coverage_scenarios": [],
+    "calibration": {
+        "method": "two_coefficient",
+        "calibration_scenarios": 2,
+        "cut_coefficients": true,
+        "warnings": [],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.001,
+                "c_row": 0.0001,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0,
+                "residuals": []
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.0005,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [
+                    "c_row"
+                ],
+                "notes": [],
+                "sum_squared_residual_load": 0.0,
+                "residuals": []
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 0.0002,
+                "negative_unconstrained": [],
+                "at_zero": [
+                    "c_query"
+                ],
+                "notes": [],
+                "sum_squared_residual_load": 0.0,
+                "residuals": []
+            }
+        ],
+        "width": {
+            "status": "unavailable",
+            "reason": "fewer than three calibration scenarios: the width of the calibration cannot be given",
+            "notes": [],
+            "fits": []
+        }
+    },
+    "scenarios": [
+        {
+            "id": "peak-1",
+            "tables": {
+                "items": 100000
+            },
+            "rps_total": 16.0,
+            "utilization": {
+                "point": 0.63,
+                "upper": 1.53,
+                "range": {
+                    "min": 0.63,
+                    "max": 1.53
+                },
+                "range_basis": {
+                    "estimate": [
+                        "point",
+                        "upper"
+                    ],
+                    "calibration_width": "unavailable",
+                    "calibration_fits": [
+                        "two_coefficient"
+                    ]
+                },
+                "width": {
+                    "upper_over_point": 2.4285714285714284,
+                    "point_over_lower": 1.0,
+                    "estimate_only": {
+                        "min": 0.63,
+                        "max": 1.53
+                    },
+                    "calibration_only": null,
+                    "calibration_width_note": "fewer than three calibration scenarios: the width of the calibration cannot be given"
+                },
+                "threshold": 0.8,
+                "over_threshold": {
+                    "point": false,
+                    "upper": true
+                },
+                "by_reading": {
+                    "point": 0.63,
+                    "upper": 1.53,
+                    "low": 0.63,
+                    "high": 1.53
+                }
+            },
+            "limit_multiplier": {
+                "point": {
+                    "status": "found",
+                    "k": 13,
+                    "multiplier": 1.3
+                },
+                "safe": {
+                    "status": "already_over",
+                    "k": 6,
+                    "multiplier": 0.6
+                },
+                "step": 0.1,
+                "cap": 10.0
+            },
+            "dominant_routes": [
+                {
+                    "route": "GET /a",
+                    "rps": 10.0,
+                    "load": 1.05,
+                    "share": 0.8333333333333334,
+                    "marked": false,
+                    "heaviest_statement": null
+                },
+                {
+                    "route": "GET /b",
+                    "rps": 5.0,
+                    "load": 0.21000000000000002,
+                    "share": 0.16666666666666669,
+                    "marked": true,
+                    "heaviest_statement": null
+                }
+            ],
+            "coverage": {
+                "routes": 3,
+                "rps_total": 16.0,
+                "by_source": {
+                    "static": {
+                        "routes": 0,
+                        "rps": 0.0,
+                        "rps_share": 0.0
+                    },
+                    "explain": {
+                        "routes": 0,
+                        "rps": 0.0,
+                        "rps_share": 0.0
+                    },
+                    "fit": {
+                        "routes": 2,
+                        "rps": 15.0,
+                        "rps_share": 0.9375
+                    },
+                    "unknown": {
+                        "routes": 1,
+                        "rps": 1.0,
+                        "rps_share": 0.0625
+                    }
+                },
+                "marked": {
+                    "routes": 1,
+                    "rps": 5.0,
+                    "rps_share": 0.3125
+                },
+                "unmarked": {
+                    "routes": 1,
+                    "rps": 10.0,
+                    "rps_share": 0.625
+                },
+                "unknown_cost_routes": [
+                    {
+                        "route": "GET /u",
+                        "rps": 1.0,
+                        "reason": "no_estimate"
+                    }
+                ],
+                "unknown_cost_rps_share": 0.0625,
+                "low_coverage": false
+            },
+            "low_coverage": false,
+            "zero_rps_routes": [],
+            "unknown_tables": [],
+            "n_marks": {
+                "measured": 0,
+                "interpolated": 0,
+                "extrapolated": 2,
+                "unknown": 1
+            },
+            "sensitivity": {
+                "top": [
+                    {
+                        "input": "rps GET /a",
+                        "from": 10.0,
+                        "to": 11.0,
+                        "limit_before": 1.3,
+                        "limit_after": 1.2,
+                        "limit_unrounded_before": 1.26984126984127,
+                        "limit_unrounded_after": 1.1721611721611722,
+                        "change": -0.1,
+                        "change_unrounded": -0.09768009768009778
+                    },
+                    {
+                        "input": "rps GET /b",
+                        "from": 5.0,
+                        "to": 5.5,
+                        "limit_before": 1.3,
+                        "limit_after": 1.3,
+                        "limit_unrounded_before": 1.26984126984127,
+                        "limit_unrounded_after": 1.2490241998438718,
+                        "change": 0.0,
+                        "change_unrounded": -0.020817069997398185
+                    }
+                ],
+                "not_evaluated": [
+                    "table items"
+                ]
+            },
+            "routes": [
+                {
+                    "route": "GET /a",
+                    "rps": 10.0,
+                    "cost": "ok",
+                    "unknown_reason": null,
+                    "table": "items",
+                    "n": 1000,
+                    "n_mark": "extrapolated",
+                    "marked": false,
+                    "queries": 5.0,
+                    "rows": 1000.0,
+                    "rows_upper": null,
+                    "sources": {
+                        "queries": "fit",
+                        "rows": "fit",
+                        "rows_upper": null,
+                        "peak_memory": null
+                    },
+                    "load": 1.05,
+                    "load_share": 0.8333333333333334
+                },
+                {
+                    "route": "GET /b",
+                    "rps": 5.0,
+                    "cost": "ok",
+                    "unknown_reason": null,
+                    "table": "items",
+                    "n": 1000,
+                    "n_mark": "extrapolated",
+                    "marked": true,
+                    "queries": 2.0,
+                    "rows": 400.0,
+                    "rows_upper": 4000.0,
+                    "sources": {
+                        "queries": "fit",
+                        "rows": "fit",
+                        "rows_upper": "explain",
+                        "peak_memory": null
+                    },
+                    "load": 0.21000000000000002,
+                    "load_share": 0.16666666666666669
+                },
+                {
+                    "route": "GET /u",
+                    "rps": 1.0,
+                    "cost": "unknown",
+                    "unknown_reason": "no_estimate",
+                    "table": null,
+                    "n": null,
+                    "n_mark": null,
+                    "marked": false,
+                    "queries": null,
+                    "rows": null,
+                    "rows_upper": null,
+                    "sources": {
+                        "queries": null,
+                        "rows": null,
+                        "rows_upper": null,
+                        "peak_memory": null
+                    },
+                    "load": null,
+                    "load_share": null
+                }
+            ],
+            "warnings": []
+        }
+    ],
+    "peak_memory": {
+        "line_share_of_limit": 0.8,
+        "accuracy_source": "test",
+        "routes": [
+            {
+                "route": "GET /a",
+                "table": "items",
+                "line_bytes": 107374182.4,
+                "status": "shown",
+                "reason": null,
+                "n": 107375
+            },
+            {
+                "route": "GET /b",
+                "table": null,
+                "line_bytes": 107374182.4,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            }
+        ]
+    },
+    "accuracy_on_this_app": {
+        "status": "not_checked",
+        "text": "not checked",
+        "why": "no selfcheck result was given"
+    },
+    "sources": {
+        "static": "the static analysis fixed the value",
+        "explain": "the EXPLAIN estimate gave the value (the upper side of a marked statement)",
+        "fit": "a formula fitted to measurements at small sizes",
+        "unknown": "no cost (listed apart, never counted as 0)"
+    },
+    "n_marks": {
+        "measured": "the count is one of the sizes measured",
+        "interpolated": "the count is between measured sizes",
+        "extrapolated": "the count is outside the measured sizes"
+    }
+}

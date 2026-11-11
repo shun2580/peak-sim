@@ -157,6 +157,27 @@ final class LadderPredictionTest extends TestCase
         self::assertStringContainsString('13 stage(s) x 2 scenario(s)', $stdout);
     }
 
+    public function testAGivenAppLimitMarksTheRoutesOfEveryScenarioAndNothingElseChanges(): void
+    {
+        $plain = self::ladderReport(self::yaml());
+        $limited = self::ladderReport(str_replace("  php_memory_limit: 128M\n", "  php_memory_limit: 128M\n  app_cpu_time_limit: 0.01\n", self::yaml()));
+
+        $this->assertSame(0.01, $limited['resources']['app_cpu_time_limit_s']);
+        foreach ($limited['scenarios'] as $i => $s) {
+            $risk = $s['app_limit_risk'];
+            $this->assertSame(0.01, $risk['limit_s']);
+            $routes = array_column($risk['routes'], 'status', 'route');
+            $this->assertSame(array_keys($plain['scenarios'][$i]['stages'][0]['rps']), array_keys($routes), 'every route of the scenario is listed');
+            $this->assertNotSame([], $risk['marked_routes'], 'at 0.01 s the made-up routes are over the line');
+            unset($limited['scenarios'][$i]['app_limit_risk']);
+        }
+        unset($limited['resources']['app_cpu_time_limit_s']);
+        // the scenario file differs by the one line, so its hash does
+        $this->assertNotSame($plain['inputs']['scenario_sha256'], $limited['inputs']['scenario_sha256']);
+        unset($plain['inputs']['scenario_sha256'], $limited['inputs']['scenario_sha256']);
+        $this->assertSame($plain, $limited, 'the stages, the limit rps and the calibration are the same with and without the limit');
+    }
+
     public function testTheSameInputGivesTheSameBytes(): void
     {
         self::assertSame(self::ladder(self::yaml())[3]->files['/out/ladder-prediction.json'], self::ladder(self::yaml())[3]->files['/out/ladder-prediction.json']);

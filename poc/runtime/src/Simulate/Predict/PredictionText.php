@@ -68,6 +68,11 @@ final class PredictionText
             $out[] = sprintf('               from the estimate alone %s to %s; from the calibration alone %s', self::pct($wd['estimate_only']['min']), self::pct($wd['estimate_only']['max']), $wd['calibration_only'] === null ? 'not available (no width of the calibration)' : self::pct($wd['calibration_only']['min']) . ' to ' . self::pct($wd['calibration_only']['max']));
             $l = $s['limit_multiplier'];
             $out[] = sprintf('  limit        point %s   safe side %s', self::limit($l['point']), self::limit($l['safe']));
+            if (isset($s['app_limit_risk'])) {
+                foreach (self::appLimitRisk($s['app_limit_risk']) as $line) {
+                    $out[] = $line;
+                }
+            }
             $out[] = sprintf(
                 '  coverage     %d route(s): %d marked (%s of rps), %d unmarked, %d with no cost (%s of rps); extrapolated %d, interpolated %d, measured %d',
                 $s['coverage']['routes'],
@@ -157,6 +162,38 @@ final class PredictionText
         }
 
         return implode("\n", $out) . "\n";
+    }
+
+    /**
+     * The lines of the `app_limit_risk` mark: how many routes are marked and which, and (R1a, simulator-spec.md 6.4) that the limit above counts
+     * them as requests that run to the end.
+     *
+     * @param array<string, mixed> $risk AppLimitRisk::evaluate()
+     *
+     * @return list<string>
+     */
+    private static function appLimitRisk(array $risk): array
+    {
+        $lines = [sprintf(
+            '  app limit    %s s of cpu time: %d route(s) marked app_limit_risk (php cpu time bound = %s x converted database time)',
+            self::num($risk['limit_s']),
+            count($risk['marked_routes']),
+            self::num($risk['php_cpu_over_db']),
+        )];
+        foreach ($risk['routes'] as $r) {
+            if ($r['status'] === AppLimitRisk::MARKED) {
+                $lines[] = sprintf('    marked  %s  (bound %s s, %s of the limit)', $r['route'], self::num($r['php_cpu_bound_s']), self::pct($r['share_of_limit']));
+            }
+        }
+        if ($risk['limit_rps_note'] !== null) {
+            $lines[] = '    NOTE ' . $risk['limit_rps_note'];
+        }
+        $notEvaluated = array_column(array_filter($risk['routes'], static fn (array $r): bool => $r['status'] === AppLimitRisk::NOT_EVALUATED), 'route');
+        if ($notEvaluated !== []) {
+            $lines[] = '    not judged (no cost): ' . implode(', ', $notEvaluated);
+        }
+
+        return $lines;
     }
 
     /** @param array{status: string, multiplier: float|null} $l */

@@ -1,0 +1,330 @@
+{
+  "what": "factor of the app_limit_risk mark: the largest (php CPU time) / (measured database CPU time) of the per-request records whose database CPU reading was not withheld",
+  "limit_s_of_the_records": 30.0,
+  "factor": 9.11,
+  "records_used": [
+    {
+      "rows": 10000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_s": 4.07648,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 3.2985388865043417,
+      "ratio": 1.235844154112759
+    },
+    {
+      "rows": 10000,
+      "route": "/books/{slug}",
+      "php_cpu_s": 0.9348485,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 0.10264773280701549,
+      "ratio": 9.107346791161739
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_s": 12.09774,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 9.937393335427446,
+      "ratio": 1.2173957084772704
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{slug}",
+      "php_cpu_s": 2.6170655,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 0.34198127062603495,
+      "ratio": 7.65265739614678
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_s": 40.85937,
+      "php_cpu_s_is_uncut_stand_in": true,
+      "db_cpu_s": 33.43082757390863,
+      "ratio": 1.2222063575802424
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{slug}",
+      "php_cpu_s": 8.698319,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 1.129423944760252,
+      "ratio": 7.701553557770931
+    },
+    {
+      "rows": 100000,
+      "route": "/shelves/{slug}",
+      "php_cpu_s": 0.027295,
+      "php_cpu_s_is_uncut_stand_in": false,
+      "db_cpu_s": 0.00811487797884188,
+      "ratio": 3.363574914024206
+    }
+  ],
+  "rule": "marked when factor x max(point, safe side) of the database time the model gives for one request >= the limit",
+  "judged_on_the_records": [
+    {
+      "rows": 10000,
+      "route": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+      "php_cpu_bound_s": 0.024505260459474508,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_bound_s": 33.88470593968685,
+      "marked": true,
+      "cut_by_limit": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 10000,
+      "route": "/books/{bookSlug}/page/{pageSlug}/references",
+      "php_cpu_bound_s": 0.027384172150852516,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/books/{slug}",
+      "php_cpu_bound_s": 10.101689729250992,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/books/{slug}/references",
+      "php_cpu_bound_s": 0.021844154470393742,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/images/edit/{id}",
+      "php_cpu_bound_s": 0.018934265190398182,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/oidc/callback",
+      "php_cpu_bound_s": 0.0,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "/shelves/{slug}",
+      "php_cpu_bound_s": 0.2280841679544635,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+      "php_cpu_bound_s": 0.024505260459474508,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_bound_s": 96.75296966744801,
+      "marked": true,
+      "cut_by_limit": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{bookSlug}/page/{pageSlug}/references",
+      "php_cpu_bound_s": 0.027449457614159144,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{slug}",
+      "php_cpu_bound_s": 11.103035233917785,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/books/{slug}/references",
+      "php_cpu_bound_s": 0.021844154470393742,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/images/edit/{id}",
+      "php_cpu_bound_s": 0.018934265190398182,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/oidc/callback",
+      "php_cpu_bound_s": 0.0,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "/shelves/{slug}",
+      "php_cpu_bound_s": 0.5834888692615633,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+      "php_cpu_bound_s": 0.024505260459474508,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_bound_s": 334.4569933150849,
+      "marked": true,
+      "cut_by_limit": true,
+      "outcome": "hit"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/page/{pageSlug}/references",
+      "php_cpu_bound_s": 0.0245230306945404,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{slug}",
+      "php_cpu_bound_s": 45.26271057247333,
+      "marked": true,
+      "cut_by_limit": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{slug}/references",
+      "php_cpu_bound_s": 0.021844154470393742,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/images/edit/{id}",
+      "php_cpu_bound_s": 0.018934265190398182,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/oidc/callback",
+      "php_cpu_bound_s": 0.0,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/shelves/{slug}",
+      "php_cpu_bound_s": 1.8274053238364127,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    }
+  ],
+  "tally_on_the_records": {
+    "true_negative": 20,
+    "false_alarm": 3,
+    "hit": 1
+  },
+  "factor_from_10000_and_30000_only": 9.11,
+  "judged_at_100000_with_that_factor": [
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+      "php_cpu_bound_s": 0.024505260459474508,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/export/zip",
+      "php_cpu_bound_s": 334.4569933150849,
+      "marked": true,
+      "cut_by_limit": true,
+      "outcome": "hit"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{bookSlug}/page/{pageSlug}/references",
+      "php_cpu_bound_s": 0.0245230306945404,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{slug}",
+      "php_cpu_bound_s": 45.26271057247333,
+      "marked": true,
+      "cut_by_limit": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 100000,
+      "route": "/books/{slug}/references",
+      "php_cpu_bound_s": 0.021844154470393742,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/images/edit/{id}",
+      "php_cpu_bound_s": 0.018934265190398182,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/oidc/callback",
+      "php_cpu_bound_s": 0.0,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "/shelves/{slug}",
+      "php_cpu_bound_s": 1.8274053238364127,
+      "marked": false,
+      "cut_by_limit": false,
+      "outcome": "true_negative"
+    }
+  ]
+}

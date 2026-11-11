@@ -7,6 +7,7 @@ Records made to find what the lab backtest's miss rests on. None of it is a pred
 | `per-request/` | What one request costs, route by route, at 10,000, 30,000 and 100,000 rows: statements, rows read, database CPU time, HTTP status and elapsed time, beside the estimate (`estimate ÷ measured`). Read its `README.md` first: it says how a request was measured, lists every ratio that was withheld and why, and sets the database's own counters beside the counted statements. |
 | `zip-limit/` | The ZIP export route at 100,000 rows with php's 30-second execution limit as it is (cut, HTTP 500) and with the limit taken off, three cold requests each, and the evidence, read through php-fpm at three times, that the setting was changed and put back. |
 | `allocation/` | The sensitivity of the ladder prediction to the calibration's `c_row`. |
+| `app-limit-risk/` | The factor of the `app_limit_risk` mark: the php CPU time of one request over the database time converted from its statements and rows, worked out from the records of `per-request/` and `zip-limit/` alone, and what the mark's rule says on them. |
 | `no-response/` | The requests that got no response (HTTP status 0) near 80% database utilisation in the ladder, and what that does to the utilisation reading. |
 
 The tools that made `per-request/` and `zip-limit/` are in `poc/lab/diagnosis/` (`request_probe.py` and its tests, `fcgi_get.php` and `ini-probe.php` for reading a setting through php-fpm).

@@ -28,12 +28,19 @@ final class PredictionReport
         $cores = (float) $resources['cores'];
         $threshold = (float) $resources['threshold'];
         $limitBytes = isset($resources['php_memory_limit_bytes']) ? (int) $resources['php_memory_limit_bytes'] : null;
+        // the app's execution limit is an input and has no default: with none given the mark is not made and the output has no trace of it
+        $appLimit = isset($resources['app_cpu_time_limit_s']) ? (float) $resources['app_cpu_time_limit_s'] : null;
+        $coefficients = $appLimit === null ? null : Coefficients::pointOf($calibration);
 
         $width = CalibrationWidth::of(PredictStage::points($loaded), $calibration);
         $scenarios = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'target') {
-                $scenarios[] = ScenarioPredictor::predict($s, $calibration, $cores, $threshold, $evaluate, $width);
+                $predicted = ScenarioPredictor::predict($s, $calibration, $cores, $threshold, $evaluate, $width);
+                if ($coefficients !== null && $appLimit !== null) {
+                    $predicted['app_limit_risk'] = AppLimitRisk::evaluate(array_values((array) ($s['routes'] ?? [])), $coefficients, $appLimit);
+                }
+                $scenarios[] = $predicted;
             }
         }
         $lowCoverage = array_values(array_map(static fn (array $p): string => $p['id'], array_filter($scenarios, static fn (array $p): bool => $p['low_coverage'])));
@@ -42,7 +49,7 @@ final class PredictionReport
             'schema_version' => self::SCHEMA_VERSION,
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
-            'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes],
+            'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]),
             'low_coverage_scenarios' => $lowCoverage,
             'calibration' => $calibration->toArray() + ['width' => $width->toArray()],
             'scenarios' => $scenarios,
