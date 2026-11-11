@@ -10,7 +10,7 @@ was run and no load was applied to this database**; the only statements run on i
 
 | | |
 | --- | --- |
-| Built | yes, exit 0, no failed table beyond the two the same recipe fails at every scale (`role_permissions`, `permission_role`; see `build-db.log`) |
+| Built | yes, exit 0, no failed table beyond the two the same recipe fails at every scale (`role_permissions`, `permission_role`; see `build-db-output.txt`) |
 | Command | `poc/lab/bin/build-db --scale=200000 --n-tables=entities,images,references` (the same recipe as the smaller scales) |
 | Started / ended | 2026-11-11 13:55:45 / 13:59:25 (3 min 40 s wall clock, `date` before and after the command) |
 | The builder's own seconds | migrations 45.16 s, fill 125.94 s, total 206.13 s |
@@ -44,5 +44,5 @@ whether the buffer pool holds what a request reads were not looked at, so that t
 
 ## Files
 
-- `build-db.log`: the output of the build command, unedited.
+- `build-db-output.txt`: the output of the build command, unedited.
 - `counts.tsv`: the row counts. `size.txt`: the sizes of all lab databases.

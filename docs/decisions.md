@@ -1545,5 +1545,5 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
   4. **確かめは件数のみ**:`SELECT COUNT(*)` だけを打った。12 の表がちょうど 200,000 行(100,000 件のときと同じ表)、`joint_permissions` が 1,800,000 行(1 エンティティあたり 9 行、どの件数でも同じ)、`entity_container_data` 120,000・`entity_page_data` 80,000。**リクエスト・EXPLAIN・負荷は 1 本も出していない**(50,000・200,000 件は予測の commit まで使い切らぬ)。構築後、アプリの向き先は 10,000 件のまま(200,000 件には `bin/use-db` を使っていない)。
   5. **生成器の版**:commit `98208d106fc906b89ccccfa80527c2e1eda14d43`、構築の開始時に作業木は差分なし(ビルダーが使う `poc/runtime/bin/inner/build-db.php`・`poc/runtime/src/Data/`・`poc/runtime/src/Measure/` に最後に手を入れた commit は `710264b`)。生成器(棚に件数とともに本が増える形)を後で直したら、このデータベースは作り直しが要る。その要否は直したときに決める。
 - 根拠:指示書 #17 の T1(200,000 件が作れるかの確かめ)。
-- 記録:`docs/research/lab-data/build-200k/`(`README.md`・`build-db.log`・`counts.tsv`・`size.txt`)。
+- 記録:`docs/research/lab-data/build-200k/`(`README.md`・`build-db-output.txt`・`counts.tsv`・`size.txt`)。
 - 変わらないもの:#15・#16 の記録と合否・予測・見積もり・較正・式・段・シナリオ・判定の規則。この項は構築の確かめの記録で、規則の変更ではない。
