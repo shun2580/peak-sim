@@ -196,6 +196,35 @@ final class CalibrationGateTest extends TestCase
         self::assertStringContainsString('rows per query 17.2425', $stdout);
     }
 
+    /**
+     * The two earlier sets that could not tell the coefficients apart, from the first calibration's plans and its estimate (the estimate that
+     * calibration used): the three runs of the first fit and the four runs with cal-4 at 3,000 rows.
+     */
+    public function testTheEarlierDefectiveSetsAreRefused(): void
+    {
+        $cases = [
+            'three runs (cal-1..cal-3)' => [['cal-1', 'cal-2', 'cal-3'], [], 0.01878, 'cal-2'],
+            'four runs (cal-1..cal-4, cal-4 at 3,000 rows)' => [['cal-1', 'cal-2', 'cal-3', 'cal-4'], ['--run-scale=cal-4:3000'], 0.08567, 'cal-4'],
+        ];
+        foreach ($cases as $label => [$runs, $extra, $allDegree, $minLeftOut]) {
+            $args = ['--estimate=' . self::LAB_DATA . '/estimate', ...$extra];
+            foreach ($runs as $id) {
+                $args[] = sprintf('--run=%s:%s/calibration/%s/plan.json', $id, self::LAB_DATA, $id);
+            }
+            $out = sys_get_temp_dir() . '/cal-gate-' . bin2hex(random_bytes(4)) . '/calibration-gate.json';
+            [$code, , $stderr] = self::gateCli([...$args, '--out=' . $out]);
+            $record = json_decode((string) file_get_contents($out), true, 512, JSON_THROW_ON_ERROR);
+            unlink($out);
+            rmdir(dirname($out));
+
+            self::assertSame(14, $code, $label . ': ' . $stderr);
+            self::assertFalse($record['passed'], $label);
+            self::assertEqualsWithDelta($allDegree, $record['sets'][0]['degree'], 5e-5, $label);
+            self::assertLessThan(0.1, $record['min_degree'], $label);
+            self::assertSame($minLeftOut, $record['min_left_out'], $label);
+        }
+    }
+
     public function testTheGateRecordCarriesTheInputs(): void
     {
         $out = sys_get_temp_dir() . '/cal-gate-' . bin2hex(random_bytes(4)) . '/calibration-gate.json';
