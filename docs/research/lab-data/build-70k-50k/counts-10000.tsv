@@ -1,0 +1,16 @@
+# scale=10000, SELECT COUNT(*) at 2026-11-11 14:07:26
+activities	10000
+deletions	10000
+entities	10000
+entity_permissions	10000
+favourites	10000
+images	10000
+references	10000
+search_terms	10000
+slug_history	10000
+tags	10000
+views	10000
+watches	10000
+joint_permissions	90000
+entity_container_data	6000
+entity_page_data	4000
