@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Tests\Unit\Estimate;
 
 use PeakSim\Runtime\Estimate\RowEstimator;
+use PeakSim\Runtime\Judge\CostFit;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -365,5 +366,86 @@ final class RowEstimatorTest extends TestCase
         [$capture, $explain] = self::fixture();
         $this->expectException(\InvalidArgumentException::class);
         RowEstimator::estimate($capture, $explain, 'H4');
+    }
+
+    /**
+     * R2 (D174). A type whose rows per run jump between two scales (61 / 601 / 25,999: the plan changed) is fitted with an exponent above 1.
+     * Past the largest scale the point goes on along the fit's tangent at that scale; the fit's own curve is the upper side. Below the largest
+     * scale, and for a fit whose exponent is not above 1, nothing changes.
+     *
+     * @return array<string, mixed>
+     */
+    private static function jumpCapture(): array
+    {
+        return ['capture_version' => 1, 'app' => 'demo', 'scales' => [100, 1000, 10000], 'representative_scale' => 10000, 'routes' => [[
+            'route' => 'GET /j', 'status' => 'captured',
+            'statement_types' => [
+                self::captureType('jump', 1, [61, 601, 25999]),
+                self::captureType('flat', 2, [10, 100, 1000]),
+            ],
+        ]]];
+    }
+
+    /** @return array<string, mixed> */
+    private static function jumpRoute(int $n): array
+    {
+        $explain = ['explain_version' => 1, 'scale' => $n, 'small_scale' => 10000, 'routes' => []];
+
+        return RowEstimator::estimate(self::jumpCapture(), $explain, 'H1_RANGE', $n)['routes'][0];
+    }
+
+    /** @return array{float, float, float} the fit's value at 10,000, its slope there, and its value at 100,000 (the way the estimator rounds it) */
+    private static function jumpFit(): array
+    {
+        $f = CostFit::fit([100, 1000, 10000], [61.0, 601.0, 25999.0]);
+        [$a, $b, $k] = [CostFit::sig($f['a']), CostFit::sig($f['b']), CostFit::sig($f['k'])];
+        $value = CostFit::evaluate($a, $b, $k, 10000);
+
+        return [$value, $k * ($value - $a) / 10000, CostFit::evaluate($a, $b, $k, 100000)];
+    }
+
+    public function test_past_the_largest_scale_a_fit_above_exponent_one_goes_on_along_its_tangent_and_the_curve_is_the_upper_side(): void
+    {
+        [$value, $slope, $curve] = self::jumpFit();
+        $this->assertGreaterThan(1.0, $curve / $value / 10.0, 'the curve is steeper than linear: that is what the rule is for');
+        $route = self::jumpRoute(100000);
+        $types = array_column($route['types'], null, 'id');
+        $tangent = $value + $slope * 90000;
+        $this->assertEqualsWithDelta($tangent, $types['jump']['per_exec'], 1e-6);
+        $this->assertLessThan($curve, $types['jump']['per_exec']);
+        $this->assertGreaterThan(25999.0 * 10, $types['jump']['per_exec'], 'above straight-line growth of the largest scale\'s own reading');
+        $this->assertEqualsWithDelta($curve, $types['jump']['per_exec_h1_uncapped'], 1e-6);
+        $this->assertEqualsWithDelta($curve, $types['jump']['per_exec_upper'], 1e-6);
+        $this->assertSame('h1_fit', $types['jump']['upper_basis']);
+        // flat (exponent 1): 2 x 10,000 as before, no upper side of its own
+        $this->assertEqualsWithDelta(10000.0, $types['flat']['per_exec'], 1e-6);
+        $this->assertArrayNotHasKey('per_exec_upper', $types['flat']);
+        $this->assertEqualsWithDelta($tangent + 20000.0, $route['rows_examined'], 1e-6);
+        $this->assertFalse($route['marked']);
+        $this->assertEqualsWithDelta($curve + 20000.0, $route['rows_examined_upper'], 1e-6, 'a route with a held type has an upper side');
+    }
+
+    public function test_at_or_below_the_largest_scale_the_fit_is_not_held(): void
+    {
+        foreach ([10000, 5000] as $n) {
+            $route = self::jumpRoute($n);
+            $jump = array_column($route['types'], null, 'id')['jump'];
+            $this->assertArrayNotHasKey('per_exec_h1_uncapped', $jump, 'N = ' . $n);
+            $this->assertNull($route['rows_examined_upper'], 'N = ' . $n);
+        }
+    }
+
+    public function test_the_formula_carries_the_tangent_so_a_reader_can_put_its_own_size_in(): void
+    {
+        [$value, $slope] = self::jumpFit();
+        $explain = ['explain_version' => 1, 'scale' => 100000, 'small_scale' => 10000, 'routes' => []];
+        $out = RowEstimator::estimate(self::jumpCapture(), $explain, 'H1_RANGE', 100000, null, true);
+        $types = array_column($out['routes'][0]['types'], null, 'id');
+        $lb = $types['jump']['formula']['per_exec']['linear_beyond'];
+        $this->assertSame(10000, $lb['scale']);
+        $this->assertEqualsWithDelta($value, $lb['value'], 1e-9);
+        $this->assertEqualsWithDelta($slope, $lb['slope'], 1e-9);
+        $this->assertNull($types['jump']['formula']['upper'], 'the held type\'s upper side is the curve, which the reader evaluates itself');
+        $this->assertArrayNotHasKey('linear_beyond', $types['flat']['formula']['per_exec']);
     }
 }

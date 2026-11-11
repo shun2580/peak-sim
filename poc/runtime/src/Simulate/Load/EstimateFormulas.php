@@ -150,6 +150,7 @@ final class EstimateFormulas
         $queries = 0.0;
         $rows = 0.0;
         $upper = 0.0;
+        $held = false;
         $scales = [];
         $width = ['queries_low' => 0.0, 'queries_high' => 0.0, 'rows_low' => 0.0, 'rows_high' => 0.0, 'given' => false];
         foreach ((array) ($r['types'] ?? []) as $t) {
@@ -162,6 +163,16 @@ final class EstimateFormulas
             $perUpper = null;
             if (isset($f['upper']) && is_array($f['upper'])) {
                 $perUpper = $f['upper']['ratio'] !== null ? $perExec * (float) $f['upper']['ratio'] : (float) $f['upper']['at_n'];
+            }
+            // R2 (D174): above the largest scale a fit of exponent above 1 goes on along its tangent there; the fit's own curve is the upper side
+            $lb = isset($pe['linear_beyond']) && is_array($pe['linear_beyond']) ? $pe['linear_beyond'] : null;
+            if ($lb !== null && (int) $lb['scale'] > 0 && $n > (int) $lb['scale']) {
+                $tangent = (float) $lb['value'] + (float) $lb['slope'] * ($n - (int) $lb['scale']);
+                if ($perExec > $tangent) {
+                    $perUpper = max($perUpper ?? 0.0, $perExec);
+                    $perExec = $tangent;
+                    $held = true;
+                }
             }
             $range = self::widthOf($f, $n, $count, $perExec);
             $width['queries_low'] += $range['count_low'];
@@ -196,7 +207,7 @@ final class EstimateFormulas
         $out['cost'] = 'ok';
         $out['queries'] = $queries;
         $out['rows'] = $rows;
-        $out['rows_upper'] = $marked ? $upper : null;
+        $out['rows_upper'] = ($marked || $held) ? $upper : null;
         if ($width['given']) {
             $out['queries_low'] = $width['queries_low'];
             $out['queries_high'] = $width['queries_high'];
@@ -211,7 +222,7 @@ final class EstimateFormulas
             $out['peak_memory_status'] = $pmStatus === 'predicted' ? 'not_predicted' : $pmStatus;
         }
         $out['n_mark'] = self::mark($n, array_keys($scales));
-        $out['sources'] = ['queries' => 'fit', 'rows' => 'fit', 'rows_upper' => $marked ? 'explain' : null, 'peak_memory' => is_array($pf) ? 'fit' : null];
+        $out['sources'] = ['queries' => 'fit', 'rows' => 'fit', 'rows_upper' => $marked ? 'explain' : ($held ? 'fit' : null), 'peak_memory' => is_array($pf) ? 'fit' : null];
         $out['types'] = $types;
 
         return $out;

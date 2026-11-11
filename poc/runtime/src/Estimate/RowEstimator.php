@@ -229,14 +229,16 @@ final class RowEstimator
         if ($candidate === self::H1_RANGE) {
             $out['marked'] = MarkedRoutes::isMarked($er);
             $upper = 0.0;
+            $held = false;
             foreach ($out['types'] as $t) {
                 if (isset($t['unavailable'])) {
                     continue;
                 }
+                $held = $held || isset($t['per_exec_h1_uncapped']);
                 $upper += ($t['per_exec_upper'] ?? $t['per_exec']) * $t['count_at_n'];
             }
             // the upper side exists for a marked route only; a marked route whose statements are not all available has an incomplete upper side, like its point
-            $out['rows_examined_upper'] = $out['marked'] ? $upper : null;
+            $out['rows_examined_upper'] = ($out['marked'] || $held) ? $upper : null;
         }
 
         return $out;
@@ -262,10 +264,18 @@ final class RowEstimator
         if ($series === []) {
             return $rec + ['unavailable' => 'no_rows_read_in_capture'];
         }
+        $uncapped = null;
         if (count($series) >= CostFit::MIN_SCALES) {
             $f = CostFit::fit(array_keys($series), array_values($series));
             $h1 = CostFit::evaluate(CostFit::sig($f['a']), CostFit::sig($f['b']), CostFit::sig($f['k']), $n);
             $rec['per_exec_h1_basis'] = 'fit';
+            $beyond = self::linearBeyond($series, CostFit::sig($f['a']), CostFit::sig($f['b']), CostFit::sig($f['k']));
+            if ($beyond !== null && $n > $beyond['scale'] && $h1 > self::alongTangent($beyond, $n)) {
+                // R2 (D174): beyond the largest scale the fit goes on along its tangent at that scale, not along its own curve
+                $uncapped = $h1;
+                $h1 = self::alongTangent($beyond, $n);
+                $rec['per_exec_h1_uncapped'] = $uncapped;
+            }
         } else {
             $h1 = $series[max(array_keys($series))];
             $rec['per_exec_h1_basis'] = 'held_from_largest_scale';
@@ -277,11 +287,12 @@ final class RowEstimator
         $rec['marks'] = ['plan_changes_at_scale' => ($marks['plan_changes_at_scale'] ?? false) === true, 'plan_unstable' => ($marks['plan_unstable'] ?? false) === true];
         if ($candidate === RowEstimator::H1_RANGE) {
             if (!$marked) {
-                return $rec + ['per_exec' => $h1, 'basis' => 'h1'];
+                // a type held to linear growth keeps the fit's own value as its upper side
+                return $rec + ['per_exec' => $h1, 'basis' => 'h1'] + ($uncapped !== null ? ['per_exec_upper' => $uncapped, 'upper_basis' => 'h1_fit'] : []);
             }
             // a marked type: the point stays H1, the upper side is what H2 gives (its fall-back to H1 is counted, never silent)
             $h2 = self::type($ty, $explained, RowEstimator::H2, $n, $representative, $withFormulas);
-            $upper = ['per_exec' => $h1, 'basis' => 'h1', 'per_exec_upper' => $h2['per_exec'], 'upper_basis' => $h2['basis']];
+            $upper = ['per_exec' => $h1, 'basis' => 'h1', 'per_exec_upper' => max((float) $h2['per_exec'], (float) ($uncapped ?? 0.0)), 'upper_basis' => $h2['basis']];
             if (isset($h2['fallback'])) {
                 $upper['fallback'] = $h2['fallback'];
             }
@@ -363,6 +374,11 @@ final class RowEstimator
         if (count($series) >= CostFit::MIN_SCALES) {
             $f = CostFit::fit(array_keys($series), array_values($series));
             $perExec = ['basis' => 'fit', 'a' => CostFit::sig($f['a']), 'b' => CostFit::sig($f['b']), 'k' => CostFit::sig($f['k'])];
+            $beyond = self::linearBeyond($series, $perExec['a'], $perExec['b'], $perExec['k']);
+            if ($beyond !== null) {
+                // a reader that puts a size above `scale` in goes on from `value` along `slope` per row of the table (R2, D174)
+                $perExec['linear_beyond'] = $beyond;
+            }
             [$pairScales, $pairValues] = self::largestThree(array_keys($series), array_values($series));
             $perExecPairs = self::withA(CostFit::pairs($pairScales, $pairValues, $perExec['a']), $perExec['a']);
         } else {
@@ -386,7 +402,7 @@ final class RowEstimator
             // plan_unstable: the rows per run at each statistics state (measured at the small size x E(state, N) / E(small)), for the width
             'states' => null,
         ];
-        if (isset($type['per_exec_upper'])) {
+        if (isset($type['per_exec_upper']) && ($type['upper_basis'] ?? null) !== 'h1_fit') {
             $h1 = (float) $type['per_exec_h1'];
             $up = (float) $type['per_exec_upper'];
             $out['upper'] = ['at_n' => $up, 'h1_at_n' => $h1, 'ratio' => $h1 > 0.0 ? $up / $h1 : null];
@@ -402,6 +418,36 @@ final class RowEstimator
         }
 
         return $out;
+    }
+
+    /**
+     * R2 (D174). A fit with an exponent above 1 read a jump of the reading between two scales (the plan the database picks changed there)
+     * as growth, and carried it ten times past the largest scale. Beyond the largest scale such a fit goes on along its tangent at that
+     * scale (the fit's value there, and its slope there, `k x (value - a) / scale`) instead of along its own curve; the curve stays as the
+     * upper side. Returns null where the rule does not apply (a fit whose exponent is not above 1, or fewer than three scales).
+     *
+     * @param array<int, int|float> $series scale => rows per run
+     *
+     * @return array{scale: int, value: float, slope: float}|null
+     */
+    private static function linearBeyond(array $series, float $a, float $b, float $k): ?array
+    {
+        if (count($series) < CostFit::MIN_SCALES || $k <= 1.0) {
+            return null;
+        }
+        $scale = (int) max(array_keys($series));
+        if ($scale < 1) {
+            return null;
+        }
+        $value = CostFit::evaluate($a, $b, $k, $scale);
+
+        return ['scale' => $scale, 'value' => $value, 'slope' => $k * ($value - $a) / $scale];
+    }
+
+    /** @param array{scale: int, value: float, slope: float} $beyond */
+    private static function alongTangent(array $beyond, int $n): float
+    {
+        return $beyond['value'] + $beyond['slope'] * ($n - $beyond['scale']);
     }
 
     /**

@@ -125,4 +125,40 @@ final class EstimateFormulasTest extends TestCase
             $this->assertSame($code, $e->exitCode);
         }
     }
+
+    /** R2 (D174): a fit above exponent 1 goes on along its tangent above its largest scale; the curve is the upper side, evaluated at the scenario's own size. */
+    public function test_a_fit_above_exponent_one_goes_on_along_its_tangent_above_its_largest_scale(): void
+    {
+        $doc = Fixtures::estimateDocument();
+        $doc['routes'][] = [
+            'route' => 'GET /jump', 'status' => 'captured', 'complete' => true, 'marked' => false, 'table' => 'pages', 'axis' => 'N',
+            'peak_memory' => ['status' => 'not_given'], 'peak_memory_formula' => null,
+            'types' => [[
+                'id' => 'j1', 'kind' => 'select', 'pattern' => 'select j1', 'marks' => ['plan_changes_at_scale' => false, 'plan_unstable' => false],
+                'formula' => [
+                    'count' => ['a' => 1.0, 'b' => 0.0, 'k' => 0.0],
+                    // rows per run 0.01 * N^2: 1,000,000 at 10,000, where the slope is 2 x 1,000,000 / 10,000 = 200 per row
+                    'per_exec' => ['basis' => 'fit', 'a' => 0.0, 'b' => 0.01, 'k' => 2.0, 'linear_beyond' => ['scale' => 10000, 'value' => 1000000.0, 'slope' => 200.0]],
+                    'scales' => [100, 1000, 10000], 'upper' => null,
+                ],
+            ]],
+        ];
+        $doc['route_index'][] = ['route' => 'GET /jump', 'axis' => 'N', 'table' => 'pages', 'in_estimate' => true];
+        $f = EstimateFormulas::fromDocument($doc);
+
+        // N = 50,000: the curve gives 25,000,000; the tangent 1,000,000 + 200 x 40,000 = 9,000,000. The upper side is the curve.
+        $over = $f->evaluate('GET /jump', 50000);
+        $this->assertEqualsWithDelta(9000000.0, $over['rows'], 1e-3);
+        $this->assertEqualsWithDelta(25000000.0, $over['rows_upper'], 1e-3);
+        $this->assertSame('fit', $over['sources']['rows_upper']);
+        $this->assertFalse($over['marked']);
+
+        // N = 10,000 and below: the curve as it was, and no upper side
+        $at = $f->evaluate('GET /jump', 10000);
+        $this->assertEqualsWithDelta(1000000.0, $at['rows'], 1e-6);
+        $this->assertNull($at['rows_upper']);
+        $below = $f->evaluate('GET /jump', 3000);
+        $this->assertEqualsWithDelta(90000.0, $below['rows'], 1e-6);
+        $this->assertNull($below['rows_upper']);
+    }
 }
