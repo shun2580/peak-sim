@@ -25,6 +25,7 @@ final class PredictionText
             $cal['method'],
             $cal['calibration_scenarios'],
         );
+        $out[] = 'NOTE ' . $report['estimate_basis_note'];
         if ($cal['cut_coefficients']) {
             $out[] = 'NOTE a calibration coefficient was cut to 0 or pinned (see the notes of the fits in the JSON)';
         }

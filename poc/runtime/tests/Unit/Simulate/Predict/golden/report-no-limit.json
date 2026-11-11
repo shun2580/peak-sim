@@ -7,6 +7,7 @@
         "threshold": 0.8,
         "php_memory_limit_bytes": 134217728
     },
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
     "low_coverage_scenarios": [],
     "calibration": {
         "method": "two_coefficient",

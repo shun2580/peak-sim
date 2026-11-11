@@ -14,6 +14,9 @@ final class PredictionReport
 {
     public const SCHEMA_VERSION = '0.1';
 
+    /** What the row estimates assume about the database they were read from (simulator-spec.md 7.2: the lab's databases are analyzed after the build). Always in the output. */
+    public const ESTIMATE_BASIS_NOTE = 'the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ';
+
     /**
      * @param array<string, mixed>                                                                      $loaded     LoadedInput::toArray()
      * @param array<string, array{table: string|null, a: float, b: float, k: float}|null>              $memory     route => peak-memory formula (null: none)
@@ -50,6 +53,7 @@ final class PredictionReport
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
             'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]),
+            'estimate_basis_note' => self::ESTIMATE_BASIS_NOTE,
             'low_coverage_scenarios' => $lowCoverage,
             'calibration' => $calibration->toArray() + ['width' => $width->toArray()],
             'scenarios' => $scenarios,

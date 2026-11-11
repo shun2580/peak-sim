@@ -151,13 +151,40 @@ final class AppLimitRiskTest extends TestCase
         return json_encode($report, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     }
 
-    public function testWithNoLimitGivenTheOutputIsTheSameBytesAsBeforeTheMarkExisted(): void
+    public function testWithNoLimitGivenTheOutputIsTheGoldenAndHasNoTraceOfTheMark(): void
     {
         $report = self::report(null);
         self::assertSame((string) file_get_contents(__DIR__ . '/golden/report-no-limit.json'), self::json($report));
         self::assertSame((string) file_get_contents(__DIR__ . '/golden/report-no-limit.txt'), PredictionText::render($report));
         self::assertStringNotContainsString('app_limit_risk', self::json($report));
         self::assertStringNotContainsString('app limit', PredictionText::render($report));
+    }
+
+    /**
+     * The golden above is the output from before the mark existed (kept as `*.c9f08de.*`) plus the one line of the statistics note, put in by hand;
+     * it is not written out from the new output. Take that one line away and the old bytes are back: with no limit given nothing else changed.
+     */
+    public function testTheGoldenDiffersFromTheOldGoldenByTheStatisticsNoteAndNothingElse(): void
+    {
+        $note = PredictionReport::ESTIMATE_BASIS_NOTE;
+        $json = (string) file_get_contents(__DIR__ . '/golden/report-no-limit.json');
+        $noteLine = '    "estimate_basis_note": ' . json_encode($note, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . ",\n";
+        self::assertSame(1, substr_count($json, $noteLine));
+        self::assertSame((string) file_get_contents(__DIR__ . '/golden/report-no-limit.c9f08de.json'), str_replace($noteLine, '', $json));
+
+        $text = (string) file_get_contents(__DIR__ . '/golden/report-no-limit.txt');
+        $textLine = 'NOTE ' . $note . "\n";
+        self::assertSame(1, substr_count($text, $textLine));
+        self::assertSame((string) file_get_contents(__DIR__ . '/golden/report-no-limit.c9f08de.txt'), str_replace($textLine, '', $text));
+    }
+
+    public function testTheStatisticsNoteIsInTheOutputWhateverTheLimitIs(): void
+    {
+        foreach ([null, 2.0] as $limit) {
+            $report = self::report($limit);
+            self::assertSame(PredictionReport::ESTIMATE_BASIS_NOTE, $report['estimate_basis_note']);
+            self::assertStringContainsString('NOTE ' . PredictionReport::ESTIMATE_BASIS_NOTE, PredictionText::render($report));
+        }
     }
 
     public function testAGivenLimitAddsTheMarkToEveryTargetScenarioAndNothingElseChanges(): void
