@@ -7,6 +7,7 @@ stops after the calibration (the fits, the coefficients, the residuals, the cut 
 | File | What it does |
 | --- | --- |
 | `make-calibration-scenario` (`.php`, `CalibrationScenario.php`) | The plan and the record of each run -> the scenario file (section 3.4 form). The rps of each route is the plan's, `observed` is the record's database utilization; nothing is typed by hand. Each scenario has its own `tables`, so a run can be at its own count of rows (`--run-scale=<id>:<n>`). A run whose rps did not come out (not `valid`) is refused, and so is `cal-3-orig` (a record only, never a calibration scenario). |
+| `calibration-gate` (`.php`) | **Run before a calibration is measured**, from the plans, the counts of rows and the estimate alone (`bin/measure-calibration` calls it, and measures nothing if it refuses): the degree to which the set of planned runs can tell the two coefficients apart, for the whole set and for every set that leaves one run out. Exit 14 when the smallest is below 0.5. See `poc/lab/README.md`. It changes nothing in what `recalibrate` and `bin/simulate` write. |
 | `recalibrate` | Refuses a scenario file that has a `target` scenario, runs `bin/simulate`, then checks (`check-output.php`) that the calibration is in `prediction.json` and its list of predictions is empty. |
 
 ```bash

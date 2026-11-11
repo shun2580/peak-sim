@@ -36,9 +36,14 @@ final class CalibrationPoint
     }
 
     /**
+     * The two rates of a scenario from its routes: sum(rps_r * queries_r) and sum(rps_r * rows_r), and how many routes had an unknown cost
+     * (left out). The calibration and the gate that comes before it ({@see CalibrationGate}) both take their rates from here.
+     *
      * @param list<array{rps: int|float, queries: int|float|null, rows: int|float|null}> $routes a null cost is "unknown"
+     *
+     * @return array{float, float, int} queryRate, rowRate, unknown
      */
-    public static function fromRoutes(string $id, float $cores, float $observedUtilization, array $routes): self
+    public static function rates(array $routes): array
     {
         $queryRate = 0.0;
         $rowRate = 0.0;
@@ -52,6 +57,16 @@ final class CalibrationPoint
             $queryRate += $route['rps'] * $route['queries'];
             $rowRate += $route['rps'] * $route['rows'];
         }
+
+        return [$queryRate, $rowRate, $unknown];
+    }
+
+    /**
+     * @param list<array{rps: int|float, queries: int|float|null, rows: int|float|null}> $routes a null cost is "unknown"
+     */
+    public static function fromRoutes(string $id, float $cores, float $observedUtilization, array $routes): self
+    {
+        [$queryRate, $rowRate, $unknown] = self::rates($routes);
 
         return new self($id, $queryRate, $rowRate, $observedUtilization, $cores, $unknown);
     }

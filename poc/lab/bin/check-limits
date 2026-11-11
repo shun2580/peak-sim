@@ -17,7 +17,7 @@
 # readings (settings.json) and the reason of a refusal (settings.err). Default --dir: <out>/limits/<time>.
 #
 # Callers: `bin/measure-ladder` runs it before every step of r-1 .. r-5 (unlimited); `diagnosis/request_probe.py run --require-limits=...`
-# runs it before the first request; the calibration that is measured with the limit off is to run it by hand first.
+# runs it before the first request; `bin/measure-calibration` runs it before every calibration run (unlimited).
 #
 # exit codes: 0 the lab is as the measurement needs (or --require=none and everything was read) / 2 usage / 13 refused: not as needed,
 # or a limit could not be read (the cause is printed; nothing was measured)

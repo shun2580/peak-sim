@@ -16,9 +16,11 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `bin/predict-ladder` | the ladder prediction (`docs/simulator-spec.md` 7.2 and 7.3): for each target scenario, the utilisation at each of the 13 rps stages (point and safe side), the naive estimate, and the limit rps solved from the proportional form. The point is one estimate; the safe side takes the marks of the estimate made at the scenario's own count of rows (`--safe-estimate=<dir>`, one per count; a count with no estimate stops it). The naive estimate is chosen among the calibration scenarios at N_0 only, the count of rows given with the required `--naive-count=<rows>` (for example `--naive-count=10000`; no default, nothing is guessed from the largest count in the file): a calibration scenario at any other count (cal-4, cal-5) is no candidate, and with no scenario at N_0 it stops (exit 37). It writes, as a record that is not used for a pass or a failure, the calibration's range per scenario (each leave-one-out fit's coefficients, utilisation at every stage and limit rps). It makes no prediction when a calibration coefficient was cut to 0 or `cal-3-orig` is among the calibration scenarios. Sends no request; the code is `poc/runtime/src/Simulate/Ladder/`, which calls the calibration and prediction parts of `bin/simulate` |
 | `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file |
 | `bin/check-limits` | read the lab's three limits (PHP `max_execution_time`, php-fpm `request_terminate_timeout`, nginx `fastcgi_read_timeout`) and refuse (exit 13) unless they are the ones the measurement needs: `--require=unlimited --request-timeout=<k6 duration>` (PHP 0, pool 0, nginx at least the load tool's timeout), `--require=limited` (PHP 30, the mark's check), `--require=none` (read and record only). It only reads; a limit that cannot be read refuses too |
+| `bin/measure-calibration` | **the one entry that measures calibration runs.** Calibration is measured from this entry only. It takes the plan and the count of rows of every run of the planned set (`--run=<id>:<plan.json>`, `--run-scale`), and the runs to measure now (`--measure`). Before anything else it calls the calibration gate (`scenarios/calibration-gate`; below) and stops with exit 14, with no container touched, if the set cannot tell the two coefficients apart. For each run it then checks the closed network, reads the limits and refuses unless they are the ones the measurement needs (`bin/check-limits --require=unlimited`, exit 13), records `mysql.innodb_table_stats` before and after, and measures with the same samplers, k6 and `summarize-run` as the ladder. `--gate-only` runs the gate and nothing else |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
 | `tests/limits-guard.sh` | the tests of `bin/check-limits` and of its place in front of every step of `r-1`..`r-5` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured) |
+| `tests/calibration-gate.sh` | the tests of the calibration gate and of its place in front of `bin/measure-calibration` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured; one test takes the gate's line out of a copy of the entry and shows that the refused set then reaches the load tool) |
 | `tests/scenario-timeout.sh` | the tests of `load/scenario.js`'s `REQUEST_TIMEOUT` and its status counts by route, with the real k6 against a stand-in server in throw-away containers (needs Docker; never touches the lab) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
 
@@ -71,6 +73,26 @@ app-side stall, with the app's CPU utilization.
 
 A low step has few requests per route in the kept window (0.05 rps in total is 15 requests in 5 minutes), so a whole number of arrivals
 per route can put its count outside the 5% of the rps check by arithmetic alone; `--dry-run` prints that count for every step.
+
+## Measuring calibration runs
+
+**Calibration is measured from `bin/measure-calibration` and from nowhere else.** A run measured by a hand-written driver outside this repository has skipped the gate below
+and the limits guard, and is not a calibration run of this project.
+
+```bash
+# the gate alone: reads files, touches no container of the lab
+poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=cal-1:<plan.json> ... --run=cal-7:<plan.json> --run-scale=cal-4:3000 ... --gate-only
+# measure some of the runs (the set is still given whole: the gate looks at all of it)
+poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=cal-1:<plan.json> ... --run=cal-7:<plan.json> --run-scale=cal-4:3000 ... \
+  --measure=cal-6,cal-7 --request-timeout=600s [--switch-scale]
+```
+
+**The calibration gate** (`poc/lab/scenarios/calibration-gate`, `docs/simulator-spec.md` 7.4.1). Before a run is measured, the plans, the counts of rows and the estimate alone give the
+design matrix X of the fit: one row per run, two columns, the rate of queries Q_i and the rate of rows R_i (the same numbers the fit takes, from `CalibrationPoint::rates`). Each column is
+scaled to length 1 (not centred: the fit has no intercept), and the degree is the smallest singular value of that matrix: 1 when the runs are as different as can be, 0 when every run has the
+same rows per query. The degree is worked out for the whole set and for every set that leaves one run out; if the smallest is below 0.5 (`CalibrationGate::MIN_DEGREE`) nothing is measured and the entry stops with exit 14. The
+degrees are printed and written to `<out>/calibration-gate.json` (and copied into each measured run's directory). No utilization is read; a run whose rps is still to be searched is given at the rps it
+is planned at. The tests are `poc/runtime/tests/Unit/LabScenarios/CalibrationGateTest.php` and `tests/calibration-gate.sh`.
 
 ## Layout of the stack
 

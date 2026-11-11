@@ -67,7 +67,7 @@ final class Calibrator
     /** @param list<CalibrationPoint> $points */
     private function twoCoefficient(array $points): ?CalibrationFit
     {
-        [$saa, $sbb, $sab, $say, $sby, $syy] = $this->sums($points);
+        [$saa, $sbb, $sab, $say, $sby, $syy] = self::sums($points);
         $det = $saa * $sbb - $sab * $sab;
         if ($saa <= 0.0 || $sbb <= 0.0 || $det <= self::SINGULAR_TOLERANCE * $saa * $sbb) {
             return null;
@@ -174,11 +174,13 @@ final class Calibrator
     }
 
     /**
+     * The sums of the normal equations. Public so that the gate that comes before the calibration ({@see CalibrationGate}) works from the same sums.
+     *
      * @param list<CalibrationPoint> $points
      *
      * @return array{float, float, float, float, float, float} Saa, Sbb, Sab, Say, Sby, Syy
      */
-    private function sums(array $points): array
+    public static function sums(array $points): array
     {
         $saa = $sbb = $sab = $say = $sby = $syy = 0.0;
         foreach ($points as $p) {

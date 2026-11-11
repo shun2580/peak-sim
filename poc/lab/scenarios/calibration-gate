@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# The gate in front of a calibration measurement (docs/simulator-spec.md section 7.4.1). From the plan of each planned calibration run, its count of
+# rows and the estimate alone, it works out how well the two coefficients can be told apart for the whole set of runs and for every set that leaves
+# one run out, and refuses (exit 14) when any is below the threshold. It reads files only: no database, no app, no container of the lab.
+#
+#   poc/lab/scenarios/calibration-gate --estimate=<estimate dir> --run=<id>:<plan.json> [--run=<id>:<plan.json> ...] [--scale=10000]
+#       [--run-scale=<id>:<n> ...] [--tables=entities,images,references] [--cores=2] [--out=<file.json>]
+#
+# exit codes: 0 every set is at or above the threshold / 14 refused: a set is below it / 2 wrong usage or an unreadable plan /
+# 20..25 the estimate or a route is not usable / 11 no PHP on this machine and no image to run the tool in
+# Uses the PHP on this machine if there is one; otherwise a throw-away container of the dev image (no network, read-only, the inputs
+# mounted read-only, only the directory of --out writable). The image is never pulled.
+set -uo pipefail
+
+here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+  exec php "$here/calibration-gate.php" "$@"
+fi
+
+image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  echo "calibration-gate: no php on this machine and no image $image to run the tool in" >&2
+  exit 11
+fi
+repo="$(cd "$here/../../.." && pwd)"
+mounts=(-v "$repo:/peak-sim:ro")
+args=()
+n=0
+# a path argument is mounted by its directory and given to the tool as the path inside the container
+mount_dir() {  # mount_dir <ro|rw> <dir> -> sets $mounted
+  n=$((n + 1))
+  mounted="/m$n"
+  mounts+=(-v "$(cd "$2" && pwd):$mounted$([ "$1" = ro ] && echo ':ro')")
+}
+for arg in "$@"; do
+  case "$arg" in
+    --estimate=*)
+      d="${arg#--estimate=}"
+      [ -d "$d" ] || { echo "calibration-gate: --estimate is not a directory" >&2; exit 2; }
+      mount_dir ro "$d"; args+=("--estimate=$mounted") ;;
+    --run=*)
+      spec="${arg#--run=}"; id="${spec%%:*}"; p="${spec#*:}"
+      [ -f "$p" ] || { echo "calibration-gate: cannot read the plan of the run $id ($p)" >&2; exit 2; }
+      mount_dir ro "$(dirname "$p")"; args+=("--run=$id:$mounted/$(basename "$p")") ;;
+    --out=*)
+      f="${arg#--out=}"
+      mkdir -p "$(dirname "$f")"
+      mount_dir rw "$(dirname "$f")"; args+=("--out=$mounted/$(basename "$f")") ;;
+    *) args+=("$arg") ;;
+  esac
+done
+exec docker run --rm --pull=never --network none --read-only --cpuset-cpus="${PEAK_DEV_CPUSET:-12-15}" -u "$(id -u):$(id -g)" \
+  "${mounts[@]}" "$image" nice php /peak-sim/poc/lab/scenarios/calibration-gate.php "${args[@]}"

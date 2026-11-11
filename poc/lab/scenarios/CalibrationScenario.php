@@ -133,28 +133,8 @@ final class CalibrationScenario
         if ($observed <= 0 || $observed > 1) {
             throw new \InvalidArgumentException(sprintf('the utilization of %s (%s) is not between 0 (excluded) and 1', $id, self::number((float) $observed)));
         }
-        $routes = $run['plan']['routes'] ?? null;
-        if (!is_array($routes) || $routes === []) {
-            throw new \InvalidArgumentException(sprintf('the plan of %s has no routes', $id));
-        }
-        $planned = 0.0;
-        $rps = [];
-        foreach ($routes as $r) {
-            $route = $r['route'] ?? null;
-            $value = $r['rps'] ?? null;
-            if (!is_string($route) || (!is_int($value) && !is_float($value)) || $value < 0) {
-                throw new \InvalidArgumentException(sprintf('the plan of %s has a route without a name or a rate', $id));
-            }
-            if (isset($rps[$route])) {
-                throw new \InvalidArgumentException(sprintf('the plan of %s has the route "%s" twice', $id, $route));
-            }
-            $rps[$route] = (float) $value;
-            $planned += (float) $value;
-        }
-        $given = $run['plan']['rps'] ?? null;
-        if ((is_int($given) || is_float($given)) && abs($planned - (float) $given) > 1e-9 * max(1.0, (float) $given)) {
-            throw new \InvalidArgumentException(sprintf('the rates of the plan of %s add up to %s, not to its total %s', $id, self::number($planned), self::number((float) $given)));
-        }
+        $rps = self::rpsOfPlan($id, $run['plan']);
+        $planned = array_sum($rps);
 
         $mix = $run['plan']['mix'] ?? null;
         $lines = [];
@@ -175,6 +155,44 @@ final class CalibrationScenario
         $lines[] = '    observed: { db_cpu_utilization: ' . self::number((float) $observed) . ' }';
 
         return $lines;
+    }
+
+    /**
+     * The rate of each route of a plan (route => rps), read as `make-plan` wrote it. The scenario file and the calibration gate
+     * (`calibration-gate`, which runs before a run is measured and has no record yet) both read a plan here.
+     *
+     * @param array<string, mixed> $plan
+     *
+     * @return array<string, float>
+     *
+     * @throws \InvalidArgumentException
+     */
+    public static function rpsOfPlan(string $id, array $plan): array
+    {
+        $routes = $plan['routes'] ?? null;
+        if (!is_array($routes) || $routes === []) {
+            throw new \InvalidArgumentException(sprintf('the plan of %s has no routes', $id));
+        }
+        $planned = 0.0;
+        $rps = [];
+        foreach ($routes as $r) {
+            $route = $r['route'] ?? null;
+            $value = $r['rps'] ?? null;
+            if (!is_string($route) || (!is_int($value) && !is_float($value)) || $value < 0) {
+                throw new \InvalidArgumentException(sprintf('the plan of %s has a route without a name or a rate', $id));
+            }
+            if (isset($rps[$route])) {
+                throw new \InvalidArgumentException(sprintf('the plan of %s has the route "%s" twice', $id, $route));
+            }
+            $rps[$route] = (float) $value;
+            $planned += (float) $value;
+        }
+        $given = $plan['rps'] ?? null;
+        if ((is_int($given) || is_float($given)) && abs($planned - (float) $given) > 1e-9 * max(1.0, (float) $given)) {
+            throw new \InvalidArgumentException(sprintf('the rates of the plan of %s add up to %s, not to its total %s', $id, self::number($planned), self::number((float) $given)));
+        }
+
+        return $rps;
     }
 
     /** The shortest text that reads back as the same float, always with a decimal point. */

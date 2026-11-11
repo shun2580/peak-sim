@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# Tests of the calibration gate in front of the one entry that measures calibration runs: `bin/measure-calibration` (docs/simulator-spec.md 7.4.1).
+# They never touch the lab: the `docker` they put on PATH is a stand-in that answers the lab's reads from files the test writes, hands the throw-away
+# PHP containers (no network, no database) to the real docker, and records every other call; "nothing was measured" is shown by the load tool (`k6`)
+# never being called.
+#
+#   poc/lab/tests/calibration-gate.sh
+#
+#  1  the five runs of the remeasured calibration (a set that cannot tell the coefficients apart): refused, exit 14, no lab container touched, k6 never
+#     called, the degrees printed and kept in calibration-gate.json
+#  2  the same with the lab fully ready (limits set, scale right): still refused before anything of the lab is read
+#  3  a set that can (the five plus two runs of a different mix): the gate opens and the entry goes on to the limits guard and to k6
+#  4  the gate record is kept in the run's directory
+#  5  THE GATE IS IN THE ENTRY: the same script with its gate line taken out does reach k6 on the refused set (so 1 means something), and the
+#     real script has exactly one such line, before the closed-network check
+#  6  --gate-only touches no container and answers by the gate
+#  7  the limits guard is in the entry too: a lab left at the default is refused (13) after the gate opens, k6 never called
+#  8  usage errors (no --measure, no --request-timeout, a --measure that is not in --run) stop at 2 before the gate
+# No test is skipped: a precondition that is not met is a failure, not a skip.
+set -uo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+lab="$(cd "$here/.." && pwd)"
+repo_real="$(cd "$lab/../.." && pwd)"
+php_image="${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}"
+real_docker="$(command -v docker)"
+
+passed=0; failed=0; skipped=0
+pass() { passed=$((passed + 1)); printf 'ok   %s\n' "$1"; }
+fail() { failed=$((failed + 1)); printf 'FAIL %s\n' "$1"; }
+expect_code() { if [ "$3" -eq "$2" ]; then pass "$1"; else fail "$1 (exit $3, wanted $2)"; fi; }
+has() { grep -q -- "$2" "$1"; }
+
+[ -n "$real_docker" ] && "$real_docker" image inspect "$php_image" >/dev/null 2>&1 || { echo "calibration-gate tests: docker and the image $php_image are needed (to run the PHP tools)" >&2; exit 2; }
+
+work="$(mktemp -d)"; trap 'rm -rf "$work"' EXIT
+mkdir -p "$work/state" "$work/out" "$work/fakebin" "$work/s" "$work/lab/bin" "$work/lab/observe" "$work/plans"
+out="$(cd "$work/out" && pwd)"
+data="$repo_real/docs/research/lab-data"
+est="$data/estimate-r3/rule/100k"
+
+# ---- the stand-in docker ------------------------------------------------------------------------------------------------------
+# The state of the pretend lab is a few files in $work/s; a missing file means the default (PHP 30, pool 0s, nginx 120s, scale 10000).
+# `run` and `image` (the throw-away PHP containers of the tools) go to the real docker; every other call is recorded and answered here.
+cat >"$work/fakebin/docker" <<FAKE
+#!/usr/bin/env bash
+w="$work"; s="\$w/s"
+if [ "\$1" = run ] || [ "\$1" = image ]; then exec "$real_docker" "\$@"; fi
+echo "\$*" >>"\$w/docker.calls"
+val() { if [ -f "\$s/\$1" ]; then cat "\$s/\$1"; else echo "\$2"; fi; }
+if [ "\$1" = inspect ]; then echo "PEAK_LAB_SCALE=\$(val scale 10000)"; exit 0; fi
+if [ "\$1" = exec ]; then
+  shift
+  while [ "\${1:-}" = "-i" ] || [ "\${1:-}" = "-e" ]; do if [ "\$1" = "-e" ]; then shift 2; else shift; fi; done
+  c="\$1"; shift
+  case "\$c \$1 \$2" in
+    "peak-lab-web nginx -T")
+      printf 'http {\n    server {\n        location / {\n            fastcgi_pass lab_app;\n            fastcgi_read_timeout %s;\n        }\n    }\n}\n' "\$(val nginx 120s)"; exit 0 ;;
+    "peak-lab-app php-fpm -tt")
+      printf '[11-Nov-2026 10:00:00] NOTICE: \trequest_terminate_timeout = %s\n' "\$(val pool 0s)"; exit 0 ;;
+    "peak-lab-db mysql -uroot")
+      printf 'entities\t2026-11-11 05:17:04\t10000\t100\t50\n'; exit 0 ;;
+  esac
+  if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ] && [ "\$2" = /peak-sim/poc/lab/diagnosis/fcgi_get.php ]; then
+    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s"}\n' "\$(val php 30)"; exit 0
+  fi
+  if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ]; then
+    shift
+    exec "$real_docker" run --rm -i --pull=never --network none --cpuset-cpus="${PEAK_DEV_CPUSET:-12-15}" -u "$(id -u):$(id -g)" -v "$repo_real:/peak-sim:ro" -v "$out:/out" "$php_image" nice php "\$@"
+  fi
+  if [ "\$c" = peak-lab-k6 ]; then echo "\$*" >>"\$w/k6.calls"; exit 99; fi
+fi
+exit 99
+FAKE
+chmod +x "$work/fakebin/docker"
+
+# a copy of the lab's bin directory with the real scripts; preflight (the closed-network check) and the CPU sampler are stubs
+for f in measure-calibration check-limits _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+ln -s "$lab/scenarios" "$work/lab/scenarios"   # the gate itself is the real one
+printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/bin/preflight"; chmod +x "$work/lab/bin/preflight"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/observe/sample-cpu"; chmod +x "$work/lab/observe/sample-cpu"
+for scale in 3000 10000 30000; do echo '{}' >"$out/targets-$scale.json"; done
+
+# the plans: the five runs of the remeasured calibration, and two more of a different mix (a book page 80%, no ZIP), made here as the plan files are
+d5="$data/calibration-limits-off"
+python3 - "$work/plans" "$d5/cal-1/plan.json" <<'PY'
+import json, os, sys
+dest, base = sys.argv[1], json.load(open(sys.argv[2]))
+routes = []
+for r in base['routes']:
+    v = 0.0 if r['route'] == 'GET /books/{bookSlug}/export/zip' else (0.8 * 2.0 if r['route'] == 'GET /books/{slug}' else 0.2 * 2.0 / 6)
+    routes.append({'route': r['route'], 'rps': v})
+plan = {'mix': 'book80', 'rps': sum(x['rps'] for x in routes), 'duration_sec': 600, 'warmup_sec': 120, 'routes': routes}
+json.dump(plan, open(os.path.join(dest, 'book80.json'), 'w'))
+PY
+five=(); for n in 1 2 3 4 5; do five+=(--run=cal-$n:$d5/cal-$n/plan.json); done
+scales=(--run-scale=cal-4:3000 --run-scale=cal-5:30000)
+seven=("${five[@]}" --run=cal-6:"$work/plans/book80.json" --run=cal-7:"$work/plans/book80.json" "${scales[@]}" --run-scale=cal-6:30000 --run-scale=cal-7:30000)
+
+reset_lab() { rm -f "$work"/s/*; : >"$work/docker.calls"; : >"$work/k6.calls"; rm -rf "$out/calibration" "$out/limits"; }
+set_lab() { reset_lab; local kv; for kv in "$@"; do printf '%s' "${kv#*=}" >"$work/s/${kv%%=*}"; done; }
+env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
+mc() { env_run "$work/lab/bin/measure-calibration" "$@" >"$work/mc.out" 2>"$work/mc.err"; }
+k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
+lab_calls() { wc -l <"$work/docker.calls" | tr -d ' '; }
+B=(php=0 pool=0s nginx=600s)
+
+# 1 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab "${B[@]}"
+mc --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s; rc=$?
+expect_code "1 the five runs of the remeasured calibration: refused" 14 $rc
+[ "$(lab_calls)" = 0 ] && pass "1b no container of the lab was touched" || fail "1b the lab was touched ($(head -3 "$work/docker.calls" | tr '\n' ' '))"
+[ "$(k6_calls)" = 0 ] && pass "1c the load tool was never called" || fail "1c k6 was called"
+has "$work/mc.out" 'degree 0.005938' && has "$work/mc.out" 'without cal-4  *degree 0.003834' && pass "1d the degrees are printed (0.005938 for all, 0.003834 without cal-4)" || fail "1d no degrees in the output ($(head -12 "$work/mc.out" | tr '\n' ' '))"
+has "$work/mc.err" 'CALIBRATION GATE REFUSED' && pass "1e it says the gate refused" || fail "1e ($(cat "$work/mc.err"))"
+[ -s "$out/calibration/calibration-gate.json" ] && has "$out/calibration/calibration-gate.json" '"passed": false' && pass "1f the degrees are kept in calibration-gate.json" || fail "1f no record of the gate"
+[ ! -e "$out/calibration/cal-1" ] && pass "1g no run directory was made" || fail "1g a run directory was made"
+
+# 2 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab "${B[@]}" scale=10000
+mc --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1,cal-2 --request-timeout=600s --switch-scale; rc=$?
+expect_code "2 a lab that is fully ready does not change the answer" 14 $rc
+[ "$(lab_calls)" = 0 ] && [ "$(k6_calls)" = 0 ] && pass "2b still nothing of the lab touched, no load" || fail "2b"
+
+# 3 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab "${B[@]}" scale=10000
+mc --estimate="$est" "${seven[@]}" --measure=cal-1 --request-timeout=600s; rc=$?
+has "$work/mc.out" 'CALIBRATION GATE OK' && pass "3 the five plus two runs of a different mix: the gate opens" || fail "3 the gate did not open ($(tail -5 "$work/mc.out" | tr '\n' ' ') $(cat "$work/mc.err"))"
+[ "$(k6_calls)" -ge 1 ] && pass "3b the entry reaches the load tool (so 1c means something)" || fail "3b k6 was never reached ($(head -3 "$work/mc.err" | tr '\n' ' '))"
+expect_code "3c the stand-in k6 fails, which stops it at 13" 13 $rc
+has "$work/mc.out" 'RUN SETTINGS cal-1' && has "$work/mc.out" 'RUN START cal-1' && pass "3d the limits were read and recorded, then the run started" || fail "3d ($(cat "$work/mc.out" | tail -4 | tr '\n' ' '))"
+has "$out/calibration/cal-1/stats-before.tsv" 'entities' && pass "3e the statistics were read before the run" || fail "3e no stats-before.tsv"
+
+# 4 ---------------------------------------------------------------------------------------------------------------------------------------
+[ -s "$out/calibration/cal-1/calibration-gate.json" ] && has "$out/calibration/cal-1/calibration-gate.json" '"passed": true' && pass "4 the gate record is kept in the run's directory" || fail "4 no calibration-gate.json in the run directory"
+
+# 5 THE GATE IS IN THE ENTRY -----------------------------------------------------------------------------------------------------------
+n_lines="$(grep -c 'CALIBRATION-GATE$' "$lab/bin/measure-calibration")"
+[ "$n_lines" = 1 ] && pass "5 the real entry has one line that calls the gate" || fail "5 the real entry has $n_lines gate lines"
+gate_line="$(grep -n 'CALIBRATION-GATE$' "$lab/bin/measure-calibration" | cut -d: -f1)"
+pre_line="$(grep -n 'bindir/preflight' "$lab/bin/measure-calibration" | head -1 | cut -d: -f1)"
+[ -n "$gate_line" ] && [ -n "$pre_line" ] && [ "$gate_line" -lt "$pre_line" ] && pass "5b the gate comes before the closed-network check" || fail "5b the gate (line ${gate_line:-?}) is not before preflight (line ${pre_line:-?})"
+# the same script with the gate line and the check of its answer taken out
+sed '/CALIBRATION-GATE$/d' "$lab/bin/measure-calibration" | sed 's/^gate_rc=\$?$/gate_rc=0/' >"$work/lab/bin/measure-calibration-nogate"; chmod +x "$work/lab/bin/measure-calibration-nogate"
+set_lab "${B[@]}" scale=10000
+env_run "$work/lab/bin/measure-calibration-nogate" --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s >"$work/mc.out" 2>"$work/mc.err"; rc=$?
+[ "$(k6_calls)" -ge 1 ] && pass "5c without the gate line the refused set reaches the load tool: the test in 1 is what stops it" || fail "5c the entry without the gate did not reach k6 ($(head -3 "$work/mc.err" | tr '\n' ' '))"
+
+# 6 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab "${B[@]}"
+mc --estimate="$est" "${five[@]}" "${scales[@]}" --gate-only; expect_code "6 --gate-only on the five runs: 14" 14 $?
+mc --estimate="$est" "${seven[@]}" --gate-only; rc=$?
+expect_code "6b --gate-only on the seven runs: 0" 0 $rc
+[ "$(lab_calls)" = 0 ] && pass "6c --gate-only touched no container" || fail "6c the lab was touched"
+
+# 7 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab php=30 pool=0s nginx=120s scale=10000   # what the lab is when nobody switched it
+mc --estimate="$est" "${seven[@]}" --measure=cal-1 --request-timeout=600s; rc=$?
+expect_code "7 the gate opens but the lab is left at the default: the limits guard stops it" 13 $rc
+[ "$(k6_calls)" = 0 ] && pass "7b the load tool was never called" || fail "7b k6 was called"
+has "$work/mc.err" 'max_execution_time' && pass "7c the refusal names the limit" || fail "7c ($(cat "$work/mc.err"))"
+
+# 8 ---------------------------------------------------------------------------------------------------------------------------------------
+set_lab "${B[@]}"
+mc --estimate="$est" "${seven[@]}" --request-timeout=600s; expect_code "8 no --measure: usage" 2 $?
+mc --estimate="$est" "${seven[@]}" --measure=cal-1; expect_code "8b no --request-timeout: usage" 2 $?
+mc --estimate="$est" "${seven[@]}" --measure=cal-9 --request-timeout=600s; expect_code "8c --measure of a run that is not in --run: usage" 2 $?
+[ ! -e "$out/calibration/calibration-gate.json" ] && [ "$(lab_calls)" = 0 ] && pass "8d none of them reached the gate or the lab" || fail "8d"
+
+echo
+echo "calibration gate tests: $passed passed, $failed failed, $skipped skipped"
+[ "$failed" -eq 0 ] && [ "$skipped" -eq 0 ]

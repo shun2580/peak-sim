@@ -25,7 +25,20 @@ final class InputLoader
         } catch (\RuntimeException $e) {
             throw new LoadFailure(LoadFailure::SCENARIO_INVALID, 'the scenario file cannot be read: ' . $scenarioPath);
         }
-        $file = ScenarioReader::parseStageOne($text);
+
+        return $this->loadParsed($estimateDir, ScenarioReader::parseStageOne($text));
+    }
+
+    /**
+     * The same, from a scenario file that is already read: `observed` is carried when a scenario has it and is not needed when it has not
+     * (the calibration gate puts a calibration's plan through here before it is measured).
+     *
+     * @param array{resources: array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null}, scenarios: list<array{id: string, kind: string, tables: array<string, int>, rps: array<string, float>, observed?: float}>} $file
+     *
+     * @throws LoadFailure
+     */
+    public function loadParsed(string $estimateDir, array $file): LoadedInput
+    {
         $estimate = EstimateFormulas::load($this->io, $estimateDir);
 
         $scenarios = [];
