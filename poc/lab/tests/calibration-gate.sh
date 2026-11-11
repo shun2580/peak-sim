@@ -11,6 +11,7 @@
 #  2  the same with the lab fully ready (limits set, scale right): still refused before anything of the lab is read
 #  3  a set that can (the five plus two runs of a different mix): the gate opens and the entry goes on to the limits guard and to k6
 #  4  the gate record is kept in the run's directory
+#  4b every file the entry writes is outside .gitignore (none is named *.log), so a record is not lost from a commit
 #  5  THE GATE IS IN THE ENTRY: the same script with its gate line taken out does reach k6 on the refused set (so 1 means something), and the
 #     real script has exactly one such line, before the closed-network check
 #  6  --gate-only touches no container and answers by the gate
@@ -132,6 +133,15 @@ has "$out/calibration/cal-1/stats-before.tsv" 'entities' && pass "3e the statist
 
 # 4 ---------------------------------------------------------------------------------------------------------------------------------------
 [ -s "$out/calibration/cal-1/calibration-gate.json" ] && has "$out/calibration/cal-1/calibration-gate.json" '"passed": true' && pass "4 the gate record is kept in the run's directory" || fail "4 no calibration-gate.json in the run directory"
+
+# 4b every file the entry writes can be committed: none of them is matched by .gitignore (the load tool's log was once named k6.log and was dropped by *.log)
+# the names come from the run directory of 3 and, as the stand-in k6 stops the run early, also from every "$d/<name>" the script itself writes to
+ign_dir="docs/research/lab-data/calibration-limits-off/cal-x"
+names="$( { ls "$out/calibration/cal-1"; grep -oE '"\$d/[A-Za-z0-9._-]+"' "$lab/bin/measure-calibration" | sed -E 's|^"\$d/||; s|"$||'; printf 'calibration-gate.json\n'; } | sort -u )"
+n_names="$(printf '%s\n' "$names" | grep -c .)"
+leaked="$(for nm in $names; do git -C "$repo_real" check-ignore -q --no-index "$ign_dir/$nm" && printf '%s ' "$nm"; done)"
+[ "$n_names" -ge 15 ] && [ -z "$leaked" ] && pass "4b none of the $n_names output names is ignored by git (.gitignore)" || fail "4b names ignored by git: ${leaked:-none}; names checked: $n_names"
+[ -f "$out/calibration/cal-1/k6-output.txt" ] && pass "4c the load tool's output is kept as k6-output.txt" || fail "4c no k6-output.txt"
 
 # 5 THE GATE IS IN THE ENTRY -----------------------------------------------------------------------------------------------------------
 n_lines="$(grep -c 'CALIBRATION-GATE$' "$lab/bin/measure-calibration")"

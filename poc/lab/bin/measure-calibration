@@ -20,7 +20,8 @@
 #   that the load tool is never reached, and that the same script with that line taken out does reach it.
 #
 # Records: <out>/<id>/{plan.json, calibration-gate.json, limits.txt, settings*.txt|json, stats-before.tsv, started_at.txt, cpu.txt, app-cpu.txt, summary.json,
-# k6.log, ended_at.txt, stats-after.tsv, record.json}. record.json is the output of load/summarize-run.php (what `make-calibration-scenario` reads).
+# k6-output.txt, ended_at.txt, stats-after.tsv, record.json}. record.json is the output of load/summarize-run.php (what `make-calibration-scenario` reads).
+# No output is named *.log (the repository's .gitignore drops them, and a record that is not committed is lost); a test checks every output name.
 # A run with a record.json already is not measured again. Default <out>: $PEAK_LAB_OUT_DIR/calibration.
 #
 # --gate-only runs the gate and nothing else (no container is touched). The scale of a database is built before this (bin/build-db, bin/targets) and
@@ -146,14 +147,14 @@ for id in ${measure//,/ }; do
   app_pid=$!
   sleep 5   # a sample before the load starts, so the window's first edge is covered
   docker exec -e "PLAN=$(in_container "$d/plan.json")" -e "TARGETS=/out/targets-$run_scale.json" -e "SUMMARY=$(in_container "$d/summary.json")" -e "REQUEST_TIMEOUT=$request_timeout" \
-    peak-lab-k6 k6 run /load/scenario.js >"$d/k6.log" 2>&1
+    peak-lab-k6 k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
   k6_rc=$?
   echo "$k6_rc" >"$d/k6.exit"
   wait "$db_pid"; db_rc=$?; wait "$app_pid"; app_rc=$?
   ended_at="$(date -Iseconds)"; echo "$ended_at" >"$d/ended_at.txt"
   echo "$db_rc $app_rc" >"$d/sampler.exit"
   if [ "$k6_rc" != 0 ] || [ ! -f "$d/summary.json" ]; then
-    echo "measure-calibration: k6 failed in $id, exit $k6_rc; see $d/k6.log. Stopped; nothing was judged." >&2
+    echo "measure-calibration: k6 failed in $id, exit $k6_rc; see $d/k6-output.txt. Stopped; nothing was judged." >&2
     exit 13
   fi
   if [ "$db_rc" != 0 ] || [ "$app_rc" != 0 ]; then
