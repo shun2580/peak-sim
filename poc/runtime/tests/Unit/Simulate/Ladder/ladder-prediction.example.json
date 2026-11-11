@@ -3,6 +3,7 @@
     "kind": "lab-ladder-prediction",
     "app": "demo",
     "estimate_at": 200000,
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
     "resources": {
         "cores": 2.0,
         "threshold": 0.8

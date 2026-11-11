@@ -11,6 +11,7 @@ use PeakSim\Runtime\Simulate\Ladder\LadderPrediction;
 use PeakSim\Runtime\Simulate\Ladder\LadderStage;
 use PeakSim\Runtime\Simulate\Load\TwoStage;
 use PeakSim\Runtime\Simulate\Predict\LimitSearch;
+use PeakSim\Runtime\Simulate\Predict\PredictionReport;
 use PeakSim\Runtime\Simulate\Predict\PredictStage;
 use PeakSim\Runtime\Simulate\Predict\ScenarioPredictor;
 use PeakSim\Runtime\Simulate\SimulateCommand;
@@ -325,6 +326,18 @@ final class LadderPredictionTest extends TestCase
     {
         $written = self::ladder(self::yaml())[3]->files['/out/ladder-prediction.json'];
         self::assertSame((string) file_get_contents(__DIR__ . '/ladder-prediction.example.json'), $written);
+    }
+
+    /**
+     * The example above is the one from before the statistics note existed (kept as `*.c9f08de.json`) plus its one line, put in by hand; take
+     * that line away and the old bytes are back: nothing else in the prediction changed.
+     */
+    public function testTheExampleFileDiffersFromTheOldExampleByTheStatisticsNoteAndNothingElse(): void
+    {
+        $example = (string) file_get_contents(__DIR__ . '/ladder-prediction.example.json');
+        $line = '    "estimate_basis_note": ' . json_encode(PredictionReport::ESTIMATE_BASIS_NOTE, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . ",\n";
+        self::assertSame(1, substr_count($example, $line));
+        self::assertSame((string) file_get_contents(__DIR__ . '/ladder-prediction.example.c9f08de.json'), str_replace($line, '', $example));
     }
 
     public function testAFileWithNoTargetScenarioStopsWithItsOwnExitCodeAndWritesNoPrediction(): void

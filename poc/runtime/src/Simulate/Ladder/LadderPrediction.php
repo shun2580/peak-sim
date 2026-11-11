@@ -10,6 +10,7 @@ use PeakSim\Runtime\Simulate\Predict\AppLimitRisk;
 use PeakSim\Runtime\Simulate\Predict\CalibrationWidth;
 use PeakSim\Runtime\Simulate\Predict\Coefficients;
 use PeakSim\Runtime\Simulate\Predict\LimitSearch;
+use PeakSim\Runtime\Simulate\Predict\PredictionReport;
 use PeakSim\Runtime\Simulate\Predict\PredictStage;
 use PeakSim\Runtime\Simulate\Predict\ScenarioPredictor;
 use PeakSim\Runtime\Simulate\Predict\UtilizationModel;
@@ -113,6 +114,7 @@ final class LadderPrediction
             'kind' => self::KIND,
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
+            'estimate_basis_note' => PredictionReport::ESTIMATE_BASIS_NOTE,
             'resources' => ['cores' => $cores, 'threshold' => $threshold] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]),
             'stages_rps_total' => array_values($stages),
             'inputs' => $inputs,
