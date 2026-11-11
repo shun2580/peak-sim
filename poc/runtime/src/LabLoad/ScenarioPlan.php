@@ -9,6 +9,7 @@ namespace PeakSim\Runtime\LabLoad;
  *
  * A route's rate is the total rps times its share. k6 wants an integer rate per time unit, so a rate that is not a whole
  * number of requests per second is written as a count per 1000 seconds (the spacing between requests is the same).
+ * A route whose share is 0 is left out of the plan: its rate is 0 requests, so there is nothing to send.
  * Nothing here decides what a good rps is; it only turns "R requests per second, spread like this" into the file.
  */
 final class ScenarioPlan
@@ -34,9 +35,12 @@ final class ScenarioPlan
         if (count(array_unique($routes)) !== count($routes)) {
             throw new \InvalidArgumentException('a route is in the list twice');
         }
-        $shares = RouteMix::shares(count($routes), $mix);
+        $shares = RouteMix::shares(count($routes), $mix, array_values($routes));
         $out = [];
         foreach ($routes as $i => $route) {
+            if ($shares[$i] <= 0.0) {
+                continue; // a route with no share is not sent (k6 cannot run a stream of 0 per second); no mix but a named one gives 0
+            }
             $routeRps = $rps * $shares[$i];
             [$rate, $unit] = self::rate($routeRps);
             $out[] = ['route' => $route, 'share' => $shares[$i], 'rps' => $routeRps, 'rate' => $rate, 'time_unit' => $unit];

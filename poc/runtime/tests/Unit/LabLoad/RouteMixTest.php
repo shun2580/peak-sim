@@ -69,4 +69,68 @@ final class RouteMixTest extends TestCase
             }
         }
     }
+
+    /** @return list<string> the 8 routes of the calibration plans, in the (alphabetical) order of the route list */
+    private static function listRoutes(): array
+    {
+        return [
+            'GET /books/{bookSlug}/chapter/{chapterSlug}/references',
+            'GET /books/{bookSlug}/export/zip',
+            'GET /books/{bookSlug}/page/{pageSlug}/references',
+            'GET /books/{slug}',
+            'GET /books/{slug}/references',
+            'GET /images/edit/{id}',
+            'GET /oidc/callback',
+            'GET /shelves/{slug}',
+        ];
+    }
+
+    public function test_bookpage80zip0_gives_the_book_page_80_percent_the_zip_nothing_and_the_other_six_a_thirtieth_each(): void
+    {
+        $routes = self::listRoutes();
+        $shares = RouteMix::shares(8, RouteMix::BOOK_PAGE_80_ZIP_0, $routes);
+        $byRoute = array_combine($routes, $shares);
+
+        $this->assertSame(0.8, $byRoute[RouteMix::BOOK_PAGE_ROUTE]);
+        $this->assertSame(0.0, $byRoute[RouteMix::ZIP_ROUTE]);
+        $others = array_diff_key($byRoute, [RouteMix::BOOK_PAGE_ROUTE => 0, RouteMix::ZIP_ROUTE => 0]);
+        $this->assertCount(6, $others);
+        foreach ($others as $route => $share) {
+            $this->assertEqualsWithDelta(1 / 30, $share, 1e-12, $route);
+        }
+        $this->assertEqualsWithDelta(1.0, array_sum($shares), 1e-12);
+    }
+
+    public function test_bookpage80zip0_points_at_the_routes_by_name_not_by_place(): void
+    {
+        $routes = self::listRoutes();
+        $reversed = array_reverse($routes);
+        $a = array_combine($routes, RouteMix::shares(8, RouteMix::BOOK_PAGE_80_ZIP_0, $routes));
+        $b = array_combine($reversed, RouteMix::shares(8, RouteMix::BOOK_PAGE_80_ZIP_0, $reversed));
+        ksort($a);
+        ksort($b);
+        $this->assertSame($a, $b);
+    }
+
+    public function test_bookpage80zip0_is_refused_without_the_list_or_without_one_of_its_two_routes(): void
+    {
+        $routes = self::listRoutes();
+        $noZip = array_values(array_diff($routes, [RouteMix::ZIP_ROUTE])) + [7 => 'GET /other'];
+        $twice = array_merge(array_slice($routes, 0, 7), [RouteMix::BOOK_PAGE_ROUTE]);
+        foreach ([[8, []], [8, $noZip], [8, $twice], [2, [RouteMix::BOOK_PAGE_ROUTE, RouteMix::ZIP_ROUTE]]] as [$n, $list]) {
+            try {
+                RouteMix::shares($n, RouteMix::BOOK_PAGE_80_ZIP_0, $list);
+                $this->fail('expected a refusal');
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_the_other_mixes_ignore_the_list_and_keep_their_shares(): void
+    {
+        foreach (RouteMix::names() as $mix) {
+            $this->assertSame(RouteMix::shares(8, $mix), RouteMix::shares(8, $mix, self::listRoutes()), $mix);
+        }
+    }
 }

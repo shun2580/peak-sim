@@ -101,4 +101,38 @@ final class ScenarioPlanTest extends TestCase
             }
         }
     }
+
+    public function test_the_book_page_mix_leaves_the_zip_out_and_sends_the_rest_at_their_rates(): void
+    {
+        $routes = [
+            'GET /books/{bookSlug}/chapter/{chapterSlug}/references',
+            'GET /books/{bookSlug}/export/zip',
+            'GET /books/{bookSlug}/page/{pageSlug}/references',
+            'GET /books/{slug}',
+            'GET /books/{slug}/references',
+            'GET /images/edit/{id}',
+            'GET /oidc/callback',
+            'GET /shelves/{slug}',
+        ];
+        $plan = ScenarioPlan::build($routes, RouteMix::BOOK_PAGE_80_ZIP_0, 2.2, 600, 120);
+
+        $this->assertSame(RouteMix::BOOK_PAGE_80_ZIP_0, $plan['mix']);
+        $this->assertSame(array_values(array_diff($routes, ['GET /books/{bookSlug}/export/zip'])), array_column($plan['routes'], 'route'));
+        $byRoute = array_column($plan['routes'], null, 'route');
+        $this->assertEqualsWithDelta(0.8, $byRoute['GET /books/{slug}']['share'], 1e-12);
+        $this->assertEqualsWithDelta(1.76, $byRoute['GET /books/{slug}']['rps'], 1e-9);
+        $this->assertEqualsWithDelta(2.2, array_sum(array_column($plan['routes'], 'rps')), 1e-9);
+        foreach ($plan['routes'] as $r) {
+            $this->assertGreaterThanOrEqual(1, $r['rate']);
+            $this->assertEqualsWithDelta($r['rps'], $r['rate'] / (int) rtrim($r['time_unit'], 's'), $r['rps'] * 0.001, $r['route']);
+        }
+    }
+
+    public function test_the_plan_of_an_existing_mix_is_the_same_as_before_and_keeps_every_route(): void
+    {
+        $plan = ScenarioPlan::build(self::routes(), RouteMix::ODD_80, 40.0);
+        $this->assertCount(8, $plan['routes']);
+        $this->assertSame([8, 2, 8, 2, 8, 2, 8, 2], array_column($plan['routes'], 'rate'));
+        $this->assertSame(['mix', 'rps', 'duration_sec', 'warmup_sec', 'routes'], array_keys($plan));
+    }
 }
