@@ -115,3 +115,14 @@ The width of the calibration, the range of the fits made by leaving one run out 
 | `cal-4` | 1.74879e-4 | 1.12854e-5 |
 
 Leaving `cal-4` out gives back the three-run fit of the section above. The `c_query` of the five fits lies between 1.749e-4 and 2.871e-4 (a factor of 1.64); the `c_row` lies between 1.379e-6 and 1.129e-5 (a factor of 8.2), so the weight of the rows is still the less certain of the two. The queries-only fit (squared residual 2.7456e-4) is worse than the two-coefficient fit on these four runs; the rows-only fit (1.4015e-2, `cal-4` 5.28 points off) is far worse. They are shown by the tool, not used.
+
+## The calibration measured again with the limits off, and `cal-5` (defined before any run)
+
+This section is written before the measurement; it holds a definition and no result.
+
+The spec (7.4.1) has the calibration measured again under the lab's settings for B: PHP's `max_execution_time` 0, the load tool's request timeout and the web server's read timeout 600 seconds. The first records above (`cal-1` to `cal-4`) were made with PHP's 30-second limit on and are kept as they are; the runs made again are not put over them.
+
+- **`cal-1` to `cal-4` again:** the same mixes, row counts and window (10 minutes at a constant arrival rate, the first 2 minutes discarded, a database with 2 CPUs), with R_0 = 1 rps (`cal-1`, `cal-2`, `cal-3`) and R_1 = 4 rps (`cal-4`, 3,000 rows) of the first calibration. The database utilization of the runs of `cal-1` and `cal-4` must lie between 20% and 30%, which is the rule that defines R_0 and R_1; if one does not, that run is not used and R_0 or R_1 is searched again with the limits off (rps doubled from 1) and the run is made again.
+- **`cal-5` (new):** 30,000 rows in the three scaled tables, the 8 routes mixed evenly, the same window. Its rps, R_2, follows the rule of R_0 (the utilization lies between 20% and 30%), but doubling from 1 rps only goes up, and at 30,000 rows 1 rps is about 66% by a desk estimate from the one-request baseline (not a measurement under load). So R_2 is the first value, tried from the top down starting at 0.45, of the rps steps of the spec (0.05 / 0.07 / 0.1 / 0.15 / 0.2 / 0.3 / 0.45 / 0.7 / 1.0 / ...) at which a search run of the same conditions puts the database utilization between 20% and 30%: 0.45 first; if it is above 30%, 0.3; if 0.45 is below 20% or 0.3 is outside the band, the work stops and is reported. A value between two steps is not used, and a search run is not reused as the run of `cal-5`.
+- **Before and after each database:** `last_update` of every table in `mysql.innodb_table_stats` is recorded, and no `ANALYZE` is run between runs on the same database.
+- **Fit:** the same tool and the same two coefficients (`c_query`, `c_row`, non-negative least squares) as `fit-4runs/`, now on five runs, and the width is the five fits that leave one run out. The formula and the rules are not changed after seeing the result.
