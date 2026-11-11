@@ -73,6 +73,26 @@ final class OutputWriterTest extends PlannerTestCase
         $this->assertSame('/probe/ddl', $summary['builds'][0]['rebuilt_after']);
     }
 
+    public function test_the_statistics_state_of_a_database_stays_in_the_record(): void
+    {
+        $statistics = ['analyzed_tables' => 3, 'auto_recalc_off_on' => 3, 'table_rows_changed' => ['orders' => ['before' => 0, 'after' => 100]], 'server' => ['innodb_stats_persistent' => 'ON']];
+        $base = self::sample();
+        $result = new DriverResult(0, null, $base->report, $base->attempts, $base->timings, [['point' => 'ord:100', 'database' => 'peak_sim_measure_x', 'rows' => ['orders' => 100], 'statistics' => $statistics]]);
+
+        (new OutputWriter($this->dir))->write($result, [], [], null);
+
+        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
+        $this->assertSame($statistics, $summary['builds'][0]['statistics']);
+    }
+
+    public function test_a_build_without_statistics_has_no_statistics_key(): void
+    {
+        (new OutputWriter($this->dir))->write(self::sample(), [], [], null);
+
+        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
+        $this->assertArrayNotHasKey('statistics', $summary['builds'][0]);
+    }
+
     public function test_with_expectations_it_puts_them_beside_the_static_analysis_and_the_measurement(): void
     {
         (new OutputWriter($this->dir))->write(self::sample(), [], [], [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']]);
