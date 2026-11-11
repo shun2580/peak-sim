@@ -116,7 +116,7 @@ final class StatsStatementsTest extends TestCase
         $methods = array_map(static fn (\ReflectionMethod $m): string => $m->getName(), (new \ReflectionClass(StatsStatements::class))->getMethods(\ReflectionMethod::IS_PUBLIC));
         sort($methods);
 
-        $this->assertSame(['__construct', 'analyze', 'relevant', 'setSamplePages', 'settings', 'switchAutoRecalcOff', 'tables'], $methods);
+        $this->assertSame(['__construct', 'analyze', 'relevant', 'setSamplePages', 'settings', 'switchAutoRecalcOff', 'tableRows', 'tables'], $methods);
         foreach ((new \ReflectionClass(StatsStatements::class))->getMethods(\ReflectionMethod::IS_PUBLIC) as $m) {
             foreach ($m->getParameters() as $p) {
                 $this->assertNotContains($p->getName(), ['sql', 'statement', 'query'], $m->getName() . ' takes a statement');

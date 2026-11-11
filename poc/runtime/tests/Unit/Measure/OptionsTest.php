@@ -193,4 +193,13 @@ final class OptionsTest extends TestCase
         yield 'quote' => ['--n-tables=en`tities'];
         yield 'with the seeder, which has its own shape' => ['--data=seeder', '--n-tables=entities'];
     }
+
+    public function test_the_statistics_are_not_analysed_after_a_build_unless_the_run_asks_for_it(): void
+    {
+        $this->assertFalse(Options::parse([])->analyzeAfterBuild);
+        $this->assertFalse(Options::parse(['--analyze-after-build=off'])->analyzeAfterBuild);
+        $this->assertTrue(Options::parse(['--analyze-after-build=on'])->analyzeAfterBuild);
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse(['--analyze-after-build=maybe']);
+    }
 }

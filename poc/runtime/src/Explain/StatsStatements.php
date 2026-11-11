@@ -74,6 +74,27 @@ final class StatsStatements
     }
 
     /**
+     * What the optimizer's statistics say each base table holds (`table_rows` of information_schema, read with the statistics cache
+     * switched off for this connection), by table. Read before and after ANALYZE TABLE it shows what the statement changed.
+     *
+     * @return array<string, int>
+     */
+    public function tableRows(): array
+    {
+        $this->db->run('SET SESSION information_schema_stats_expiry = 0');
+        $rows = $this->db->run("SELECT table_name AS t, table_rows AS n FROM information_schema.TABLES WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' ORDER BY table_name");
+        $out = [];
+        foreach ($rows as $row) {
+            $name = (string) ($row['t'] ?? $row['T'] ?? $row['TABLE_NAME'] ?? reset($row));
+            if (preg_match('/^[A-Za-z0-9_]{1,64}$/D', $name) === 1) {
+                $out[$name] = (int) ($row['n'] ?? $row['N'] ?? $row['TABLE_ROWS'] ?? 0);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * ANALYZE TABLE on each table. Returns, per table, the server's message rows (`Msg_type`, `Msg_text`).
      *
      * @param list<string> $tables

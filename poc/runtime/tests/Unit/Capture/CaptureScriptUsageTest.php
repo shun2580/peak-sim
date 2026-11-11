@@ -57,6 +57,7 @@ final class CaptureScriptUsageTest extends TestCase
         yield 'n tables with a capital' => [['--app=/x', '--static=/y', '--n-tables=Entities']];
         yield 'n tables with an empty name' => [['--app=/x', '--static=/y', '--n-tables=a,,b']];
         yield 'n tables empty' => [['--app=/x', '--static=/y', '--n-tables=']];
+        yield 'analyze after build maybe' => [['--app=/x', '--static=/y', '--analyze-after-build=maybe']];
         yield 'n tables with the seeder' => [['--app=/x', '--static=/y', '--data=seeder', '--n-tables=entities']];
     }
 

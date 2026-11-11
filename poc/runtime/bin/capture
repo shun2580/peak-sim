@@ -45,6 +45,10 @@ usage: bin/capture --app=<dir> --static=<analysis.json> [options]
   --profile=<name>       generator only: app knowledge from profiles/<name>.php (same as bin/measure)
   --gate-bypass=on|off   as in bin/measure (default on)
   --request-timeout=N    seconds one request may run, 1 to 600 (default 20)
+  --analyze-after-build=on|off
+                         on: right after each database is built, ANALYZE TABLE on every table and STATS_AUTO_RECALC=0, before a route
+                         is sent (the statistics state the EXPLAIN step puts its databases in, so the plans the capture sees are the
+                         plans EXPLAIN reads). Default off: the capture is as it was.
   --keep-stack           leave the stack up afterwards (tear it down with bin/stack down)
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-capture), PHP_VERSION (default 8.3), PEAK_PHP_IMAGE (an already built image)
@@ -61,7 +65,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" appname="" data="generator" scales="100,1000,10000" only="" ntables="" ntables_given=0 base="" profile="" profile_given=0 gate="" timeout="" keep=0
+app="" static="" out="" appname="" data="generator" scales="100,1000,10000" only="" ntables="" ntables_given=0 base="" profile="" profile_given=0 gate="" timeout="" analyze="" keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -77,6 +81,7 @@ for arg in "$@"; do
     --profile=*) profile="${arg#--profile=}"; profile_given=1 ;;
     --gate-bypass=*) gate="${arg#--gate-bypass=}" ;;
     --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
+    --analyze-after-build=*) analyze="${arg#--analyze-after-build=}" ;;
     --keep-stack) keep=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
   esac
@@ -104,6 +109,7 @@ if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base
 if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
 if [ -n "$gate" ]; then case "$gate" in on|off) ;; *) fail_usage "--gate-bypass takes on or off" ;; esac; fi
 if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$timeout))" -ge 1 ] && [ "$((10#$timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"; fi
+if [ -n "$analyze" ]; then case "$analyze" in on|off) ;; *) fail_usage "--analyze-after-build takes on or off" ;; esac; fi
 if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
 [ -d "$app" ] || fail_usage "--app is not a directory: $app"
 [ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
@@ -125,6 +131,7 @@ inner=(--data="$data" --warm=off --tap-dir=/out/capture-taps)
 [ -n "$base" ] && inner+=(--base="$base")
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")
+[ -n "$analyze" ] && inner+=(--analyze-after-build="$analyze")
 
 teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
 trap teardown EXIT

@@ -23,6 +23,7 @@ final class Options
         public readonly bool $warm = true,
         public readonly ?string $tapDir = null,
         public readonly array $nTables = [],
+        public readonly bool $analyzeAfterBuild = false,
     ) {
     }
 
@@ -39,7 +40,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir', 'n-tables'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir', 'n-tables', 'analyze-after-build'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -105,7 +106,14 @@ final class Options
             $nTables = explode(',', $values['n-tables']);
         }
 
-        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir, $nTables);
+        // Set only by `bin/capture --analyze-after-build=on`: right after each database is built, ANALYZE TABLE on every table and
+        // STATS_AUTO_RECALC=0 (the statistics state the EXPLAIN step puts its databases in). Off, nothing is run and the run is as it was.
+        $analyze = $values['analyze-after-build'] ?? 'off';
+        if (!in_array($analyze, ['on', 'off'], true)) {
+            throw new \InvalidArgumentException('--analyze-after-build takes on or off');
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir, $nTables, $analyze === 'on');
     }
 
     /**

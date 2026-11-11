@@ -6,7 +6,7 @@ declare(strict_types=1);
 // inspect the app, then for each database a route needs: build it, measure the routes on it, drop it. Writes the
 // record into PEAK_MEASURE_OUT_DIR (default /out) and prints a short summary.
 //
-//   php measure.php [--data=generator|seeder] [--only=a,b] [--n-tables=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>]
+//   php measure.php [--data=generator|seeder] [--only=a,b] [--n-tables=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>] [--analyze-after-build=on|off]
 //
 // Input comes from PEAK_MEASURE_* variables (MeasureConfig). Exit codes: see Measure\MeasureExit.
 
@@ -16,6 +16,11 @@ use PeakSim\Runtime\Measure\BuildFailure;
 use PeakSim\Runtime\Measure\Driver;
 use PeakSim\Runtime\Measure\GeneratorPlanner;
 use PeakSim\Runtime\Measure\MeasureExit;
+use PeakSim\Runtime\Explain\ExplainDb;
+use PeakSim\Runtime\Explain\PdoStatsDb;
+use PeakSim\Runtime\Explain\StatsStatements;
+use PeakSim\Runtime\Measure\AnalyzingDatabaseBuilder;
+use PeakSim\Runtime\Measure\DatabasePoint;
 use PeakSim\Runtime\Measure\Options;
 use PeakSim\Runtime\Measure\OutputWriter;
 use PeakSim\Runtime\Measure\Proc;
@@ -94,7 +99,15 @@ fwrite(STDERR, sprintf("inspected: %d routes (%d not controllers), Laravel %s\n"
 $requestLimit = Requester::timeLimit($env[Requester::TIME_LIMIT_ENV] ?? '');
 // A measurement is a warm-up, a cold and a warm request, each within the limit, plus the start of the app.
 $runner = new ProcessOneRunner($bin . '/measure-one', $env, ProcessOneRunner::timeoutFor($requestLimit));
-$driver = new Driver($planner, $builder, $runner, $options->gateBypass, $options->warm, $options->tapDir);
+// With --analyze-after-build=on (bin/capture only) every database is analysed right after it is built, before a route is sent.
+$driverBuilder = $options->analyzeAfterBuild
+    ? new AnalyzingDatabaseBuilder($builder, static function (DatabasePoint $point) use ($env): StatsStatements {
+        $c = MeasureConfig::fromEnv(['PEAK_MEASURE_DB_TAG' => $point->tag] + $env);
+
+        return new StatsStatements(new PdoStatsDb(ExplainDb::open($c, $c->dbNameForScale($point->scale))));
+    })
+    : $builder;
+$driver = new Driver($planner, $driverBuilder, $runner, $options->gateBypass, $options->warm, $options->tapDir);
 $result = $driver->run($tasks, $scales);
 
 // 3. Record.
