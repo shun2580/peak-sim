@@ -1,0 +1,1109 @@
+{
+    "schema_version": "0.1",
+    "kind": "lab-ladder-prediction",
+    "app": "demo",
+    "estimate_at": 200000,
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8
+    },
+    "stages_rps_total": [
+        0.05,
+        0.07,
+        0.1,
+        0.15,
+        0.2,
+        0.3,
+        0.45,
+        0.7,
+        1.0,
+        1.5,
+        2.2,
+        3.3,
+        5.0
+    ],
+    "inputs": {
+        "estimate_commit": "abc123",
+        "estimate_commit_source": "argument",
+        "estimate_commit_expected": null,
+        "estimate_commit_is_expected": null,
+        "estimate_sha256": "cb913803964423f2c5d197323994f2fcb45a91bca6cc2dff2d297408c2d225aa",
+        "estimates_for_marks": [
+            {
+                "role": "main",
+                "at": 200000,
+                "commit": "abc123",
+                "commit_source": "argument",
+                "sha256": "cb913803964423f2c5d197323994f2fcb45a91bca6cc2dff2d297408c2d225aa"
+            }
+        ],
+        "scenario_sha256": "b5b00fbadc3cbdfbab973a693216b3ca7007d06a8a357b6c657570079ef86184"
+    },
+    "calibration": {
+        "coefficients": {
+            "name": "two_coefficient",
+            "c_q": 0.00711920497200172,
+            "c_row": 4.654482801058399e-5
+        },
+        "method": "two_coefficient",
+        "calibration_scenarios": 3,
+        "cut_coefficients": false,
+        "warnings": [],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.00711920497200172,
+                "c_row": 4.654482801058399e-5,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 4.2666666666666744e-5,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.903,
+                        "fitted_load": 0.8976666666666666,
+                        "residual_load": 0.005333333333333412,
+                        "observed_utilization": 0.4515,
+                        "fitted_utilization": 0.4488333333333333,
+                        "residual_utilization": 0.002666666666666706
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.9388,
+                        "fitted_load": 0.9414666666666665,
+                        "residual_load": -0.002666666666666484,
+                        "observed_utilization": 0.4694,
+                        "fitted_utilization": 0.4707333333333332,
+                        "residual_utilization": -0.001333333333333242
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.8512,
+                        "fitted_load": 0.8538666666666667,
+                        "residual_load": -0.002666666666666706,
+                        "observed_utilization": 0.4256,
+                        "fitted_utilization": 0.42693333333333333,
+                        "residual_utilization": -0.001333333333333353
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.0102294010728377,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.060916821208494024,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.903,
+                        "fitted_load": 0.8694990911912045,
+                        "residual_load": 0.033500908808795526,
+                        "observed_utilization": 0.4515,
+                        "fitted_utilization": 0.43474954559560225,
+                        "residual_utilization": 0.016750454404397763
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.9388,
+                        "fitted_load": 1.0843165137207962,
+                        "residual_load": -0.14551651372079621,
+                        "observed_utilization": 0.4694,
+                        "fitted_utilization": 0.5421582568603981,
+                        "residual_utilization": -0.07275825686039811
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.8512,
+                        "fitted_load": 0.6546816686616128,
+                        "residual_load": 0.19651833133838714,
+                        "observed_utilization": 0.4256,
+                        "fitted_utilization": 0.3273408343308064,
+                        "residual_utilization": 0.09825916566919357
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 0.00012984593050518334,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.24941943148119572,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.903,
+                        "fitted_load": 0.8160816732250773,
+                        "residual_load": 0.08691832677492273,
+                        "observed_utilization": 0.4515,
+                        "fitted_utilization": 0.40804083661253865,
+                        "residual_utilization": 0.043459163387461364
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.9388,
+                        "fitted_load": 0.5212015650478059,
+                        "residual_load": 0.41759843495219406,
+                        "observed_utilization": 0.4694,
+                        "fitted_utilization": 0.26060078252390295,
+                        "residual_utilization": 0.20879921747609703
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.8512,
+                        "fitted_load": 1.1109617814023487,
+                        "residual_load": -0.25976178140234873,
+                        "observed_utilization": 0.4256,
+                        "fitted_utilization": 0.5554808907011743,
+                        "residual_utilization": -0.12988089070117437
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 3 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.00711920497200172,
+                    "c_row": 4.654482801058399e-5,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.00710057227247554,
+                    "c_row": 4.6372530921174126e-5,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.007311168543474234,
+                    "c_row": 4.4797243246569613e-5,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.0070017721986339095,
+                    "c_row": 4.8981601132238074e-5,
+                    "cut_coefficient": false
+                }
+            ]
+        }
+    },
+    "naive": {
+        "basis_scenario": "cal-2",
+        "basis_utilization": 0.4694,
+        "basis_rps_total": 10.0,
+        "basis_count": 1000,
+        "candidates": [
+            "cal-1",
+            "cal-2",
+            "cal-3"
+        ],
+        "not_candidates": []
+    },
+    "scenarios": [
+        {
+            "id": "t-1",
+            "tables": {
+                "pages": 3000,
+                "books": 3000
+            },
+            "rps_total_in_file": 10.0,
+            "safe_side": [
+                {
+                    "count": 3000,
+                    "source": "main_estimate_other_count",
+                    "estimate_at": 200000,
+                    "marked_routes": [
+                        "POST /m"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "POST /m"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /a": 0.03,
+                        "GET /axisless": 0.01,
+                        "POST /m": 0.01
+                    },
+                    "utilization": {
+                        "point": 0.004790702418312719,
+                        "upper": 0.007611318995754108
+                    },
+                    "naive": 0.002347,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /a": 0.04200000000000001,
+                        "GET /axisless": 0.014000000000000002,
+                        "POST /m": 0.014000000000000002
+                    },
+                    "utilization": {
+                        "point": 0.006706983385637807,
+                        "upper": 0.010655846594055753
+                    },
+                    "naive": 0.0032858,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /a": 0.06,
+                        "GET /axisless": 0.02,
+                        "POST /m": 0.02
+                    },
+                    "utilization": {
+                        "point": 0.009581404836625437,
+                        "upper": 0.015222637991508216
+                    },
+                    "naive": 0.004694,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /a": 0.09,
+                        "GET /axisless": 0.03,
+                        "POST /m": 0.03
+                    },
+                    "utilization": {
+                        "point": 0.014372107254938154,
+                        "upper": 0.022833956987262323
+                    },
+                    "naive": 0.0070409999999999995,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /a": 0.12,
+                        "GET /axisless": 0.04,
+                        "POST /m": 0.04
+                    },
+                    "utilization": {
+                        "point": 0.019162809673250875,
+                        "upper": 0.030445275983016433
+                    },
+                    "naive": 0.009388,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /a": 0.18,
+                        "GET /axisless": 0.06,
+                        "POST /m": 0.06
+                    },
+                    "utilization": {
+                        "point": 0.02874421450987631,
+                        "upper": 0.045667913974524646
+                    },
+                    "naive": 0.014081999999999999,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /a": 0.27,
+                        "GET /axisless": 0.09,
+                        "POST /m": 0.09
+                    },
+                    "utilization": {
+                        "point": 0.04311632176481446,
+                        "upper": 0.06850187096178698
+                    },
+                    "naive": 0.021123,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /a": 0.41999999999999993,
+                        "GET /axisless": 0.13999999999999999,
+                        "POST /m": 0.13999999999999999
+                    },
+                    "utilization": {
+                        "point": 0.06706983385637805,
+                        "upper": 0.10655846594055748
+                    },
+                    "naive": 0.032858,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /a": 0.6000000000000001,
+                        "GET /axisless": 0.2,
+                        "POST /m": 0.2
+                    },
+                    "utilization": {
+                        "point": 0.09581404836625437,
+                        "upper": 0.15222637991508217
+                    },
+                    "naive": 0.04694,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /a": 0.8999999999999999,
+                        "GET /axisless": 0.3,
+                        "POST /m": 0.3
+                    },
+                    "utilization": {
+                        "point": 0.14372107254938155,
+                        "upper": 0.22833956987262322
+                    },
+                    "naive": 0.07041,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /a": 1.3200000000000003,
+                        "GET /axisless": 0.44000000000000006,
+                        "POST /m": 0.44000000000000006
+                    },
+                    "utilization": {
+                        "point": 0.21079090640575965,
+                        "upper": 0.3348980358131808
+                    },
+                    "naive": 0.10326800000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /a": 1.9799999999999998,
+                        "GET /axisless": 0.6599999999999999,
+                        "POST /m": 0.6599999999999999
+                    },
+                    "utilization": {
+                        "point": 0.3161863596086394,
+                        "upper": 0.5023470537197711
+                    },
+                    "naive": 0.15490199999999998,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /a": 3.0,
+                        "GET /axisless": 1.0,
+                        "POST /m": 1.0
+                    },
+                    "utilization": {
+                        "point": 0.47907024183127184,
+                        "upper": 0.7611318995754108
+                    },
+                    "naive": 0.2347,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 8.349506295172466
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 5.255330912068403
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 17.04303365999148
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 3 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00711920497200172,
+                        "c_row": 4.654482801058399e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.004790702418312719,
+                            0.006706983385637807,
+                            0.009581404836625437,
+                            0.014372107254938154,
+                            0.019162809673250875,
+                            0.02874421450987631,
+                            0.04311632176481446,
+                            0.06706983385637805,
+                            0.09581404836625437,
+                            0.14372107254938155,
+                            0.21079090640575965,
+                            0.3161863596086394,
+                            0.47907024183127184
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 8.349506295172466
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.00710057227247554,
+                        "c_row": 4.6372530921174126e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.004776867454310506,
+                            0.006687614436034708,
+                            0.009553734908621011,
+                            0.014330602362931513,
+                            0.019107469817242023,
+                            0.028661204725863025,
+                            0.04299180708879455,
+                            0.06687614436034706,
+                            0.0955373490862101,
+                            0.14330602362931513,
+                            0.21018216798966227,
+                            0.3152732519844933,
+                            0.4776867454310505
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 8.373688485726179
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.007311168543474234,
+                        "c_row": 4.4797243246569613e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.0048427573072426285,
+                            0.006779860230139682,
+                            0.009685514614485257,
+                            0.014528271921727886,
+                            0.019371029228970514,
+                            0.02905654384345577,
+                            0.04358481576518366,
+                            0.06779860230139678,
+                            0.09685514614485259,
+                            0.14528271921727884,
+                            0.2130813215186757,
+                            0.3196219822780135,
+                            0.4842757307242629
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 8.259757295740929
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.0070017721986339095,
+                        "c_row": 4.8981601132238074e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.004793987385391659,
+                            0.006711582339548324,
+                            0.009587974770783318,
+                            0.014381962156174977,
+                            0.019175949541566636,
+                            0.028763924312349955,
+                            0.04314588646852493,
+                            0.0671158233954832,
+                            0.0958797477078332,
+                            0.14381962156174977,
+                            0.21093544495723304,
+                            0.3164031674358495,
+                            0.4793987385391659
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 8.343784992402954
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.004776867454310506,
+                        "max": 0.0048427573072426285
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.006687614436034708,
+                        "max": 0.006779860230139682
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.009553734908621011,
+                        "max": 0.009685514614485257
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.014330602362931513,
+                        "max": 0.014528271921727886
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.019107469817242023,
+                        "max": 0.019371029228970514
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 0.028661204725863025,
+                        "max": 0.02905654384345577
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 0.04299180708879455,
+                        "max": 0.04358481576518366
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 0.06687614436034706,
+                        "max": 0.06779860230139678
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 0.0955373490862101,
+                        "max": 0.09685514614485259
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 0.14330602362931513,
+                        "max": 0.14528271921727884
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 0.21018216798966227,
+                        "max": 0.2130813215186757
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 0.3152732519844933,
+                        "max": 0.3196219822780135
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 0.4776867454310505,
+                        "max": 0.4842757307242629
+                    }
+                ],
+                "limit_rps": {
+                    "min": 8.259757295740929,
+                    "max": 8.373688485726179
+                }
+            }
+        },
+        {
+            "id": "t-2",
+            "tables": {
+                "pages": 10000,
+                "books": 10000
+            },
+            "rps_total_in_file": 10.0,
+            "safe_side": [
+                {
+                    "count": 10000,
+                    "source": "main_estimate_other_count",
+                    "estimate_at": 200000,
+                    "marked_routes": [
+                        "POST /m"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "POST /m"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /a": 0.01,
+                        "POST /m": 0.04
+                    },
+                    "utilization": {
+                        "point": 0.014198116915882103,
+                        "upper": 0.0515456869115747
+                    },
+                    "naive": 0.002347,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /a": 0.014000000000000002,
+                        "POST /m": 0.05600000000000001
+                    },
+                    "utilization": {
+                        "point": 0.019877363682234944,
+                        "upper": 0.07216396167620459
+                    },
+                    "naive": 0.0032858,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /a": 0.02,
+                        "POST /m": 0.08
+                    },
+                    "utilization": {
+                        "point": 0.028396233831764206,
+                        "upper": 0.1030913738231494
+                    },
+                    "naive": 0.004694,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /a": 0.03,
+                        "POST /m": 0.12
+                    },
+                    "utilization": {
+                        "point": 0.04259435074764631,
+                        "upper": 0.15463706073472408
+                    },
+                    "naive": 0.0070409999999999995,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /a": 0.04,
+                        "POST /m": 0.16
+                    },
+                    "utilization": {
+                        "point": 0.05679246766352841,
+                        "upper": 0.2061827476462988
+                    },
+                    "naive": 0.009388,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /a": 0.06,
+                        "POST /m": 0.24
+                    },
+                    "utilization": {
+                        "point": 0.08518870149529262,
+                        "upper": 0.30927412146944816
+                    },
+                    "naive": 0.014081999999999999,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /a": 0.09,
+                        "POST /m": 0.36
+                    },
+                    "utilization": {
+                        "point": 0.12778305224293893,
+                        "upper": 0.4639111822041722
+                    },
+                    "naive": 0.021123,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /a": 0.13999999999999999,
+                        "POST /m": 0.5599999999999999
+                    },
+                    "utilization": {
+                        "point": 0.19877363682234944,
+                        "upper": 0.7216396167620456
+                    },
+                    "naive": 0.032858,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /a": 0.2,
+                        "POST /m": 0.8
+                    },
+                    "utilization": {
+                        "point": 0.28396233831764206,
+                        "upper": 1.030913738231494
+                    },
+                    "naive": 0.04694,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /a": 0.3,
+                        "POST /m": 1.2
+                    },
+                    "utilization": {
+                        "point": 0.42594350747646303,
+                        "upper": 1.5463706073472407
+                    },
+                    "naive": 0.07041,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /a": 0.44000000000000006,
+                        "POST /m": 1.7600000000000002
+                    },
+                    "utilization": {
+                        "point": 0.6247171442988126,
+                        "upper": 2.268010224109287
+                    },
+                    "naive": 0.10326800000000001,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /a": 0.6599999999999999,
+                        "POST /m": 2.6399999999999997
+                    },
+                    "utilization": {
+                        "point": 0.9370757164482186,
+                        "upper": 3.402015336163929
+                    },
+                    "naive": 0.15490199999999998,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /a": 1.0,
+                        "POST /m": 4.0
+                    },
+                    "utilization": {
+                        "point": 1.4198116915882102,
+                        "upper": 5.154568691157469
+                    },
+                    "naive": 0.2347,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 2.817275011678186
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.7760106111034852
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 17.04303365999148
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 3 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00711920497200172,
+                        "c_row": 4.654482801058399e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.014198116915882103,
+                            0.019877363682234944,
+                            0.028396233831764206,
+                            0.04259435074764631,
+                            0.05679246766352841,
+                            0.08518870149529262,
+                            0.12778305224293893,
+                            0.19877363682234944,
+                            0.28396233831764206,
+                            0.42594350747646303,
+                            0.6247171442988126,
+                            0.9370757164482186,
+                            1.4198116915882102
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 2.817275011678186
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.00710057227247554,
+                        "c_row": 4.6372530921174126e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.014150268783459489,
+                            0.019810376296843287,
+                            0.028300537566918978,
+                            0.04245080635037846,
+                            0.056601075133837955,
+                            0.08490161270075693,
+                            0.1273524190511354,
+                            0.19810376296843282,
+                            0.2830053756691898,
+                            0.42450806350378467,
+                            0.6226118264722176,
+                            0.9339177397083261,
+                            1.415026878345949
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 2.8268014277408455
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.007311168543474234,
+                        "c_row": 4.4797243246569613e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.013945181096547934,
+                            0.01952325353516711,
+                            0.027890362193095868,
+                            0.0418355432896438,
+                            0.055780724386191735,
+                            0.0836710865792876,
+                            0.1255066298689314,
+                            0.19523253535167104,
+                            0.2789036219309587,
+                            0.41835543289643795,
+                            0.6135879682481091,
+                            0.9203819523721635,
+                            1.3945181096547934
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 2.8683743669633532
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.0070017721986339095,
+                        "c_row": 4.8981601132238074e-5,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.014642445264906774,
+                            0.020499423370869487,
+                            0.029284890529813548,
+                            0.04392733579472032,
+                            0.058569781059627096,
+                            0.08785467158944064,
+                            0.13178200738416096,
+                            0.20499423370869482,
+                            0.2928489052981355,
+                            0.43927335794720324,
+                            0.6442675916558982,
+                            0.966401387483847,
+                            1.4642445264906774
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 2.7317841573816306
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.013945181096547934,
+                        "max": 0.014642445264906774
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.01952325353516711,
+                        "max": 0.020499423370869487
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.027890362193095868,
+                        "max": 0.029284890529813548
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.0418355432896438,
+                        "max": 0.04392733579472032
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.055780724386191735,
+                        "max": 0.058569781059627096
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 0.0836710865792876,
+                        "max": 0.08785467158944064
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 0.1255066298689314,
+                        "max": 0.13178200738416096
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 0.19523253535167104,
+                        "max": 0.20499423370869482
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 0.2789036219309587,
+                        "max": 0.2928489052981355
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 0.41835543289643795,
+                        "max": 0.43927335794720324
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 0.6135879682481091,
+                        "max": 0.6442675916558982
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 0.9203819523721635,
+                        "max": 0.966401387483847
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 1.3945181096547934,
+                        "max": 1.4642445264906774
+                    }
+                ],
+                "limit_rps": {
+                    "min": 2.7317841573816306,
+                    "max": 2.8683743669633532
+                }
+            }
+        }
+    ]
+}

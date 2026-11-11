@@ -10,6 +10,9 @@ declare(strict_types=1);
 //                                      (repeatable; the commit may be empty, then the source is empty too)
 //   --require-marks-at-count           stop (exit 35) when a target scenario reads a count of rows that no estimate was made at
 //   --expect-estimate-commit=<hash>    the commit (or its start) the main estimate should come from; the output says whether it does
+//   --naive-count=<rows>               N_0, the count of rows the naive estimate is chosen at: only the calibration scenarios at exactly this
+//                                      count are candidates (simulator-spec.md section 7.3). Required: with none (or no calibration scenario
+//                                      at it) the step stops with exit 37 and writes no prediction
 
 use PeakSim\Runtime\Simulate\Ladder\LadderStage;
 use PeakSim\Runtime\Simulate\SimulateCommand;
@@ -24,6 +27,7 @@ $source = null;
 $safe = [];
 $requireMarks = false;
 $expected = null;
+$naiveCount = null;
 foreach (array_slice($argv, 1) as $arg) {
     if (str_starts_with($arg, '--safe-estimate=')) {
         $parts = explode('::', substr($arg, strlen('--safe-estimate=')));
@@ -34,6 +38,13 @@ foreach (array_slice($argv, 1) as $arg) {
         $safe[] = ['dir' => $parts[0], 'commit' => $parts[1] === '' ? null : $parts[1], 'commit_source' => $parts[2] === '' ? null : $parts[2]];
     } elseif ($arg === '--require-marks-at-count') {
         $requireMarks = true;
+    } elseif (str_starts_with($arg, '--naive-count=')) {
+        $given = substr($arg, strlen('--naive-count='));
+        if (preg_match('/^[1-9][0-9]*$/', $given) !== 1) {
+            fwrite(STDERR, "predict-ladder: --naive-count must be a positive whole number of rows\n");
+            exit(2);
+        }
+        $naiveCount = (int) $given;
     } elseif (str_starts_with($arg, '--expect-estimate-commit=')) {
         $expected = substr($arg, strlen('--expect-estimate-commit='));
     } elseif (str_starts_with($arg, '--estimate-commit=')) {
@@ -57,4 +68,4 @@ if ($expected === '') {
     $expected = null;
 }
 
-exit((new SimulateCommand(STDOUT, STDERR, null, new LadderStage($estimateDir, $scenarioPath, STDOUT, STDERR, $commit, $source, null, $safe, $requireMarks, $expected)))->run($args));
+exit((new SimulateCommand(STDOUT, STDERR, null, new LadderStage($estimateDir, $scenarioPath, STDOUT, STDERR, $commit, $source, null, $safe, $requireMarks, $expected, $naiveCount)))->run($args));

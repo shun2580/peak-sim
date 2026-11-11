@@ -3,9 +3,12 @@
 # utilisation of the database CPU at each of the 13 stages (point and safe side), the naive estimate, and the limit rps (point, safe, naive).
 # Writes ladder-prediction.json. Sends no request, touches no database and no app.
 #
-#   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--safe-estimate=<estimate dir> ...]
-#       [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]
+#   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows>
+#       [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]
 #
+# --naive-count=<rows> is N_0, the count of rows the naive estimate (section 7.3) is chosen at, e.g. --naive-count=10000: only the calibration
+# scenarios at exactly that count are candidates (cal-4, cal-5 and any other count are not). It is required and has no default: without it, or with
+# no calibration scenario at it, this stops (exit 37).
 # The scenario file is the form of section 3.4: the calibration scenarios with `observed`, and the target scenarios, whose rps give the mix of
 # routes (the stages rescale it). The calibration and the utilisation of a stage are the parts of bin/simulate; nothing is calculated here.
 # The point of every route is the one formula of --estimate. The marks (and so the safe side) are those of the estimate made at the count of rows
@@ -20,15 +23,16 @@
 # mounted read-only and only the output directory writable. The image is never pulled.
 # exit codes: 0 done / 2 wrong usage / 3 an estimate is not committed and unchanged (and no --estimate-commit for the main one) / 11 no PHP and
 # no image / 20..25, 1 as bin/simulate / 30 the calibration cannot be made / 32 no target scenario / 33 a calibration coefficient was cut /
-# 34 a record-only scenario is a calibration scenario / 35 a target scenario has no estimate at its count / 36 the estimates disagree
+# 34 a record-only scenario is a calibration scenario / 35 a target scenario has no estimate at its count / 36 the estimates disagree /
+# 37 no calibration scenario is at N_0 (--naive-count)
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/../../runtime" && pwd)"
-usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]"
+usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -37,6 +41,7 @@ scenario=""
 out=""
 commit=""
 expected="7c40774"
+naive_count=""
 safe=()
 for arg in "$@"; do
   case "$arg" in
@@ -45,6 +50,7 @@ for arg in "$@"; do
     --expect-estimate-commit=*) expected="${arg#--expect-estimate-commit=}" ;;
     --scenario=*) scenario="${arg#--scenario=}" ;;
     --out=*) out="${arg#--out=}" ;;
+    --naive-count=*) naive_count="${arg#--naive-count=}" ;;
     --estimate-commit=*) commit="${arg#--estimate-commit=}" ;;
     *) echo "predict-ladder: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
   esac
@@ -52,6 +58,7 @@ done
 if [ ! -d "$estimate" ]; then echo "predict-ladder: --estimate is not a directory" >&2; echo "$usage" >&2; exit 2; fi
 if [ ! -f "$scenario" ]; then echo "predict-ladder: --scenario is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
 if [ -z "$out" ]; then echo "predict-ladder: --out is required" >&2; echo "$usage" >&2; exit 2; fi
+if ! [[ "$naive_count" =~ ^[1-9][0-9]*$ ]]; then echo "predict-ladder: --naive-count=<rows> (N_0) is required, a positive whole number" >&2; echo "$usage" >&2; exit 2; fi
 mkdir -p "$out"
 estimate="$(cd "$estimate" && pwd)"
 scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"
@@ -93,7 +100,7 @@ if command -v php >/dev/null 2>&1; then
   for i in "${!safe_dirs[@]}"; do safe_opts+=("--safe-estimate=${safe_dirs[$i]}::${safe_args[$i]}::git"); done
   exec php "$runtime/bin/inner/predict-ladder.php" --estimate="$estimate" --scenario="$scenario" --out="$out" \
     --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
-    --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
+    --naive-count="$naive_count" --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
 fi
 
 image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
@@ -112,4 +119,4 @@ exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(
   "${mounts[@]+"${mounts[@]}"}" \
   "$image" php /runtime/bin/inner/predict-ladder.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output \
   --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
-  --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
+  --naive-count="$naive_count" --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"

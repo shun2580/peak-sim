@@ -29,9 +29,13 @@ use PeakSim\Runtime\Simulate\Predict\PredictStage;
  *  - with `requireMarksAtCount`, a target scenario reads a count of rows that no estimate was made at (its safe side would be another
  *    count's marks).
  *
+ * It also stops when N_0 (`naiveCount`, the count of rows the naive estimate of section 7.3 is chosen at) is not given, or no calibration
+ * scenario is at that count: the naive estimate has no default count.
+ *
  * Exit codes: 0 done; 30 the calibration cannot be made (the same code as `bin/simulate`); 32 the scenario file has no target scenario;
  * 33 a calibration coefficient was cut; 34 a record-only scenario is a calibration scenario; 35 a target scenario has no marks at its count;
- * 36 the estimates disagree on a point or cannot be used together. An output that cannot be written is the usual 1 of the command.
+ * 36 the estimates disagree on a point or cannot be used together; 37 N_0 is not given or no calibration scenario is at it. An output that
+ * cannot be written is the usual 1 of the command.
  */
 final class LadderStage
 {
@@ -49,6 +53,8 @@ final class LadderStage
 
     public const EXIT_ESTIMATES = 36;
 
+    public const EXIT_NAIVE_COUNT = 37;
+
     /**
      * The scenario ids that are a record only and are never a calibration scenario (the same list as the tool that writes the scenario file:
      * poc/lab/scenarios/CalibrationScenario.php, which this runtime does not load).
@@ -64,6 +70,7 @@ final class LadderStage
      *                                                                                                  for the scenarios at their count (the main estimate's marks serve its own count)
      * @param bool        $requireMarksAtCount stop (35) when a target scenario's count has no estimate made at it
      * @param string|null $expectedEstimateCommit the commit (or its start) the main estimate should come from; the output says whether it does
+     * @param int|null    $naiveCount N_0: the count of rows the naive estimate is chosen at (calibration scenarios at exactly this count only); null stops with 37
      */
     public function __construct(
         private readonly string $estimateDir,
@@ -76,6 +83,7 @@ final class LadderStage
         private readonly array $safeEstimates = [],
         private readonly bool $requireMarksAtCount = false,
         private readonly ?string $expectedEstimateCommit = null,
+        private readonly ?int $naiveCount = null,
     ) {
     }
 
@@ -89,6 +97,20 @@ final class LadderStage
 
                 return self::EXIT_RECORD_ONLY_IN_CALIBRATION;
             }
+        }
+        if ($this->naiveCount === null) {
+            fwrite($this->stderr, "predict-ladder: the count of rows N_0 the naive estimate is chosen at is not given; give it with --naive-count=<rows> (there is no default)\n");
+
+            return self::EXIT_NAIVE_COUNT;
+        }
+        $atNaiveCount = array_filter(
+            (array) $loaded['scenarios'],
+            fn (array $s): bool => ($s['kind'] ?? null) === 'calibration' && LadderPrediction::tableCount($s) === $this->naiveCount,
+        );
+        if ($atNaiveCount === []) {
+            fwrite($this->stderr, sprintf("predict-ladder: no calibration scenario is at %s rows (N_0), so the naive estimate has no basis; check --naive-count\n", number_format($this->naiveCount)));
+
+            return self::EXIT_NAIVE_COUNT;
         }
         try {
             $calibration = (new Calibrator())->calibrate(PredictStage::points($loaded));
@@ -149,7 +171,7 @@ final class LadderStage
             'scenario_sha256' => hash('sha256', $io->read($this->scenarioPath)),
         ];
         try {
-            $report = LadderPrediction::build($loaded, $calibration, $inputs);
+            $report = LadderPrediction::build($loaded, $calibration, $inputs, $this->naiveCount);
         } catch (\InvalidArgumentException $e) {
             fwrite($this->stderr, 'predict-ladder: ' . $e->getMessage() . "\n");
 

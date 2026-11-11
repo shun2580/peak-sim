@@ -40,6 +40,9 @@ final class LadderPredictionTest extends TestCase
         ['cal-4', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.194', '{ pages: 300, books: 300 }'],
     ];
 
+    /** N_0: the count of rows of the calibration scenarios the naive estimate is chosen at (the three that have 1,000 rows). */
+    private const N_0 = 1000;
+
     /** The observed utilisation of the calibration scenario the naive estimate is taken from (the largest at N_0: cal-2). */
     private const NAIVE_OBSERVED = 0.4694;
 
@@ -80,10 +83,11 @@ final class LadderPredictionTest extends TestCase
     /**
      * @param array<string, string> $safe     count => the estimate document (JSON text) made at that count, each given as a safe-side estimate
      * @param string|null           $source   how the commit of the main estimate was found (null: "argument" when there is a commit)
+     * @param int|null              $naiveCount N_0, the count the naive estimate is chosen at (1,000 rows here; null: not given)
      *
      * @return array{int, string, string, RecordingIo}
      */
-    private static function ladder(string $yaml, ?string $commit = 'abc123', array $safe = [], bool $require = false, ?string $expected = null, ?string $source = null): array
+    private static function ladder(string $yaml, ?string $commit = 'abc123', array $safe = [], bool $require = false, ?string $expected = null, ?string $source = null, ?int $naiveCount = self::N_0): array
     {
         $io = Fixtures::io($yaml);
         $given = [];
@@ -93,7 +97,7 @@ final class LadderPredictionTest extends TestCase
         }
         $out = fopen('php://memory', 'w+');
         $err = fopen('php://memory', 'w+');
-        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, $commit, $commit === null ? null : ($source ?? 'argument'), $io, $given, $require, $expected);
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, $commit, $commit === null ? null : ($source ?? 'argument'), $io, $given, $require, $expected, $naiveCount);
         $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         rewind($out);
         rewind($err);
@@ -364,7 +368,7 @@ final class LadderPredictionTest extends TestCase
         }
     }
 
-    public function testTheNaiveEstimateIsChosenOnlyAmongTheCalibrationScenariosAtTheLargestCount(): void
+    public function testTheNaiveEstimateIsChosenOnlyAmongTheCalibrationScenariosAtN0(): void
     {
         $r = self::ladderReport(self::yaml());
         self::assertSame(1000, $r['naive']['basis_count']);
@@ -374,16 +378,88 @@ final class LadderPredictionTest extends TestCase
         // cal-4 with the largest rps total and the largest observed utilisation of all: it is still not the basis
         $calibrations = self::CALIBRATIONS;
         $calibrations[3] = ['cal-4', '{ "GET /a": 20.0, "POST /m": 20.0 }', '0.95', '{ pages: 300, books: 300 }'];
-        $io = Fixtures::io(self::yaml(self::TARGETS, $calibrations));
-        $loaded = (new TwoStage($io))->stageOne('/est', Fixtures::SCENARIO_PATH, '/out')->toArray();
-        $report = LadderPrediction::build(
-            $loaded,
-            (new Calibrator())->calibrate(PredictStage::points($loaded)),
-            ['estimate_commit' => null, 'estimate_commit_source' => null, 'estimate_sha256' => 'x', 'scenario_sha256' => 'y'],
-        );
+        $report = self::buildFor(self::yaml(self::TARGETS, $calibrations), self::N_0);
         self::assertSame('cal-2', $report['naive']['basis_scenario']);
         self::assertSame(['cal-1', 'cal-2', 'cal-3'], $report['naive']['candidates']);
         self::assertEqualsWithDelta(self::NAIVE_OBSERVED, $report['naive']['basis_utilization'], 1e-12);
+    }
+
+    /**
+     * Test (a): calibration scenarios at different counts are mixed in the file, and one of them (cal-5, at 3 x N_0) has the largest count, the
+     * largest rps total and the largest observed utilisation. The naive estimate still comes from the N_0 scenarios only; before it was told
+     * N_0 it took the largest count in the file, and so cal-5.
+     */
+    public function testACalibrationScenarioAtAnotherCountIsNeverTheBasisOfTheNaiveEstimate(): void
+    {
+        $calibrations = self::CALIBRATIONS;
+        $calibrations[3] = ['cal-4', '{ "GET /a": 5.0, "POST /m": 5.0 }', '0.194', '{ pages: 300, books: 300 }'];
+        $calibrations[] = ['cal-5', '{ "GET /a": 20.0, "POST /m": 20.0 }', '0.95', '{ pages: 3000, books: 3000 }'];
+        $yaml = self::yaml(self::TARGETS, $calibrations);
+
+        $report = self::buildFor($yaml, self::N_0);
+        self::assertSame(1000, $report['naive']['basis_count']);
+        self::assertSame('cal-2', $report['naive']['basis_scenario']);
+        self::assertSame(['cal-1', 'cal-2', 'cal-3'], $report['naive']['candidates']);
+        self::assertSame([['id' => 'cal-4', 'count' => 300], ['id' => 'cal-5', 'count' => 3000]], $report['naive']['not_candidates']);
+        self::assertEqualsWithDelta(self::NAIVE_OBSERVED, $report['naive']['basis_utilization'], 1e-12);
+        foreach ($report['scenarios'] as $s) {
+            foreach ($s['stages'] as $stage) {
+                self::assertEqualsWithDelta(self::NAIVE_OBSERVED * $stage['rps_total'] / 10.0, $stage['naive'], 1e-12);
+            }
+        }
+
+        // the count is the caller's to say: asked for 3,000 the basis is cal-5, asked for 300 it is cal-4
+        self::assertSame('cal-5', self::buildFor($yaml, 3000)['naive']['basis_scenario']);
+        self::assertSame('cal-4', self::buildFor($yaml, 300)['naive']['basis_scenario']);
+    }
+
+    /** Test (b): with no calibration scenario at N_0 the step is refused, and nothing is written. */
+    public function testNoCalibrationScenarioAtN0RefusesTheStepAndWritesNothing(): void
+    {
+        [$code, , $stderr, $io] = self::ladder(self::yaml(), naiveCount: 10000);
+        self::assertSame(LadderStage::EXIT_NAIVE_COUNT, $code);
+        self::assertSame(37, $code);
+        self::assertStringContainsString('no calibration scenario is at 10,000 rows (N_0)', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('no calibration scenario is at 10,000 rows (N_0)');
+        self::buildFor(self::yaml(), 10000);
+    }
+
+    public function testWithoutN0TheStepIsRefusedAndWritesNothing(): void
+    {
+        [$code, , $stderr, $io] = self::ladder(self::yaml(), naiveCount: null);
+        self::assertSame(37, $code);
+        self::assertStringContainsString('--naive-count', $stderr);
+        self::assertStringContainsString('there is no default', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    /**
+     * Test (c): the calibration scenarios are all at N_0 (the form of the earlier lab backtest). The file the step writes is, byte for byte, the
+     * one the step wrote before it was told N_0 (kept as `*.n0-only.json`, made by the code of that time from this same input).
+     */
+    public function testWhenEveryCalibrationScenarioIsAtN0TheBytesAreTheOnesFromBeforeN0WasGiven(): void
+    {
+        $yaml = self::yaml(self::TARGETS, array_slice(self::CALIBRATIONS, 0, 3));
+        [$code, , $stderr, $io] = self::ladder($yaml);
+        self::assertSame(0, $code, $stderr);
+        self::assertSame((string) file_get_contents(__DIR__ . '/ladder-prediction.example.n0-only.json'), $io->files['/out/ladder-prediction.json']);
+    }
+
+    /** @return array<string, mixed> the report LadderPrediction::build makes from a scenario file, with the calibration as the step makes it */
+    private static function buildFor(string $yaml, int $naiveCount): array
+    {
+        $io = Fixtures::io($yaml);
+        $loaded = (new TwoStage($io))->stageOne('/est', Fixtures::SCENARIO_PATH, '/out')->toArray();
+
+        return LadderPrediction::build(
+            $loaded,
+            (new Calibrator())->calibrate(PredictStage::points($loaded)),
+            ['estimate_commit' => null, 'estimate_commit_source' => null, 'estimate_sha256' => 'x', 'scenario_sha256' => 'y'],
+            $naiveCount,
+        );
     }
 
     // ---- the calibration range is a record ----
@@ -550,7 +626,7 @@ final class LadderPredictionTest extends TestCase
         $io = Fixtures::io(self::yaml(), self::estimateAt(3000));
         $out = fopen('php://memory', 'w+');
         $err = fopen('php://memory', 'w+');
-        $code = (new SimulateCommand($out, $err, $io, new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'argument', $io)))
+        $code = (new SimulateCommand($out, $err, $io, new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'argument', $io, naiveCount: self::N_0)))
             ->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         self::assertSame(0, $code);
         $alone = self::decoded($io);
@@ -583,7 +659,7 @@ final class LadderPredictionTest extends TestCase
         $io = Fixtures::io(self::yaml(), json_encode($main, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
         $out = fopen('php://memory', 'w+');
         $err = fopen('php://memory', 'w+');
-        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'git', $io, [], true);
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'git', $io, [], true, naiveCount: self::N_0);
         $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         self::assertSame(35, $code, 'the main estimate was made at 3,000 rows: t-2 (10,000 rows) has no estimate');
         rewind($err);
@@ -608,7 +684,7 @@ final class LadderPredictionTest extends TestCase
         $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'git', $io, [
             ['dir' => '/a', 'commit' => 'a', 'commit_source' => 'git'],
             ['dir' => '/b', 'commit' => 'b', 'commit_source' => 'git'],
-        ]);
+        ], naiveCount: self::N_0);
         $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
         self::assertSame(36, $code);
         rewind($err);

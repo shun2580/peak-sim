@@ -49,13 +49,15 @@ final class LadderPrediction
     /**
      * @param array<string, mixed>                                                                                                $loaded      LoadedInput::toArray()
      * @param array{estimate_commit: string|null, estimate_commit_source: string|null, estimate_sha256: string, scenario_sha256: string} $inputs    where the estimate and the scenario file came from
+     * @param int                                                                                                                 $naiveCount  N_0, the count of rows the naive estimate is chosen at: only the calibration scenarios at exactly this
+     *                                                                                                                                 count are candidates (no default: the caller says it)
      * @param list<float>                                                                                                         $stages      the totals of the ladder
      *
      * @return array<string, mixed>
      *
-     * @throws \InvalidArgumentException when there is no target scenario, or the calibration cannot be made from the loaded input
+     * @throws \InvalidArgumentException when there is no target scenario, no calibration scenario at `$naiveCount`, or the calibration cannot be made from the loaded input
      */
-    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, array $stages = self::STAGES): array
+    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, array $stages = self::STAGES): array
     {
         $resources = (array) $loaded['resources'];
         $cores = (float) $resources['cores'];
@@ -63,15 +65,17 @@ final class LadderPrediction
 
         $points = PredictStage::points($loaded);
         $width = CalibrationWidth::of($points, $calibration);
-        // the naive estimate is chosen among the calibration scenarios at the largest count of rows (N_0) only: a calibration scenario at a
-        // smaller count (cal-4) is no basis for it (simulator-spec.md section 7.3, 2026-11-10)
+        // the naive estimate is chosen among the calibration scenarios at the count N_0 the caller gives, and at no other count: not the
+        // largest count there is, for a calibration scenario at a larger count (cal-5) is no basis for it (simulator-spec.md section 7.3, D183)
         $counts = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'calibration') {
                 $counts[(string) $s['id']] = self::tableCount($s);
             }
         }
-        $naiveCount = $counts === [] ? null : max($counts);
+        if (!in_array($naiveCount, $counts, true)) {
+            throw new \InvalidArgumentException(sprintf('no calibration scenario is at %s rows (N_0), so the naive estimate has no basis', number_format($naiveCount)));
+        }
         $naiveBasis = [];
         $naiveExcluded = [];
         foreach ((array) $loaded['scenarios'] as $s) {
@@ -177,7 +181,7 @@ final class LadderPrediction
      *
      * @param array<string, mixed> $scenario
      */
-    private static function tableCount(array $scenario): int
+    public static function tableCount(array $scenario): int
     {
         $counts = array_map('intval', array_values((array) ($scenario['tables'] ?? [])));
 
