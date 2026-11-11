@@ -1,0 +1,2 @@
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+check-limits rc=0
