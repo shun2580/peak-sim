@@ -1,0 +1,249 @@
+{
+ "capture": {
+  "scales": [
+   100,
+   1000,
+   10000,
+   30000
+  ],
+  "run_id": "bf9ae95a2a07"
+ },
+ "builds": [
+  {
+   "scale": 0,
+   "database": "peak_sim_measure_bf9ae95a2a07_u1f4abd_0",
+   "statistics": {
+    "analyzed_tables": 41,
+    "auto_recalc_off_on": 41,
+    "table_rows_changed": {
+     "permission_role": {
+      "before": 4,
+      "after": 122
+     },
+     "role_permissions": {
+      "before": 67,
+      "after": 62
+     },
+     "role_user": {
+      "before": 5,
+      "after": 7
+     }
+    },
+    "server": {
+     "persistent": 1,
+     "sample_pages": 20,
+     "auto_recalc": 1,
+     "version": "8.4.7"
+    }
+   }
+  },
+  {
+   "scale": 100,
+   "database": "peak_sim_measure_bf9ae95a2a07_u1f4abd_100",
+   "statistics": {
+    "analyzed_tables": 41,
+    "auto_recalc_off_on": 41,
+    "table_rows_changed": {
+     "permission_role": {
+      "before": 4,
+      "after": 122
+     },
+     "role_permissions": {
+      "before": 67,
+      "after": 62
+     },
+     "role_user": {
+      "before": 5,
+      "after": 7
+     }
+    },
+    "server": {
+     "persistent": 1,
+     "sample_pages": 20,
+     "auto_recalc": 1,
+     "version": "8.4.7"
+    }
+   }
+  },
+  {
+   "scale": 1000,
+   "database": "peak_sim_measure_bf9ae95a2a07_u1f4abd_1000",
+   "statistics": {
+    "analyzed_tables": 41,
+    "auto_recalc_off_on": 41,
+    "table_rows_changed": {
+     "permission_role": {
+      "before": 4,
+      "after": 122
+     },
+     "role_permissions": {
+      "before": 67,
+      "after": 62
+     },
+     "role_user": {
+      "before": 5,
+      "after": 7
+     }
+    },
+    "server": {
+     "persistent": 1,
+     "sample_pages": 20,
+     "auto_recalc": 1,
+     "version": "8.4.7"
+    }
+   }
+  },
+  {
+   "scale": 10000,
+   "database": "peak_sim_measure_bf9ae95a2a07_u1f4abd_10000",
+   "statistics": {
+    "analyzed_tables": 41,
+    "auto_recalc_off_on": 41,
+    "table_rows_changed": {
+     "activities": {
+      "before": 10000,
+      "after": 9753
+     },
+     "deletions": {
+      "before": 10000,
+      "after": 9943
+     },
+     "entities": {
+      "before": 9956,
+      "after": 10167
+     },
+     "entity_permissions": {
+      "before": 10000,
+      "after": 10142
+     },
+     "favourites": {
+      "before": 10000,
+      "after": 9943
+     },
+     "images": {
+      "before": 10000,
+      "after": 9994
+     },
+     "joint_permissions": {
+      "before": 90000,
+      "after": 97252
+     },
+     "references": {
+      "before": 10000,
+      "after": 9927
+     },
+     "role_permissions": {
+      "before": 67,
+      "after": 62
+     },
+     "role_user": {
+      "before": 5,
+      "after": 7
+     },
+     "search_terms": {
+      "before": 10000,
+      "after": 9866
+     },
+     "slug_history": {
+      "before": 10000,
+      "after": 9923
+     },
+     "tags": {
+      "before": 10000,
+      "after": 9944
+     },
+     "views": {
+      "before": 10000,
+      "after": 9688
+     },
+     "watches": {
+      "before": 10000,
+      "after": 10031
+     }
+    },
+    "server": {
+     "persistent": 1,
+     "sample_pages": 20,
+     "auto_recalc": 1,
+     "version": "8.4.7"
+    }
+   }
+  },
+  {
+   "scale": 30000,
+   "database": "peak_sim_measure_bf9ae95a2a07_u1f4abd_30000",
+   "statistics": {
+    "analyzed_tables": 41,
+    "auto_recalc_off_on": 41,
+    "table_rows_changed": {
+     "activities": {
+      "before": 29598,
+      "after": 29815
+     },
+     "entities": {
+      "before": 28957,
+      "after": 29754
+     },
+     "entity_container_data": {
+      "before": 18000,
+      "after": 17866
+     },
+     "entity_page_data": {
+      "before": 12000,
+      "after": 11777
+     },
+     "entity_permissions": {
+      "before": 29110,
+      "after": 30294
+     },
+     "favourites": {
+      "before": 29537,
+      "after": 30300
+     },
+     "images": {
+      "before": 29963,
+      "after": 29917
+     },
+     "joint_permissions": {
+      "before": 270000,
+      "after": 271512
+     },
+     "role_permissions": {
+      "before": 67,
+      "after": 62
+     },
+     "role_user": {
+      "before": 5,
+      "after": 7
+     },
+     "search_terms": {
+      "before": 30000,
+      "after": 30231
+     },
+     "slug_history": {
+      "before": 30000,
+      "after": 29980
+     },
+     "tags": {
+      "before": 30000,
+      "after": 29361
+     },
+     "views": {
+      "before": 30000,
+      "after": 30302
+     },
+     "watches": {
+      "before": 30000,
+      "after": 30282
+     }
+    },
+    "server": {
+     "persistent": 1,
+     "sample_pages": 20,
+     "auto_recalc": 1,
+     "version": "8.4.7"
+    }
+   }
+  }
+ ]
+}
