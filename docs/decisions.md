@@ -1648,7 +1648,7 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 追記(2026-11-11 14:18。D180 が HEAD に入ったのを確かめてから書いた。新しい件数の予測を出す前):
   1. **「印の無い出力は 1 バイトも変わらない」(上の 2.)の読み替え**。殿の裁定②(D180。ラボの DB は作った後に ANALYZE で統計を整え、ツールの見積もりは「統計が整った DB」を前提にすることを出力と文書に書く)により、予測の出力に注記 `estimate_basis_note`(テキストでは `NOTE` の行)が **常に** 1 つ足される。よって上限の入力が無い出力は、印を足す前の出力(c9f08de の golden)と比べて、この注記の 1 行だけが違う。読み替えは「**印は、この注記のほかに 1 バイトも足さない**」。印のキー・行を出さぬこと、使用率・限界の rps・ほかの値を変えぬことは変わらない。
   2. **試験の形**(`poc/runtime/tests/Unit/Simulate/Predict/AppLimitRiskTest.php`):新しい golden は、c9f08de の golden(`golden/report-no-limit.c9f08de.*` として残す)に注記の行を **手で足したもの**で、新しい出力から書き直したものではない(それでは出力を自分と比べるだけの空の試験になる)。試験は二段:(a) 新しい出力 = 新しい golden、(b) 新しい golden から注記の行を除くと c9f08de の golden と 1 バイトも変わらない(差が注記の 1 行だけ)。
-  3. 実装の commit は df8a69e(2026-11-11 14:17)。注記の文は `PredictionReport::ESTIMATE_BASIS_NOTE`。
+  3. 実装の commit は df8a69e(2026-11-11 14:17。`bin/simulate` の出力)と 6ff4237(2026-11-11 14:19。梯子の予測 `ladder-prediction.json`。T5 で commit する予測のほう)。注記の文は `PredictionReport::ESTIMATE_BASIS_NOTE` の 1 つで、梯子の予測も同じ文を使う。梯子の予測の試験の例(`ladder-prediction.example.json`)も同じ二段の形で、元は `ladder-prediction.example.c9f08de.json`。#15 の予測(`poc/lab/predictions/ladder-prediction.json`)は変えていない。
   4. **係数 9.11 は、ANALYZE をかけたかが記録に無い DB(#16)の記録から決めた。今は変えない**。
 
 ### D179. 行数の見積もりの取り込みをやり直し、取り込みの件数に 30,000 件を足す。接線の規則(D174)は残す(2026-11-11 14:13 裁定。70,000 件の確かめの結果を見る前の記録)
