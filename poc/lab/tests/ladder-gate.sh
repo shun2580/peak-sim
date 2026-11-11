@@ -23,6 +23,7 @@
 #   r-1 without --request-timeout is refused (2), a timeout without a unit is refused (2), an unknown r-6 is refused (2), all with
 #   `docker` zero times; r-1 with a closed gate is still 12 and with an open gate it reaches docker; t-4 still needs no
 #   --request-timeout (the first backtest is measured as it was); a dry run of r-1 needs none either.
+# 28  every file the ladder measurement writes is outside .gitignore (none is named *.log), so a record is not lost from a commit
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -156,6 +157,18 @@ ml --scenario=t-4 --predictions="$pred" --request-timeout=abc; rc=$?
 expect_code "26 t-4 with a timeout that has no unit: refused too" 2 $rc
 ml --scenario=r-1 --dry-run; rc=$?
 [ "$rc" -ne 2 ] && pass "27 a dry run of r-1 needs no --request-timeout (exit $rc)" || fail "27 a dry run of r-1 was refused ($(head -2 "$work/ml.out" | tr '\n' ' '))"
+
+# 28: every file the ladder measurement writes can be committed: none of its names is matched by .gitignore (the load tool's log was once
+# named k6.log and was dropped by *.log). The names are the ones the script writes under "$d/", "$sdir/" and the ones check-limits writes in
+# its --dir; this test never reaches the load tool, so the names are read from the scripts.
+ign_dir="docs/research/lab-data/ladder/t-4-10000/rung-01-1"
+names="$( { grep -ohE '"\$(d|sdir)/[A-Za-z0-9._-]+"' "$lab/bin/measure-ladder" | sed -E 's|^"\$[a-z]+/||; s|"$||'
+            grep -ohE '"\$dir/[A-Za-z0-9._-]+"' "$lab/bin/check-limits" | sed -E 's|^"\$dir/||; s|"$||'
+            printf 'summary.json\n'; } | sort -u )"   # summary.json is written by the load tool itself (SUMMARY=...)
+n_names="$(printf '%s\n' "$names" | grep -c .)"
+leaked="$(for nm in $names; do git -C "$lab" check-ignore -q --no-index "$ign_dir/$nm" && printf '%s ' "$nm"; done)"
+[ "$n_names" -ge 20 ] && [ -z "$leaked" ] && pass "28 none of the $n_names output names is ignored by git (.gitignore)" || fail "28 names ignored by git: ${leaked:-none}; names checked: $n_names"
+grep -q 'k6-output.txt' "$lab/bin/measure-ladder" && ! grep -qE 'k6\.log' "$lab/bin/measure-ladder" && pass "28b the load tool's output is written as k6-output.txt" || fail "28b measure-ladder still names k6.log"
 
 echo
 echo "ladder gate tests: $passed passed, $failed failed, $skipped skipped"

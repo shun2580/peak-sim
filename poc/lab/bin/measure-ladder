@@ -46,8 +46,8 @@
 # with the app's CPU utilization. Each step prints one line when it starts and one when it ends (RUNG START / RUNG END).
 # Nothing is compared with the prediction here.
 #
-# Records: <out>/<scenario>-<scale>/rung-NN-<rps>/{plan,summary,record,settings}.json, cpu.txt, app-cpu.txt, k6.log, started_at.txt,
-# ended_at.txt, settings-*.txt; and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
+# Records: <out>/<scenario>-<scale>/rung-NN-<rps>/{plan,summary,record,settings}.json, cpu.txt, app-cpu.txt, k6-output.txt, started_at.txt,
+# ended_at.txt, settings-*.txt (no output is named *.log: the repository's .gitignore drops them, and a test checks every output name); and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
 # measured again (a restart goes on from the first step without one). Default <out>: $PEAK_LAB_OUT_DIR/ladder.
 #
 # --dry-run touches no container and sends no load: it makes the plan of every step (with make-plan), prints the table (the rate of
@@ -258,7 +258,7 @@ for rps in "${rungs[@]}"; do
   sleep 5   # a sample before the load starts, so the window's first edge is covered
   k6_env=(-e "PLAN=$(in_container "$d/plan.json")" -e "TARGETS=/out/targets-$scale.json" -e "SUMMARY=$(in_container "$d/summary.json")")
   [ -z "$request_timeout" ] || k6_env+=(-e "REQUEST_TIMEOUT=$request_timeout")
-  docker exec "${k6_env[@]}" peak-lab-k6 k6 run /load/scenario.js >"$d/k6.log" 2>&1
+  docker exec "${k6_env[@]}" peak-lab-k6 k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
   k6_rc=$?
   echo "$k6_rc" >"$d/k6.exit"
   wait "$db_pid"; db_rc=$?; wait "$app_pid"; app_rc=$?
@@ -266,7 +266,7 @@ for rps in "${rungs[@]}"; do
   echo "$db_rc $app_rc" >"$d/sampler.exit"
   # k6 exits 99 when a threshold fails; the thresholds here are all count>=0, so any non-zero exit is a real failure
   if [ "$k6_rc" != 0 ] || [ ! -f "$d/summary.json" ]; then
-    echo "measure-ladder: k6 failed at rung $i (rps $rps), exit $k6_rc; see $d/k6.log. Stopped; nothing was judged." >&2
+    echo "measure-ladder: k6 failed at rung $i (rps $rps), exit $k6_rc; see $d/k6-output.txt. Stopped; nothing was judged." >&2
     exit 13
   fi
   if [ "$db_rc" != 0 ] || [ "$app_rc" != 0 ]; then

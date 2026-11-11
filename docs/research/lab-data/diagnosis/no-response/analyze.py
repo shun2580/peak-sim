@@ -7,7 +7,7 @@ Inputs (read only, nothing is sent to the lab):
   - docs/research/lab-data/ladder/<scenario>/rung-*/{plan,summary,run}.json and cpu.txt   (in the repository)
   - <lab out dir>/web/access.log                  the web server's log: completion time, status, request seconds, URI
   - <lab out dir>/targets-<scale>.json            URI -> route
-  - <lab out dir>/ladder/<scenario>/rung-*/k6.log the load tool's own log (its last progress line: interrupted iterations)
+  - <lab out dir>/ladder/<scenario>/rung-*/k6-output.txt (older records: k6.log) the load tool's own log (its last progress line: interrupted iterations)
 The lab out dir defaults to $PEAK_LAB_OUT_DIR, else ~/.cache/peak-lab/out (it is outside the repository; the log files are not committed).
 
 Writes next to this file: step-summary.csv, status0-by-route.csv, status0-requests.csv, limit-sensitivity.csv, db-util-around-window-end.csv, status500-seconds.csv.
@@ -66,7 +66,7 @@ for sdir in sorted(glob.glob(os.path.join(LADDER, 't-*'))):
         start = summ['scenario_start_ms'] / 1000
         wf, wt = run['window_epoch']['from'], run['window_epoch']['to']
         samples = load_samples(os.path.join(d, 'cpu.txt'))
-        raw = os.path.join(OUT, 'ladder', scenario, os.path.basename(d), 'k6.log')
+        raw = next((r for r in (os.path.join(OUT, 'ladder', scenario, os.path.basename(d), n) for n in ('k6-output.txt', 'k6.log')) if os.path.exists(r)), '')
         k6_end, interrupted = last_progress(open(raw).read()) if os.path.exists(raw) else (None, None)
         timeouts, cut_at_end, others = 0, 0, 0
         secs500 = []
