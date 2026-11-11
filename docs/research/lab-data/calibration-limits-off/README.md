@@ -131,7 +131,7 @@ The rule and the definition were committed before the first request of the run. 
 ### The run (`cal-6-search/rps-2.2/`)
 
 Started 17:07:48, ended 17:18:51 (10 minutes at a constant arrival rate, the first 2 minutes discarded, 480 s kept; 30,000 rows, the 2-CPU database, 600 s request timeout). The calibration gate was
-passed before it (smallest degree 0.939181, threshold 0.5; `calibration-gate.json`, `run.log`) and `bin/check-limits --require=unlimited --request-timeout=600s` exited 0 just before it (`limits.txt`).
+passed before it (smallest degree 0.939181, threshold 0.5; `calibration-gate.json`, `run-output.txt`) and `bin/check-limits --require=unlimited --request-timeout=600s` exited 0 just before it (`limits.txt`).
 
 | | Target | Reached |
 | --- | --- | --- |
@@ -163,6 +163,8 @@ The settings were changed for the run in the same two files as for the five runs
 | `max_execution_time` as a request through php-fpm sees it | 30 | 0 | 30 |
 | `request_terminate_timeout` | 0s | 0s | 0s |
 | nginx `fastcgi_read_timeout` | 120s | 600s | 120s |
+| `zz-lab.ini` SHA-256 | not read | not kept | `f495eab5...` (the same file as the committed `poc/lab/compose/php/zz-lab.ini`; checked on the host and in the app container at 17:32, with the lab back at 10,000 rows) |
+| `nginx/lab.conf` SHA-256 | not read | not kept | `604aedff...` (the same as the committed `poc/lab/compose/nginx/lab.conf`) |
 
 The limits were off from 17:07:10 (`LIMITS OFF START`) to 17:19:27 (`RESTORE START`); the restore finished at 17:19:42 (`times.txt`). After the restore `git diff` of `poc/lab/compose/` is empty
 (0 lines). Nothing else was measured in the lab after this run.

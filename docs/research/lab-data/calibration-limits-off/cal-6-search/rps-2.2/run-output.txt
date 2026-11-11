@@ -1,0 +1,21 @@
+calibration gate: threshold 0.50, degree = the smallest singular value of the design matrix (queries, rows) with each column scaled to length 1
+  cal-1    queries/s 1512.11  rows/s 26072.7  rows per query 17.2425
+  cal-2    queries/s 2414.73  rows/s 41614.4  rows per query 17.2336
+  cal-3    queries/s 608.295  rows/s 10529.6  rows per query 17.3100
+  cal-4    queries/s 1848.13  rows/s 31428.8  rows per query 17.0057
+  cal-5    queries/s 1353.64  rows/s 23663.9  rows per query 17.4817
+  cal-6    queries/s 84.755  rows/s 667044  rows per query 7870.2649
+  cal-7    queries/s 84.755  rows/s 667044  rows per query 7870.2649
+  all runs               degree 0.948847  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-1          degree 0.950316  ok  (cal-2, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-2          degree 0.952007  ok  (cal-1, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-3          degree 0.949099  ok  (cal-1, cal-2, cal-4, cal-5, cal-6, cal-7)
+  without cal-4          degree 0.950825  ok  (cal-1, cal-2, cal-3, cal-5, cal-6, cal-7)
+  without cal-5          degree 0.950108  ok  (cal-1, cal-2, cal-3, cal-4, cal-6, cal-7)
+  without cal-6          degree 0.939181  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-7)
+  without cal-7          degree 0.939181  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6)
+  smallest degree 0.939181 (without cal-6)
+CALIBRATION GATE OK: the smallest degree 0.939181 is at or above 0.50
+RUN SETTINGS cal-6: LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUN START cal-6 scale 30000 plan plans/plan-2.2.json (10 min, the first 120 s discarded) at 2026-11-11T17:07:48+09:00
+RUN END cal-6 at 2026-11-11T17:18:51+09:00: record record.json
