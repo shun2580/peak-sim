@@ -1,0 +1,11 @@
+record	path	start_local	end_local	status	duration_ms	waiting_ms	body_bytes
+single-books1-first	/books/1	17:28:24.162	17:28:28.527	200	4208.7	4170.0	14613683
+single-books1-second	/books/1	17:28:38.545	17:28:41.781	200	3079.4	3044.7	14613683
+single-books2-first	/books/2	17:28:51.799	17:28:52.139	404	204.5	204.2	39182
+single-shelves1-first	/shelves/1	17:29:17.641	17:29:17.828	200	39.0	38.7	33490
+two-book-and-shelf-A	/books/1	17:29:55.673	17:29:58.974	200	3147.1	3108.8	14613683
+two-book-and-shelf-B	/shelves/1	17:29:55.673	17:29:55.854	200	38.9	38.6	33490
+two-same-book-2-A	/books/1	17:30:10.365	17:30:13.800	200	3274.5	3227.9	14613683
+two-same-book-2-B	/books/1	17:30:10.365	17:30:16.430	200	5903.6	5860.2	14613683
+two-same-book-A	/books/1	17:29:24.962	17:29:30.946	200	5812.8	5774.1	14613683
+two-same-book-B	/books/1	17:29:24.962	17:29:28.401	200	3269.1	3216.9	14613683

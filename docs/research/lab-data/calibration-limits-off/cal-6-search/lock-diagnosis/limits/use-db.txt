@@ -1,0 +1,21 @@
+use-db 30000 (17:27:57 to 17:28:12):
+peak-lab-tools: PREFLIGHT OK
+PASS peak-lab-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-web: http://example.com is unreachable
+PASS peak-lab-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-k6: http://example.com is unreachable
+PASS peak-lab-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-db: the name example.com is unreachable
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+use-db rc=0
+
+use-db 10000 (measure end 2026-11-11T17:30:26+0900 to 2026-11-11T17:30:40+0900):
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+use-db rc=0

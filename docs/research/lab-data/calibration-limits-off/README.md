@@ -166,3 +166,39 @@ The settings were changed for the run in the same two files as for the five runs
 
 The limits were off from 17:07:10 (`LIMITS OFF START`) to 17:19:27 (`RESTORE START`); the restore finished at 17:19:42 (`times.txt`). After the restore `git diff` of `poc/lab/compose/` is empty
 (0 lines). Nothing else was measured in the lab after this run.
+
+### A check of the book-page serialization (`cal-6-search/lock-diagnosis/`)
+
+Not a calibration run and not a measurement of load: a few requests sent by hand, to see whether two book pages sent at the same time wait for one another and, if they do, on what. It was made on the
+30,000-row database (the one of `cal-5`, statistics as left by `ANALYZE` before; the limits as the application really has them: `max_execution_time` 30, `request_terminate_timeout` 0s,
+`fastcgi_read_timeout` 120s; `bin/check-limits --require=limited` exited 0, `limits/`). The lab was pointed at it at 17:28 and back at the 10,000-row database at about 17:30, and
+`bin/check-limits --require=limited` exited 0 again; `git diff` of `poc/lab/compose/` is empty. `mysql.innodb_table_stats` of the 41 tables was identical before and after
+(`stats-before.tsv`, `stats-after.tsv`; no `ANALYZE`). The 50,000- and 200,000-row databases were not touched. Requests were sent one by one through the web server and php-fpm with the load tool's one-request
+script (`poc/lab/diagnosis/request_probe.py`'s `probe_one.js`; no rate), and the lock tables were only read (`performance_schema.data_lock_waits`, `data_locks` and `sys.innodb_lock_waits`, about every 0.4 s, with the
+database user the probes already use; no privilege was added). All times are in `requests.tsv`; the polls of the lock tables are in `locks/`.
+
+| What was sent | Duration (ms) | Waited on a lock |
+| --- | --- | --- |
+| `GET /books/1` alone, first | 4,209 | |
+| `GET /books/1` alone, second | 3,079 | |
+| `GET /books/1` twice at once (pair 1) | 3,269 and **5,813** | yes (6 of 17 polls) |
+| `GET /books/1` twice at once (pair 2) | 3,275 and **5,904** | yes (6 of 17 polls) |
+| `GET /books/1` and `GET /shelves/1` at once | 3,147 and 39 | no (0 of 11 polls) |
+
+Every request returned 200. The book page has a body of 14.6 MB (18,001 children).
+
+What was seen: in both pairs the second request took 1.8 times as long as one alone (3.3 s and 5.8 to 5.9 s), not twice, because the wait began within the first 0.8 s of the request and ended when the first one finished. In
+the polls, one transaction waited for the lock on a single row of the `views` table: table `views`, index `PRIMARY`, lock type `RECORD`, mode `X,REC_NOT_GAP`, the row with `id` 1, the waiting statement
+`update views set views = ... where id = 1`; the wait age read 0, 1 and 2 seconds in turn. The other transaction held the same lock (granted) over the whole stretch. In 5 of the 6 polls with a wait the holder had no statement running (its
+transaction stayed open); in one it was running a `select` on `entities`. The lock was gone by the first poll after the holder had finished. A shelf page sent at the same time as a book page did not wait.
+
+The holder kept the lock for at least 2.1 s and at most 3.4 s (first poll that saw a wait to the last poll that saw one, and the next poll without one), out of a request of about 3.2 s. A lock held for most of a request of that length allows
+about 0.3 to 0.5 requests per second for that row; the book-page rate reached in `cal-6` (0.396) lies inside it. That is a consistency, not a proof: the two numbers were not measured in the same run.
+
+What it does not show:
+
+- A different book. All 6,000 books of this database have the slug `1`, so `GET /books/{slug}` can only reach the first of them; a pair on two different books could not be sent without changing the database, and it was not changed.
+  The shelf page is a different route and row, not a stand-in for it. That a different book would not wait is expected from the lock being on one row, not seen.
+- Why the lock is held until the response is over (the transaction that the lab's entry script puts around a request, rolled back at the end) is read from how the lock behaved here, not from a trace of the entry script.
+- Two pairs, one book, one database size; no count of how the wait grows with more than two requests at once, and nothing about 50,000 or 200,000 rows.
+- The lock is a property of how the lab runs a request. It says nothing about how the real application would behave under the same load.

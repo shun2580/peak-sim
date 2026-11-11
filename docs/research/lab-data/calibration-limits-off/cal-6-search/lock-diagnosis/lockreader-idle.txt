@@ -1,0 +1,4 @@
+idle_waits
+0
+COUNT(*)
+0

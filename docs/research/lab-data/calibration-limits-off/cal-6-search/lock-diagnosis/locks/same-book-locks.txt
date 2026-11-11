@@ -1,0 +1,87 @@
+### 1794385763.959340944
+k	n
+WAITS	0
+### 1794385764.415964255
+k	n
+WAITS	0
+### 1794385764.852801645
+k	n
+WAITS	0
+### 1794385765.301921241
+k	n
+WAITS	0
+### 1794385765.732098687
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	0	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	NULL
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385766.160269403
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	1	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	NULL
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385766.605144382
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	1	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	NULL
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385767.025146058
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	2	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	NULL
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385767.457048752
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	2	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	NULL
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385767.882892134
+k	n
+WAITS	1
+k	locked_table	locked_index	locked_type	waiting_lock_mode	blocking_lock_mode	wait_age_secs	waiting_query	blocking_query
+sys.innodb_lock_waits	`peak_sim_measure_d60189cad0bc_lab_30000`.`views`	PRIMARY	RECORD	X,REC_NOT_GAP	X,REC_NOT_GAP	2	update `views` set `views` = 2 ... 11-11 08:29:25' where `id` = 1	select `id` from `entities` le ... entities`.`deleted_at` is null
+k	trx	OBJECT_SCHEMA	OBJECT_NAME	INDEX_NAME	LOCK_TYPE	LOCK_MODE	LOCK_STATUS	LOCK_DATA
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	NULL	TABLE	IX	GRANTED	NULL
+LOCKS	57016	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	GRANTED	1
+LOCKS	57017	peak_sim_measure_d60189cad0bc_lab_30000	views	PRIMARY	RECORD	X,REC_NOT_GAP	WAITING	1
+### 1794385768.317373636
+k	n
+WAITS	0
+### 1794385768.767402333
+k	n
+WAITS	0
+### 1794385769.201134591
+k	n
+WAITS	0
+### 1794385769.629557533
+k	n
+WAITS	0
+### 1794385770.047068546
+k	n
+WAITS	0
+### 1794385770.459847185
+k	n
+WAITS	0
+### 1794385770.900343062
+k	n
+WAITS	0
