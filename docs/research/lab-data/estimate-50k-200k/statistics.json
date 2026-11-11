@@ -1,0 +1,171 @@
+{
+ "note": "innodb_table_stats of the throw-away databases (rows the statistics hold and last_update, server time = UTC) for the three N tables and views, in each statistics state, taken by bin/explain-at-scale. The databases were dropped after the plans were taken; the lab databases were not used.",
+ "counts": {
+  "50000": {
+   "default": {
+    "sample_pages": 20,
+    "tables": {
+     "entities": {
+      "n_rows": 50377,
+      "last_update": "2026-11-11 07:25:05"
+     },
+     "images": {
+      "n_rows": 49811,
+      "last_update": "2026-11-11 07:25:06"
+     },
+     "references": {
+      "n_rows": 50116,
+      "last_update": "2026-11-11 07:25:06"
+     },
+     "views": {
+      "n_rows": 50040,
+      "last_update": "2026-11-11 07:25:06"
+     }
+    },
+    "before_set": {
+     "entities": {
+      "n_rows": 51821,
+      "last_update": "2026-11-11 07:25:04"
+     },
+     "images": {
+      "n_rows": 49811,
+      "last_update": "2026-11-11 07:25:04"
+     },
+     "references": {
+      "n_rows": 50116,
+      "last_update": "2026-11-11 07:25:04"
+     },
+     "views": {
+      "n_rows": 50040,
+      "last_update": "2026-11-11 07:25:04"
+     }
+    }
+   },
+   "low": {
+    "sample_pages": 4,
+    "tables": {
+     "entities": {
+      "n_rows": 51108,
+      "last_update": "2026-11-11 07:25:07"
+     },
+     "images": {
+      "n_rows": 49792,
+      "last_update": "2026-11-11 07:25:07"
+     },
+     "references": {
+      "n_rows": 50116,
+      "last_update": "2026-11-11 07:25:07"
+     },
+     "views": {
+      "n_rows": 50040,
+      "last_update": "2026-11-11 07:25:07"
+     }
+    }
+   },
+   "high": {
+    "sample_pages": 200,
+    "tables": {
+     "entities": {
+      "n_rows": 50000,
+      "last_update": "2026-11-11 07:25:09"
+     },
+     "images": {
+      "n_rows": 49616,
+      "last_update": "2026-11-11 07:25:09"
+     },
+     "references": {
+      "n_rows": 50000,
+      "last_update": "2026-11-11 07:25:09"
+     },
+     "views": {
+      "n_rows": 50000,
+      "last_update": "2026-11-11 07:25:10"
+     }
+    }
+   }
+  },
+  "200000": {
+   "default": {
+    "sample_pages": 20,
+    "tables": {
+     "entities": {
+      "n_rows": 195006,
+      "last_update": "2026-11-11 07:27:15"
+     },
+     "images": {
+      "n_rows": 198250,
+      "last_update": "2026-11-11 07:27:15"
+     },
+     "references": {
+      "n_rows": 199392,
+      "last_update": "2026-11-11 07:27:16"
+     },
+     "views": {
+      "n_rows": 199604,
+      "last_update": "2026-11-11 07:27:16"
+     }
+    },
+    "before_set": {
+     "entities": {
+      "n_rows": 198954,
+      "last_update": "2026-11-11 07:27:13"
+     },
+     "images": {
+      "n_rows": 198567,
+      "last_update": "2026-11-11 07:27:13"
+     },
+     "references": {
+      "n_rows": 199392,
+      "last_update": "2026-11-11 07:27:13"
+     },
+     "views": {
+      "n_rows": 199604,
+      "last_update": "2026-11-11 07:27:14"
+     }
+    }
+   },
+   "low": {
+    "sample_pages": 4,
+    "tables": {
+     "entities": {
+      "n_rows": 185927,
+      "last_update": "2026-11-11 07:27:18"
+     },
+     "images": {
+      "n_rows": 198250,
+      "last_update": "2026-11-11 07:27:18"
+     },
+     "references": {
+      "n_rows": 199392,
+      "last_update": "2026-11-11 07:27:18"
+     },
+     "views": {
+      "n_rows": 199604,
+      "last_update": "2026-11-11 07:27:18"
+     }
+    }
+   },
+   "high": {
+    "sample_pages": 200,
+    "tables": {
+     "entities": {
+      "n_rows": 197532,
+      "last_update": "2026-11-11 07:27:21"
+     },
+     "images": {
+      "n_rows": 198575,
+      "last_update": "2026-11-11 07:27:22"
+     },
+     "references": {
+      "n_rows": 199388,
+      "last_update": "2026-11-11 07:27:23"
+     },
+     "views": {
+      "n_rows": 199101,
+      "last_update": "2026-11-11 07:27:23"
+     }
+    }
+   }
+  }
+ }
+}
