@@ -1,0 +1,765 @@
+{
+    "schema_version": "0.1",
+    "app": "bookstack",
+    "estimate_at": 100000,
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8,
+        "php_memory_limit_bytes": null
+    },
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
+    "low_coverage_scenarios": [],
+    "calibration": {
+        "method": "two_coefficient",
+        "calibration_scenarios": 5,
+        "cut_coefficients": true,
+        "warnings": [
+            "two_coefficient: c_row came out negative in the plain least squares and is pinned at 0."
+        ],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.00031221313365572173,
+                "c_row": 0.0,
+                "negative_unconstrained": [
+                    "c_row"
+                ],
+                "at_zero": [
+                    "c_row"
+                ],
+                "notes": [],
+                "sum_squared_residual_load": 0.0003151906937367107,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4703214912814272,
+                        "fitted_load": 0.47210128220721,
+                        "residual_load": -0.001779790925782787,
+                        "observed_utilization": 0.2351607456407136,
+                        "fitted_utilization": 0.236050641103605,
+                        "residual_utilization": -0.0008898954628913935
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7429163330712527,
+                        "fitted_load": 0.7539102604600368,
+                        "residual_load": -0.01099392738878413,
+                        "observed_utilization": 0.37145816653562636,
+                        "fitted_utilization": 0.3769551302300184,
+                        "residual_utilization": -0.005496963694392065
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.1985534692692836,
+                        "fitted_load": 0.1899176481939962,
+                        "residual_load": 0.008635821075287403,
+                        "observed_utilization": 0.0992767346346418,
+                        "fitted_utilization": 0.0949588240969981,
+                        "residual_utilization": 0.004317910537643702
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.587014483975481,
+                        "fitted_load": 0.5770094477322135,
+                        "residual_load": 0.010005036243267429,
+                        "observed_utilization": 0.2935072419877405,
+                        "fitted_utilization": 0.28850472386610676,
+                        "residual_utilization": 0.0050025181216337145
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.42668237401326,
+                        "fitted_load": 0.42262300919916884,
+                        "residual_load": 0.004059364814091138,
+                        "observed_utilization": 0.21334118700663,
+                        "fitted_utilization": 0.21131150459958442,
+                        "residual_utilization": 0.002029682407045569
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.00031221313365572173,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0003151906937367107,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4703214912814272,
+                        "fitted_load": 0.47210128220721,
+                        "residual_load": -0.001779790925782787,
+                        "observed_utilization": 0.2351607456407136,
+                        "fitted_utilization": 0.236050641103605,
+                        "residual_utilization": -0.0008898954628913935
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7429163330712527,
+                        "fitted_load": 0.7539102604600368,
+                        "residual_load": -0.01099392738878413,
+                        "observed_utilization": 0.37145816653562636,
+                        "fitted_utilization": 0.3769551302300184,
+                        "residual_utilization": -0.005496963694392065
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.1985534692692836,
+                        "fitted_load": 0.1899176481939962,
+                        "residual_load": 0.008635821075287403,
+                        "observed_utilization": 0.0992767346346418,
+                        "fitted_utilization": 0.0949588240969981,
+                        "residual_utilization": 0.004317910537643702
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.587014483975481,
+                        "fitted_load": 0.5770094477322135,
+                        "residual_load": 0.010005036243267429,
+                        "observed_utilization": 0.2935072419877405,
+                        "fitted_utilization": 0.28850472386610676,
+                        "residual_utilization": 0.0050025181216337145
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.42668237401326,
+                        "fitted_load": 0.42262300919916884,
+                        "residual_load": 0.004059364814091138,
+                        "observed_utilization": 0.21334118700663,
+                        "fitted_utilization": 0.21131150459958442,
+                        "residual_utilization": 0.002029682407045569
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 1.813573425995512e-5,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0004992451361615721,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4703214912814272,
+                        "fitted_load": 0.47284692707869025,
+                        "residual_load": -0.0025254357972630537,
+                        "observed_utilization": 0.2351607456407136,
+                        "fitted_utilization": 0.23642346353934512,
+                        "residual_utilization": -0.0012627178986315268
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7429163330712527,
+                        "fitted_load": 0.7547072099622343,
+                        "residual_load": -0.011790876890981572,
+                        "observed_utilization": 0.37145816653562636,
+                        "fitted_utilization": 0.37735360498111714,
+                        "residual_utilization": -0.005895438445490786
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.1985534692692836,
+                        "fitted_load": 0.19096144488069844,
+                        "residual_load": 0.007592024388585167,
+                        "observed_utilization": 0.0992767346346418,
+                        "fitted_utilization": 0.09548072244034922,
+                        "residual_utilization": 0.0037960121942925834
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.587014483975481,
+                        "fitted_load": 0.5699835380919696,
+                        "residual_load": 0.017030945883511395,
+                        "observed_utilization": 0.2935072419877405,
+                        "fitted_utilization": 0.2849917690459848,
+                        "residual_utilization": 0.008515472941755697
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.42668237401326,
+                        "fitted_load": 0.4291624103704986,
+                        "residual_load": -0.0024800363572386463,
+                        "observed_utilization": 0.21334118700663,
+                        "fitted_utilization": 0.2145812051852493,
+                        "residual_utilization": -0.0012400181786193232
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 5 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.00031221313365572173,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.0003124482004770352,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.00031557168444495964,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.0003118200917048561,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-4",
+                    "c_query": 0.0,
+                    "c_row": 1.796208297116168e-5,
+                    "cut_coefficient": true
+                },
+                {
+                    "label": "without:cal-5",
+                    "c_query": 0.000311751493337981,
+                    "c_row": 0.0,
+                    "cut_coefficient": true
+                }
+            ]
+        }
+    },
+    "scenarios": [],
+    "peak_memory": {
+        "line_share_of_limit": 0.8,
+        "accuracy_source": "none",
+        "routes": [
+            {
+                "route": "DELETE /api/books/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/chapters/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/imports/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/pages/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/shelves/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /books/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /import/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /settings/maintenance/cleanup-images",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /settings/sorting/rules/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /settings/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /shelves/{slug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/books/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/books/{id}/export/zip",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/chapters/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/imports/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/pages/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/shelves/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/users",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/copy",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/draft/{pageId}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/export/zip",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/page/{pageSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{slug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /books/{slug}/references",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /images/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /import/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /login/service/{socialDriver}/callback",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /oidc/callback",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /register",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /settings/sorting/rules/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /settings/users/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /settings/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /shelves/{slug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /shelves/{slug}/references",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/imports/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/users",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /books/{bookSlug}/copy",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /books/{bookSlug}/draft/{pageId}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /import/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /register",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /settings/maintenance/regenerate-references",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /settings/recycle-bin/empty",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /settings/users/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/books/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/chapters/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/pages/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/shelves/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /books/{slug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /settings/sorting/rules/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /settings/users/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /shelves/{slug}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            }
+        ]
+    },
+    "accuracy_on_this_app": {
+        "status": "not_checked",
+        "text": "not checked",
+        "why": "no selfcheck result at selfcheck-result.json"
+    },
+    "sources": {
+        "static": "the static analysis fixed the value",
+        "explain": "the EXPLAIN estimate gave the value (the upper side of a marked statement)",
+        "fit": "a formula fitted to measurements at small sizes",
+        "unknown": "no cost (listed apart, never counted as 0)"
+    },
+    "n_marks": {
+        "measured": "the count is one of the sizes measured",
+        "interpolated": "the count is between measured sizes",
+        "extrapolated": "the count is outside the measured sizes"
+    }
+}

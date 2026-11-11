@@ -1,0 +1,93 @@
+# Calibration scenarios of the lab backtest, and nothing else (docs/simulator-spec.md sections 3.4 and 7.2).
+#
+# Made by poc/lab/scenarios/make-calibration-scenario from the plan and the record of each calibration run; nothing in it is typed
+# by hand. There is NO `target` scenario: bin/simulate has nothing to predict and stops after the calibration.
+# `observed` is the utilization of the database CPU over the kept window of the run (0 to 1).
+#
+# Inputs (sha256 of the files as read):
+#   cal-1: plan 989cddd771f6bfd8eaefeccb5de5a71e13bb51ef07dcb4bff0a2068bb4769406, record 34fe9d65722e8c44e6aba7d7e1e50ced800974e0c34186525dd0e5ef572c1fc9
+#   cal-2: plan 4eaf6604063d8f8a4b886bfbc749792e036ff91a09c93f85e8ad87b150a2fa95, record a6ac69c9f209b012eeade6e6b763f395751122768d64bc46a7e7a22ac6aa1c5f
+#   cal-3: plan 185254663223be8b86343ecee781f90a9adabf096b8a58531a99f490c918f736, record 43b674fbe9dc1240e549fc2d755315476962a586bab5bb3da97eaf41a1133c13
+#   cal-4: plan 9609130954f6cfef14b03e0d06c849f69f796eab465ab69ee4730ee83583eb34, record 612ac3367948e9489b6d18812a0a7a89515be231ad7197860e4eb683ff13e16b
+#   cal-5: plan 21070967684430b3df24bdd3dfea5bbc73c36cd6cf27528dcb9782e48e45b149, record 39b156a97d41b7ba857aa5a14e3bca4b3b5ce309da8701f003d4bd61922da0a0
+schema_version: "0.1"
+
+resources:
+  db_cpu:
+    cores: 2
+
+scenarios:
+  - id: cal-1
+    # mix of routes: even, total 1.0 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125
+      "GET /books/{bookSlug}/export/zip": 0.125
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125
+      "GET /books/{slug}": 0.125
+      "GET /books/{slug}/references": 0.125
+      "GET /images/edit/{id}": 0.125
+      "GET /oidc/callback": 0.125
+      "GET /shelves/{slug}": 0.125
+    observed: { db_cpu_utilization: 0.2351607456407136 }
+
+  - id: cal-2
+    # mix of routes: first80, total 1.0000000000000002 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.2
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.2
+      "GET /books/{slug}/references": 0.05
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.37145816653562636 }
+
+  - id: cal-3
+    # mix of routes: odd80, total 1.0 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.05
+      "GET /books/{slug}/references": 0.2
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.2
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.0992767346346418 }
+
+  - id: cal-4
+    # mix of routes: even, total 4.0 rps
+    kind: calibration
+    tables: { entities: 3000, images: 3000, references: 3000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.5
+      "GET /books/{bookSlug}/export/zip": 0.5
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.5
+      "GET /books/{slug}": 0.5
+      "GET /books/{slug}/references": 0.5
+      "GET /images/edit/{id}": 0.5
+      "GET /oidc/callback": 0.5
+      "GET /shelves/{slug}": 0.5
+    observed: { db_cpu_utilization: 0.2935072419877405 }
+
+  - id: cal-5
+    # mix of routes: even, total 0.3 rps
+    kind: calibration
+    tables: { entities: 30000, images: 30000, references: 30000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0375
+      "GET /books/{bookSlug}/export/zip": 0.0375
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0375
+      "GET /books/{slug}": 0.0375
+      "GET /books/{slug}/references": 0.0375
+      "GET /images/edit/{id}": 0.0375
+      "GET /oidc/callback": 0.0375
+      "GET /shelves/{slug}": 0.0375
+    observed: { db_cpu_utilization: 0.21334118700663 }
