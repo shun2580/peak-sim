@@ -6,12 +6,12 @@ closed-network check) is elsewhere in `poc/lab/`; the route list is in `poc/lab/
 | File | What it does |
 | --- | --- |
 | `make-plan.php` | Route list + mix (`even`, `first80`, `last80`, `odd80`) + total rps -> the plan: one rate per route, in the order of the list. |
-| `scenario.js` | The k6 script. One constant-arrival-rate stream per route, GET only. Tags each request `phase=warmup` (the discarded start) or `phase=measure` and writes a summary file. |
+| `scenario.js` | The k6 script. One constant-arrival-rate stream per route, GET only. Tags each request `phase=warmup` (the discarded start) or `phase=measure` and writes a summary file (the HTTP status counts overall and by route). The optional environment value `REQUEST_TIMEOUT` (a k6 duration with a unit, such as `600s`) is passed to every request; without it the requests are sent as before and k6's own default applies (60 s in k6 2.3.0). A value that is not a duration stops the script before any request. |
 | `summarize-run.php` | Plan + k6 summary + CPU samples -> the record of one scenario: did the rps come out within 5% (`valid` / `invalid`), the DB utilization over the kept window, requests per route. |
-| `ladder.php` | The command line of `bin/measure-ladder`'s own parts: the steps, the scenarios, the stopping rule, the record of one step, the dry-run table. Measures nothing. |
+| `ladder.php` | The command line of `bin/measure-ladder`'s own parts: the steps, the scenarios (`t-1`..`t-5` and the re-check's `r-1`..`r-5`), the stopping rule, the record of one step, the three limits worked out from what was read in the containers (`settings`), the dry-run table. Measures nothing. |
 | `../observe/sample-cpu` | Reads the DB container's `cpu.stat` every few seconds into a file. Stops with no figure if it cannot read it. |
 
-`summarize-run.php` also takes `--app-samples=<file>` (the app container sampled the same way; `--app-cpus`, default 6), which adds the app's CPU utilization over the same window, and passes the k6 summary's HTTP status counts (`http_status`) through.
+`summarize-run.php` also takes `--app-samples=<file>` (the app container sampled the same way; `--app-cpus`, default 6), which adds the app's CPU utilization over the same window, and passes the k6 summary's HTTP status counts (`http_status`, and `http_status_by_route` when k6 wrote it) and the timeout k6 was given (`request_timeout`) through.
 
 The `failed` count in a record is the requests that were not 2xx; the rps check counts every request in the window whatever its status. One route (`GET /oidc/callback`, sent as a guest) answers 302 by design, so its requests show as `failed`.
 

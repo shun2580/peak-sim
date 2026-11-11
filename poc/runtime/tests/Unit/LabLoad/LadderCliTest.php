@@ -75,6 +75,80 @@ final class LadderCliTest extends TestCase
         $this->assertSame(2, self::tool('ladder.php', ['scenario', 'cal-2', '--line'])[0], 'a trial name without --trial is no scenario');
     }
 
+    public function test_the_recheck_scenarios_are_read_and_the_order_has_both_sets_apart(): void
+    {
+        $this->assertSame([0, "50000 even\n"], array_slice(self::tool('ladder.php', ['scenario', 'r-1', '--line']), 0, 2));
+        $this->assertSame([0, "50000 first80\n"], array_slice(self::tool('ladder.php', ['scenario', 'r-2', '--line']), 0, 2));
+        $this->assertSame([0, "200000 even\n"], array_slice(self::tool('ladder.php', ['scenario', 'r-3', '--line']), 0, 2));
+        $this->assertSame([0, "200000 first80\n"], array_slice(self::tool('ladder.php', ['scenario', 'r-4', '--line']), 0, 2));
+        $this->assertSame([0, "200000 last80\n"], array_slice(self::tool('ladder.php', ['scenario', 'r-5', '--line']), 0, 2));
+        $this->assertSame(2, self::tool('ladder.php', ['scenario', 'r-6', '--line'])[0]);
+        $this->assertSame(2, self::tool('ladder.php', ['scenario', 'r-1', '--trial', '--line'])[0], 'a re-check scenario is never a trial');
+
+        $this->assertSame([['scale' => 10000, 'scenarios' => ['t-4']], ['scale' => 30000, 'scenarios' => ['t-1']], ['scale' => 100000, 'scenarios' => ['t-2', 't-3', 't-5']]], json_decode(self::tool('ladder.php', ['order'])[1], true));
+        $this->assertSame([['scale' => 50000, 'scenarios' => ['r-1', 'r-2']], ['scale' => 200000, 'scenarios' => ['r-3', 'r-4', 'r-5']]], json_decode(self::tool('ladder.php', ['order', '--set=r'])[1], true));
+        $this->assertSame(2, self::tool('ladder.php', ['order', '--set=x'])[0]);
+    }
+
+    public function test_each_recheck_scenario_uses_one_of_the_three_mixes_the_ladder_already_plans_for(): void
+    {
+        // the plans of these three mixes at every step are made by test_make_plan_makes_a_plan_for_every_step_of_every_mix_the_ladder_uses
+        foreach (['r-1' => 'even', 'r-2' => 'first80', 'r-3' => 'even', 'r-4' => 'first80', 'r-5' => 'last80'] as $id => $mix) {
+            $this->assertSame($mix, trim(explode(' ', self::tool('ladder.php', ['scenario', $id, '--line'])[1])[1]), $id);
+        }
+    }
+
+    /** @return array<string, string> the three files `settings` reads */
+    private function settingsFiles(string $maxExecutionTime = '0', string $readTimeout = '600s'): array
+    {
+        file_put_contents($this->dir . '/nginx.txt', "http {\n    server {\n        location / {\n            fastcgi_read_timeout $readTimeout;\n        }\n    }\n}\n");
+        file_put_contents($this->dir . '/fpm.txt', "[10-Nov-2026 10:39:21] NOTICE: \trequest_terminate_timeout = 0s\n");
+        file_put_contents($this->dir . '/ini.txt', json_encode(['sapi' => 'fpm-fcgi', 'max_execution_time' => $maxExecutionTime]) . "\n");
+
+        return ['--nginx=' . $this->dir . '/nginx.txt', '--fpm=' . $this->dir . '/fpm.txt', '--ini=' . $this->dir . '/ini.txt'];
+    }
+
+    public function test_settings_gives_the_three_limits_and_a_record_made_with_it_carries_them(): void
+    {
+        [$code, $out] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles(), ['--k6-timeout=600s']));
+        $this->assertSame(0, $code);
+        $s = json_decode($out, true);
+        $this->assertSame('0', $s['php_max_execution_time']);
+        $this->assertSame('600s', $s['nginx_fastcgi_read_timeout']);
+        $this->assertSame('600s', $s['k6_request_timeout']);
+
+        file_put_contents($this->dir . '/settings.json', $out);
+        $run = json_decode((string) file_get_contents($this->runJson(0.4, true)), true);
+        $run['requests']['http_status_by_route'] = ['GET /r1' => ['200' => 10, '500' => 1]];
+        $run['requests']['request_timeout'] = '600s';
+        file_put_contents($this->dir . '/run.json', json_encode($run));
+        [$code, $rec] = self::tool('ladder.php', [
+            'record', '--scenario=r-1', '--rung=2', '--summary=' . $this->dir . '/run.json', '--settings=' . $this->dir . '/settings.json',
+            '--started=2026-11-11T10:00:00+09:00', '--ended=2026-11-11T10:06:00+09:00',
+            '--prediction-file=poc/lab/predictions/p.json', '--prediction-commit=abc123', '--prediction-time=2026-11-11T09:00:00+09:00',
+        ]);
+        $this->assertSame(0, $code);
+        $r = json_decode($rec, true);
+        $this->assertSame('r-1', $r['scenario']);
+        $this->assertSame(50000, $r['scale']);
+        $this->assertSame('0', $r['settings']['php_max_execution_time']);
+        $this->assertSame('600s', $r['settings']['k6_request_timeout_seen_by_k6']);
+        $this->assertSame(['GET /r1' => ['200' => 10, '500' => 1]], $r['http_status_by_route']);
+    }
+
+    public function test_settings_without_a_k6_timeout_says_the_default_applied_and_a_missing_file_or_value_stops_it(): void
+    {
+        [$code, $out] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s')));
+        $this->assertSame(0, $code);
+        $this->assertNull(json_decode($out, true)['k6_request_timeout']);
+
+        $this->assertSame(2, self::tool('ladder.php', ['settings', '--nginx=/no/such', '--fpm=/no/such', '--ini=/no/such'])[0]);
+        file_put_contents($this->dir . '/ini.txt', 'cannot connect: Connection refused');
+        [$code, , $err] = self::tool('ladder.php', ['settings', '--nginx=' . $this->dir . '/nginx.txt', '--fpm=' . $this->dir . '/fpm.txt', '--ini=' . $this->dir . '/ini.txt']);
+        $this->assertSame(3, $code);
+        $this->assertStringContainsString('max_execution_time', $err);
+    }
+
     public function test_a_trial_record_is_written_with_trial_true_and_no_prediction_and_refuses_one(): void
     {
         $common = ['--rung=1', '--summary=' . $this->runJson(0.4, true), '--started=2026-11-10T10:00:00+09:00', '--ended=2026-11-10T10:06:00+09:00'];
@@ -247,6 +321,36 @@ final class LadderCliTest extends TestCase
         $this->assertEqualsWithDelta(50.0, $r['app_cpu_utilization']['percent'], 1e-6);
         $this->assertSame(6, $r['app_cpu_utilization']['cpus']);
         $this->assertSame(['200' => 296, '503' => 2, 'other' => 2], $r['requests']['http_status']);
+    }
+
+    public function test_summarize_run_carries_the_status_of_each_route_and_the_timeout_k6_was_given_and_leaves_them_out_when_k6_did_not_write_them(): void
+    {
+        [, $plan] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), '--mix=even', '--rps=1', '--duration=360', '--warmup=60']);
+        file_put_contents($this->dir . '/plan.json', $plan);
+        $db = '';
+        for ($t = 999_999_990; $t <= 1_000_000_400; $t += 5) {
+            $db .= $t . ' ' . (($t - 999_999_990) * 1_000_000) . "\n";
+        }
+        file_put_contents($this->dir . '/cpu.txt', $db);
+        $k6 = ['scenario_start_ms' => 1_000_000_000_000, 'measure_requests' => 300, 'measure_failed' => 1, 'dropped_iterations' => 0, 'per_route' => [],
+            'http_status' => ['200' => 299, '500' => 1], 'http_status_by_route' => ['GET /r1' => ['200' => 37], 'GET /r2' => ['200' => 36, '500' => 1]], 'request_timeout' => '600s'];
+        file_put_contents($this->dir . '/k6.json', json_encode($k6));
+        $args = ['--plan=' . $this->dir . '/plan.json', '--k6-summary=' . $this->dir . '/k6.json', '--samples=' . $this->dir . '/cpu.txt'];
+
+        $r = json_decode(self::tool('summarize-run.php', $args)[1], true);
+        $this->assertSame(['GET /r1' => ['200' => 37], 'GET /r2' => ['200' => 36, '500' => 1]], $r['requests']['http_status_by_route']);
+        $this->assertSame('600s', $r['requests']['request_timeout']);
+        $this->assertSame(['200' => 299, '500' => 1], $r['requests']['http_status'], 'the overall breakdown is as it was');
+
+        // k6 gave no timeout: its own null is kept (the field says "not given"), and a summary from before has neither field
+        $k6['request_timeout'] = null;
+        file_put_contents($this->dir . '/k6.json', json_encode($k6));
+        $this->assertNull(json_decode(self::tool('summarize-run.php', $args)[1], true)['requests']['request_timeout']);
+        unset($k6['request_timeout'], $k6['http_status_by_route']);
+        file_put_contents($this->dir . '/k6.json', json_encode($k6));
+        $r = json_decode(self::tool('summarize-run.php', $args)[1], true);
+        $this->assertArrayNotHasKey('http_status_by_route', $r['requests']);
+        $this->assertArrayNotHasKey('request_timeout', $r['requests']);
     }
 
     public function test_summarize_run_without_the_new_options_gives_the_same_shape_as_before(): void

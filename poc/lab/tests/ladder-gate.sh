@@ -19,6 +19,10 @@
 #   --trial=t-4 / even / cal-1 are refused (2); --trial with --scenario or with --predictions is refused (2); a trial's --out must be
 #   under out/trial and an ordinary run's must not (2); every refusal calls `docker` zero times; the trial itself goes on to docker
 #   with no prediction file; the ordinary path with a closed gate is still 12 (9) and an unknown scenario is still refused.
+# 20-27 the re-check scenarios (r-1 .. r-5, spec 7.4.1) go through the same gate, and state the load tool's timeout:
+#   r-1 without --request-timeout is refused (2), a timeout without a unit is refused (2), an unknown r-6 is refused (2), all with
+#   `docker` zero times; r-1 with a closed gate is still 12 and with an open gate it reaches docker; t-4 still needs no
+#   --request-timeout (the first backtest is measured as it was); a dry run of r-1 needs none either.
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -124,6 +128,34 @@ ml --trial=cal-2 --switch-scale; rc=$?
 grep -q '^PREDICTION OK' "$work/ml.out" && fail "18c a trial printed a prediction gate line" || pass "18c a trial prints no prediction gate line"
 [ -d "$work/out/trial" ] && pass "19 the trial's records are under out/trial" || fail "19 no out/trial directory"
 [ ! -d "$work/out/ladder/trial-cal-2-10000" ] && pass "19b nothing of the trial is in out/ladder" || fail "19b the trial wrote into out/ladder"
+
+# 20-27: the re-check scenarios
+ml --scenario=r-1 --predictions="$pred"; rc=$?
+expect_code "20 r-1 without --request-timeout: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "20b docker was not called" || fail "20b docker was called"
+grep -q 'request-timeout' "$work/ml.out" && pass "20c it says what is missing" || fail "20c no hint about --request-timeout"
+for bad in 600 abc 600x ''; do
+  ml --scenario=r-1 --predictions="$pred" --request-timeout="$bad"; rc=$?
+  expect_code "21 r-1 --request-timeout='$bad': refused" 2 $rc
+  [ "$(calls)" = 0 ] && pass "21b --request-timeout='$bad': docker was not called" || fail "21b --request-timeout='$bad': docker was called"
+done
+ml --scenario=r-6 --predictions="$pred" --request-timeout=600s; rc=$?
+expect_code "22 r-6 does not exist: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "22b docker was not called" || fail "22b docker was called"
+echo '{"v":3}' >"$pred"            # closed
+ml --scenario=r-1 --predictions="$pred" --request-timeout=600s; rc=$?
+expect_code "23 r-1 with a closed gate: 12" 12 $rc
+[ "$(calls)" = 0 ] && pass "23b docker was not called" || fail "23b docker was called"
+git -C "$repo" checkout -q HEAD -- poc/lab/predictions/p.json
+ml --scenario=r-3 --predictions="$pred" --request-timeout=600s; rc=$?
+[ "$rc" -ne 12 ] && [ "$rc" -ne 2 ] && pass "24 r-3 with an open gate and a timeout goes past the arguments (exit $rc)" || fail "24 r-3 was stopped (exit $rc: $(head -2 "$work/ml.out" | tr '\n' ' '))"
+[ "$(calls)" -ge 1 ] && pass "24b it reached docker" || fail "24b it never reached docker"
+ml --scenario=t-4 --predictions="$pred"; rc=$?
+[ "$rc" -ne 12 ] && [ "$rc" -ne 2 ] && pass "25 t-4 needs no --request-timeout (exit $rc)" || fail "25 t-4 was stopped (exit $rc: $(head -2 "$work/ml.out" | tr '\n' ' '))"
+ml --scenario=t-4 --predictions="$pred" --request-timeout=abc; rc=$?
+expect_code "26 t-4 with a timeout that has no unit: refused too" 2 $rc
+ml --scenario=r-1 --dry-run; rc=$?
+[ "$rc" -ne 2 ] && pass "27 a dry run of r-1 needs no --request-timeout (exit $rc)" || fail "27 a dry run of r-1 was refused ($(head -2 "$work/ml.out" | tr '\n' ' '))"
 
 echo
 echo "ladder gate tests: $passed passed, $failed failed, $skipped skipped"

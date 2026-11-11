@@ -9,7 +9,9 @@ declare(strict_types=1);
  *   php ladder.php rungs [--trial]                the rps of each step, one per line (--trial: the one step of a trial, R_0)
  *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
  *   php ladder.php scenario <cal-2|cal-3> --trial [--line]   the same for a trial (N_0; a prediction scenario id is refused)
- *   php ladder.php order                          the order of the measurement by scale (JSON)
+ *   php ladder.php order [--set=<t|r>]            the order of the measurement by scale (JSON; t = t-1..t-5, the default; r = r-1..r-5)
+ *   php ladder.php settings --nginx=<file> --fpm=<file> --ini=<file> [--k6-timeout=<duration>]
+ *                                                 the three limits of the lab (JSON), worked out from what was read in the containers
  *   php ladder.php shape --scheme=<spec|A|B> --rps=<n>   "<duration> <warmup>" in seconds of a step under the scheme
  *   php ladder.php stagger --scheme=<spec|A|B> <plan.json>   the plan with each route's start time and planned count (JSON)
  *   php ladder.php preview <plan.json>            what the plan would count in the kept window if the requests arrived evenly (JSON)
@@ -17,16 +19,18 @@ declare(strict_types=1);
  *                                                 the dry-run table: per step the rate of the routes and what the plan would count
  *   php ladder.php record --scenario=<id>|--trial=<cal-2|cal-3> --rung=<n> --summary=<summarize-run output> --started=<iso> --ended=<iso>
  *                         [--prediction-file (not with --trial)=<path> --prediction-commit=<hash> --prediction-time=<iso>]
+ *                         [--settings=<output of `settings`>]
  *                                                 the record of one step (JSON on stdout, the end line on stderr)
  *   php ladder.php decision <record.json>         the stopping decision of a record that was written
  *   php ladder.php collect --dir=<scenario dir>   the records of the steps in the directory, in one file (JSON on stdout)
  *
  * exit codes: 0 done (for `record` and `decision`: go on to the next step) / 6 `record` and `decision`: the scenario stops after
- * this step (not an error) / 2 wrong usage or an unreadable input
+ * this step (not an error) / 2 wrong usage or an unreadable input / 3 `settings`: a limit could not be read from what was collected
  */
 
 require __DIR__ . '/../../runtime/bootstrap.php';
 
+use PeakSim\Runtime\LabLoad\LabSettings;
 use PeakSim\Runtime\LabLoad\Ladder;
 use PeakSim\Runtime\LabLoad\LadderShape;
 
@@ -79,7 +83,27 @@ switch ($command) {
         exit(0);
 
     case 'order':
-        echo json_encode(Ladder::order(), JSON_FLAGS), "\n";
+        try {
+            echo json_encode(Ladder::order($opts['set'] ?? Ladder::SET_FIRST), JSON_FLAGS), "\n";
+        } catch (InvalidArgumentException $e) {
+            fail($e->getMessage());
+        }
+        exit(0);
+
+    case 'settings':
+        $texts = [];
+        foreach (['nginx', 'fpm', 'ini'] as $need) {
+            $texts[$need] = isset($opts[$need]) && is_file($opts[$need]) ? (string) file_get_contents($opts[$need]) : null;
+            if ($texts[$need] === null) {
+                fail("settings needs --$need=<a file that was read from the container>");
+            }
+        }
+        try {
+            $settings = LabSettings::fromReadings($texts['nginx'], $texts['fpm'], $texts['ini'], $opts['k6-timeout'] ?? null);
+        } catch (InvalidArgumentException $e) {
+            fail($e->getMessage(), 3);
+        }
+        echo json_encode($settings, JSON_FLAGS), "\n";
         exit(0);
 
     case 'shape':
@@ -148,7 +172,7 @@ switch ($command) {
         }
         // a prediction scenario (--scenario) or a trial (--trial), never both
         if (isset($opts['scenario']) === isset($opts['trial'])) {
-            fail('record needs --scenario=<t-1..t-5> or --trial=<cal-2|cal-3>, and not both');
+            fail('record needs --scenario=<t-1..t-5|r-1..r-5> or --trial=<cal-2|cal-3>, and not both');
         }
         if (isset($opts['trial']) && isset($opts['prediction-file'])) {
             fail('a trial has no prediction: --prediction-file is refused with --trial');
@@ -167,6 +191,9 @@ switch ($command) {
         ];
         if (isset($opts['trial'])) {
             $meta['trial'] = true;
+        }
+        if (isset($opts['settings'])) {
+            $meta['settings'] = readJson($opts['settings']);
         }
         if (isset($opts['prediction-file'])) {
             $meta['prediction'] = [
@@ -213,5 +240,5 @@ switch ($command) {
         exit(0);
 
     default:
-        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order [--set=t|r] | settings --nginx=<f> --fpm=<f> --ini=<f> | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
 }

@@ -82,6 +82,48 @@ final class LadderTest extends TestCase
         ], Ladder::order());
     }
 
+    public function test_the_recheck_scenarios_have_the_count_and_the_mix_of_section_7_4_1(): void
+    {
+        $this->assertSame(['id' => 'r-1', 'scale' => 50000, 'multiple' => 5, 'mix' => RouteMix::EVEN], Ladder::scenario('r-1'));
+        $this->assertSame(['id' => 'r-2', 'scale' => 50000, 'multiple' => 5, 'mix' => RouteMix::FIRST_80], Ladder::scenario('r-2'));
+        $this->assertSame(['id' => 'r-3', 'scale' => 200000, 'multiple' => 20, 'mix' => RouteMix::EVEN], Ladder::scenario('r-3'));
+        $this->assertSame(['id' => 'r-4', 'scale' => 200000, 'multiple' => 20, 'mix' => RouteMix::FIRST_80], Ladder::scenario('r-4'));
+        $this->assertSame(['id' => 'r-5', 'scale' => 200000, 'multiple' => 20, 'mix' => RouteMix::LAST_80], Ladder::scenario('r-5'));
+    }
+
+    public function test_the_recheck_goes_by_scale_5_n0_then_20_n0_and_never_mixes_with_the_first_set(): void
+    {
+        $this->assertSame([
+            ['scale' => 50000, 'scenarios' => ['r-1', 'r-2']],
+            ['scale' => 200000, 'scenarios' => ['r-3', 'r-4', 'r-5']],
+        ], Ladder::order(Ladder::SET_RECHECK));
+        // the first set is what it was, whether it is asked for by default or by name
+        $this->assertSame(Ladder::order(), Ladder::order(Ladder::SET_FIRST));
+        foreach (Ladder::order(Ladder::SET_FIRST) as $group) {
+            foreach ($group['scenarios'] as $id) {
+                $this->assertStringStartsWith('t-', $id);
+            }
+        }
+    }
+
+    public function test_an_unknown_scenario_set_is_refused(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Ladder::order('x');
+    }
+
+    public function test_a_trial_is_never_a_recheck_scenario_either(): void
+    {
+        foreach (['r-1', 'r-2', 'r-3', 'r-4', 'r-5'] as $id) {
+            try {
+                Ladder::trial($id);
+                $this->fail("expected a refusal for trial '$id'");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_a_step_under_80_percent_with_its_rps_out_goes_on(): void
     {
         $this->assertSame(['stop' => false, 'reasons' => [], 'note' => null], Ladder::decide(0.79999, true));
@@ -157,6 +199,36 @@ final class LadderTest extends TestCase
         $this->assertSame('2026-11-10T09:00:00+09:00', $r['started_at']);
         $this->assertSame('2026-11-10T09:06:10+09:00', $r['ended_at']);
         $this->assertFalse($r['decision']['stop']);
+    }
+
+    public function test_the_record_keeps_the_three_limits_and_the_status_of_each_route_when_they_are_given(): void
+    {
+        $meta = ['scenario' => 'r-1', 'scale' => 50000, 'rung' => 2, 'started_at' => 'a', 'ended_at' => 'b', 'settings' => [
+            'php_max_execution_time' => '0', 'php_fpm_request_terminate_timeout' => '0s', 'nginx_fastcgi_read_timeout' => '600s',
+            'k6_request_timeout' => '600s', 'k6_request_timeout_note' => 'given',
+        ]];
+        $summary = self::summary(0.4, true);
+        $summary['requests']['http_status_by_route'] = ['GET /a' => ['200' => 20], 'GET /b' => ['200' => 18, '500' => 2]];
+        $summary['requests']['request_timeout'] = '600s';
+        $r = Ladder::record($meta, $summary);
+
+        $this->assertSame('0', $r['settings']['php_max_execution_time']);
+        $this->assertSame('600s', $r['settings']['nginx_fastcgi_read_timeout']);
+        $this->assertSame('600s', $r['settings']['k6_request_timeout']);
+        $this->assertSame('600s', $r['settings']['k6_request_timeout_seen_by_k6']);
+        $this->assertSame(['GET /a' => ['200' => 20], 'GET /b' => ['200' => 18, '500' => 2]], $r['http_status_by_route']);
+    }
+
+    public function test_a_record_without_settings_or_a_route_breakdown_has_nulls_and_the_rest_unchanged(): void
+    {
+        $meta = ['scenario' => 't-4', 'scale' => 10000, 'rung' => 9, 'started_at' => 'a', 'ended_at' => 'b'];
+        $r = Ladder::record($meta, self::summary(0.55, true));
+        $this->assertNull($r['settings']);
+        $this->assertNull($r['http_status_by_route']);
+        // what the first backtest's records held is still there, unchanged
+        $this->assertSame(['200' => 290, '302' => 7, '500' => 3], $r['http_status']);
+        $this->assertSame(0.55, $r['db_utilization']);
+        $this->assertSame([], $r['per_route']);
     }
 
     public function test_a_trial_record_says_so_and_a_prediction_record_does_not(): void

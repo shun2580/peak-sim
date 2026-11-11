@@ -95,6 +95,12 @@ $record = [
 if (isset($k6['http_status']) && is_array($k6['http_status'])) {
     $record['requests']['http_status'] = $k6['http_status'];
 }
+if (isset($k6['http_status_by_route']) && is_array($k6['http_status_by_route'])) {
+    $record['requests']['http_status_by_route'] = $k6['http_status_by_route'];
+}
+if (array_key_exists('request_timeout', $k6)) {
+    $record['requests']['request_timeout'] = $k6['request_timeout'];
+}
 if ($app !== null) {
     $record['app_cpu_utilization'] = $app;
 }

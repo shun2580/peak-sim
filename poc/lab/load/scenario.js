@@ -7,6 +7,11 @@
 //   TARGETS  where each route is sent: {"base_url": "http://...", "headers": {...}, "routes": {"GET /x/{id}": {"path": "/x/1"}}}
 //   SUMMARY  where the run's summary is written (JSON, read by `summarize-run`)
 //
+// Optional input (environment):
+//   REQUEST_TIMEOUT  how long k6 waits for one response before it gives up (a k6 duration such as 600s). Without it the requests are
+//                    sent exactly as before and k6's own default applies; with it the value is passed on every request, so a run that
+//                    must not be cut by k6 before the server's own limits says its value instead of relying on the default.
+//
 // It sends no write: a route that is not a GET is refused before any request is made.
 import http from 'k6/http';
 import exec from 'k6/execution';
@@ -18,6 +23,12 @@ const summaryPath = __ENV.SUMMARY;
 
 if (!summaryPath) {
   throw new Error('SUMMARY is not set');
+}
+// A number is milliseconds in k6; a string needs a unit. Anything else is refused here, before a request is made, so that a typo
+// is not silently replaced by k6's default.
+const requestTimeout = __ENV.REQUEST_TIMEOUT;
+if (requestTimeout !== undefined && !/^[0-9]+(\.[0-9]+)?(ms|s|m|h)$/.test(requestTimeout)) {
+  throw new Error('REQUEST_TIMEOUT must be a k6 duration such as 600s (got "' + requestTimeout + '")');
 }
 for (const r of plan.routes) {
   if (!r.route.startsWith('GET ')) {
@@ -45,6 +56,10 @@ for (const status of STATUSES) {
   thresholds['http_reqs{phase:measure,status:' + status + '}'] = ['count>=0'];
 }
 plan.routes.forEach((r, i) => {
+  // The same breakdown for each route: which route got which status (a route cut by a limit shows as 500 or 0 only on that route).
+  for (const status of STATUSES) {
+    thresholds['http_reqs{phase:measure,route:' + r.route + ',status:' + status + '}'] = ['count>=0'];
+  }
   const name = 'r' + i;
   scenarios[name] = {
     executor: 'constant-arrival-rate',
@@ -77,11 +92,15 @@ export function hit() {
   const started = r.start_offset_sec ? Date.now() - exec.instance.currentTestRunDuration : exec.scenario.startTime;
   const phase = Date.now() - started < plan.warmup_sec * 1000 ? 'warmup' : 'measure';
   scenarioStart.add(started);
-  http.get(targets.base_url + t.path, {
+  const params = {
     headers: Object.assign({}, targets.headers || {}, t.headers || {}),
     redirects: 0,
     tags: { phase: phase, route: r.route, name: r.route },
-  });
+  };
+  if (requestTimeout !== undefined) {
+    params.timeout = requestTimeout;
+  }
+  http.get(targets.base_url + t.path, params);
 }
 
 function metric(data, key) {
@@ -113,6 +132,24 @@ export function handleSummary(data) {
   if (total > counted) {
     http_status.other = total - counted;
   }
+  // per route: { "GET /x": {"200": n, "500": m, "other": k}, ... }; a route that got no request has an empty object
+  const http_status_by_route = {};
+  for (const r of plan.routes) {
+    const byStatus = {};
+    let routeCounted = 0;
+    for (const status of STATUSES) {
+      const v = metric(data, 'http_reqs{phase:measure,route:' + r.route + ',status:' + status + '}');
+      if (v && v.count > 0) {
+        byStatus[String(status)] = v.count;
+        routeCounted += v.count;
+      }
+    }
+    const routeTotal = per_route[r.route];
+    if (routeTotal > routeCounted) {
+      byStatus.other = routeTotal - routeCounted;
+    }
+    http_status_by_route[r.route] = byStatus;
+  }
   const out = {
     scenario_start_ms: start ? start.min : null,
     measure_requests: reqs ? reqs.count : 0,
@@ -120,6 +157,8 @@ export function handleSummary(data) {
     measure_ok: failed ? failed.fails : 0,
     dropped_iterations: dropped ? dropped.count : 0,
     http_status: http_status,
+    http_status_by_route: http_status_by_route,
+    request_timeout: requestTimeout === undefined ? null : requestTimeout,
     duration_ms: dur ? { avg: dur.avg, p95: dur['p(95)'], max: dur.max } : null,
     per_route: per_route,
   };

@@ -46,15 +46,45 @@ final class Ladder
     ];
 
     /**
-     * The order of the measurement (spec: by scale, so the 8 N tables are rebuilt as seldom as possible): N_0, then 3 x N_0,
-     * then 10 x N_0.
+     * The prediction scenarios of the re-check (section 7.4.1): the same N_0, the same mixes, with the count at 5 x N_0 and 20 x N_0.
+     * They are a second table, not more rows of the first, so that the order and the records of t-1 .. t-5 stay what they were.
+     *
+     * @var array<string, array{0: int, 1: string}>
+     */
+    private const RECHECK_SCENARIOS = [
+        'r-1' => [5, RouteMix::EVEN],
+        'r-2' => [5, RouteMix::FIRST_80],
+        'r-3' => [20, RouteMix::EVEN],
+        'r-4' => [20, RouteMix::FIRST_80],
+        'r-5' => [20, RouteMix::LAST_80],
+    ];
+
+    /** The scenario sets: `t` (the first backtest, section 7.2) and `r` (the re-check, section 7.4.1). */
+    public const SET_FIRST = 't';
+    public const SET_RECHECK = 'r';
+
+    /**
+     * @return array<string, array{0: int, 1: string}>
+     */
+    private static function table(string $set): array
+    {
+        return match ($set) {
+            self::SET_FIRST => self::SCENARIOS,
+            self::SET_RECHECK => self::RECHECK_SCENARIOS,
+            default => throw new \InvalidArgumentException(sprintf('unknown scenario set "%s" (t or r)', $set)),
+        };
+    }
+
+    /**
+     * The order of the measurement (spec: by scale, so the 8 N tables are rebuilt as seldom as possible). Set `t`: N_0, then
+     * 3 x N_0, then 10 x N_0. Set `r`: 5 x N_0, then 20 x N_0.
      *
      * @return list<array{scale: int, scenarios: list<string>}>
      */
-    public static function order(): array
+    public static function order(string $set = self::SET_FIRST): array
     {
         $byScale = [];
-        foreach (self::SCENARIOS as $id => [$multiple]) {
+        foreach (self::table($set) as $id => [$multiple]) {
             $byScale[$multiple * self::BASE_SCALE][] = $id;
         }
         ksort($byScale);
@@ -73,10 +103,11 @@ final class Ladder
      */
     public static function scenario(string $id): array
     {
-        if (!isset(self::SCENARIOS[$id])) {
-            throw new \InvalidArgumentException(sprintf('unknown scenario "%s" (one of %s)', $id, implode(', ', array_keys(self::SCENARIOS))));
+        $all = self::SCENARIOS + self::RECHECK_SCENARIOS;
+        if (!isset($all[$id])) {
+            throw new \InvalidArgumentException(sprintf('unknown scenario "%s" (one of %s)', $id, implode(', ', array_keys($all))));
         }
-        [$multiple, $mix] = self::SCENARIOS[$id];
+        [$multiple, $mix] = $all[$id];
 
         return ['id' => $id, 'scale' => $multiple * self::BASE_SCALE, 'multiple' => $multiple, 'mix' => $mix];
     }
@@ -176,7 +207,7 @@ final class Ladder
     /**
      * The record of one step.
      *
-     * @param array{scenario: string, scale: int, rung: int, started_at: string, ended_at: string, trial?: bool, prediction?: array<string, mixed>} $meta
+     * @param array{scenario: string, scale: int, rung: int, started_at: string, ended_at: string, trial?: bool, prediction?: array<string, mixed>, settings?: array<string, mixed>} $meta
      * @param array<string, mixed> $summary the output of summarize-run (with --app-samples)
      *
      * @return array<string, mixed>
@@ -210,6 +241,8 @@ final class Ladder
             'requests_in_window' => $summary['requests']['in_window'],
             'requests_not_2xx' => $summary['requests']['failed'],
             'http_status' => $summary['requests']['http_status'] ?? null,
+            // the same by route (which route was cut): null for a run made before the load tool counted it
+            'http_status_by_route' => $summary['requests']['http_status_by_route'] ?? null,
             'window_sec' => $summary['window_sec'],
             'window_epoch' => $summary['window_epoch'],
             'started_at' => $meta['started_at'],
@@ -217,8 +250,27 @@ final class Ladder
             'decision' => $decision,
             'trial' => $meta['trial'] ?? false,
             'prediction' => $meta['prediction'] ?? null,
+            // the three limits at the time of the step (section 7.4.1); null for a step recorded without them (the first backtest)
+            'settings' => self::settings($meta['settings'] ?? null, $summary['requests']['request_timeout'] ?? null),
             'per_route' => $summary['per_route'],
         ];
+    }
+
+    /**
+     * The settings written into a record. The load tool also writes down the timeout it was given (`seen_by_k6`), beside the one the
+     * measuring tool says it passed, so that the two can be compared afterwards.
+     *
+     * @param array<string, mixed>|null $settings
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function settings(?array $settings, mixed $seenByK6): ?array
+    {
+        if ($settings === null) {
+            return null;
+        }
+
+        return $settings + ['k6_request_timeout_seen_by_k6' => $seenByK6];
     }
 
     /**

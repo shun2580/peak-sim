@@ -17,6 +17,7 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
+| `tests/scenario-timeout.sh` | the tests of `load/scenario.js`'s `REQUEST_TIMEOUT` and its status counts by route, with the real k6 against a stand-in server in throw-away containers (needs Docker; never touches the lab) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
 
 ## Measuring a prediction scenario
@@ -48,8 +49,16 @@ app-side stall, with the app's CPU utilization.
 - **The record.** Per step, in `<out>/<scenario>-<scale>/rung-NN-<rps>/`: `plan.json`, `summary.json` (k6), `cpu.txt` and `app-cpu.txt`
   (the DB's and the app's `usage_usec`), `run.json` (`load/summarize-run.php`), and `record.json` (the decided and achieved rps, whether it
   was within 5%, the DB and app CPU utilization, the dropped iterations, the HTTP status counts, the start and end times, the stop
-  decision, and the commit of the prediction file). `ladder.json` collects the steps of the scenario. Each step prints a `RUNG START`
+  decision, and the commit of the prediction file). The record also holds the HTTP status counts by route (`http_status_by_route`) and
+  the limits the step ran under (`settings`: the PHP `max_execution_time` as a request through php-fpm sees it, php-fpm's
+  `request_terminate_timeout`, nginx's `fastcgi_read_timeout`, and the timeout given to k6), read in the containers before the step's
+  samplers start; `settings-nginx.txt`, `settings-fpm.txt` and `settings-ini.txt` keep the raw output. A limit that cannot be read stops the
+  scenario (exit 13). `ladder.json` collects the steps of the scenario. Each step prints a `RUNG START`
   and a `RUNG END` line. A restart skips the steps that already have a `record.json`.
+- **The re-check (`r-1`..`r-5`, spec 7.4.1).** `--scenario=r-N` measures 5 x N_0 and 20 x N_0 with the same steps, window and stopping rule.
+  It requires `--request-timeout=<k6 duration>` (600s in the spec) so that the load tool's timeout is stated and not left to its default;
+  for `t-*` the option is optional and without it the load is sent as before. The limits of the lab itself (PHP, nginx) are set outside this
+  tool and only read and recorded by it.
 - **What it uses.** `load/make-plan.php`, `load/scenario.js`, `load/summarize-run.php`, `observe/sample-cpu`; the steps, the stopping rule
   and the record are in `poc/runtime/src/LabLoad/Ladder.php` (`load/ladder.php` is its command line).
 
