@@ -38,7 +38,7 @@ in `../build-70k-50k/counts-<scale>.tsv`, the 200,000-row counts in `../build-20
 | 10,000 | 01:54 | equal |
 | 30,000 | 01:54 | equal |
 | 70,000 | 01:54 | equal |
-| 100,000 | 01:54 | no counts file was kept for it; every table is at the same multiple of the scale as at the other scales |
+| 100,000 | 01:54 | 3 tables (`entities`, `images`, `references`, 100,000 each) equal the record in `../diagnosis/per-request/100000/table-counts.json` and `../diagnosis/zip-limit/unlimited-100000/table-counts.json`; the other 12 tables are checked only against the multiples of the scale used at the other scales |
 | 50,000 | 01:54 | equal |
 | 200,000 | 01:54 | equal |
 
