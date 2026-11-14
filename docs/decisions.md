@@ -1810,5 +1810,5 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
   3. `Connection::beforeExecuting` は Laravel の機能に頼る。無い版では接続への掛け方で致命的なエラーになり、入口は 500 で止まる(ラッチは残さぬ。黙って守りが外れることはない)。確かめた版は BookStack の checkout の 13.35.0。
   4. 入口の配線の試験は、入口のコードを読む静的な試験である(動かして通すものではない)。入口を実物で通す確かめは上のとおり未了。
   5. ラボは「閲覧数の行が確定して残る」分だけ巻き戻しのあるツールの測りから離れる(`views` は測るたびに増える。D187)。
-- 確かめ(実の値):`RuntimeUnit` 全体は PHP 8.3 と 8.2 のそれぞれで 2,638 件・SKIP 0・失敗 0(うちこの判断の `LabEntry` は 96 件)。公式の Unit は 1,688 件・Acceptance は 840 件・SKIP 0。ラボの shell の試験 3 本(`ladder-gate.sh` 64 件・`limits-guard.sh` 53 件・`calibration-gate.sh` 30 件)も SKIP 0 で通った。phpunit は使い捨てのコンテナ(`--network none`・DB 無し・nice)で回し、ラボのスタックと DB には触れていない。
+- 確かめ(実の値):`RuntimeUnit` 全体は PHP 8.3 と 8.2 のそれぞれで 2,638 件・SKIP 0・失敗 0(うちこの判断の `LabEntry` は 95 件。ディレクトリを指して単独で回しても 95 件で通る)。公式の Unit は 1,688 件・Acceptance は 840 件・SKIP 0。ラボの shell の試験 3 本(`ladder-gate.sh` 64 件・`limits-guard.sh` 53 件・`calibration-gate.sh` 30 件)も SKIP 0 で通った。phpunit は使い捨てのコンテナ(`--network none`・DB 無し・nice)で回し、ラボのスタックと DB には触れていない。
 - 変わらないもの:ツールの実測モード(poc/runtime)の巻き戻し・条件 6・合否の規則・段・窓・D181〜D187。
