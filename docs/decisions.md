@@ -1812,3 +1812,21 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
   5. ラボは「閲覧数の行が確定して残る」分だけ巻き戻しのあるツールの測りから離れる(`views` は測るたびに増える。D187)。
 - 確かめ(実の値):`RuntimeUnit` 全体は PHP 8.3 と 8.2 のそれぞれで 2,638 件・SKIP 0・失敗 0(うちこの判断の `LabEntry` は 95 件。ディレクトリを指して単独で回しても 95 件で通る)。公式の Unit は 1,688 件・Acceptance は 840 件・SKIP 0。ラボの shell の試験 3 本(`ladder-gate.sh` 64 件・`limits-guard.sh` 53 件・`calibration-gate.sh` 30 件)も SKIP 0 で通った。phpunit は使い捨てのコンテナ(`--network none`・DB 無し・nice)で回し、ラボのスタックと DB には触れていない。
 - 変わらないもの:ツールの実測モード(poc/runtime)の巻き戻し・条件 6・合否の規則・段・窓・D181〜D187。
+
+### D189. 守り (i)(iii) の作り:文の記録の取り方と切る段・N の表の件数と CHECKSUM TABLE・呼び出し元・外すと落ちる試験・50,000 / 200,000 件の拒みの口(2026-11-15 02:11 記帳。殿裁定 2026-11-15 01:47 と D187 に基づく。新しい件数の予測を出す前、改めた入口で測る前に決めた。この守りでの測りの結果は一つも見ていない)
+
+- **予測の前に決めた**:ここに書く記録の取り方・切る段・表の範囲・拒みの規則は、殿裁定 2026-11-15 01:47(D187)に従い、較正と予測の測り直しを始める前、新しい件数の予測を出す前に決めた。測りの結果は一つも見ていない。
+- **守り (i) 測る前の文の記録の確かめ**(`poc/lab/bin/check-writes`)
+  - 出どころ:取り込み(`poc/runtime/bin/capture`)の記録 `capture.json` の `statement_types`(`kind` と、リテラルを除いた `pattern`)。**記録を取る段は取り込みだけ**で、取り込み自身の使い捨てのスタックで1ルート1リクエストずつ取る。ラボの測りのスタックでは文の記録を一切取らない(general log も performance_schema の文の履歴もラボの DB で有効にしない)ので、どの測り(較正・r-1〜r-5 の段・B・印)でも**切る段は無く**、測った時間は濁らない。測りの口は記録のファイルを `--statement-record` で受けるだけで、DB には触れない。
+  - 規則:選ばれた8本すべてが記録に有り `captured` であること。各件数で、種類ごとの数の合計が総数に一致し unaccounted が 0 であること。文の種類は `select` か、`views` だけを対象にする `update`・`insert`・`delete`(`update \`views\` set`・`insert into \`views\``・`delete from \`views\``)のみ。DDL・SET・LOCK・CALL・他の表への書き込み・複数表の update/delete・スキーマ付きの名前・1つの文に2文・空の文は、判じられぬものとして拒む。守れなければ測らずに止まる(exit 15)。
+  - 限界:取り込みは1つの経路・30,000 件までで、条件しだいで初めて出る書き込みは記録に出ない。それは (ii)(入口の留め金。D188)と (iii) で塞ぐ。
+- **守り (iii) 各シナリオの前後の N の表**(`poc/lab/bin/check-tables`)
+  - 表:`entities`・`images`・`references`(`bin/build-db --n-tables` の N の表)。`views` はラボが書いてよい表ゆえ含めない(名指しすると使い方の誤りで拒む)。各表の `SELECT COUNT(*)` と `CHECKSUM TABLE` を取る。窓の外(サンプラーが始まる前・止まった後)で取る。
+  - 単位:較正は1本(cal-N)ごとに、測る前(基準を `tables-before.tsv` に残す)と k6・サンプラーが終わった後(`tables-after.tsv`)。ladder は、シナリオの初めに1回(基準をシナリオのディレクトリの `tables-before.tsv` に残し、再開のときは今の表を基準と突き合わせる)と、**各段の終わりごと**(基準と比べる。17:50 の『件数を数える』より強い)。違えば exit 16 で止まり、その本・その段は要約せず記録を作らない。表が読めなければ exit 18(読めぬものは通さない)。基準と合わぬのが意図した DB の作り直しのときは、基準のファイルを消す。
+  - **50,000・200,000 件の拒み**:CHECKSUM TABLE は『COUNT 以外をかけぬ』に触れるため、予測の commit の前にこれらの DB にかけない。口の中で、見たことのある件数(30,000 以下・70,000・100,000)以外は、次の2つが共に成り立つときだけ通す。(a) `--prediction` の予測ファイルが `bin/prediction-gate` を通る(`poc/lab/predictions/` の `.json` で、HEAD に commit されていて差分が無く、同じディレクトリに他の未追跡・変更が無い)。(b) その予測が、その件数の表を持つシナリオを含む(`scenarios[].tables`)。**予測の commit の有無は git だけで判じる**(時刻や記録は見ない)。通らねば exit 17 で、DB には一つも問い合わせない。迷えば拒む(gate が閉じている・件数のシナリオが無い・未知の件数はすべて拒む)。#15 の `ladder-prediction.json` は 10,000・30,000・100,000 しか持たぬので、50,000・200,000 の予測としては使えない。較正の測りは `--prediction` を持たないので、見たことのない件数は常に拒む。予測の commit の後の B・印の測りでかけるのは守りの一部として可(D187)。
+- **呼び出し元**(どちらの測りの口からも必ず呼ばれる。行は commit 時点):`poc/lab/bin/measure-calibration` の `# WRITE-CHECK`(110 行)・`# TABLES-BEFORE`(154)・`# TABLES-AFTER`(188)、`poc/lab/bin/measure-ladder` の `# WRITE-CHECK`(145 行)・`# TABLES-BEFORE`(234)・`# TABLES-AFTER`(307)。各印は1行で、(i) は閉じた網の検査より前、(iii) の前は負荷の道具より前・後は要約より前にあることも試験で縛った。既存の関門(較正の組み方の関門・予測の関門・上限の関門)の呼び出しは1行も変えていない。口に `--statement-record=<capture.json>` を必須で足した(`--gate-only`・`--dry-run` は不要)。
+- **外すと落ちる試験**(`poc/lab/tests/write-guards.sh`、作り物の記録と作り物の `docker`・使い捨てのコンテナのみで、ラボの DB・スタックには触れていない):
+  - 3つの呼び出しを、写しから外した版が、同じ入力で負荷の道具まで進むこと(守りが止めていることの対照)と、実物では止まることを、較正と ladder の両方で確かめる。N の表が負荷の最中に変わる作りの k6(作り物)では、実物は要約の前に exit 16 で止まり、(iii) の後ろの行を外すと要約まで進む。
+  - 実物の口で呼び出しの行を1つずつ消して(試験の写しではなく、リポジトリの全体の写しの口そのものを書き換えて)試験を回し、**落ちたことを実際に確かめた**:ladder の `WRITE-CHECK` を消す→4 件落ち(C1 の行の数・C1b の順序・C8 の止まり・C8b の無接触)、ladder の `TABLES-BEFORE`→10 件、ladder の `TABLES-AFTER`→7 件、較正の `WRITE-CHECK`→5 件、`TABLES-BEFORE`→10 件、`TABLES-AFTER`→7 件。道具の中の無効化でも落ちる:check-tables の差の検出を無効にする→12 件、拒み(exit 17)を無効にする→13 件、予測の関門の結果を捨てる→4 件、check-writes の拒み(exit 15)を無効にする→15 件。
+- **試験の結果**:`write-guards.sh` 123 件・`calibration-gate.sh` 30 件・`limits-guard.sh` 53 件・`ladder-gate.sh` 64 件・`scenario-timeout.sh` 22 件・Python の診断 44 件・phpunit の RuntimeUnit(`phpunit.runtime.xml`)2,638 件・公式の Unit と Acceptance(`phpunit.xml`)2,528 件、すべて SKIP 0・失敗 0。phpunit は使い捨てのコンテナ(`--network none`・DB 無し・nice)で回した。ラボのスタックと DB には触れていない。
+- 変わらないもの:ツールの実測モード(poc/runtime)の巻き戻し・条件 6 の runtime 側の本文・合否の規則・段・窓・D181〜D188。
