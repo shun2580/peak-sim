@@ -148,7 +148,8 @@ because the database volume outlives `down`. Records go to `~/.cache/peak-lab/ou
    - (ii) *at the entry*: `EntryGuard` (`poc/runtime/src/LabEntry/`), called by `app/entry.php` for every request. Every statement
      is looked at on every connection before it is sent. One that writes anything but `views`, commits implicitly (`COMMIT`,
      `BEGIN`, `SET autocommit`, DDL, `LOCK TABLES`, ...), writes on a connection other than the default one, changes a
-     server-wide setting or writes a file is not sent: the entry leaves a latch file and the statement raises an error. Every
+     server-wide setting, writes a file, or carries an executable comment (`/*!`, which MySQL runs) is not sent:
+     the entry leaves a latch file and the statement raises an error. Every
      later request is then refused with 503 until the lab is rebuilt. A transaction left open by a request, or a statement that
      the watch saw only after it ran (a connection it was not on), leaves the latch too.
    - (iii) *around each scenario*: `bin/check-tables` takes the row count and `CHECKSUM TABLE` of the N tables before a scenario

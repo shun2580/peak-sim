@@ -66,6 +66,13 @@ final class ViewsOnlyWritesTest extends TestCase
         yield 'lock tables' => ['lock tables `views` write', 'lock'];
         yield 'analyze' => ['analyze table `views`', 'maintenance'];
         yield 'a procedure' => ['call p()', 'call'];
+        yield 'an executable comment holding a write on another table' => ['/*! update `entities` set `name` = ? */', 'executable_comment'];
+        yield 'an executable comment with a version number' => ['/*!50000 update `entities` set `name` = ? */', 'executable_comment'];
+        yield 'an executable comment that wraps a write on views' => ['/*! update `views` set `views` = 1 where id = 1 */', 'executable_comment'];
+        yield 'an executable comment inside a statement on views' => ['update `views` set `views` = 1 /*! , `updated_at` = now() */ where id = 1', 'executable_comment'];
+        yield 'an executable comment behind an ordinary one' => ['/* a */ /*!40101 delete from `sessions` */', 'executable_comment'];
+        yield 'an executable comment in a read' => ['select /*! 1 */ 1', 'executable_comment'];
+        yield 'an executable comment of the other server family' => ['/*M! update `entities` set `name` = ? */', 'executable_comment'];
     }
 
     #[DataProvider('refused')]

@@ -13,7 +13,9 @@ use PeakSim\Runtime\Guard\RollbackGuard;
  * the server or writes a file is a violation. Pure functions over SQL text.
  *
  * It never lets a statement through because it could not read it: a write that is not exactly one of the two allowed
- * forms is a violation (a multi-table update, an alias, a delete, a replace, a write inside a `WITH`).
+ * forms is a violation (a multi-table update, an alias, a delete, a replace, a write inside a `WITH`). So is a statement
+ * with an executable comment (one that opens with `/*!`, with or without a version number; MySQL runs what is inside),
+ * anywhere in it: it is refused, not stripped and read, because the server would run text this class cannot see as a statement.
  * poc/runtime does not use this class: its measurement keeps the rollback.
  */
 final class ViewsOnlyWrites
@@ -27,6 +29,9 @@ final class ViewsOnlyWrites
      */
     public static function violation(string $connection, string $defaultConnection, string $measureDb, string $sql): ?string
     {
+        if (preg_match('/\/\*M?!/', $sql) === 1) {
+            return 'executable_comment: ' . self::cut($sql);
+        }
         if ($connection !== $defaultConnection && RollbackGuard::isWrite($sql)) {
             return 'other_connection: ' . $connection;
         }
