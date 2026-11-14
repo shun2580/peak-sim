@@ -1,0 +1,57 @@
+{
+    "mix": "bookpage80zip0",
+    "rps": 1.5,
+    "duration_sec": 600,
+    "warmup_sec": 120,
+    "routes": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /books/{slug}",
+            "share": 0.8,
+            "rps": 1.2000000000000002,
+            "rate": 1200,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /oidc/callback",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "share": 0.03333333333333333,
+            "rps": 0.05,
+            "rate": 50,
+            "time_unit": "1000s"
+        }
+    ]
+}

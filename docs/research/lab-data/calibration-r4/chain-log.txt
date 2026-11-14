@@ -1,0 +1,20 @@
+2026-11-15 03:15:47 CHAIN START
+2026-11-15 03:27:05 MEASURE cal-1 out=main exit=0
+2026-11-15 03:27:05 cal-1: 22.5539 in rps_status=valid achieved=1.0000
+2026-11-15 03:38:23 MEASURE cal-2 out=main exit=0
+2026-11-15 03:38:23 cal-2: 36.4231 above rps_status=valid achieved=0.9979
+2026-11-15 03:49:41 MEASURE cal-3 out=main exit=0
+2026-11-15 03:49:41 cal-3: 9.6079 below rps_status=valid achieved=0.9979
+2026-11-15 04:01:15 MEASURE cal-4 out=main exit=0
+2026-11-15 04:01:15 cal-4: 27.6452 in rps_status=valid achieved=3.9979
+2026-11-15 04:12:50 MEASURE cal-5 out=cal5-0.45 exit=0
+2026-11-15 04:12:50 cal-5 @0.45: 30.6278 above rps_status=valid achieved=0.4500
+2026-11-15 04:24:08 MEASURE cal-5 out=main exit=0
+2026-11-15 04:24:08 cal-5 @0.3: 20.2543 in rps_status=valid achieved=0.3000
+2026-11-15 04:35:27 MEASURE cal-6 out=cal6-2.2 exit=0
+2026-11-15 04:35:27 cal-6 @2.2: 34.7922 above rps_status=valid achieved=2.1812
+2026-11-15 04:46:46 MEASURE cal-6 out=cal6-1.5 exit=0
+2026-11-15 04:46:46 cal-6 @1.5: 22.4894 in rps_status=valid achieved=1.4979
+2026-11-15 04:58:05 MEASURE cal-7 out=cal6-1.5 exit=0
+2026-11-15 04:58:05 cal-7: 21.8128 in rps_status=valid achieved=1.5000
+2026-11-15 04:58:05 CHAIN DONE all seven runs in the band
