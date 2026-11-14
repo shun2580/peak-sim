@@ -7,7 +7,6 @@ namespace PeakSim\Runtime\Tests\Unit\LabEntry;
 use PeakSim\Runtime\LabEntry\EntryGuard;
 use PeakSim\Runtime\LabEntry\LabWriteRefused;
 use PeakSim\Runtime\Run\QueryCounter;
-use PeakSim\Runtime\Tests\Unit\Boot\Stubs\FakeEvents;
 use PHPUnit\Framework\TestCase;
 
 final class EntryGuardTest extends TestCase
@@ -206,7 +205,7 @@ final class EntryGuardTest extends TestCase
     /**
      * @param list<string> $names
      *
-     * @return array{EntryGuard, FakeDb, FakeEvents}
+     * @return array{EntryGuard, FakeDb, FakeDispatcher}
      */
     private function watching(string $uri = '/books/x', array $names = ['mysql']): array
     {
@@ -215,10 +214,29 @@ final class EntryGuardTest extends TestCase
         foreach ($names as $name) {
             $db->connections[$name] = new FakeConnection($name);
         }
-        $events = new FakeEvents();
+        $events = new FakeDispatcher();
         $guard->watch($db, $events);
 
         return [$guard, $db, $events];
+    }
+}
+
+/** The two calls of Laravel's event dispatcher the guard uses. */
+final class FakeDispatcher
+{
+    /** @var array<string, list<callable>> */
+    private array $listeners = [];
+
+    public function listen(string $event, callable $listener): void
+    {
+        $this->listeners[$event][] = $listener;
+    }
+
+    public function fire(string $event, object $payload): void
+    {
+        foreach ($this->listeners[$event] ?? [] as $listener) {
+            $listener($payload);
+        }
     }
 }
 
