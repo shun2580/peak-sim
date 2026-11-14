@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Guard (iii) of the lab's write rule: the N tables of a lab database must be the same after a scenario as before it, in their row count AND
-# in CHECKSUM TABLE (a count alone does not see a row that was rewritten). It also holds the refusal for the counts of rows that have not been
-# seen yet: no query of any kind is sent to such a database before the prediction for it is committed.
+# Guard (iii) of the lab's write rule, and the database's side of guard (i): the N tables of a lab database must be the same after a scenario as
+# before it, in their row count AND in CHECKSUM TABLE (a count alone does not see a row that was rewritten), and no table other than `views`, in the
+# measured schema or in any other schema of the server, may have been written to. The second is read from the server's own counters
+# (performance_schema.table_io_waits_summary_by_table: inserts, updates and deletes per table). Those count every write to a table however the
+# statement was sent, a prepared statement included; the statement digest tables do not count prepared statements, so nothing here reads them. A write
+# that leaves a row as it was (an UPDATE to the same values) changes neither count nor checksum, and is found by these counters. It also holds the
+# refusal for the counts of rows that have not been seen yet: no query of any kind is sent to such a database before the prediction for it is committed.
 #
 #   poc/lab/bin/check-tables before --scale=N --baseline=<file> [--prediction=<poc/lab/predictions/....json>] [--tables=entities,images,references]
 #   poc/lab/bin/check-tables after  --scale=N --baseline=<file> --out=<file> [--prediction=...] [--tables=...]
@@ -16,6 +20,10 @@
 # The tables are the N tables of the lab (bin/build-db --n-tables=entities,images,references: the eight routes' tables that grow with the count
 # of rows). `views` is left out on purpose: the lab may write it and its checksum changes. Every table is read with SELECT COUNT(*) and
 # CHECKSUM TABLE, which read the whole table: this is done outside any measured window (before the samplers start, after they have stopped).
+# The write counters are read in the same two places, for every table of every schema except the server's own (mysql, sys, performance_schema,
+# information_schema), and compared as they are: the counters of `views` in the measured schema are the only ones allowed to move. (The counters start
+# at the server's start, so only their change over the scenario means anything. A restart of the server in between shows as a change and stops it.)
+# A server that does not give the counters, or gives none for the measured schema, is not read at all: exit 18.
 #
 # THE REFUSAL FOR UNSEEN COUNTS (ruling 2026-11-11 14:15 and 2026-11-15 01:47; decisions.md D189): the counts of rows 50,000 and 200,000 may be
 # given nothing but COUNT, the statistics and EXPLAIN until the prediction for them is committed, and CHECKSUM TABLE is not among those. So a
@@ -69,24 +77,32 @@ fi
 
 # ---- the reading --------------------------------------------------------------------------------------------------------------------
 db="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
-snapshot() {  # snapshot <file>: one line per table: name, count, checksum
-  local t rows sum
+snapshot() {  # snapshot <file>: one line per N table (name, count, checksum), then one `write` line per table of the server (schema, table, inserts, updates, deletes)
+  local t rows io
   : >"$1"
   for t in ${tables//,/ }; do
     rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
       -e "SELECT COUNT(*) FROM \`${db}\`.\`${t}\`; CHECKSUM TABLE \`${db}\`.\`${t}\`" 2>"$1.err")" || return 1
     printf '%s\n' "$rows" | awk -v t="$t" 'NR==1 && $1 ~ /^[0-9]+$/ {n=$1} NR==2 && $2 ~ /^[0-9]+$/ {c=$2} END {if (NR==2 && n!="" && c!="") {print t "\t" n "\t" c; exit 0} exit 1}' >>"$1" || return 1
   done
-  [ "$(wc -l <"$1" | tr -d ' ')" = "$(printf '%s\n' ${tables//,/ } | wc -l | tr -d ' ')" ]
+  [ "$(wc -l <"$1" | tr -d ' ')" = "$(printf '%s\n' ${tables//,/ } | wc -l | tr -d ' ')" ] || return 1
+  io="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
+    -e "SELECT object_schema, object_name, count_insert, count_update, count_delete FROM performance_schema.table_io_waits_summary_by_table WHERE object_schema = '${db}' OR object_schema NOT IN ('mysql','sys','performance_schema','information_schema') ORDER BY object_schema, object_name" 2>>"$1.err")" || return 1
+  printf '%s\n' "$io" | awk -F'\t' -v db="$db" 'NF==5 && $3 ~ /^[0-9]+$/ && $4 ~ /^[0-9]+$/ && $5 ~ /^[0-9]+$/ {print "write\t" $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5; if ($1==db) seen=1} END {exit seen ? 0 : 1}' >>"$1"
 }
-unreadable() { echo "check-tables: the count and checksum of the tables of scale $scale could not be read: $(cat "$1.err" 2>/dev/null | head -2). Stopped; nothing was measured." >&2; exit 18; }
+allowed_changes() {  # the readings without the one thing the lab may change: the counters of `views` in the measured schema
+  awk -F'\t' -v db="$db" '!($1=="write" && $2==db && $3=="views")' "$1"
+}
+unreadable() { echo "check-tables: the count, the checksum or the write counters of the tables of scale $scale could not be read: $(cat "$1.err" 2>/dev/null | head -2). Stopped; nothing was measured." >&2; exit 18; }
 compare() {  # compare <expected file> <actual file> <what>
-  if ! diff -u "$1" "$2" >"$2.diff" 2>&1; then
-    echo "check-tables: THE N TABLES CHANGED ($3): a table of scale $scale is not what it was (table, rows, checksum)." >&2
+  allowed_changes "$1" >"$2.expected"; allowed_changes "$2" >"$2.actual"
+  if ! diff -u "$2.expected" "$2.actual" >"$2.diff" 2>&1; then
+    echo "check-tables: THE N TABLES CHANGED ($3): a table is not what it was, or a table other than views was written to (scale $scale; N tables: table, rows, checksum; write: schema, table, inserts, updates, deletes)." >&2
     sed -n '3,$p' "$2.diff" | grep '^[-+][a-z]' >&2
     exit 16
   fi
 }
+summary() { grep -v '^write' "$1" | tr '\t' ' ' | tr '\n' ';'; echo " ($(grep -c '^write' "$1") write counters)"; }
 
 mkdir -p "$(dirname "$baseline")"
 if [ "$mode" = before ]; then
@@ -94,10 +110,10 @@ if [ "$mode" = before ]; then
     now="$baseline.restart"
     snapshot "$now" || unreadable "$now"
     compare "$baseline" "$now" "the scenario was begun before, and the tables are not as it began"
-    echo "TABLES SAME as the baseline of this scenario (a restart) scale $scale: $(tr '\t' ' ' <"$now" | tr '\n' ';')"
+    echo "TABLES SAME as the baseline of this scenario (a restart) scale $scale: $(summary "$now")"
   else
     snapshot "$baseline" || { rm -f "$baseline"; unreadable "$baseline"; }
-    echo "TABLES BASELINE scale $scale: $(tr '\t' ' ' <"$baseline" | tr '\n' ';')"
+    echo "TABLES BASELINE scale $scale: $(summary "$baseline")"
   fi
   exit 0
 fi
@@ -105,5 +121,5 @@ fi
 mkdir -p "$(dirname "$out")"
 snapshot "$out" || unreadable "$out"
 compare "$baseline" "$out" "after the load"
-echo "TABLES SAME after the load scale $scale: $(tr '\t' ' ' <"$out" | tr '\n' ';')"
+echo "TABLES SAME after the load scale $scale: $(summary "$out")"
 exit 0

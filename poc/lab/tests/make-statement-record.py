@@ -2,7 +2,7 @@
 """Makes a small, made-up statement record (the shape of poc/runtime/CAPTURE_FORMAT.md) for the tests of the write guards. It reads no database and no
 real capture: every route of the lab's route list gets a few select types, and GET /books/{slug} and GET /shelves/{slug} get one write to `views` each.
 
-    make-statement-record.py <route-list.json> <out.json> [--variant=ok|other-table|ddl|join-update|two-statements|incomplete|not-captured|missing-route|schema-qualified|empty]
+    make-statement-record.py <route-list.json> <out.json> [--variant=ok|other-table|ddl|join-update|two-statements|incomplete|not-captured|missing-route|schema-qualified|empty|prepared-insert|prepared-delete|prepared-update]
 """
 import json
 import sys
@@ -48,6 +48,12 @@ elif variant == "two-statements":
     books["statement_types"][-1] = stype(96, "update", "update `views` set `views` = ?; update `entities` set `name` = ?")
 elif variant == "schema-qualified":
     books["statement_types"][-1] = stype(97, "update", "update `other_db`.`views` set `views` = ? where `id` = ?")
+elif variant == "prepared-insert":   # a prepared statement: placeholders only, the values are bindings (the digest tables do not count these; the record does)
+    books["statement_types"][-1] = stype(91, "insert", "insert into `settings` (`setting_key`, `value`) values (?, ?)")
+elif variant == "prepared-delete":
+    books["statement_types"][-1] = stype(92, "delete", "delete from `entities` where `id` in (?, ?, ?)")
+elif variant == "prepared-update":
+    books["statement_types"][-1] = stype(99, "update", "update `entities` set `name` = ? where `id` = ?")
 elif variant == "empty":
     books["statement_types"][-1] = stype(98, "update", "")
 elif variant == "incomplete":

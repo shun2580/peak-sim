@@ -54,7 +54,10 @@ if [ "\$1" = exec ]; then
   while [ "\${1:-}" = "-i" ] || [ "\${1:-}" = "-e" ]; do if [ "\$1" = "-e" ]; then shift 2; else shift; fi; done
   c="\$1"; shift
   if [ "\$c" = peak-lab-db ] && [ "\$1" = mysql ]; then   # the count and checksum of the N tables (bin/check-tables): the tables do not change
-    case "\$*" in *CHECKSUM*) printf '10000\ndb.t\t111\n'; exit 0 ;; esac
+    case "\$*" in
+      *CHECKSUM*) printf '10000\ndb.t\t111\n'; exit 0 ;;
+      *performance_schema*) d="\$(printf '%s' "\$*" | sed -n "s/.*object_schema = '\([^']*\)'.*/\1/p")"; printf '%s\tentities\t0\t0\t0\n%s\tviews\t1\t0\t0\n' "\$d" "\$d"; exit 0 ;;
+    esac
   fi
   case "\$c \$1 \$2" in
     "peak-lab-web nginx -T")

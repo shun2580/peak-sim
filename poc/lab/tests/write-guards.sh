@@ -10,7 +10,8 @@
 # A  bin/check-writes on made-up records: a record with writes to `views` only passes; a write to another table, a DDL statement, a multi-table
 #    update, two statements in one text, a schema-qualified name, an empty text, an incomplete record, a route that was not captured and a route that is
 #    missing are each refused with exit 15 and the message names the route and the statement type
-# B  bin/check-tables: the baseline is written; a restart compares with it; a changed count, a changed checksum (the count the same) and an unreadable
+# B  bin/check-tables (the N tables, and the server's own counters of writes: a prepared statement is counted, and so is a write that leaves every row as
+#    it was): the baseline is written; a restart compares with it; a changed count, a changed checksum (the count the same) and an unreadable
 #    table are found (16, 16, 18); `views` cannot be named; the refusal for counts not seen (17): 50,000 and 200,000 are refused with no prediction, with an
 #    uncommitted one, with a committed one that holds no scenario of that scale, and with a committed one that does the scale is allowed; counts seen already are
 #    allowed; every refusal sends no query
@@ -42,7 +43,7 @@ out="$(cd "$work/out" && pwd)"
 data="$repo_real/docs/research/lab-data"
 est="$data/estimate-r3/rule/100k"
 mkrec() { python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/$1.json" --variant="$1"; }
-for v in ok other-table ddl join-update two-statements schema-qualified empty incomplete not-captured missing-route; do mkrec "$v"; done
+for v in ok other-table ddl join-update two-statements schema-qualified empty incomplete not-captured missing-route prepared-insert prepared-delete prepared-update; do mkrec "$v"; done
 good="$work/rec/ok.json"; bad="$work/rec/other-table.json"
 
 # ---- A: check-writes ----------------------------------------------------------------------------------------------------------
@@ -52,6 +53,10 @@ has "$work/cw.out" 'WRITE CHECK OK' && has "$work/cw.out" 'insert views in GET /
 for v in other-table ddl join-update two-statements schema-qualified empty incomplete not-captured missing-route; do
   cw "$work/rec/$v.json"; expect_code "A2 $v: refused" 15 $?
   has "$work/cw.err" 'WRITE CHECK REFUSED' && has "$work/cw.err" 'GET /books/{slug}' && pass "A2b $v: the message names the route" || fail "A2b $v ($(cat "$work/cw.err"))"
+done
+for v in prepared-insert prepared-delete prepared-update; do
+  cw "$work/rec/$v.json"; expect_code "A2d a write sent as a prepared statement ($v: placeholders and bindings) outside views: refused" 15 $?
+  has "$work/cw.err" 'writes somewhere other than' && pass "A2e $v: the message says the write is outside views" || fail "A2e $v ($(cat "$work/cw.err"))"
 done
 cw "$bad"; has "$work/cw.err" 's000000093' && pass "A2c other-table: the message names the statement type" || fail "A2c ($(cat "$work/cw.err"))"
 cw "$work/nothing.json"; expect_code "A3 a record that cannot be read: refused" 15 $?
@@ -69,6 +74,9 @@ fi
 # State of the pretend lab: files in $work/s; a missing file means the default (PHP 30, pool 0s, nginx 120s, scale 10000, rows 10000, checksum 111).
 #   mysql_fail     every mysql call fails            k6_ok     the stand-in k6 succeeds (it writes the summary the load tool would)
 #   k6_flip        ... and the load "writes a table": the checksum changes when k6 has run
+#   k6_flip_io     ... and the load "updates a row of entities to the values it had": only the server's write counter of the table moves
+#   k6_flip_views  ... and the load updates views (allowed)
+#   io_entities / io_views / io_other   the server's counters of updates (entities, views) and of a write in another schema; io_empty: no counters
 cat >"$work/fakebin/docker" <<FAKE
 #!/usr/bin/env bash
 w="$work"; s="\$w/s"
@@ -87,6 +95,12 @@ if [ "\$1" = exec ]; then
     case "\$*" in
       *CHECKSUM*) [ -f "\$s/mysql_fail" ] && { echo "ERROR 1049 (42000): Unknown database" >&2; exit 1; }
                   printf '%s\n%s\t%s\n' "\$(val rows 10000)" "db.t" "\$(val checksum 111)"; exit 0 ;;
+      *performance_schema*) [ -f "\$s/mysql_fail" ] && { echo "ERROR 1146 (42S02): Table 'performance_schema.table_io_waits_summary_by_table' doesn't exist" >&2; exit 1; }
+                  [ -f "\$s/io_empty" ] && exit 0
+                  d="\$(printf '%s' "\$*" | sed -n "s/.*object_schema = '\([^']*\)'.*/\1/p")"
+                  printf '%s\tentities\t0\t%s\t0\n%s\timages\t0\t0\t0\n%s\treferences\t0\t0\t0\n%s\tviews\t1\t%s\t0\n' "\$d" "\$(val io_entities 0)" "\$d" "\$d" "\$d" "\$(val io_views 0)"
+                  [ -f "\$s/io_other" ] && printf 'other_db\tt\t%s\t0\t0\n' "\$(cat "\$s/io_other")"
+                  exit 0 ;;
     esac
   fi
   case "\$c \$1 \$2" in
@@ -109,6 +123,8 @@ if [ "\$1" = exec ]; then
     if [ -f "\$s/k6_ok" ]; then
       echo '{}' >"$out/\${summary#/out/}"
       [ -f "\$s/k6_flip" ] && printf '222' >"\$s/checksum"
+      [ -f "\$s/k6_flip_io" ] && printf '1' >"\$s/io_entities"     # a write that leaves every row as it was: the count and the checksum do not move
+      [ -f "\$s/k6_flip_views" ] && printf '5' >"\$s/io_views"       # the one write that is allowed
       exit 0
     fi
     exit 99
@@ -151,8 +167,9 @@ ct() { env_run "$work/lab/bin/check-tables" "$@" >"$work/ct.out" 2>"$work/ct.err
 base="$work/b/tables-before.tsv"; aft="$work/b/tables-after.tsv"
 set_lab; rm -rf "$work/b"
 ct before --scale=10000 --baseline="$base"; expect_code "B1 before: the baseline is written" 0 $?
-[ "$(wc -l <"$base" | tr -d ' ')" = 3 ] && has "$base" '^entities	10000	111$' && has "$base" '^images	' && has "$base" '^references	' && pass "B1b it holds a count and a checksum for entities, images and references" || fail "B1b ($(cat "$base" 2>/dev/null))"
-hasnt "$base" 'views' && pass "B1c views (the one table the lab may write) is not in it" || fail "B1c"
+[ "$(grep -vc '^write' "$base" | tr -d ' ')" = 3 ] && has "$base" '^entities	10000	111$' && has "$base" '^images	' && has "$base" '^references	' && pass "B1b it holds a count and a checksum for entities, images and references" || fail "B1b ($(cat "$base" 2>/dev/null))"
+! grep -v '^write' "$base" | grep -q 'views' && pass "B1c views (the one table the lab may write) is not among the N tables" || fail "B1c"
+has "$base" '^write	[^	]*	entities	0	0	0$' && has "$base" '^write	[^	]*	views	1	0	0$' && pass "B1d it holds the server's write counters (inserts, updates, deletes) of every table, views included" || fail "B1d ($(cat "$base" 2>/dev/null))"
 ct before --scale=10000 --baseline="$base"; expect_code "B2 a restart with the same tables: 0" 0 $?
 has "$work/ct.out" 'TABLES SAME' && pass "B2b it says the tables are the same" || fail "B2b ($(cat "$work/ct.out"))"
 printf '222' >"$work/s/checksum"
@@ -177,6 +194,26 @@ rm -f "$work/s/mysql_fail"
 ct before --scale=10000 --baseline="$work/b3/x.tsv" --tables=entities,views; expect_code "B9 views cannot be named among the checked tables: usage" 2 $?
 ct before --scale=abc --baseline="$work/b3/x.tsv"; expect_code "B9b a scale that is not a number: usage" 2 $?
 ct sideways --scale=10000; expect_code "B9c an unknown mode: usage" 2 $?
+
+echo "# the server's own counters of writes (they see a prepared statement and a write that leaves every row as it was)"
+set_lab; rm -rf "$work/bw"; bw="$work/bw/tables-before.tsv"
+ct before --scale=10000 --baseline="$bw"; expect_code "B20 baseline with the write counters" 0 $?
+printf '5' >"$work/s/io_views"
+ct after --scale=10000 --baseline="$bw" --out="$work/bw/after.tsv"; expect_code "B21 views written (updates 0 -> 5): allowed, the one table the lab may write" 0 $?
+rm -f "$work/s/io_views"
+printf '1' >"$work/s/io_entities"
+ct after --scale=10000 --baseline="$bw" --out="$work/bw/after.tsv"; expect_code "B22 an UPDATE of entities that leaves count and checksum as they were: 16 (only the counter moved)" 16 $?
+has "$work/ct.err" 'entities' && has "$work/ct.err" 'other than views' && pass "B22b it names the table and says a table other than views was written" || fail "B22b ($(cat "$work/ct.err"))"
+ct before --scale=10000 --baseline="$bw"; expect_code "B22c the same on a restart (before, with a baseline): 16" 16 $?
+rm -f "$work/s/io_entities"; printf '3' >"$work/s/io_other"
+ct before --scale=10000 --baseline="$bw"; expect_code "B23 a write in another schema (a table of a different database): 16" 16 $?
+rm -f "$work/s/io_other"
+: >"$work/s/io_empty"; rm -rf "$work/bw2"
+ct before --scale=10000 --baseline="$work/bw2/tables-before.tsv"; expect_code "B24 a server that gives no counters for the measured schema: 18 (not read at all)" 18 $?
+[ ! -s "$work/bw2/tables-before.tsv" ] && pass "B24b no baseline is left" || fail "B24b"
+rm -f "$work/s/io_empty"; : >"$work/s/mysql_fail"; rm -rf "$work/bw3"
+ct before --scale=10000 --baseline="$work/bw3/tables-before.tsv"; expect_code "B25 the counters table cannot be read: 18" 18 $?
+rm -f "$work/s/mysql_fail"
 
 echo "# the refusal for counts not seen"
 for sc in 100 3000 30000 70000 100000; do
@@ -268,6 +305,13 @@ has "$work/mc.err" 'THE N TABLES CHANGED' && has "$work/mc.err" 'after the run' 
 set_lab "${B[@]}" k6_ok=1 k6_flip=1
 mc "$(without measure-calibration TABLES-AFTER)" --measure=cal-1 --statement-record="$good"; rc=$?
 [ "$rc" -ne 16 ] && has "$work/mc.err" 'summarize-run failed' && pass "C5e WITHOUT the tables-after line the same run goes on to the summary (exit $rc): the guard is what stopped it" || fail "C5e (rc $rc, $(head -3 "$work/mc.err" | tr '\n' ' '))"
+set_lab "${B[@]}" k6_ok=1 k6_flip_io=1
+mc "$mcr" --measure=cal-1 --statement-record="$good"; rc=$?
+expect_code "C5g the load updates a row of entities to the values it had (no count or checksum moves): 16 from the server's counter" 16 $rc
+[ ! -e "$out/calibration/cal-1/record.json" ] && has "$work/mc.err" 'other than views' && pass "C5h it says a table other than views was written, and no record was made" || fail "C5h ($(cat "$work/mc.err"))"
+set_lab "${B[@]}" k6_ok=1 k6_flip_views=1
+mc "$mcr" --measure=cal-1 --statement-record="$good"; rc=$?
+has "$work/mc.err" 'summarize-run failed' && pass "C5i a write to views alone does not stop the run" || fail "C5i (rc $rc, $(head -3 "$work/mc.err" | tr '\n' ' '))"
 set_lab "${B[@]}" k6_ok=1
 mc "$mcr" --measure=cal-1 --statement-record="$good"; rc=$?
 has "$work/mc.err" 'summarize-run failed' && has "$work/mc.out" 'TABLES SAME after the load' && pass "C5f the tables unchanged: the run goes on past the check to the summary" || fail "C5f (rc $rc, $(head -3 "$work/mc.err" | tr '\n' ' '))"
@@ -325,6 +369,12 @@ has "$work/ml.err" 'after rung 1' && pass "C13b it says after which step" || fai
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip=1
 ml "$(without measure-ladder TABLES-AFTER)" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 [ "$rc" -ne 16 ] && has "$work/ml.err" 'summarize-run failed' && pass "C13e WITHOUT the tables-after line the same step goes on to the summary (exit $rc)" || fail "C13e (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_io=1
+ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+expect_code "C13g the load updates a row of entities to the values it had: 16 from the server's counter" 16 $rc
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_views=1
+ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+has "$work/ml.err" 'summarize-run failed' && pass "C13h a write to views alone does not stop the step" || fail "C13h (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 has "$work/ml.err" 'summarize-run failed' && has "$work/ml.out" 'TABLES SAME after the load' && pass "C13f unchanged tables: the step goes on past the check" || fail "C13f (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
@@ -335,7 +385,7 @@ ml "$mlr" --scenario=t-4 --dry-run; rc=$?
 
 # the names the guards write can all be committed (none is matched by .gitignore)
 ign_dir="docs/research/lab-data/ladder/t-4-10000/rung-01-1"
-names="tables-before.tsv tables-before.tsv.restart tables-before.tsv.err tables-before.tsv.restart.err tables-before.tsv.restart.diff tables-after.tsv tables-after.tsv.err tables-after.tsv.diff"
+names="tables-before.tsv tables-before.tsv.restart tables-before.tsv.err tables-before.tsv.restart.err tables-before.tsv.restart.diff tables-before.tsv.restart.expected tables-before.tsv.restart.actual tables-after.tsv tables-after.tsv.err tables-after.tsv.diff tables-after.tsv.expected tables-after.tsv.actual"
 leaked="$(for nm in $names; do git -C "$repo_real" check-ignore -q --no-index "$ign_dir/$nm" && printf '%s ' "$nm"; done)"
 [ -z "$leaked" ] && pass "C15 none of the names the table guard writes is ignored by git" || fail "C15 names ignored by git: $leaked"
 
