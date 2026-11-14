@@ -1,0 +1,3941 @@
+{
+    "schema_version": "0.1",
+    "kind": "lab-ladder-prediction",
+    "app": "bookstack",
+    "estimate_at": 200000,
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8,
+        "app_cpu_time_limit_s": 30.0
+    },
+    "stages_rps_total": [
+        0.05,
+        0.07,
+        0.1,
+        0.15,
+        0.2,
+        0.3,
+        0.45,
+        0.7,
+        1.0,
+        1.5,
+        2.2,
+        3.3,
+        5.0
+    ],
+    "inputs": {
+        "estimate_commit": "de6b17a60c5fc697ad478442d64d15575a6be2f1",
+        "estimate_commit_source": "git",
+        "estimate_commit_expected": "de6b17a",
+        "estimate_commit_is_expected": true,
+        "estimate_sha256": "11e673a489ddb2c2b4bb2e1e3d62b79363132823e73f6015204635a14bcc4fa6",
+        "estimates_for_marks": [
+            {
+                "role": "safe_side",
+                "at": 50000,
+                "commit": "de6b17a60c5fc697ad478442d64d15575a6be2f1",
+                "commit_source": "git",
+                "sha256": "dea43a75222bd01113132dc5552260e4406093f2f1007744de11c2920507d56c"
+            },
+            {
+                "role": "main",
+                "at": 200000,
+                "commit": "de6b17a60c5fc697ad478442d64d15575a6be2f1",
+                "commit_source": "git",
+                "sha256": "11e673a489ddb2c2b4bb2e1e3d62b79363132823e73f6015204635a14bcc4fa6"
+            }
+        ],
+        "scenario_sha256": "eca797e14efcbf66a43b1ff25a3d57698fd73652117ce80c87f9b088553f31e4"
+    },
+    "calibration": {
+        "coefficients": {
+            "name": "two_coefficient",
+            "c_q": 0.00028440658505161454,
+            "c_row": 9.379629856717754e-7
+        },
+        "method": "two_coefficient",
+        "calibration_scenarios": 7,
+        "cut_coefficients": false,
+        "warnings": [],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.00028440658505161454,
+                "c_row": 9.379629856717754e-7,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0002057099123697856,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.4545098562474829,
+                        "residual_load": -0.003430915751542918,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.22725492812374146,
+                        "residual_utilization": -0.001715457875771459
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.7257977091166505,
+                        "residual_load": 0.002664373004337861,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.36289885455832527,
+                        "residual_utilization": 0.0013321865021689305
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.1828794121915955,
+                        "residual_load": 0.009277749625812348,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.09143970609579775,
+                        "residual_utilization": 0.004638874812906174
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.5550984294221925,
+                        "residual_load": -0.002194159715640742,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.2775492147110962,
+                        "residual_utilization": -0.001097079857820371
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.4071789306530429,
+                        "residual_load": -0.0020938090211901073,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.20358946532652145,
+                        "residual_utilization": -0.0010469045105950536
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.44302320952156826,
+                        "residual_load": 0.006765603903880257,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.22151160476078413,
+                        "residual_utilization": 0.0033828019519401287
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.44302320952156826,
+                        "residual_load": -0.006766937164695508,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.22151160476078413,
+                        "residual_utilization": -0.003383468582347754
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.00030413217649097714,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.3623943003648531,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.4598819684510363,
+                        "residual_load": -0.008803027955096299,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.22994098422551815,
+                        "residual_utilization": -0.004401513977548149
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.7343969349009749,
+                        "residual_load": -0.00593485277998651,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.36719846745048745,
+                        "residual_utilization": -0.002967426389993255
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.18500204338930837,
+                        "residual_load": 0.007155118428099488,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.09250102169465418,
+                        "residual_utilization": 0.003577559214049744
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.5620748145341155,
+                        "residual_load": -0.009170544827563742,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.2810374072670577,
+                        "residual_utilization": -0.004585272413781871
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.41168433280786787,
+                        "residual_load": -0.006599211176015085,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.20584216640393393,
+                        "residual_utilization": -0.0032996055880075426
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.017575028177554488,
+                        "residual_load": 0.43221378524789406,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.008787514088777244,
+                        "residual_utilization": 0.21610689262394703
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.017575028177554488,
+                        "residual_load": 0.4186812441793183,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.008787514088777244,
+                        "residual_utilization": 0.20934062208965915
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 1.134709088347989e-6,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 1.0955857349364821,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.029584890132534198,
+                        "residual_load": 0.4214940503634058,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.014792445066267099,
+                        "residual_utilization": 0.2107470251817029
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.047220207238966264,
+                        "residual_load": 0.6812418748820221,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.023610103619483132,
+                        "residual_utilization": 0.3406209374410111
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.011947996365862515,
+                        "residual_load": 0.18020916545154533,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.005973998182931257,
+                        "residual_utilization": 0.09010458272577267
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.03566249326390938,
+                        "residual_load": 0.5172417764426424,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.01783124663195469,
+                        "residual_utilization": 0.2586208882213212
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.026851655435865388,
+                        "residual_load": 0.3782334661959874,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.013425827717932694,
+                        "residual_utilization": 0.1891167330979937
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.5160687267653365,
+                        "residual_load": -0.06627991333988803,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.2580343633826683,
+                        "residual_utilization": -0.033139956669944015
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.5160687267653365,
+                        "residual_load": -0.0798124544084638,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.2580343633826683,
+                        "residual_utilization": -0.0399062272042319
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.00028440658505161454,
+                    "c_row": 9.379629856717754e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.0002848607084338744,
+                    "c_row": 9.379057215249272e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.00028359087222870773,
+                    "c_row": 9.380660891435625e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.000283983430295132,
+                    "c_row": 9.380153973401728e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-4",
+                    "c_query": 0.00028480045468952755,
+                    "c_row": 9.379102229655295e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-5",
+                    "c_query": 0.00028464517254593244,
+                    "c_row": 9.379347953605149e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-6",
+                    "c_query": 0.00028466321341872686,
+                    "c_row": 9.230544884763174e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-7",
+                    "c_query": 0.00028414990611214374,
+                    "c_row": 9.528744208038037e-7,
+                    "cut_coefficient": false
+                }
+            ]
+        }
+    },
+    "naive": {
+        "basis_scenario": "cal-2",
+        "basis_utilization": 0.3642310410604942,
+        "basis_rps_total": 1.0000000000000002,
+        "basis_count": 10000,
+        "candidates": [
+            "cal-1",
+            "cal-2",
+            "cal-3"
+        ],
+        "not_candidates": [
+            {
+                "id": "cal-4",
+                "count": 3000
+            },
+            {
+                "id": "cal-5",
+                "count": 30000
+            },
+            {
+                "id": "cal-6",
+                "count": 30000
+            },
+            {
+                "id": "cal-7",
+                "count": 30000
+            }
+        ]
+    },
+    "scenarios": [
+        {
+            "id": "r-1",
+            "tables": {
+                "entities": 50000,
+                "images": 50000,
+                "references": 50000
+            },
+            "rps_total_in_file": 1.0,
+            "safe_side": [
+                {
+                    "count": 50000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 50000,
+                    "marked_routes": [
+                        "GET /books/{bookSlug}/export/zip",
+                        "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{bookSlug}/export/zip",
+                "GET /books/{bookSlug}/page/{pageSlug}/references",
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00625,
+                        "GET /books/{bookSlug}/export/zip": 0.00625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00625,
+                        "GET /books/{slug}": 0.00625,
+                        "GET /books/{slug}/references": 0.00625,
+                        "GET /images/edit/{id}": 0.00625,
+                        "GET /oidc/callback": 0.00625,
+                        "GET /shelves/{slug}": 0.00625
+                    },
+                    "utilization": {
+                        "point": 0.056507226793641355,
+                        "upper": 0.06533477017114563
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00875,
+                        "GET /books/{bookSlug}/export/zip": 0.00875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00875,
+                        "GET /books/{slug}": 0.00875,
+                        "GET /books/{slug}/references": 0.00875,
+                        "GET /images/edit/{id}": 0.00875,
+                        "GET /oidc/callback": 0.00875,
+                        "GET /shelves/{slug}": 0.00875
+                    },
+                    "utilization": {
+                        "point": 0.07911011751109788,
+                        "upper": 0.09146867823960386
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0125,
+                        "GET /books/{bookSlug}/export/zip": 0.0125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0125,
+                        "GET /books/{slug}": 0.0125,
+                        "GET /books/{slug}/references": 0.0125,
+                        "GET /images/edit/{id}": 0.0125,
+                        "GET /oidc/callback": 0.0125,
+                        "GET /shelves/{slug}": 0.0125
+                    },
+                    "utilization": {
+                        "point": 0.11301445358728271,
+                        "upper": 0.13066954034229125
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.01875,
+                        "GET /books/{bookSlug}/export/zip": 0.01875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.01875,
+                        "GET /books/{slug}": 0.01875,
+                        "GET /books/{slug}/references": 0.01875,
+                        "GET /images/edit/{id}": 0.01875,
+                        "GET /oidc/callback": 0.01875,
+                        "GET /shelves/{slug}": 0.01875
+                    },
+                    "utilization": {
+                        "point": 0.16952168038092405,
+                        "upper": 0.19600431051343686
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.025,
+                        "GET /books/{bookSlug}/export/zip": 0.025,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.025,
+                        "GET /books/{slug}": 0.025,
+                        "GET /books/{slug}/references": 0.025,
+                        "GET /images/edit/{id}": 0.025,
+                        "GET /oidc/callback": 0.025,
+                        "GET /shelves/{slug}": 0.025
+                    },
+                    "utilization": {
+                        "point": 0.22602890717456542,
+                        "upper": 0.2613390806845825
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0375,
+                        "GET /books/{bookSlug}/export/zip": 0.0375,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0375,
+                        "GET /books/{slug}": 0.0375,
+                        "GET /books/{slug}/references": 0.0375,
+                        "GET /images/edit/{id}": 0.0375,
+                        "GET /oidc/callback": 0.0375,
+                        "GET /shelves/{slug}": 0.0375
+                    },
+                    "utilization": {
+                        "point": 0.3390433607618481,
+                        "upper": 0.3920086210268737
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05625,
+                        "GET /books/{bookSlug}/export/zip": 0.05625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05625,
+                        "GET /books/{slug}": 0.05625,
+                        "GET /books/{slug}/references": 0.05625,
+                        "GET /images/edit/{id}": 0.05625,
+                        "GET /oidc/callback": 0.05625,
+                        "GET /shelves/{slug}": 0.05625
+                    },
+                    "utilization": {
+                        "point": 0.508565041142772,
+                        "upper": 0.5880129315403105
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0875,
+                        "GET /books/{bookSlug}/export/zip": 0.0875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0875,
+                        "GET /books/{slug}": 0.0875,
+                        "GET /books/{slug}/references": 0.0875,
+                        "GET /images/edit/{id}": 0.0875,
+                        "GET /oidc/callback": 0.0875,
+                        "GET /shelves/{slug}": 0.0875
+                    },
+                    "utilization": {
+                        "point": 0.7911011751109787,
+                        "upper": 0.9146867823960385
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125,
+                        "GET /books/{bookSlug}/export/zip": 0.125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125,
+                        "GET /books/{slug}": 0.125,
+                        "GET /books/{slug}/references": 0.125,
+                        "GET /images/edit/{id}": 0.125,
+                        "GET /oidc/callback": 0.125,
+                        "GET /shelves/{slug}": 0.125
+                    },
+                    "utilization": {
+                        "point": 1.1301445358728268,
+                        "upper": 1.3066954034229123
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.1875,
+                        "GET /books/{bookSlug}/export/zip": 0.1875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.1875,
+                        "GET /books/{slug}": 0.1875,
+                        "GET /books/{slug}/references": 0.1875,
+                        "GET /images/edit/{id}": 0.1875,
+                        "GET /oidc/callback": 0.1875,
+                        "GET /shelves/{slug}": 0.1875
+                    },
+                    "utilization": {
+                        "point": 1.6952168038092403,
+                        "upper": 1.9600431051343685
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.275,
+                        "GET /books/{bookSlug}/export/zip": 0.275,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.275,
+                        "GET /books/{slug}": 0.275,
+                        "GET /books/{slug}/references": 0.275,
+                        "GET /images/edit/{id}": 0.275,
+                        "GET /oidc/callback": 0.275,
+                        "GET /shelves/{slug}": 0.275
+                    },
+                    "utilization": {
+                        "point": 2.48631797892022,
+                        "upper": 2.874729887530408
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.4125,
+                        "GET /books/{bookSlug}/export/zip": 0.4125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.4125,
+                        "GET /books/{slug}": 0.4125,
+                        "GET /books/{slug}/references": 0.4125,
+                        "GET /images/edit/{id}": 0.4125,
+                        "GET /oidc/callback": 0.4125,
+                        "GET /shelves/{slug}": 0.4125
+                    },
+                    "utilization": {
+                        "point": 3.729476968380327,
+                        "upper": 4.312094831295609
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.625,
+                        "GET /books/{bookSlug}/export/zip": 0.625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.625,
+                        "GET /books/{slug}": 0.625,
+                        "GET /books/{slug}/references": 0.625,
+                        "GET /images/edit/{id}": 0.625,
+                        "GET /oidc/callback": 0.625,
+                        "GET /shelves/{slug}": 0.625
+                    },
+                    "utilization": {
+                        "point": 5.650722679364133,
+                        "upper": 6.533477017114561
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.7078740591194812
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.6122314335111193
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.1964080756838356
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.056507226793641355,
+                            0.07911011751109788,
+                            0.11301445358728271,
+                            0.16952168038092405,
+                            0.22602890717456542,
+                            0.3390433607618481,
+                            0.508565041142772,
+                            0.7911011751109787,
+                            1.1301445358728268,
+                            1.6952168038092403,
+                            2.48631797892022,
+                            3.729476968380327,
+                            5.650722679364133
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7078740591194812
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.05659232301232355,
+                            0.07922925221725297,
+                            0.1131846460246471,
+                            0.16977696903697065,
+                            0.2263692920492942,
+                            0.3395539380739413,
+                            0.5093309071109118,
+                            0.7922925221725294,
+                            1.1318464602464706,
+                            1.6977696903697064,
+                            2.4900622125422367,
+                            3.7350933188133526,
+                            5.659232301232353
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7068096496284418
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.05635437469548832,
+                            0.07889612457368364,
+                            0.11270874939097664,
+                            0.16906312408646496,
+                            0.22541749878195327,
+                            0.3381262481729299,
+                            0.5071893722593948,
+                            0.7889612457368362,
+                            1.1270874939097661,
+                            1.6906312408646493,
+                            2.479592486601487,
+                            3.719388729902227,
+                            5.6354374695488305
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7097940526559046
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.056427930525682034,
+                            0.07899910273595484,
+                            0.11285586105136407,
+                            0.16928379157704607,
+                            0.22571172210272814,
+                            0.33856758315409213,
+                            0.5078513747311381,
+                            0.7899910273595481,
+                            1.1285586105136403,
+                            1.6928379157704607,
+                            2.4828289431300097,
+                            3.724243414695012,
+                            5.642793052568201
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7088688106645135
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.05658102210558342,
+                            0.07921343094781677,
+                            0.11316204421116684,
+                            0.16974306631675026,
+                            0.22632408842233367,
+                            0.3394861326335005,
+                            0.5092291989502506,
+                            0.7921343094781677,
+                            1.1316204421116682,
+                            1.6974306631675022,
+                            2.4895649726456712,
+                            3.7343474589685037,
+                            5.65810221055834
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7069508204598659
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.0565519409271923,
+                            0.07917271729806923,
+                            0.1131038818543846,
+                            0.1696558227815769,
+                            0.2262077637087692,
+                            0.3393116455631538,
+                            0.5089674683447306,
+                            0.7917271729806918,
+                            1.1310388185438456,
+                            1.6965582278157687,
+                            2.4882854007964617,
+                            3.7324281011946896,
+                            5.655194092719228
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.7073143617033048
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.056506225867943786,
+                            0.07910871621512129,
+                            0.11301245173588757,
+                            0.16951867760383135,
+                            0.22602490347177515,
+                            0.3390373552076627,
+                            0.508556032811494,
+                            0.7910871621512128,
+                            1.1301245173588756,
+                            1.6951867760383132,
+                            2.486273938189527,
+                            3.7294109072842883,
+                            5.650622586794377
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.707886598080021
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.056508227916585906,
+                            0.07911151908322027,
+                            0.11301645583317181,
+                            0.16952468374975774,
+                            0.22603291166634362,
+                            0.3390493674995155,
+                            0.508574051249273,
+                            0.7911151908322024,
+                            1.130164558331718,
+                            1.695246837497577,
+                            2.4863620283297805,
+                            3.7295430424946683,
+                            5.650822791658589
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.707861518132291
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.05635437469548832,
+                        "max": 0.05659232301232355
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.07889612457368364,
+                        "max": 0.07922925221725297
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.11270874939097664,
+                        "max": 0.1131846460246471
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.16906312408646496,
+                        "max": 0.16977696903697065
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.22541749878195327,
+                        "max": 0.2263692920492942
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 0.3381262481729299,
+                        "max": 0.3395539380739413
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 0.5071893722593948,
+                        "max": 0.5093309071109118
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 0.7889612457368362,
+                        "max": 0.7922925221725294
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 1.1270874939097661,
+                        "max": 1.1318464602464706
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 1.6906312408646493,
+                        "max": 1.6977696903697064
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 2.479592486601487,
+                        "max": 2.4900622125422367
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 3.719388729902227,
+                        "max": 3.7350933188133526
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 5.6354374695488305,
+                        "max": 5.659232301232353
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.7068096496284418,
+                    "max": 0.7097940526559046
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 17.45868766691919,
+                            "upper": 18.187208771980927
+                        },
+                        "php_cpu_bound_s": 165.68547191274624,
+                        "share_of_limit": 5.5228490637582075
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002492990379405733,
+                            "upper": 0.002828157500542455
+                        },
+                        "php_cpu_bound_s": 0.025764514829941763,
+                        "share_of_limit": 0.0008588171609980587
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.6091907141396137,
+                            "upper": 2.705144724029447
+                        },
+                        "php_cpu_bound_s": 24.64386843590826,
+                        "share_of_limit": 0.821462281196942
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005368133439356808,
+                            "upper": 0.005371732168018506
+                        },
+                        "php_cpu_bound_s": 0.04893648005064859,
+                        "share_of_limit": 0.0016312160016882862
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        },
+        {
+            "id": "r-2",
+            "tables": {
+                "entities": 50000,
+                "images": 50000,
+                "references": 50000
+            },
+            "rps_total_in_file": 1.0000000000000002,
+            "safe_side": [
+                {
+                    "count": 50000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 50000,
+                    "marked_routes": [
+                        "GET /books/{bookSlug}/export/zip",
+                        "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{bookSlug}/export/zip",
+                "GET /books/{bookSlug}/page/{pageSlug}/references",
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.009999999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.009999999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.009999999999999998,
+                        "GET /books/{slug}": 0.009999999999999998,
+                        "GET /books/{slug}/references": 0.0024999999999999996,
+                        "GET /images/edit/{id}": 0.0024999999999999996,
+                        "GET /oidc/callback": 0.0024999999999999996,
+                        "GET /shelves/{slug}": 0.0024999999999999996
+                    },
+                    "utilization": {
+                        "point": 0.09037610080878844,
+                        "upper": 0.1045001567175628
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.013999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.013999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.013999999999999999,
+                        "GET /books/{slug}": 0.013999999999999999,
+                        "GET /books/{slug}/references": 0.0034999999999999996,
+                        "GET /images/edit/{id}": 0.0034999999999999996,
+                        "GET /oidc/callback": 0.0034999999999999996,
+                        "GET /shelves/{slug}": 0.0034999999999999996
+                    },
+                    "utilization": {
+                        "point": 0.1265265411323038,
+                        "upper": 0.1463002194045879
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.019999999999999997,
+                        "GET /books/{bookSlug}/export/zip": 0.019999999999999997,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.019999999999999997,
+                        "GET /books/{slug}": 0.019999999999999997,
+                        "GET /books/{slug}/references": 0.004999999999999999,
+                        "GET /images/edit/{id}": 0.004999999999999999,
+                        "GET /oidc/callback": 0.004999999999999999,
+                        "GET /shelves/{slug}": 0.004999999999999999
+                    },
+                    "utilization": {
+                        "point": 0.18075220161757688,
+                        "upper": 0.2090003134351256
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.029999999999999995,
+                        "GET /books/{bookSlug}/export/zip": 0.029999999999999995,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.029999999999999995,
+                        "GET /books/{slug}": 0.029999999999999995,
+                        "GET /books/{slug}/references": 0.007499999999999999,
+                        "GET /images/edit/{id}": 0.007499999999999999,
+                        "GET /oidc/callback": 0.007499999999999999,
+                        "GET /shelves/{slug}": 0.007499999999999999
+                    },
+                    "utilization": {
+                        "point": 0.2711283024263653,
+                        "upper": 0.3135004701526884
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.039999999999999994,
+                        "GET /books/{bookSlug}/export/zip": 0.039999999999999994,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.039999999999999994,
+                        "GET /books/{slug}": 0.039999999999999994,
+                        "GET /books/{slug}/references": 0.009999999999999998,
+                        "GET /images/edit/{id}": 0.009999999999999998,
+                        "GET /oidc/callback": 0.009999999999999998,
+                        "GET /shelves/{slug}": 0.009999999999999998
+                    },
+                    "utilization": {
+                        "point": 0.36150440323515376,
+                        "upper": 0.4180006268702512
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.05999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05999999999999999,
+                        "GET /books/{slug}": 0.05999999999999999,
+                        "GET /books/{slug}/references": 0.014999999999999998,
+                        "GET /images/edit/{id}": 0.014999999999999998,
+                        "GET /oidc/callback": 0.014999999999999998,
+                        "GET /shelves/{slug}": 0.014999999999999998
+                    },
+                    "utilization": {
+                        "point": 0.5422566048527306,
+                        "upper": 0.6270009403053768
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.08999999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.08999999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.08999999999999998,
+                        "GET /books/{slug}": 0.08999999999999998,
+                        "GET /books/{slug}/references": 0.022499999999999996,
+                        "GET /images/edit/{id}": 0.022499999999999996,
+                        "GET /oidc/callback": 0.022499999999999996,
+                        "GET /shelves/{slug}": 0.022499999999999996
+                    },
+                    "utilization": {
+                        "point": 0.8133849072790958,
+                        "upper": 0.9405014104580651
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.13999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.13999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.13999999999999999,
+                        "GET /books/{slug}": 0.13999999999999999,
+                        "GET /books/{slug}/references": 0.034999999999999996,
+                        "GET /images/edit/{id}": 0.034999999999999996,
+                        "GET /oidc/callback": 0.034999999999999996,
+                        "GET /shelves/{slug}": 0.034999999999999996
+                    },
+                    "utilization": {
+                        "point": 1.2652654113230382,
+                        "upper": 1.463002194045879
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.19999999999999996,
+                        "GET /books/{bookSlug}/export/zip": 0.19999999999999996,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.19999999999999996,
+                        "GET /books/{slug}": 0.19999999999999996,
+                        "GET /books/{slug}/references": 0.04999999999999999,
+                        "GET /images/edit/{id}": 0.04999999999999999,
+                        "GET /oidc/callback": 0.04999999999999999,
+                        "GET /shelves/{slug}": 0.04999999999999999
+                    },
+                    "utilization": {
+                        "point": 1.8075220161757684,
+                        "upper": 2.0900031343512557
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.3,
+                        "GET /books/{bookSlug}/export/zip": 0.3,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.3,
+                        "GET /books/{slug}": 0.3,
+                        "GET /books/{slug}/references": 0.075,
+                        "GET /images/edit/{id}": 0.075,
+                        "GET /oidc/callback": 0.075,
+                        "GET /shelves/{slug}": 0.075
+                    },
+                    "utilization": {
+                        "point": 2.711283024263654,
+                        "upper": 3.135004701526885
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.43999999999999995,
+                        "GET /books/{bookSlug}/export/zip": 0.43999999999999995,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.43999999999999995,
+                        "GET /books/{slug}": 0.43999999999999995,
+                        "GET /books/{slug}/references": 0.10999999999999999,
+                        "GET /images/edit/{id}": 0.10999999999999999,
+                        "GET /oidc/callback": 0.10999999999999999,
+                        "GET /shelves/{slug}": 0.10999999999999999
+                    },
+                    "utilization": {
+                        "point": 3.9765484355866914,
+                        "upper": 4.598006895572763
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.6599999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.6599999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.6599999999999998,
+                        "GET /books/{slug}": 0.6599999999999998,
+                        "GET /books/{slug}/references": 0.16499999999999995,
+                        "GET /images/edit/{id}": 0.16499999999999995,
+                        "GET /oidc/callback": 0.16499999999999995,
+                        "GET /shelves/{slug}": 0.16499999999999995
+                    },
+                    "utilization": {
+                        "point": 5.964822653380035,
+                        "upper": 6.897010343359143
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.9999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.9999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.9999999999999999,
+                        "GET /books/{slug}": 0.9999999999999999,
+                        "GET /books/{slug}/references": 0.24999999999999997,
+                        "GET /images/edit/{id}": 0.24999999999999997,
+                        "GET /oidc/callback": 0.24999999999999997,
+                        "GET /shelves/{slug}": 0.24999999999999997
+                    },
+                    "utilization": {
+                        "point": 9.037610080878844,
+                        "upper": 10.45001567175628
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.4425948856172636
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.3827745455742213
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.196408075683836
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09037610080878844,
+                            0.1265265411323038,
+                            0.18075220161757688,
+                            0.2711283024263653,
+                            0.36150440323515376,
+                            0.5422566048527306,
+                            0.8133849072790958,
+                            1.2652654113230382,
+                            1.8075220161757684,
+                            2.711283024263654,
+                            3.9765484355866914,
+                            5.964822653380035,
+                            9.037610080878844
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4425948856172636
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09051220211334814,
+                            0.12671708295868736,
+                            0.18102440422669627,
+                            0.2715366063400444,
+                            0.36204880845339255,
+                            0.5430732126800888,
+                            0.8146098190201332,
+                            1.2671708295868738,
+                            1.8102440422669626,
+                            2.7153660634004453,
+                            3.982536892987318,
+                            5.973805339480975,
+                            9.051220211334813
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4419293649480336
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09013163201456713,
+                            0.12618428482039395,
+                            0.18026326402913426,
+                            0.27039489604370137,
+                            0.3605265280582685,
+                            0.5407897920874027,
+                            0.8111846881311041,
+                            1.2618428482039397,
+                            1.8026326402913422,
+                            2.703948960437015,
+                            3.965791808640953,
+                            5.948687712961428,
+                            9.013163201456711
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4437953591424505
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09024927583769775,
+                            0.12634898617277682,
+                            0.1804985516753955,
+                            0.27074782751309323,
+                            0.360997103350791,
+                            0.5414956550261865,
+                            0.8122434825392797,
+                            1.2634898617277683,
+                            1.8049855167539548,
+                            2.707478275130933,
+                            3.9709681368587004,
+                            5.956452205288049,
+                            9.024927583769774
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4432168527527589
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.0904941276555447,
+                            0.12669177871776255,
+                            0.1809882553110894,
+                            0.27148238296663413,
+                            0.3619765106221788,
+                            0.5429647659332683,
+                            0.8144471488999021,
+                            1.2669177871776256,
+                            1.8098825531108935,
+                            2.714823829666342,
+                            3.9817416168439665,
+                            5.972612425265948,
+                            9.049412765554468
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4420176318208771
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09044761575879917,
+                            0.12662666206231882,
+                            0.18089523151759834,
+                            0.2713428472763975,
+                            0.3617904630351967,
+                            0.542685694552795,
+                            0.8140285418291925,
+                            1.2662666206231883,
+                            1.8089523151759832,
+                            2.713428472763976,
+                            3.9796950933871633,
+                            5.969542640080743,
+                            9.044761575879917
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.44224493552897903
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09037450763828854,
+                            0.12652431069360395,
+                            0.18074901527657708,
+                            0.27112352291486563,
+                            0.36149803055315416,
+                            0.5422470458297313,
+                            0.8133705687445968,
+                            1.2652431069360395,
+                            1.8074901527657705,
+                            2.711235229148657,
+                            3.976478336084696,
+                            5.964717504127042,
+                            9.037450763828854
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4426026879183062
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.0903776942932458,
+                            0.12652877201054408,
+                            0.1807553885864916,
+                            0.27113308287973736,
+                            0.3615107771729832,
+                            0.5422661657594747,
+                            0.8133992486392121,
+                            1.2652877201054409,
+                            1.8075538858649156,
+                            2.711330828797375,
+                            3.9766185489028145,
+                            5.964927823354221,
+                            9.037769429324578
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4425870820538219
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.09013163201456713,
+                        "max": 0.09051220211334814
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.12618428482039395,
+                        "max": 0.12671708295868736
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.18026326402913426,
+                        "max": 0.18102440422669627
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.27039489604370137,
+                        "max": 0.2715366063400444
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.3605265280582685,
+                        "max": 0.36204880845339255
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 0.5407897920874027,
+                        "max": 0.5430732126800888
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 0.8111846881311041,
+                        "max": 0.8146098190201332
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 1.2618428482039397,
+                        "max": 1.2671708295868738
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 1.8026326402913422,
+                        "max": 1.8102440422669626
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 2.703948960437015,
+                        "max": 2.7153660634004453
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 3.965791808640953,
+                        "max": 3.982536892987318
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 5.948687712961428,
+                        "max": 5.973805339480975
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 9.013163201456711,
+                        "max": 9.051220211334813
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.4419293649480336,
+                    "max": 0.4437953591424505
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 17.45868766691919,
+                            "upper": 18.187208771980927
+                        },
+                        "php_cpu_bound_s": 165.68547191274624,
+                        "share_of_limit": 5.5228490637582075
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002492990379405733,
+                            "upper": 0.002828157500542455
+                        },
+                        "php_cpu_bound_s": 0.025764514829941763,
+                        "share_of_limit": 0.0008588171609980587
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.6091907141396137,
+                            "upper": 2.705144724029447
+                        },
+                        "php_cpu_bound_s": 24.64386843590826,
+                        "share_of_limit": 0.821462281196942
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005368133439356808,
+                            "upper": 0.005371732168018506
+                        },
+                        "php_cpu_bound_s": 0.04893648005064859,
+                        "share_of_limit": 0.0016312160016882862
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        },
+        {
+            "id": "r-3",
+            "tables": {
+                "entities": 200000,
+                "images": 200000,
+                "references": 200000
+            },
+            "rps_total_in_file": 1.0,
+            "safe_side": [
+                {
+                    "count": 200000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 200000,
+                    "marked_routes": [
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00625,
+                        "GET /books/{bookSlug}/export/zip": 0.00625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00625,
+                        "GET /books/{slug}": 0.00625,
+                        "GET /books/{slug}/references": 0.00625,
+                        "GET /images/edit/{id}": 0.00625,
+                        "GET /oidc/callback": 0.00625,
+                        "GET /shelves/{slug}": 0.00625
+                    },
+                    "utilization": {
+                        "point": 0.22582273612080994,
+                        "upper": 0.22613265077741
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00875,
+                        "GET /books/{bookSlug}/export/zip": 0.00875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00875,
+                        "GET /books/{slug}": 0.00875,
+                        "GET /books/{slug}/references": 0.00875,
+                        "GET /images/edit/{id}": 0.00875,
+                        "GET /oidc/callback": 0.00875,
+                        "GET /shelves/{slug}": 0.00875
+                    },
+                    "utilization": {
+                        "point": 0.316151830569134,
+                        "upper": 0.316585711088374
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0125,
+                        "GET /books/{bookSlug}/export/zip": 0.0125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0125,
+                        "GET /books/{slug}": 0.0125,
+                        "GET /books/{slug}/references": 0.0125,
+                        "GET /images/edit/{id}": 0.0125,
+                        "GET /oidc/callback": 0.0125,
+                        "GET /shelves/{slug}": 0.0125
+                    },
+                    "utilization": {
+                        "point": 0.4516454722416199,
+                        "upper": 0.45226530155482
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.01875,
+                        "GET /books/{bookSlug}/export/zip": 0.01875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.01875,
+                        "GET /books/{slug}": 0.01875,
+                        "GET /books/{slug}/references": 0.01875,
+                        "GET /images/edit/{id}": 0.01875,
+                        "GET /oidc/callback": 0.01875,
+                        "GET /shelves/{slug}": 0.01875
+                    },
+                    "utilization": {
+                        "point": 0.6774682083624298,
+                        "upper": 0.67839795233223
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.025,
+                        "GET /books/{bookSlug}/export/zip": 0.025,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.025,
+                        "GET /books/{slug}": 0.025,
+                        "GET /books/{slug}/references": 0.025,
+                        "GET /images/edit/{id}": 0.025,
+                        "GET /oidc/callback": 0.025,
+                        "GET /shelves/{slug}": 0.025
+                    },
+                    "utilization": {
+                        "point": 0.9032909444832398,
+                        "upper": 0.90453060310964
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0375,
+                        "GET /books/{bookSlug}/export/zip": 0.0375,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0375,
+                        "GET /books/{slug}": 0.0375,
+                        "GET /books/{slug}/references": 0.0375,
+                        "GET /images/edit/{id}": 0.0375,
+                        "GET /oidc/callback": 0.0375,
+                        "GET /shelves/{slug}": 0.0375
+                    },
+                    "utilization": {
+                        "point": 1.3549364167248596,
+                        "upper": 1.35679590466446
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05625,
+                        "GET /books/{bookSlug}/export/zip": 0.05625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05625,
+                        "GET /books/{slug}": 0.05625,
+                        "GET /books/{slug}/references": 0.05625,
+                        "GET /images/edit/{id}": 0.05625,
+                        "GET /oidc/callback": 0.05625,
+                        "GET /shelves/{slug}": 0.05625
+                    },
+                    "utilization": {
+                        "point": 2.03240462508729,
+                        "upper": 2.03519385699669
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0875,
+                        "GET /books/{bookSlug}/export/zip": 0.0875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0875,
+                        "GET /books/{slug}": 0.0875,
+                        "GET /books/{slug}/references": 0.0875,
+                        "GET /images/edit/{id}": 0.0875,
+                        "GET /oidc/callback": 0.0875,
+                        "GET /shelves/{slug}": 0.0875
+                    },
+                    "utilization": {
+                        "point": 3.1615183056913394,
+                        "upper": 3.1658571108837403
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125,
+                        "GET /books/{bookSlug}/export/zip": 0.125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125,
+                        "GET /books/{slug}": 0.125,
+                        "GET /books/{slug}/references": 0.125,
+                        "GET /images/edit/{id}": 0.125,
+                        "GET /oidc/callback": 0.125,
+                        "GET /shelves/{slug}": 0.125
+                    },
+                    "utilization": {
+                        "point": 4.516454722416199,
+                        "upper": 4.5226530155482
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.1875,
+                        "GET /books/{bookSlug}/export/zip": 0.1875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.1875,
+                        "GET /books/{slug}": 0.1875,
+                        "GET /books/{slug}/references": 0.1875,
+                        "GET /images/edit/{id}": 0.1875,
+                        "GET /oidc/callback": 0.1875,
+                        "GET /shelves/{slug}": 0.1875
+                    },
+                    "utilization": {
+                        "point": 6.774682083624298,
+                        "upper": 6.7839795233223
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.275,
+                        "GET /books/{bookSlug}/export/zip": 0.275,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.275,
+                        "GET /books/{slug}": 0.275,
+                        "GET /books/{slug}/references": 0.275,
+                        "GET /images/edit/{id}": 0.275,
+                        "GET /oidc/callback": 0.275,
+                        "GET /shelves/{slug}": 0.275
+                    },
+                    "utilization": {
+                        "point": 9.936200389315637,
+                        "upper": 9.94983663420604
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.4125,
+                        "GET /books/{bookSlug}/export/zip": 0.4125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.4125,
+                        "GET /books/{slug}": 0.4125,
+                        "GET /books/{slug}/references": 0.4125,
+                        "GET /images/edit/{id}": 0.4125,
+                        "GET /oidc/callback": 0.4125,
+                        "GET /shelves/{slug}": 0.4125
+                    },
+                    "utilization": {
+                        "point": 14.904300583973459,
+                        "upper": 14.924754951309062
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.625,
+                        "GET /books/{bookSlug}/export/zip": 0.625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.625,
+                        "GET /books/{slug}": 0.625,
+                        "GET /books/{slug}/references": 0.625,
+                        "GET /images/edit/{id}": 0.625,
+                        "GET /oidc/callback": 0.625,
+                        "GET /shelves/{slug}": 0.625
+                    },
+                    "utilization": {
+                        "point": 22.582273612080996,
+                        "upper": 22.613265077741
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.17713008303380454
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.17688732636567972
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.1964080756838356
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22582273612080994,
+                            0.316151830569134,
+                            0.4516454722416199,
+                            0.6774682083624298,
+                            0.9032909444832398,
+                            1.3549364167248596,
+                            2.03240462508729,
+                            3.1615183056913394,
+                            4.516454722416199,
+                            6.774682083624298,
+                            9.936200389315637,
+                            14.904300583973459,
+                            22.582273612080996
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17713008303380454
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22616269941546122,
+                            0.3166277791816457,
+                            0.45232539883092243,
+                            0.6784880982463836,
+                            0.9046507976618449,
+                            1.3569761964927671,
+                            2.035464294739151,
+                            3.166277791816457,
+                            4.523253988309223,
+                            6.784880982463836,
+                            9.951158774280291,
+                            14.92673816142044,
+                            22.61626994154612
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17686382459788363
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22521208500003007,
+                            0.3152969190000421,
+                            0.45042417000006013,
+                            0.6756362550000901,
+                            0.9008483400001203,
+                            1.3512725100001801,
+                            2.026908765000271,
+                            3.152969190000421,
+                            4.504241700000601,
+                            6.756362550000901,
+                            9.90933174000132,
+                            14.863997610001984,
+                            22.521208500003006
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17761036225029694
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.2255059438234084,
+                            0.3157083213527718,
+                            0.4510118876468168,
+                            0.6765178314702252,
+                            0.9020237752936336,
+                            1.3530356629404503,
+                            2.029553494410676,
+                            3.1570832135277183,
+                            4.510118876468169,
+                            6.7651783147022515,
+                            9.922261528229969,
+                            14.883392292344956,
+                            22.55059438234084
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17737891658999297
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22611755154039428,
+                            0.31656457215655204,
+                            0.45223510308078857,
+                            0.6783526546211828,
+                            0.9044702061615771,
+                            1.3567053092423655,
+                            2.0350579638635486,
+                            3.16564572156552,
+                            4.522351030807886,
+                            6.783526546211828,
+                            9.949172267777348,
+                            14.923758401666023,
+                            22.61175515403943
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17689913820269848
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.2260013712777212,
+                            0.31640191978880966,
+                            0.4520027425554424,
+                            0.6780041138331635,
+                            0.9040054851108849,
+                            1.356008227666327,
+                            2.034012341499491,
+                            3.164019197888097,
+                            4.5200274255544235,
+                            6.780041138331636,
+                            9.944060336219732,
+                            14.916090504329599,
+                            22.60013712777212
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.1769900765373946
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22581761039754894,
+                            0.31614465455656854,
+                            0.4516352207950979,
+                            0.6774528311926468,
+                            0.9032704415901958,
+                            1.3549056623852935,
+                            2.0323584935779406,
+                            3.1614465455656853,
+                            4.516352207950979,
+                            6.774528311926468,
+                            9.935974857492152,
+                            14.90396228623823,
+                            22.581761039754895
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.17713410362274462
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.22582786285416945,
+                            0.3161590079958372,
+                            0.4516557257083389,
+                            0.6774835885625082,
+                            0.9033114514166778,
+                            1.3549671771250165,
+                            2.0324507656875253,
+                            3.1615900799583723,
+                            4.516557257083388,
+                            6.774835885625082,
+                            9.936425965583455,
+                            14.904638948375183,
+                            22.582786285416944
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.1771260618351173
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.22521208500003007,
+                        "max": 0.22616269941546122
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.3152969190000421,
+                        "max": 0.3166277791816457
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.45042417000006013,
+                        "max": 0.45232539883092243
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.6756362550000901,
+                        "max": 0.6784880982463836
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.9008483400001203,
+                        "max": 0.9046507976618449
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 1.3512725100001801,
+                        "max": 1.3569761964927671
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 2.026908765000271,
+                        "max": 2.035464294739151
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 3.152969190000421,
+                        "max": 3.166277791816457
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 4.504241700000601,
+                        "max": 4.523253988309223
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 6.756362550000901,
+                        "max": 6.784880982463836
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 9.90933174000132,
+                        "max": 9.951158774280291
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 14.863997610001984,
+                        "max": 14.92673816142044
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 22.521208500003006,
+                        "max": 22.61626994154612
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.17686382459788363,
+                    "max": 0.17761036225029694
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 69.83567810872155,
+                            "upper": 69.84927768742642
+                        },
+                        "php_cpu_bound_s": 636.3269197324547,
+                        "share_of_limit": 21.210897324415157
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00249677837253722,
+                            "upper": 0.00249677837253722
+                        },
+                        "php_cpu_bound_s": 0.022745650973814074,
+                        "share_of_limit": 0.0007581883657938025
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 2.4131452413142944,
+                            "upper": 2.494511037915765
+                        },
+                        "php_cpu_bound_s": 22.724995555412615,
+                        "share_of_limit": 0.7574998518470871
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005382361163133749,
+                            "upper": 0.009589675968817225
+                        },
+                        "php_cpu_bound_s": 0.08736194807592491,
+                        "share_of_limit": 0.0029120649358641637
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        },
+        {
+            "id": "r-4",
+            "tables": {
+                "entities": 200000,
+                "images": 200000,
+                "references": 200000
+            },
+            "rps_total_in_file": 1.0000000000000002,
+            "safe_side": [
+                {
+                    "count": 200000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 200000,
+                    "marked_routes": [
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.009999999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.009999999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.009999999999999998,
+                        "GET /books/{slug}": 0.009999999999999998,
+                        "GET /books/{slug}/references": 0.0024999999999999996,
+                        "GET /images/edit/{id}": 0.0024999999999999996,
+                        "GET /oidc/callback": 0.0024999999999999996,
+                        "GET /shelves/{slug}": 0.0024999999999999996
+                    },
+                    "utilization": {
+                        "point": 0.361280862378294,
+                        "upper": 0.3617609483983327
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.013999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.013999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.013999999999999999,
+                        "GET /books/{slug}": 0.013999999999999999,
+                        "GET /books/{slug}/references": 0.0034999999999999996,
+                        "GET /images/edit/{id}": 0.0034999999999999996,
+                        "GET /oidc/callback": 0.0034999999999999996,
+                        "GET /shelves/{slug}": 0.0034999999999999996
+                    },
+                    "utilization": {
+                        "point": 0.5057932073296116,
+                        "upper": 0.506465327757666
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.019999999999999997,
+                        "GET /books/{bookSlug}/export/zip": 0.019999999999999997,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.019999999999999997,
+                        "GET /books/{slug}": 0.019999999999999997,
+                        "GET /books/{slug}/references": 0.004999999999999999,
+                        "GET /images/edit/{id}": 0.004999999999999999,
+                        "GET /oidc/callback": 0.004999999999999999,
+                        "GET /shelves/{slug}": 0.004999999999999999
+                    },
+                    "utilization": {
+                        "point": 0.722561724756588,
+                        "upper": 0.7235218967966655
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.029999999999999995,
+                        "GET /books/{bookSlug}/export/zip": 0.029999999999999995,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.029999999999999995,
+                        "GET /books/{slug}": 0.029999999999999995,
+                        "GET /books/{slug}/references": 0.007499999999999999,
+                        "GET /images/edit/{id}": 0.007499999999999999,
+                        "GET /oidc/callback": 0.007499999999999999,
+                        "GET /shelves/{slug}": 0.007499999999999999
+                    },
+                    "utilization": {
+                        "point": 1.083842587134882,
+                        "upper": 1.0852828451949983
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.039999999999999994,
+                        "GET /books/{bookSlug}/export/zip": 0.039999999999999994,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.039999999999999994,
+                        "GET /books/{slug}": 0.039999999999999994,
+                        "GET /books/{slug}/references": 0.009999999999999998,
+                        "GET /images/edit/{id}": 0.009999999999999998,
+                        "GET /oidc/callback": 0.009999999999999998,
+                        "GET /shelves/{slug}": 0.009999999999999998
+                    },
+                    "utilization": {
+                        "point": 1.445123449513176,
+                        "upper": 1.447043793593331
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.05999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05999999999999999,
+                        "GET /books/{slug}": 0.05999999999999999,
+                        "GET /books/{slug}/references": 0.014999999999999998,
+                        "GET /images/edit/{id}": 0.014999999999999998,
+                        "GET /oidc/callback": 0.014999999999999998,
+                        "GET /shelves/{slug}": 0.014999999999999998
+                    },
+                    "utilization": {
+                        "point": 2.167685174269764,
+                        "upper": 2.1705656903899966
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.08999999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.08999999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.08999999999999998,
+                        "GET /books/{slug}": 0.08999999999999998,
+                        "GET /books/{slug}/references": 0.022499999999999996,
+                        "GET /images/edit/{id}": 0.022499999999999996,
+                        "GET /oidc/callback": 0.022499999999999996,
+                        "GET /shelves/{slug}": 0.022499999999999996
+                    },
+                    "utilization": {
+                        "point": 3.251527761404646,
+                        "upper": 3.255848535584995
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.13999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.13999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.13999999999999999,
+                        "GET /books/{slug}": 0.13999999999999999,
+                        "GET /books/{slug}/references": 0.034999999999999996,
+                        "GET /images/edit/{id}": 0.034999999999999996,
+                        "GET /oidc/callback": 0.034999999999999996,
+                        "GET /shelves/{slug}": 0.034999999999999996
+                    },
+                    "utilization": {
+                        "point": 5.057932073296116,
+                        "upper": 5.064653277576658
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.19999999999999996,
+                        "GET /books/{bookSlug}/export/zip": 0.19999999999999996,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.19999999999999996,
+                        "GET /books/{slug}": 0.19999999999999996,
+                        "GET /books/{slug}/references": 0.04999999999999999,
+                        "GET /images/edit/{id}": 0.04999999999999999,
+                        "GET /oidc/callback": 0.04999999999999999,
+                        "GET /shelves/{slug}": 0.04999999999999999
+                    },
+                    "utilization": {
+                        "point": 7.22561724756588,
+                        "upper": 7.235218967966655
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.3,
+                        "GET /books/{bookSlug}/export/zip": 0.3,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.3,
+                        "GET /books/{slug}": 0.3,
+                        "GET /books/{slug}/references": 0.075,
+                        "GET /images/edit/{id}": 0.075,
+                        "GET /oidc/callback": 0.075,
+                        "GET /shelves/{slug}": 0.075
+                    },
+                    "utilization": {
+                        "point": 10.838425871348822,
+                        "upper": 10.852828451949984
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.43999999999999995,
+                        "GET /books/{bookSlug}/export/zip": 0.43999999999999995,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.43999999999999995,
+                        "GET /books/{slug}": 0.43999999999999995,
+                        "GET /books/{slug}/references": 0.10999999999999999,
+                        "GET /images/edit/{id}": 0.10999999999999999,
+                        "GET /oidc/callback": 0.10999999999999999,
+                        "GET /shelves/{slug}": 0.10999999999999999
+                    },
+                    "utilization": {
+                        "point": 15.896357944644938,
+                        "upper": 15.917481729526644
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.6599999999999998,
+                        "GET /books/{bookSlug}/export/zip": 0.6599999999999998,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.6599999999999998,
+                        "GET /books/{slug}": 0.6599999999999998,
+                        "GET /books/{slug}/references": 0.16499999999999995,
+                        "GET /images/edit/{id}": 0.16499999999999995,
+                        "GET /oidc/callback": 0.16499999999999995,
+                        "GET /shelves/{slug}": 0.16499999999999995
+                    },
+                    "utilization": {
+                        "point": 23.844536916967396,
+                        "upper": 23.876222594289956
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.9999999999999999,
+                        "GET /books/{bookSlug}/export/zip": 0.9999999999999999,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.9999999999999999,
+                        "GET /books/{slug}": 0.9999999999999999,
+                        "GET /books/{slug}/references": 0.24999999999999997,
+                        "GET /images/edit/{id}": 0.24999999999999997,
+                        "GET /oidc/callback": 0.24999999999999997,
+                        "GET /shelves/{slug}": 0.24999999999999997
+                    },
+                    "utilization": {
+                        "point": 36.1280862378294,
+                        "upper": 36.176094839833276
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.1107171847871542
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.1105702541335563
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.196408075683836
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.361280862378294,
+                            0.5057932073296116,
+                            0.722561724756588,
+                            1.083842587134882,
+                            1.445123449513176,
+                            2.167685174269764,
+                            3.251527761404646,
+                            5.057932073296116,
+                            7.22561724756588,
+                            10.838425871348822,
+                            15.896357944644938,
+                            23.844536916967396,
+                            36.1280862378294
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.1107171847871542
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.3618247510076614,
+                            0.5065546514107262,
+                            0.7236495020153229,
+                            1.0854742530229846,
+                            1.4472990040306457,
+                            2.1709485060459692,
+                            3.2564227590689536,
+                            5.065546514107262,
+                            7.236495020153231,
+                            10.854742530229846,
+                            15.92028904433711,
+                            23.880433566505655,
+                            36.182475100766155
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11055075665388357
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.3603039151420048,
+                            0.5044254811988069,
+                            0.7206078302840097,
+                            1.0809117454260146,
+                            1.4412156605680193,
+                            2.1618234908520293,
+                            3.242735236278044,
+                            5.044254811988068,
+                            7.206078302840098,
+                            10.809117454260146,
+                            15.853372266248217,
+                            23.780058399372315,
+                            36.03039151420049
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11101738926215939
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.3607740437571144,
+                            0.5050836612599603,
+                            0.7215480875142288,
+                            1.0823221312713434,
+                            1.4430961750284577,
+                            2.1646442625426867,
+                            3.2469663938140303,
+                            5.0508366125996025,
+                            7.215480875142289,
+                            10.823221312713434,
+                            15.874057925313037,
+                            23.811086887969548,
+                            36.077404375711446
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11087272128404388
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.36175252140027914,
+                            0.5064535299603908,
+                            0.7235050428005583,
+                            1.0852575642008373,
+                            1.4470100856011165,
+                            2.1705151284016746,
+                            3.2557726926025126,
+                            5.064535299603908,
+                            7.235050428005583,
+                            10.852575642008375,
+                            15.917110941612284,
+                            23.87566641241842,
+                            36.175252140027915
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.1105728298593944
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.36156665096728474,
+                            0.5061933113541988,
+                            0.7231333019345695,
+                            1.0846999529018542,
+                            1.446266603869139,
+                            2.1693999058037083,
+                            3.2540998587055627,
+                            5.061933113541987,
+                            7.231333019345695,
+                            10.846999529018543,
+                            15.908932642560531,
+                            23.863398963840787,
+                            36.156665096728474
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11062967199267303
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.36127267037972965,
+                            0.5057817385316217,
+                            0.7225453407594593,
+                            1.0838180111391889,
+                            1.4450906815189186,
+                            2.1676360222783777,
+                            3.2514540334175672,
+                            5.057817385316216,
+                            7.2254534075945935,
+                            10.83818011139189,
+                            15.895997496708109,
+                            23.843996245062154,
+                            36.12726703797296
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11071969534245822
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.3612890559912109,
+                            0.5058046783876955,
+                            0.7225781119824218,
+                            1.0838671679736331,
+                            1.4451562239648437,
+                            2.1677343359472663,
+                            3.2516015039208988,
+                            5.0580467838769545,
+                            7.2257811198242194,
+                            10.838671679736331,
+                            15.896718463613285,
+                            23.84507769541992,
+                            36.128905599121104
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.11071467385099279
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.3603039151420048,
+                        "max": 0.3618247510076614
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.5044254811988069,
+                        "max": 0.5065546514107262
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.7206078302840097,
+                        "max": 0.7236495020153229
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 1.0809117454260146,
+                        "max": 1.0854742530229846
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 1.4412156605680193,
+                        "max": 1.4472990040306457
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 2.1618234908520293,
+                        "max": 2.1709485060459692
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 3.242735236278044,
+                        "max": 3.2564227590689536
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 5.044254811988068,
+                        "max": 5.065546514107262
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 7.206078302840098,
+                        "max": 7.236495020153231
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 10.809117454260146,
+                        "max": 10.854742530229846
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 15.853372266248217,
+                        "max": 15.92028904433711
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 23.780058399372315,
+                        "max": 23.880433566505655
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 36.03039151420049,
+                        "max": 36.182475100766155
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.11055075665388357,
+                    "max": 0.11101738926215939
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 69.83567810872155,
+                            "upper": 69.84927768742642
+                        },
+                        "php_cpu_bound_s": 636.3269197324547,
+                        "share_of_limit": 21.210897324415157
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00249677837253722,
+                            "upper": 0.00249677837253722
+                        },
+                        "php_cpu_bound_s": 0.022745650973814074,
+                        "share_of_limit": 0.0007581883657938025
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 2.4131452413142944,
+                            "upper": 2.494511037915765
+                        },
+                        "php_cpu_bound_s": 22.724995555412615,
+                        "share_of_limit": 0.7574998518470871
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005382361163133749,
+                            "upper": 0.009589675968817225
+                        },
+                        "php_cpu_bound_s": 0.08736194807592491,
+                        "share_of_limit": 0.0029120649358641637
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        },
+        {
+            "id": "r-5",
+            "tables": {
+                "entities": 200000,
+                "images": 200000,
+                "references": 200000
+            },
+            "rps_total_in_file": 1.0,
+            "safe_side": [
+                {
+                    "count": 200000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 200000,
+                    "marked_routes": [
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0025000000000000005,
+                        "GET /books/{bookSlug}/export/zip": 0.0025000000000000005,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0025000000000000005,
+                        "GET /books/{slug}": 0.0025000000000000005,
+                        "GET /books/{slug}/references": 0.010000000000000002,
+                        "GET /images/edit/{id}": 0.010000000000000002,
+                        "GET /oidc/callback": 0.010000000000000002,
+                        "GET /shelves/{slug}": 0.010000000000000002
+                    },
+                    "utilization": {
+                        "point": 0.09036460986332585,
+                        "upper": 0.09050435315648718
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0035000000000000005,
+                        "GET /books/{bookSlug}/export/zip": 0.0035000000000000005,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0035000000000000005,
+                        "GET /books/{slug}": 0.0035000000000000005,
+                        "GET /books/{slug}/references": 0.014000000000000002,
+                        "GET /images/edit/{id}": 0.014000000000000002,
+                        "GET /oidc/callback": 0.014000000000000002,
+                        "GET /shelves/{slug}": 0.014000000000000002
+                    },
+                    "utilization": {
+                        "point": 0.12651045380865616,
+                        "upper": 0.12670609441908204
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.005000000000000001,
+                        "GET /books/{bookSlug}/export/zip": 0.005000000000000001,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.005000000000000001,
+                        "GET /books/{slug}": 0.005000000000000001,
+                        "GET /books/{slug}/references": 0.020000000000000004,
+                        "GET /images/edit/{id}": 0.020000000000000004,
+                        "GET /oidc/callback": 0.020000000000000004,
+                        "GET /shelves/{slug}": 0.020000000000000004
+                    },
+                    "utilization": {
+                        "point": 0.1807292197266517,
+                        "upper": 0.18100870631297436
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0075,
+                        "GET /books/{bookSlug}/export/zip": 0.0075,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0075,
+                        "GET /books/{slug}": 0.0075,
+                        "GET /books/{slug}/references": 0.03,
+                        "GET /images/edit/{id}": 0.03,
+                        "GET /oidc/callback": 0.03,
+                        "GET /shelves/{slug}": 0.03
+                    },
+                    "utilization": {
+                        "point": 0.2710938295899775,
+                        "upper": 0.2715130594694615
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.010000000000000002,
+                        "GET /books/{bookSlug}/export/zip": 0.010000000000000002,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.010000000000000002,
+                        "GET /books/{slug}": 0.010000000000000002,
+                        "GET /books/{slug}/references": 0.04000000000000001,
+                        "GET /images/edit/{id}": 0.04000000000000001,
+                        "GET /oidc/callback": 0.04000000000000001,
+                        "GET /shelves/{slug}": 0.04000000000000001
+                    },
+                    "utilization": {
+                        "point": 0.3614584394533034,
+                        "upper": 0.3620174126259487
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.015,
+                        "GET /books/{bookSlug}/export/zip": 0.015,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.015,
+                        "GET /books/{slug}": 0.015,
+                        "GET /books/{slug}/references": 0.06,
+                        "GET /images/edit/{id}": 0.06,
+                        "GET /oidc/callback": 0.06,
+                        "GET /shelves/{slug}": 0.06
+                    },
+                    "utilization": {
+                        "point": 0.542187659179955,
+                        "upper": 0.543026118938923
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.022500000000000003,
+                        "GET /books/{bookSlug}/export/zip": 0.022500000000000003,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.022500000000000003,
+                        "GET /books/{slug}": 0.022500000000000003,
+                        "GET /books/{slug}/references": 0.09000000000000001,
+                        "GET /images/edit/{id}": 0.09000000000000001,
+                        "GET /oidc/callback": 0.09000000000000001,
+                        "GET /shelves/{slug}": 0.09000000000000001
+                    },
+                    "utilization": {
+                        "point": 0.8132814887699328,
+                        "upper": 0.8145391784083849
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.034999999999999996,
+                        "GET /books/{bookSlug}/export/zip": 0.034999999999999996,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.034999999999999996,
+                        "GET /books/{slug}": 0.034999999999999996,
+                        "GET /books/{slug}/references": 0.13999999999999999,
+                        "GET /images/edit/{id}": 0.13999999999999999,
+                        "GET /oidc/callback": 0.13999999999999999,
+                        "GET /shelves/{slug}": 0.13999999999999999
+                    },
+                    "utilization": {
+                        "point": 1.2651045380865618,
+                        "upper": 1.2670609441908205
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05,
+                        "GET /books/{bookSlug}/export/zip": 0.05,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05,
+                        "GET /books/{slug}": 0.05,
+                        "GET /books/{slug}/references": 0.2,
+                        "GET /images/edit/{id}": 0.2,
+                        "GET /oidc/callback": 0.2,
+                        "GET /shelves/{slug}": 0.2
+                    },
+                    "utilization": {
+                        "point": 1.807292197266517,
+                        "upper": 1.8100870631297437
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.07500000000000001,
+                        "GET /books/{bookSlug}/export/zip": 0.07500000000000001,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.07500000000000001,
+                        "GET /books/{slug}": 0.07500000000000001,
+                        "GET /books/{slug}/references": 0.30000000000000004,
+                        "GET /images/edit/{id}": 0.30000000000000004,
+                        "GET /oidc/callback": 0.30000000000000004,
+                        "GET /shelves/{slug}": 0.30000000000000004
+                    },
+                    "utilization": {
+                        "point": 2.7109382958997754,
+                        "upper": 2.7151305946946156
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.11000000000000001,
+                        "GET /books/{bookSlug}/export/zip": 0.11000000000000001,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.11000000000000001,
+                        "GET /books/{slug}": 0.11000000000000001,
+                        "GET /books/{slug}/references": 0.44000000000000006,
+                        "GET /images/edit/{id}": 0.44000000000000006,
+                        "GET /oidc/callback": 0.44000000000000006,
+                        "GET /shelves/{slug}": 0.44000000000000006
+                    },
+                    "utilization": {
+                        "point": 3.976042833986338,
+                        "upper": 3.9821915388854365
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.165,
+                        "GET /books/{bookSlug}/export/zip": 0.165,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.165,
+                        "GET /books/{slug}": 0.165,
+                        "GET /books/{slug}/references": 0.66,
+                        "GET /images/edit/{id}": 0.66,
+                        "GET /oidc/callback": 0.66,
+                        "GET /shelves/{slug}": 0.66
+                    },
+                    "utilization": {
+                        "point": 5.964064250979505,
+                        "upper": 5.973287308328153
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.25,
+                        "GET /books/{bookSlug}/export/zip": 0.25,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.25,
+                        "GET /books/{slug}": 0.25,
+                        "GET /books/{slug}/references": 1.0,
+                        "GET /images/edit/{id}": 1.0,
+                        "GET /oidc/callback": 1.0,
+                        "GET /shelves/{slug}": 1.0
+                    },
+                    "utilization": {
+                        "point": 9.036460986332584,
+                        "upper": 9.050435315648716
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.4426511668727279
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.4419676911102577
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.1964080756838356
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09036460986332585,
+                            0.12651045380865616,
+                            0.1807292197266517,
+                            0.2710938295899775,
+                            0.3614584394533034,
+                            0.542187659179955,
+                            0.8132814887699328,
+                            1.2651045380865618,
+                            1.807292197266517,
+                            2.7109382958997754,
+                            3.976042833986338,
+                            5.964064250979505,
+                            9.036460986332584
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4426511668727279
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09050064782326082,
+                            0.12670090695256514,
+                            0.18100129564652165,
+                            0.2715019434697824,
+                            0.3620025912930433,
+                            0.5430038869395648,
+                            0.8145058304093475,
+                            1.2670090695256513,
+                            1.8100129564652165,
+                            2.7150194346978247,
+                            3.9820285042234764,
+                            5.9730427563352135,
+                            9.05006478232608
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4419857864234984
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09012025485805517,
+                            0.12616835680127722,
+                            0.18024050971611033,
+                            0.27036076457416547,
+                            0.36048101943222066,
+                            0.5407215291483309,
+                            0.8110822937224966,
+                            1.261683568012772,
+                            1.8024050971611034,
+                            2.703607645741655,
+                            3.9652912137544276,
+                            5.94793682063164,
+                            9.012025485805514
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.44385138571792115
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09023784388970232,
+                            0.12633298144558325,
+                            0.18047568777940465,
+                            0.270713531669107,
+                            0.3609513755588093,
+                            0.541427063338214,
+                            0.812140595007321,
+                            1.2633298144558325,
+                            1.8047568777940466,
+                            2.70713531669107,
+                            3.970465131146903,
+                            5.955697696720354,
+                            9.023784388970231
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4432730024987297
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09048258168050934,
+                            0.12667561435271307,
+                            0.18096516336101867,
+                            0.271447745041528,
+                            0.36193032672203734,
+                            0.542895490083056,
+                            0.8143432351245842,
+                            1.2667561435271306,
+                            1.8096516336101869,
+                            2.7144774504152807,
+                            3.9812335939424113,
+                            5.971850390913616,
+                            9.048258168050934
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.4420740352130814
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09043609158815759,
+                            0.12661052822342062,
+                            0.18087218317631518,
+                            0.2713082747644727,
+                            0.36174436635263035,
+                            0.5426165495289454,
+                            0.8139248242934185,
+                            1.2661052822342063,
+                            1.808721831763152,
+                            2.7130827476447275,
+                            3.9791880298789346,
+                            5.968782044818401,
+                            9.043609158815759
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.44230129030960813
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09036255041536811,
+                            0.12650757058151535,
+                            0.18072510083073623,
+                            0.27108765124610434,
+                            0.36145020166147246,
+                            0.5421753024922087,
+                            0.8132629537383131,
+                            1.2650757058151536,
+                            1.8072510083073625,
+                            2.7108765124610437,
+                            3.9759522182761975,
+                            5.963928327414295,
+                            9.036255041536812
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.44266125531132783
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.09036666971712781,
+                            0.12651333760397893,
+                            0.18073333943425562,
+                            0.27110000915138344,
+                            0.36146667886851125,
+                            0.5422000183027669,
+                            0.8133000274541504,
+                            1.2651333760397891,
+                            1.8073333943425565,
+                            2.7110000915138346,
+                            3.976133467553624,
+                            5.964200201330435,
+                            9.03666697171278
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.44264107690601906
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.09012025485805517,
+                        "max": 0.09050064782326082
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.12616835680127722,
+                        "max": 0.12670090695256514
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.18024050971611033,
+                        "max": 0.18100129564652165
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.27036076457416547,
+                        "max": 0.2715019434697824
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.36048101943222066,
+                        "max": 0.3620025912930433
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 0.5407215291483309,
+                        "max": 0.5430038869395648
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 0.8110822937224966,
+                        "max": 0.8145058304093475
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 1.261683568012772,
+                        "max": 1.2670090695256513
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 1.8024050971611034,
+                        "max": 1.8100129564652165
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 2.703607645741655,
+                        "max": 2.7150194346978247
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 3.9652912137544276,
+                        "max": 3.9820285042234764
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 5.94793682063164,
+                        "max": 5.9730427563352135
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 9.012025485805514,
+                        "max": 9.05006478232608
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.4419857864234984,
+                    "max": 0.44385138571792115
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 69.83567810872155,
+                            "upper": 69.84927768742642
+                        },
+                        "php_cpu_bound_s": 636.3269197324547,
+                        "share_of_limit": 21.210897324415157
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00249677837253722,
+                            "upper": 0.00249677837253722
+                        },
+                        "php_cpu_bound_s": 0.022745650973814074,
+                        "share_of_limit": 0.0007581883657938025
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 2.4131452413142944,
+                            "upper": 2.494511037915765
+                        },
+                        "php_cpu_bound_s": 22.724995555412615,
+                        "share_of_limit": 0.7574998518470871
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005382361163133749,
+                            "upper": 0.009589675968817225
+                        },
+                        "php_cpu_bound_s": 0.08736194807592491,
+                        "share_of_limit": 0.0029120649358641637
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        }
+    ]
+}
