@@ -38,10 +38,12 @@
 # THE WRITE GUARDS (lab-only rule: the lab may write the view-count table `views` and nothing else; decisions.md D187, D189). A dry run needs none.
 #   (i)   bin/check-writes reads --statement-record (the capture's record of the statements of the eight routes) and stops with exit 15, before the
 #         closed-network check and before any container is touched, unless every write in it is to `views` alone (line marked WRITE-CHECK).
-#   (iii) bin/check-tables takes the count and CHECKSUM TABLE of the N tables once at the start of the scenario (line marked TABLES-BEFORE; the
-#         baseline is <scenario>/tables-before.tsv and is kept, so a restart is compared with the state the scenario began from) and again after every
-#         step, once k6 and the samplers have stopped (TABLES-AFTER; <step>/tables-after.tsv). A difference stops at exit 16 before the step is
-#         summarized, so the step has no record. A scale that has not been seen (not <= 30,000, 70,000 or 100,000) is refused with exit 17 before any
+#   (iii) bin/check-tables takes the count and CHECKSUM TABLE of the N tables at the start of the scenario (line marked TABLES-BEFORE; the
+#         baseline is <scenario>/tables-before.tsv and is kept, so a restart is compared with the state the scenario began from) and again at its end
+#         (TABLES-AFTER; <scenario>/tables-after.tsv), not between the steps: those two read every table whole and would change the buffer pool from
+#         one step to the next (decisions.md D189). After every step, once k6 and the samplers have stopped, it compares only the server's own counters
+#         of writes with the baseline (TABLES-STEP; <step>/writes-after.tsv): nothing is read from a table, and a write to a table other than `views`
+#         stops the scenario at that step with exit 16 before the step is summarized, so the step has no record. A scale that has not been seen (not <= 30,000, 70,000 or 100,000) is refused with exit 17 before any
 #         query unless --predictions is a committed prediction that holds a scenario of that scale.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
@@ -303,10 +305,11 @@ for rps in "${rungs[@]}"; do
     echo "measure-ladder: a sampler failed at rung $i (DB $db_rc, app $app_rc); see $d/sampler.err. Stopped; no instantaneous figure is used instead." >&2
     exit 13
   fi
-  # THE WRITE GUARD (iii), after the step: the load and the samplers are over. The N tables must be what the scenario began with, or the step is not judged.
-  "$bindir/check-tables" after "${tables_args[@]}" --out="$d/tables-after.tsv"   # TABLES-AFTER
+  # THE WRITE GUARD (iii), after the step: the load and the samplers are over. Only the server's counters of writes are read (no table is read between
+  # steps); nothing but `views` may have been written since the scenario began, or the step is not judged.
+  "$bindir/check-tables" step "${tables_args[@]}" --out="$d/writes-after.tsv"   # TABLES-STEP
   tables_rc=$?
-  if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the N tables guard stopped $scenario after rung $i (exit $tables_rc); the step is not judged and has no record" >&2; exit "$tables_rc"; fi
+  if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the write guard stopped $scenario after rung $i (exit $tables_rc); the step is not judged and has no record" >&2; exit "$tables_rc"; fi
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
     --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
@@ -323,5 +326,10 @@ for rps in "${rungs[@]}"; do
   [ "$rc" = 6 ] && { echo "the scenario $scenario stops after rung $i"; break; }
 done
 
+# THE WRITE GUARD (iii), the end of the scenario (the last step, or the one it stopped at): the count and checksum of the N tables again, with the counters.
+# Outside every measured window: the samplers and the load are over. A difference stops at exit 16 before the scenario's record is collected.
+"$bindir/check-tables" after "${tables_args[@]}" --out="$sdir/tables-after.tsv"   # TABLES-AFTER
+tables_rc=$?
+if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the N tables guard stopped $scenario at its end (exit $tables_rc); the scenario has no record" >&2; exit "$tables_rc"; fi
 php_tool poc/lab/load/ladder.php collect --dir="$(in_container "$sdir")" >"$sdir/ladder.json" && echo "ladder record: $sdir/ladder.json"
 exit 0

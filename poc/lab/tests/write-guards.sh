@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tests of the lab's write guards (decisions.md D187, D189): the lab may write the view-count table `views` and nothing else, and (i) the record of the
-# statements is checked before a measurement, (iii) the N tables are counted and checksummed before and after, and a count of rows that has not been seen
-# is refused. They never touch the lab: the `docker` they put on PATH is a stand-in that answers the lab's reads from files the test writes, hands the
+# statements is checked before a measurement, (iii) the N tables are counted and checksummed before and after a scenario (a ladder: at its start and its end,
+# and between its steps only the server's counters of writes are compared), and a count of rows that has not been seen is refused. They never touch the lab: the `docker` they put on PATH is a stand-in that answers the lab's reads from files the test writes, hands the
 # throw-away PHP containers (no network, no database) to the real docker, and records every other call. "Nothing was measured" is shown by the load
 # tool (`k6`) never being called, and "no query was sent" by no COUNT or CHECKSUM reaching the stand-in. The records and tables are made up here.
 #
@@ -14,10 +14,14 @@
 #    it was): the baseline is written; a restart compares with it; a changed count, a changed checksum (the count the same) and an unreadable
 #    table are found (16, 16, 18); `views` cannot be named; the refusal for counts not seen (17): 50,000 and 200,000 are refused with no prediction, with an
 #    uncommitted one, with a committed one that holds no scenario of that scale, and with a committed one that does the scale is allowed; counts seen already are
-#    allowed; every refusal sends no query
+#    allowed; every refusal sends no query. A counter row of zeros that appears (a table the app opened for the first time) is no write and does not stop
+#    it, and taken out of a copy of the tool the check does stop on it; a new row with a write in it stops it. `step` reads only the counters: it sends
+#    no COUNT and no CHECKSUM, finds a write to a table other than views, and does not see a checksum change (the end of the scenario does)
 # C  the wiring in bin/measure-calibration and bin/measure-ladder, on the real scripts in a copy of the lab's bin directory:
 #    each of the three guards stops a measurement before the load tool; each, taken out of a copy, no longer does; a lab whose N tables change under the
-#    (stand-in) load is stopped before the run is summarized; a restart of a ladder scenario whose tables moved is stopped; each marker is on one line,
+#    (stand-in) load is stopped before the run is summarized; a restart of a ladder scenario whose tables moved is stopped; a whole ladder (the tools that
+#    summarize and record a step are made no-ops in a copy, so it runs to its end): COUNT and CHECKSUM are sent only at its start and its end, the
+#    counters after every step, a write to another table stops it at that step, a changed checksum at the end, and each guard taken out of a copy no longer does; each marker is on one line,
 #    in the right order; the files the guards write are outside .gitignore
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
@@ -76,7 +80,10 @@ fi
 #   k6_flip        ... and the load "writes a table": the checksum changes when k6 has run
 #   k6_flip_io     ... and the load "updates a row of entities to the values it had": only the server's write counter of the table moves
 #   k6_flip_views  ... and the load updates views (allowed)
+#   k6_open        ... and the app opens a table (pages) for the first time: its counter row appears, all zeros (no write)
+#   k6_open_write  ... and the app opens it and writes to it: the new row has an insert in it
 #   io_entities / io_views / io_other   the server's counters of updates (entities, views) and of a write in another schema; io_empty: no counters
+#   io_pages0 / io_pages1   a counter row for the table pages: all zeros / one insert
 cat >"$work/fakebin/docker" <<FAKE
 #!/usr/bin/env bash
 w="$work"; s="\$w/s"
@@ -100,6 +107,8 @@ if [ "\$1" = exec ]; then
                   d="\$(printf '%s' "\$*" | sed -n "s/.*object_schema = '\([^']*\)'.*/\1/p")"
                   printf '%s\tentities\t0\t%s\t0\n%s\timages\t0\t0\t0\n%s\treferences\t0\t0\t0\n%s\tviews\t1\t%s\t0\n' "\$d" "\$(val io_entities 0)" "\$d" "\$d" "\$d" "\$(val io_views 0)"
                   [ -f "\$s/io_other" ] && printf 'other_db\tt\t%s\t0\t0\n' "\$(cat "\$s/io_other")"
+                  [ -f "\$s/io_pages0" ] && printf '%s\tpages\t0\t0\t0\n' "\$d"
+                  [ -f "\$s/io_pages1" ] && printf '%s\tpages\t1\t0\t0\n' "\$d"
                   exit 0 ;;
     esac
   fi
@@ -125,6 +134,8 @@ if [ "\$1" = exec ]; then
       [ -f "\$s/k6_flip" ] && printf '222' >"\$s/checksum"
       [ -f "\$s/k6_flip_io" ] && printf '1' >"\$s/io_entities"     # a write that leaves every row as it was: the count and the checksum do not move
       [ -f "\$s/k6_flip_views" ] && printf '5' >"\$s/io_views"       # the one write that is allowed
+      [ -f "\$s/k6_open" ] && : >"\$s/io_pages0"                      # a table opened for the first time: a row of zeros
+      [ -f "\$s/k6_open_write" ] && : >"\$s/io_pages1"                # ... and written to
       exit 0
     fi
     exit 99
@@ -215,6 +226,54 @@ rm -f "$work/s/io_empty"; : >"$work/s/mysql_fail"; rm -rf "$work/bw3"
 ct before --scale=10000 --baseline="$work/bw3/tables-before.tsv"; expect_code "B25 the counters table cannot be read: 18" 18 $?
 rm -f "$work/s/mysql_fail"
 
+echo "# a counter row of zeros is no write (the server lists only the tables it has opened)"
+nozero="$work/lab/bin/check-tables-without-zero-rows"
+sed '/\$4 == 0 && \$5 == 0 && \$6 == 0/d' "$work/lab/bin/check-tables" >"$nozero"; chmod +x "$nozero"
+[ "$(diff "$work/lab/bin/check-tables" "$nozero" | grep -c '^<')" = 1 ] && pass "B26 the copy without the zero-row rule differs from the tool by that one line" || fail "B26 the copy differs by another number of lines"
+set_lab; rm -rf "$work/bz"; bz="$work/bz/tables-before.tsv"
+ct before --scale=10000 --baseline="$bz"; expect_code "B26b baseline" 0 $?
+: >"$work/s/io_pages0"
+ct after --scale=10000 --baseline="$bz" --out="$work/bz/after.tsv"; expect_code "B27 after: a new row of all zeros (a table opened for the first time): allowed" 0 $?
+env_run "$nozero" after --scale=10000 --baseline="$bz" --out="$work/bz/after2.tsv" >"$work/ct.out" 2>"$work/ct.err"; expect_code "B27b WITHOUT the zero-row rule the same reading stops (16): the rule is what lets it pass" 16 $?
+rm -f "$work/s/io_pages0"; rm -rf "$work/bz2"; bz2="$work/bz2/tables-before.tsv"
+: >"$work/s/io_pages0"; ct before --scale=10000 --baseline="$bz2"; expect_code "B27c baseline taken with the zero row there" 0 $?
+rm -f "$work/s/io_pages0"
+ct after --scale=10000 --baseline="$bz2" --out="$work/bz2/after.tsv"; expect_code "B27d after: a row of zeros that was in the baseline is gone: allowed too (both readings are cleaned)" 0 $?
+: >"$work/s/io_pages1"
+ct after --scale=10000 --baseline="$bz" --out="$work/bz/after3.tsv"; expect_code "B28 after: a new row with an insert in it: 16" 16 $?
+has "$work/ct.err" 'pages' && pass "B28b it names the table" || fail "B28b ($(cat "$work/ct.err"))"
+ct step --scale=10000 --baseline="$bz" --out="$work/bz/step3.tsv"; expect_code "B28c step: a new row with an insert in it: 16" 16 $?
+rm -f "$work/s/io_pages1"
+
+echo "# step: the counters only (no table is read between the steps of a ladder)"
+set_lab; rm -rf "$work/bs"; bs="$work/bs/tables-before.tsv"
+ct before --scale=10000 --baseline="$bs"; expect_code "B30 baseline" 0 $?
+: >"$work/docker.calls"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B31 step, nothing written: 0" 0 $?
+[ "$(queries)" = 0 ] && pass "B31b step sent no COUNT and no CHECKSUM" || fail "B31b ($(grep 'CHECKSUM\|COUNT(' "$work/docker.calls" | head -2))"
+[ "$(grep -c performance_schema "$work/docker.calls" | tr -d ' ')" = 1 ] && [ -s "$work/bs/step.tsv" ] && ! grep -qv '^write' "$work/bs/step.tsv" && pass "B31c it read the counters once and kept them (write lines only)" || fail "B31c"
+has "$work/ct.out" 'WRITES SAME' && pass "B31d it says the writes are the same" || fail "B31d ($(cat "$work/ct.out"))"
+printf '5' >"$work/s/io_views"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B32 step, views written: allowed" 0 $?
+rm -f "$work/s/io_views"; printf '1' >"$work/s/io_entities"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B33 step, an UPDATE of entities: 16" 16 $?
+has "$work/ct.err" 'entities' && has "$work/ct.err" 'other than views' && pass "B33b it names the table and says a table other than views was written" || fail "B33b ($(cat "$work/ct.err"))"
+rm -f "$work/s/io_entities"; printf '3' >"$work/s/io_other"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B34 step, a write in another schema: 16" 16 $?
+rm -f "$work/s/io_other"; printf '222' >"$work/s/checksum"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B35 step does not read tables: a changed checksum is not seen by it (the end of the scenario sees it)" 0 $?
+ct after --scale=10000 --baseline="$bs" --out="$work/bs/after.tsv"; expect_code "B35b after sees the same changed checksum: 16" 16 $?
+rm -f "$work/s/checksum"
+ct step --scale=10000 --baseline="$work/bs/none.tsv" --out="$work/bs/step.tsv"; expect_code "B36 step with no baseline: 18" 18 $?
+: >"$work/s/mysql_fail"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B36b step with the counters unreadable: 18" 18 $?
+rm -f "$work/s/mysql_fail"; : >"$work/s/io_empty"
+ct step --scale=10000 --baseline="$bs" --out="$work/bs/step.tsv"; expect_code "B36c step with no counters for the measured schema: 18" 18 $?
+rm -f "$work/s/io_empty"
+ct step --scale=10000 --baseline="$bs"; expect_code "B36d step without --out: usage" 2 $?
+set_lab; ct step --scale=50000 --baseline="$work/bs/x.tsv" --out="$work/bs/y.tsv"; expect_code "B36e step at a scale not seen, no prediction: refused (17), no query" 17 $?
+[ "$(queries)" = 0 ] && [ "$(grep -c performance_schema "$work/docker.calls" | tr -d ' ')" = 0 ] && pass "B36f the refusal sent nothing, not even the counters query" || fail "B36f"
+
 echo "# the refusal for counts not seen"
 for sc in 100 3000 30000 70000 100000; do
   set_lab; ct allowed --scale=$sc; expect_code "B10 scale $sc was seen already: allowed with no prediction" 0 $?
@@ -248,11 +307,15 @@ for m in WRITE-CHECK TABLES-BEFORE TABLES-AFTER; do
     [ "$n" = 1 ] && pass "C1 $f has one line marked $m" || fail "C1 $f has $n lines marked $m"
   done
 done
+n="$(grep -c "# TABLES-STEP\$" "$lab/bin/measure-ladder")"; [ "$n" = 1 ] && pass "C1a measure-ladder has one line marked TABLES-STEP" || fail "C1a measure-ladder has $n lines marked TABLES-STEP"
+[ "$(grep -c "# TABLES-STEP\$" "$lab/bin/measure-calibration")" = 0 ] && pass "C1a2 measure-calibration has no TABLES-STEP (one run, one before and one after)" || fail "C1a2"
 line() { grep -n "$2" "$lab/bin/$1" | head -1 | cut -d: -f1; }
 lw="$(line measure-ladder '# WRITE-CHECK$')"; lp="$(line measure-ladder 'bindir/preflight')"
-lb="$(line measure-ladder '# TABLES-BEFORE$')"; lk="$(line measure-ladder 'peak-lab-k6 k6 run')"; la="$(line measure-ladder '# TABLES-AFTER$')"; ls_="$(line measure-ladder '^  php_tool poc/lab/load/summarize-run.php')"
+lb="$(line measure-ladder '# TABLES-BEFORE$')"; lk="$(line measure-ladder 'peak-lab-k6 k6 run')"; lt="$(line measure-ladder '# TABLES-STEP$')"; la="$(line measure-ladder '# TABLES-AFTER$')"; ls_="$(line measure-ladder '^  php_tool poc/lab/load/summarize-run.php')"; lc="$(line measure-ladder 'ladder.php collect')"
 [ "$lw" -lt "$lp" ] && pass "C1b ladder: the write check is before the closed-network check" || fail "C1b ladder ($lw, $lp)"
-[ "$lb" -lt "$lk" ] && [ "$lk" -lt "$la" ] && [ "$la" -lt "$ls_" ] && pass "C1c ladder: tables before < the load tool < tables after < the summary" || fail "C1c ladder ($lb $lk $la $ls_)"
+[ "$lb" -lt "$lk" ] && [ "$lk" -lt "$lt" ] && [ "$lt" -lt "$ls_" ] && pass "C1c ladder: tables before < the load tool < the step's counters < the summary of the step" || fail "C1c ladder ($lb $lk $lt $ls_)"
+ld="$(awk 'NR>1 && /^done$/ {l=NR} END {print l}' "$lab/bin/measure-ladder")"
+[ "$ld" -lt "$la" ] && [ "$la" -lt "$lc" ] && pass "C1c2 ladder: tables after (the end of the scenario) is after the loop and before the scenario's record is collected" || fail "C1c2 ladder ($ld $la $lc)"
 cw_="$(line measure-calibration '# WRITE-CHECK$')"; cp_="$(line measure-calibration 'bindir/preflight')"
 cb="$(line measure-calibration '# TABLES-BEFORE$')"; ck="$(line measure-calibration 'peak-lab-k6 k6 run')"; ca="$(line measure-calibration '# TABLES-AFTER$')"; cs="$(line measure-calibration '^  php_tool poc/lab/load/summarize-run.php')"
 [ "$cw_" -lt "$cp_" ] && pass "C1d calibration: the write check is before the closed-network check" || fail "C1d calibration ($cw_, $cp_)"
@@ -359,25 +422,61 @@ printf '222' >"$work/s/checksum"; : >"$work/k6.calls"
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 expect_code "C12 a restart of a scenario after a table changed since it began: 16" 16 $rc
 [ "$(k6_calls)" = 0 ] && has "$work/ml.err" 'THE N TABLES CHANGED' && pass "C12b it stops before the load tool and names the change" || fail "C12b"
-# after a step
+# after a step: only the server's counters are read, and the stand-in summary makes the real summarize-run fail (13) once the step has passed
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip=1
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
-expect_code "C13 the N tables change under the load of a step: 16" 16 $rc
-has "$work/ml.err" 'after rung 1' && pass "C13b it says after which step" || fail "C13b ($(cat "$work/ml.err"))"
-[ -z "$(ls "$out"/ladder/t-4-10000/rung-01-*/record.json 2>/dev/null)" ] && [ -z "$(ls "$out"/ladder/t-4-10000/rung-01-*/run.json 2>/dev/null)" ] && pass "C13c the step was not summarized and has no record" || fail "C13c"
-[ -s "$(ls "$out"/ladder/t-4-10000/rung-01-*/tables-after.tsv | head -1)" ] && pass "C13d tables-after.tsv is kept in the step's directory" || fail "C13d"
-set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip=1
-ml "$(without measure-ladder TABLES-AFTER)" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
-[ "$rc" -ne 16 ] && has "$work/ml.err" 'summarize-run failed' && pass "C13e WITHOUT the tables-after line the same step goes on to the summary (exit $rc)" || fail "C13e (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+expect_code "C13 the checksum of an N table changes under the load of a step: the step does not read tables, so it goes on to the summary (13)" 13 $rc
+has "$work/ml.err" 'summarize-run failed' && pass "C13b it was the summary that stopped it, not the table guard" || fail "C13b ($(cat "$work/ml.err"))"
+[ "$(queries)" = 3 ] && pass "C13c COUNT and CHECKSUM were sent only at the start (3 tables), none after the step" || fail "C13c ($(queries) reads)"
+[ -s "$(ls "$out"/ladder/t-4-10000/rung-01-*/writes-after.tsv | head -1)" ] && [ ! -e "$(ls -d "$out"/ladder/t-4-10000/rung-01-* | head -1)/tables-after.tsv" ] && pass "C13d writes-after.tsv (the counters) is kept in the step's directory, and no tables-after.tsv is made per step" || fail "C13d"
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_io=1
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
-expect_code "C13g the load updates a row of entities to the values it had: 16 from the server's counter" 16 $rc
+expect_code "C13g the load updates a row of entities to the values it had: 16 from the server's counter, after the step" 16 $rc
+has "$work/ml.err" 'after rung 1' && [ -z "$(ls "$out"/ladder/t-4-10000/rung-01-*/record.json 2>/dev/null)" ] && [ -z "$(ls "$out"/ladder/t-4-10000/rung-01-*/run.json 2>/dev/null)" ] && pass "C13g2 it says after which step, and the step was not summarized and has no record" || fail "C13g2 ($(cat "$work/ml.err"))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_io=1
+ml "$(without measure-ladder TABLES-STEP)" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+[ "$rc" -ne 16 ] && has "$work/ml.err" 'summarize-run failed' && pass "C13e WITHOUT the TABLES-STEP line the same step goes on to the summary (exit $rc): the guard is what stopped it" || fail "C13e (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_views=1
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 has "$work/ml.err" 'summarize-run failed' && pass "C13h a write to views alone does not stop the step" || fail "C13h (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_open=1
+ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+has "$work/ml.err" 'summarize-run failed' && pass "C13i a table the app opens for the first time during the step (a new row of zeros) does not stop it" || fail "C13i (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_open_write=1
+ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+expect_code "C13j a table opened and written to during the step (a new row with an insert): 16" 16 $rc
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
-has "$work/ml.err" 'summarize-run failed' && has "$work/ml.out" 'TABLES SAME after the load' && pass "C13f unchanged tables: the step goes on past the check" || fail "C13f (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+has "$work/ml.err" 'summarize-run failed' && has "$work/ml.out" 'WRITES SAME after a step' && pass "C13f unchanged counters: the step goes on past the check" || fail "C13f (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+
+# a whole ladder, to its end: a copy in which the three tools that summarize and record a step are no-ops (and the 5 s wait is gone), so that the loop
+# runs through every step. The real scripts of the guards are the subject; the stand-in k6 writes an empty summary.
+through() { sed -e 's|^  php_tool poc/lab/load/summarize-run.php|  true|' -e 's|^  php_tool poc/lab/load/ladder.php record|  true|' -e 's|^php_tool poc/lab/load/ladder.php collect|true|' -e 's|^  sleep 5 .*|  :|' "$1" >"$work/lab/bin/measure-ladder-through"; chmod +x "$work/lab/bin/measure-ladder-through"; echo "$work/lab/bin/measure-ladder-through"; }
+n_ps() { grep -c performance_schema "$work/docker.calls" | tr -d ' '; }
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+steps="$(k6_calls)"
+[ "$rc" = 0 ] && [ "$steps" -ge 2 ] && pass "C16 a whole ladder of $steps steps runs to its end with the tables unchanged (exit 0)" || fail "C16 (rc $rc, $steps steps, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+[ "$(queries)" = 6 ] && pass "C16b COUNT and CHECKSUM were sent 6 times in all: 3 tables at the start and 3 at the end, none between the $steps steps" || fail "C16b ($(queries) reads)"
+[ "$(n_ps)" = $((steps + 2)) ] && pass "C16c the counters were read at the start, after each of the $steps steps and at the end ($(n_ps) times)" || fail "C16c ($(n_ps) reads, $steps steps)"
+[ -s "$out/ladder/t-4-10000/tables-after.tsv" ] && pass "C16d tables-after.tsv is kept in the scenario's directory" || fail "C16d"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+expect_code "C17 the checksum of an N table changed during the ladder: found at its end (16)" 16 $rc
+[ "$(k6_calls)" = "$steps" ] && has "$work/ml.err" 'at its end' && pass "C17b every step was measured (the steps do not read tables), the end stopped it and says so" || fail "C17b ($(k6_calls) steps, $(cat "$work/ml.err"))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip=1
+# (the line is replaced by `true`, not deleted: the status the next line reads would otherwise be that of the loop's last command)
+sed 's|^"\$bindir/check-tables" after .*# TABLES-AFTER$|true|' "$lab/bin/measure-ladder" >"$work/lab/bin/measure-ladder-no-end"; chmod +x "$work/lab/bin/measure-ladder-no-end"
+ml "$(through "$work/lab/bin/measure-ladder-no-end")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+[ "$rc" = 0 ] && pass "C17c WITHOUT the TABLES-AFTER line the same ladder ends with exit 0: the guard at the end is what stopped it" || fail "C17c (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_flip_io=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+expect_code "C18 a write to entities during the ladder: stopped at the first step (16)" 16 $rc
+[ "$(k6_calls)" = 1 ] && [ "$(queries)" = 3 ] && has "$work/ml.err" 'after rung 1' && pass "C18b it stopped after step 1: one load, and no table was read after the start" || fail "C18b ($(k6_calls) loads, $(queries) reads, $(cat "$work/ml.err"))"
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_open=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+[ "$rc" = 0 ] && pass "C19 a ladder in which the app opens a table for the first time at step 1 (a new row of zeros) runs to its end" || fail "C19 (rc $rc, $(cat "$work/ml.err" | head -3 | tr '\n' ' '))"
+
 # a dry run needs no record and touches nothing
 set_lab
 ml "$mlr" --scenario=t-4 --dry-run; rc=$?
@@ -385,7 +484,7 @@ ml "$mlr" --scenario=t-4 --dry-run; rc=$?
 
 # the names the guards write can all be committed (none is matched by .gitignore)
 ign_dir="docs/research/lab-data/ladder/t-4-10000/rung-01-1"
-names="tables-before.tsv tables-before.tsv.restart tables-before.tsv.err tables-before.tsv.restart.err tables-before.tsv.restart.diff tables-before.tsv.restart.expected tables-before.tsv.restart.actual tables-after.tsv tables-after.tsv.err tables-after.tsv.diff tables-after.tsv.expected tables-after.tsv.actual"
+names="writes-after.tsv writes-after.tsv.err writes-after.tsv.diff writes-after.tsv.expected writes-after.tsv.actual tables-before.tsv tables-before.tsv.restart tables-before.tsv.err tables-before.tsv.restart.err tables-before.tsv.restart.diff tables-before.tsv.restart.expected tables-before.tsv.restart.actual tables-after.tsv tables-after.tsv.err tables-after.tsv.diff tables-after.tsv.expected tables-after.tsv.actual"
 leaked="$(for nm in $names; do git -C "$repo_real" check-ignore -q --no-index "$ign_dir/$nm" && printf '%s ' "$nm"; done)"
 [ -z "$leaked" ] && pass "C15 none of the names the table guard writes is ignored by git" || fail "C15 names ignored by git: $leaked"
 

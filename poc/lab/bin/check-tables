@@ -9,6 +9,7 @@
 #
 #   poc/lab/bin/check-tables before --scale=N --baseline=<file> [--prediction=<poc/lab/predictions/....json>] [--tables=entities,images,references]
 #   poc/lab/bin/check-tables after  --scale=N --baseline=<file> --out=<file> [--prediction=...] [--tables=...]
+#   poc/lab/bin/check-tables step   --scale=N --baseline=<file> --out=<file> [--prediction=...]
 #   poc/lab/bin/check-tables allowed --scale=N [--prediction=...]
 #
 #   allowed  touches nothing; says whether a database of that scale may be queried now (below).
@@ -16,13 +17,18 @@
 #            starts from). If it exists (a restart of a scenario that was begun before) the reading is compared with it, so a table that changed
 #            between the two runs of the tool is found at once.
 #   after    (allowed first) reads them again into <out> and compares with <baseline> (which must exist). Any difference is a refusal.
+#   step     (allowed first) reads only the server's write counters into <out> and compares them with those in <baseline> (which must exist). No table is
+#            read: the count and CHECKSUM TABLE read a whole table and would change the buffer pool between two steps of a ladder (decisions.md D189).
 #
 # The tables are the N tables of the lab (bin/build-db --n-tables=entities,images,references: the eight routes' tables that grow with the count
 # of rows). `views` is left out on purpose: the lab may write it and its checksum changes. Every table is read with SELECT COUNT(*) and
 # CHECKSUM TABLE, which read the whole table: this is done outside any measured window (before the samplers start, after they have stopped).
-# The write counters are read in the same two places, for every table of every schema except the server's own (mysql, sys, performance_schema,
+# The write counters are read in the same two places (and, in `step`, alone), for every table of every schema except the server's own (mysql, sys, performance_schema,
 # information_schema), and compared as they are: the counters of `views` in the measured schema are the only ones allowed to move. (The counters start
 # at the server's start, so only their change over the scenario means anything. A restart of the server in between shows as a change and stops it.)
+# A counter row with no insert, no update and no delete is left out of both readings before they are compared: the server lists only the tables it
+# has opened, so a table the app opens for the first time during a scenario shows as a new row of zeros, and that is not a write. A new row with any
+# count above zero is a write, and stops it.
 # A server that does not give the counters, or gives none for the measured schema, is not read at all: exit 18.
 #
 # THE REFUSAL FOR UNSEEN COUNTS (ruling 2026-11-11 14:15 and 2026-11-15 01:47; decisions.md D189): the counts of rows 50,000 and 200,000 may be
@@ -33,8 +39,9 @@
 # committed is judged by git alone, through the gate that already stands in front of the ladder; nothing here reads a clock or a record.
 # Otherwise: exit 17, and no container is touched. When in doubt it refuses.
 #
-# Callers: `bin/measure-calibration` (lines marked TABLES-BEFORE and TABLES-AFTER, once per run) and `bin/measure-ladder` (TABLES-BEFORE once
-# per scenario, TABLES-AFTER after every step). Both stop with the tool's exit code and nothing is judged.
+# Callers: `bin/measure-calibration` (lines marked TABLES-BEFORE and TABLES-AFTER, once per run) and `bin/measure-ladder` (TABLES-BEFORE at the start
+# of the scenario, TABLES-STEP after every step: the counters only, TABLES-AFTER at the end of the scenario). All stop with the tool's exit code and
+# nothing is judged after it.
 # exit codes: 0 same (or written, or allowed) / 2 usage / 16 a table changed / 17 refused: the scale has not been seen and no committed
 # prediction covers it / 18 a count or a checksum could not be read (it fails closed)
 set -uo pipefail
@@ -43,7 +50,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 mode="${1:-}"; shift || true
-[[ "$mode" =~ ^(before|after|allowed)$ ]] || usage
+[[ "$mode" =~ ^(before|after|step|allowed)$ ]] || usage
 scale="" ; baseline="" ; out="" ; prediction="" ; tables="entities,images,references"
 for arg in "$@"; do
   case "$arg" in
@@ -59,7 +66,7 @@ done
 [[ "$tables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || usage
 case "$tables" in *views*) echo "check-tables: views is the one table the lab may write; it is not checked here" >&2; exit 2 ;; esac
 [ "$mode" = allowed ] || [ -n "$baseline" ] || usage
-[ "$mode" != after ] || [ -n "$out" ] || usage
+[ "$mode" != after ] && [ "$mode" != step ] || [ -n "$out" ] || usage
 
 # ---- the refusal for counts that have not been seen -------------------------------------------------------------------------------
 refuse() { echo "check-tables: REFUSED for scale $scale: $1; no query was sent to that database" >&2; exit 17; }
@@ -77,8 +84,8 @@ fi
 
 # ---- the reading --------------------------------------------------------------------------------------------------------------------
 db="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
-snapshot() {  # snapshot <file>: one line per N table (name, count, checksum), then one `write` line per table of the server (schema, table, inserts, updates, deletes)
-  local t rows io
+snapshot_tables() {  # snapshot_tables <file>: one line per N table (name, count, checksum). These read the whole table.
+  local t rows
   : >"$1"
   for t in ${tables//,/ }; do
     rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
@@ -86,16 +93,26 @@ snapshot() {  # snapshot <file>: one line per N table (name, count, checksum), t
     printf '%s\n' "$rows" | awk -v t="$t" 'NR==1 && $1 ~ /^[0-9]+$/ {n=$1} NR==2 && $2 ~ /^[0-9]+$/ {c=$2} END {if (NR==2 && n!="" && c!="") {print t "\t" n "\t" c; exit 0} exit 1}' >>"$1" || return 1
   done
   [ "$(wc -l <"$1" | tr -d ' ')" = "$(printf '%s\n' ${tables//,/ } | wc -l | tr -d ' ')" ] || return 1
+}
+snapshot_writes() {  # snapshot_writes <file>: appends one `write` line per table of the server that has a row (schema, table, inserts, updates, deletes). Light: no table is read.
+  local io
   io="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
     -e "SELECT object_schema, object_name, count_insert, count_update, count_delete FROM performance_schema.table_io_waits_summary_by_table WHERE object_schema = '${db}' OR object_schema NOT IN ('mysql','sys','performance_schema','information_schema') ORDER BY object_schema, object_name" 2>>"$1.err")" || return 1
   printf '%s\n' "$io" | awk -F'\t' -v db="$db" 'NF==5 && $3 ~ /^[0-9]+$/ && $4 ~ /^[0-9]+$/ && $5 ~ /^[0-9]+$/ {print "write\t" $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5; if ($1==db) seen=1} END {exit seen ? 0 : 1}' >>"$1"
 }
-allowed_changes() {  # the readings without the one thing the lab may change: the counters of `views` in the measured schema
-  awk -F'\t' -v db="$db" '!($1=="write" && $2==db && $3=="views")' "$1"
+snapshot() { snapshot_tables "$1" && snapshot_writes "$1"; }   # the tables, then the counters
+allowed_changes() {  # allowed_changes <file> [writes]: the readings without what the lab may change (the counters of `views` in the measured schema) and without
+  # the rows that say nothing: a counter row with no insert, no update and no delete. The server lists only the tables it has opened, so a table the app
+  # opened for the first time during the scenario (pages, say) appears as a row of zeros that was not there before; it is no write. With `writes`, only the counters.
+  awk -F'\t' -v db="$db" -v only="${2:-}" '
+    only == "writes" && $1 != "write" { next }
+    $1 == "write" && $2 == db && $3 == "views" { next }
+    $1 == "write" && $4 == 0 && $5 == 0 && $6 == 0 { next }
+    { print }' "$1"
 }
 unreadable() { echo "check-tables: the count, the checksum or the write counters of the tables of scale $scale could not be read: $(cat "$1.err" 2>/dev/null | head -2). Stopped; nothing was measured." >&2; exit 18; }
-compare() {  # compare <expected file> <actual file> <what>
-  allowed_changes "$1" >"$2.expected"; allowed_changes "$2" >"$2.actual"
+compare() {  # compare <expected file> <actual file> <what> [writes]
+  allowed_changes "$1" "${4:-}" >"$2.expected"; allowed_changes "$2" "${4:-}" >"$2.actual"
   if ! diff -u "$2.expected" "$2.actual" >"$2.diff" 2>&1; then
     echo "check-tables: THE N TABLES CHANGED ($3): a table is not what it was, or a table other than views was written to (scale $scale; N tables: table, rows, checksum; write: schema, table, inserts, updates, deletes)." >&2
     sed -n '3,$p' "$2.diff" | grep '^[-+][a-z]' >&2
@@ -117,8 +134,14 @@ if [ "$mode" = before ]; then
   fi
   exit 0
 fi
-[ -f "$baseline" ] || { echo "check-tables: after: there is no baseline $baseline (before was not run)" >&2; exit 18; }
+[ -f "$baseline" ] || { echo "check-tables: $mode: there is no baseline $baseline (before was not run)" >&2; exit 18; }
 mkdir -p "$(dirname "$out")"
+if [ "$mode" = step ]; then  # only the server's counters: no table is read, so the buffer pool between two steps is left as it is
+  : >"$out"; snapshot_writes "$out" || unreadable "$out"
+  compare "$baseline" "$out" "after a step" writes
+  echo "WRITES SAME after a step scale $scale: $(grep -c '^write' "$out") write counters"
+  exit 0
+fi
 snapshot "$out" || unreadable "$out"
 compare "$baseline" "$out" "after the load"
 echo "TABLES SAME after the load scale $scale: $(summary "$out")"
