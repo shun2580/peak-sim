@@ -1,0 +1,4 @@
+	pm = static
+	pm.max_children = 16
+	request_terminate_timeout = 0s
+	request_terminate_timeout_track_finished = no
