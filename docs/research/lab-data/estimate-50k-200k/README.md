@@ -123,3 +123,9 @@ Point estimate, and the upper side for the routes that have a statement marked i
 - The EXPLAIN is from freshly built, analyzed databases of the same shape as the lab's, not from the lab's own; the sample of an `ANALYZE TABLE` is of random pages, so the lab's own statistics can differ
   slightly. The marks above (4 / 9 at 50,000, 3 / 2 at 200,000) are what one run of each size gave; the three statistics states of the same run already disagree on a few statements.
 - Nothing here says how long a request takes, what a limit does, or how many requests a stack handles.
+
+## Per-count copies for the prediction tool
+
+`50k/estimate.json` and `200k/estimate.json` are byte-for-byte copies of `estimate-50000.json` and `estimate-200000.json` (same SHA-256 as in the table above). The ladder prediction tool reads one
+`estimate.json` per directory and takes the commit of an estimate from the last commit that touched its directory, so each count needs a directory of its own. Nothing in the estimates was changed: the
+values, the formulas and the marks are those of the originals, which are kept.
