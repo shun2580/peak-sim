@@ -1,0 +1,8 @@
+GET /books/{bookSlug}/chapter/{chapterSlug}/references	/books/1/chapter/2/references	
+GET /books/{bookSlug}/export/zip	/books/1/export/zip	
+GET /books/{bookSlug}/page/{pageSlug}/references	/books/1/page/3/references	
+GET /books/{slug}	/books/1	
+GET /books/{slug}/references	/books/1/references	
+GET /images/edit/{id}	/images/edit/1	
+GET /oidc/callback	/oidc/callback	none
+GET /shelves/{slug}	/shelves/1	

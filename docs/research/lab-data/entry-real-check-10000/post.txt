@@ -1,0 +1,5 @@
+HTTP/1.1 405 Method Not Allowed
+Server: nginx/1.28.3
+Date: Sat, 14 Nov 2026 17:10:39 GMT
+Content-Type: text/plain; charset=utf-8
+Transfer-Encoding: chunked

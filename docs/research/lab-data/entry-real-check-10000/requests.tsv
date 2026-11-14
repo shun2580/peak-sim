@@ -1,0 +1,8 @@
+GET /books/{bookSlug}/chapter/{chapterSlug}/references	/books/1/chapter/2/references	HTTP/1.1 200 OK	
+GET /books/{bookSlug}/export/zip	/books/1/export/zip	HTTP/1.1 200 OK	
+GET /books/{bookSlug}/page/{pageSlug}/references	/books/1/page/3/references	HTTP/1.1 200 OK	
+GET /books/{slug}	/books/1	HTTP/1.1 200 OK	
+GET /books/{slug}/references	/books/1/references	HTTP/1.1 200 OK	
+GET /images/edit/{id}	/images/edit/1	HTTP/1.1 200 OK	
+GET /oidc/callback	/oidc/callback	HTTP/1.1 302 Found	
+GET /shelves/{slug}	/shelves/1	HTTP/1.1 200 OK	
