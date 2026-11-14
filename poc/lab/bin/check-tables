@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# Guard (iii) of the lab's write rule: the N tables of a lab database must be the same after a scenario as before it, in their row count AND
+# in CHECKSUM TABLE (a count alone does not see a row that was rewritten). It also holds the refusal for the counts of rows that have not been
+# seen yet: no query of any kind is sent to such a database before the prediction for it is committed.
+#
+#   poc/lab/bin/check-tables before --scale=N --baseline=<file> [--prediction=<poc/lab/predictions/....json>] [--tables=entities,images,references]
+#   poc/lab/bin/check-tables after  --scale=N --baseline=<file> --out=<file> [--prediction=...] [--tables=...]
+#   poc/lab/bin/check-tables allowed --scale=N [--prediction=...]
+#
+#   allowed  touches nothing; says whether a database of that scale may be queried now (below).
+#   before   (allowed first) reads the count and the checksum of each table. If <baseline> does not exist it is written (the state the scenario
+#            starts from). If it exists (a restart of a scenario that was begun before) the reading is compared with it, so a table that changed
+#            between the two runs of the tool is found at once.
+#   after    (allowed first) reads them again into <out> and compares with <baseline> (which must exist). Any difference is a refusal.
+#
+# The tables are the N tables of the lab (bin/build-db --n-tables=entities,images,references: the eight routes' tables that grow with the count
+# of rows). `views` is left out on purpose: the lab may write it and its checksum changes. Every table is read with SELECT COUNT(*) and
+# CHECKSUM TABLE, which read the whole table: this is done outside any measured window (before the samplers start, after they have stopped).
+#
+# THE REFUSAL FOR UNSEEN COUNTS (ruling 2026-11-11 14:15 and 2026-11-15 01:47; decisions.md D189): the counts of rows 50,000 and 200,000 may be
+# given nothing but COUNT, the statistics and EXPLAIN until the prediction for them is committed, and CHECKSUM TABLE is not among those. So a
+# scale is allowed without more only if it was seen already: at most 30,000, or 70,000, or 100,000. Any other scale is allowed only when
+# --prediction names a prediction file that (a) passes bin/prediction-gate (a .json inside poc/lab/predictions/, committed in HEAD, no difference
+# from HEAD, nothing else in that directory untracked or changed) and (b) holds a scenario whose tables are of that scale. Whether the prediction is
+# committed is judged by git alone, through the gate that already stands in front of the ladder; nothing here reads a clock or a record.
+# Otherwise: exit 17, and no container is touched. When in doubt it refuses.
+#
+# Callers: `bin/measure-calibration` (lines marked TABLES-BEFORE and TABLES-AFTER, once per run) and `bin/measure-ladder` (TABLES-BEFORE once
+# per scenario, TABLES-AFTER after every step). Both stop with the tool's exit code and nothing is judged.
+# exit codes: 0 same (or written, or allowed) / 2 usage / 16 a table changed / 17 refused: the scale has not been seen and no committed
+# prediction covers it / 18 a count or a checksum could not be read (it fails closed)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+mode="${1:-}"; shift || true
+[[ "$mode" =~ ^(before|after|allowed)$ ]] || usage
+scale="" ; baseline="" ; out="" ; prediction="" ; tables="entities,images,references"
+for arg in "$@"; do
+  case "$arg" in
+    --scale=*) scale="${arg#--scale=}" ;;
+    --baseline=*) baseline="${arg#--baseline=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    --prediction=*) prediction="${arg#--prediction=}" ;;
+    --tables=*) tables="${arg#--tables=}" ;;
+    *) usage ;;
+  esac
+done
+[[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$scale" -ge 1 ] || usage
+[[ "$tables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || usage
+case "$tables" in *views*) echo "check-tables: views is the one table the lab may write; it is not checked here" >&2; exit 2 ;; esac
+[ "$mode" = allowed ] || [ -n "$baseline" ] || usage
+[ "$mode" != after ] || [ -n "$out" ] || usage
+
+# ---- the refusal for counts that have not been seen -------------------------------------------------------------------------------
+refuse() { echo "check-tables: REFUSED for scale $scale: $1; no query was sent to that database" >&2; exit 17; }
+if [ "$scale" -gt 30000 ] && [ "$scale" != 70000 ] && [ "$scale" != 100000 ]; then
+  [ -n "$prediction" ] || refuse "the count has not been seen and no prediction file was given (the prediction must be committed first)"
+  gate="$("$bindir/prediction-gate" "$prediction" 2>&1)" || refuse "the prediction gate is closed: $gate"
+  python3 - "$prediction" "$scale" <<'PY' || refuse "the prediction file holds no scenario of this scale"
+import json, sys
+scenarios = json.load(open(sys.argv[1])).get("scenarios", [])
+scale = int(sys.argv[2])
+sys.exit(0 if any(scale in [int(v) for v in (s.get("tables") or {}).values()] for s in scenarios) else 1)
+PY
+fi
+[ "$mode" = allowed ] && { echo "TABLES ALLOWED scale $scale"; exit 0; }
+
+# ---- the reading --------------------------------------------------------------------------------------------------------------------
+db="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
+snapshot() {  # snapshot <file>: one line per table: name, count, checksum
+  local t rows sum
+  : >"$1"
+  for t in ${tables//,/ }; do
+    rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
+      -e "SELECT COUNT(*) FROM \`${db}\`.\`${t}\`; CHECKSUM TABLE \`${db}\`.\`${t}\`" 2>"$1.err")" || return 1
+    printf '%s\n' "$rows" | awk -v t="$t" 'NR==1 && $1 ~ /^[0-9]+$/ {n=$1} NR==2 && $2 ~ /^[0-9]+$/ {c=$2} END {if (NR==2 && n!="" && c!="") {print t "\t" n "\t" c; exit 0} exit 1}' >>"$1" || return 1
+  done
+  [ "$(wc -l <"$1" | tr -d ' ')" = "$(printf '%s\n' ${tables//,/ } | wc -l | tr -d ' ')" ]
+}
+unreadable() { echo "check-tables: the count and checksum of the tables of scale $scale could not be read: $(cat "$1.err" 2>/dev/null | head -2). Stopped; nothing was measured." >&2; exit 18; }
+compare() {  # compare <expected file> <actual file> <what>
+  if ! diff -u "$1" "$2" >"$2.diff" 2>&1; then
+    echo "check-tables: THE N TABLES CHANGED ($3): a table of scale $scale is not what it was (table, rows, checksum)." >&2
+    sed -n '3,$p' "$2.diff" | grep '^[-+][a-z]' >&2
+    exit 16
+  fi
+}
+
+mkdir -p "$(dirname "$baseline")"
+if [ "$mode" = before ]; then
+  if [ -f "$baseline" ]; then
+    now="$baseline.restart"
+    snapshot "$now" || unreadable "$now"
+    compare "$baseline" "$now" "the scenario was begun before, and the tables are not as it began"
+    echo "TABLES SAME as the baseline of this scenario (a restart) scale $scale: $(tr '\t' ' ' <"$now" | tr '\n' ';')"
+  else
+    snapshot "$baseline" || { rm -f "$baseline"; unreadable "$baseline"; }
+    echo "TABLES BASELINE scale $scale: $(tr '\t' ' ' <"$baseline" | tr '\n' ';')"
+  fi
+  exit 0
+fi
+[ -f "$baseline" ] || { echo "check-tables: after: there is no baseline $baseline (before was not run)" >&2; exit 18; }
+mkdir -p "$(dirname "$out")"
+snapshot "$out" || unreadable "$out"
+compare "$baseline" "$out" "after the load"
+echo "TABLES SAME after the load scale $scale: $(tr '\t' ' ' <"$out" | tr '\n' ';')"
+exit 0

@@ -53,6 +53,9 @@ if [ "\$1" = exec ]; then
   shift
   while [ "\${1:-}" = "-i" ] || [ "\${1:-}" = "-e" ]; do if [ "\$1" = "-e" ]; then shift 2; else shift; fi; done
   c="\$1"; shift
+  if [ "\$c" = peak-lab-db ] && [ "\$1" = mysql ]; then   # the count and checksum of the N tables (bin/check-tables): the tables do not change
+    case "\$*" in *CHECKSUM*) printf '10000\ndb.t\t111\n'; exit 0 ;; esac
+  fi
   case "\$c \$1 \$2" in
     "peak-lab-web nginx -T")
       printf 'http {\n    server {\n        location / {\n            fastcgi_pass lab_app;\n            fastcgi_read_timeout %s;\n        }\n    }\n}\n' "\$(val nginx 120s)"; exit 0 ;;
@@ -75,7 +78,11 @@ FAKE
 chmod +x "$work/fakebin/docker"
 
 # a copy of the lab's bin directory with the real scripts; preflight (the closed-network check) and the CPU sampler are stubs
-for f in measure-calibration check-limits _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-calibration check-limits check-writes check-tables prediction-gate _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+mkdir -p "$work/rec" "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
+python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/ok.json" --variant=ok
+rec="$work/rec/ok.json"   # the made-up record of the statements the write check reads (every write in it is to views)
+
 ln -s "$lab/scenarios" "$work/lab/scenarios"   # the gate itself is the real one
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/bin/preflight"; chmod +x "$work/lab/bin/preflight"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/observe/sample-cpu"; chmod +x "$work/lab/observe/sample-cpu"
@@ -100,7 +107,7 @@ seven=("${five[@]}" --run=cal-6:"$work/plans/book80.json" --run=cal-7:"$work/pla
 reset_lab() { rm -f "$work"/s/*; : >"$work/docker.calls"; : >"$work/k6.calls"; rm -rf "$out/calibration" "$out/limits"; }
 set_lab() { reset_lab; local kv; for kv in "$@"; do printf '%s' "${kv#*=}" >"$work/s/${kv%%=*}"; done; }
 env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
-mc() { env_run "$work/lab/bin/measure-calibration" "$@" >"$work/mc.out" 2>"$work/mc.err"; }
+mc() { env_run "$work/lab/bin/measure-calibration" "$@" --statement-record="$rec" >"$work/mc.out" 2>"$work/mc.err"; }
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 lab_calls() { wc -l <"$work/docker.calls" | tr -d ' '; }
 B=(php=0 pool=0s nginx=600s)
@@ -152,7 +159,7 @@ pre_line="$(grep -n 'bindir/preflight' "$lab/bin/measure-calibration" | head -1 
 # the same script with the gate line and the check of its answer taken out
 sed '/CALIBRATION-GATE$/d' "$lab/bin/measure-calibration" | sed 's/^gate_rc=\$?$/gate_rc=0/' >"$work/lab/bin/measure-calibration-nogate"; chmod +x "$work/lab/bin/measure-calibration-nogate"
 set_lab "${B[@]}" scale=10000
-env_run "$work/lab/bin/measure-calibration-nogate" --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s >"$work/mc.out" 2>"$work/mc.err"; rc=$?
+env_run "$work/lab/bin/measure-calibration-nogate" --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s --statement-record="$rec" >"$work/mc.out" 2>"$work/mc.err"; rc=$?
 [ "$(k6_calls)" -ge 1 ] && pass "5c without the gate line the refused set reaches the load tool: the test in 1 is what stops it" || fail "5c the entry without the gate did not reach k6 ($(head -3 "$work/mc.err" | tr '\n' ' '))"
 
 # 6 ---------------------------------------------------------------------------------------------------------------------------------------

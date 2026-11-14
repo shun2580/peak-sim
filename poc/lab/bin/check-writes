@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Guard (i) of the lab's write rule: before anything is measured, read the record of the statements the measured routes send and refuse
+unless every statement that writes writes only the view-count table (`views`).
+
+    poc/lab/bin/check-writes --statements=<capture.json> [--routes=<route-list.json>]
+
+The record is the one `poc/runtime/bin/capture` writes (poc/runtime/CAPTURE_FORMAT.md): per route, the statements it sent grouped by type
+(`kind` = first word, `pattern` = the text with every literal taken out). It is taken once, in the capture's own throw-away stack, never in
+the lab: nothing in the lab's measuring stack records statements (no general log, no performance_schema statement history), so nothing here
+can disturb a measured time. This tool only reads the file; it touches no container and no database.
+
+It refuses (exit 15, and says which route and which statement type) when:
+  - the record cannot be read, or one of the eight selected routes is missing from it or is not `captured`;
+  - the record is not complete: a captured scale where the statements counted by type do not add up to the route's total, or where the
+    unaccounted figure is not 0;
+  - a statement type is anything but `select`, or an `update`, `insert` or `delete` of `views` alone (a DDL statement, a SET, a LOCK, a CALL,
+    a write to another table, a multi-table update or delete, a schema-qualified name, or two statements in one text are all refused: what
+    cannot be judged is refused);
+A record that holds no write at all passes: the guard is about what is written, not about whether anything is.
+
+Callers: `bin/measure-calibration` and `bin/measure-ladder`, each on the line marked WRITE-CHECK, before the closed-network check.
+exit codes: 0 every write is to `views` only / 2 usage / 15 refused
+"""
+import hashlib
+import json
+import os
+import re
+import sys
+
+VIEWS_ONLY = {
+    "update": re.compile(r"^update\s+`views`\s+set\s", re.I),
+    "insert": re.compile(r"^insert\s+(?:ignore\s+)?into\s+`views`(?:\s|\()", re.I),
+    "delete": re.compile(r"^delete\s+from\s+`views`(?:\s+where\s|\s*$)", re.I),
+    "replace": re.compile(r"^replace\s+into\s+`views`(?:\s|\()", re.I),
+}
+
+
+def usage():
+    sys.stderr.write("usage: check-writes --statements=<capture.json> [--routes=<route-list.json>]\n")
+    sys.exit(2)
+
+
+def refuse(message):
+    sys.stderr.write("WRITE CHECK REFUSED: %s\n" % message)
+    sys.exit(15)
+
+
+def main(argv):
+    statements = routes = None
+    for arg in argv:
+        if arg.startswith("--statements="):
+            statements = arg[len("--statements="):]
+        elif arg.startswith("--routes="):
+            routes = arg[len("--routes="):]
+        else:
+            usage()
+    if not statements:
+        usage()
+    if routes is None:
+        routes = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "routes", "route-list.json")
+    try:
+        with open(routes, "rb") as fh:
+            selected = [r["route"] for r in json.load(fh)["selected"]]
+        with open(statements, "rb") as fh:
+            raw = fh.read()
+        record = json.loads(raw)
+        by_route = {r["route"]: r for r in record["routes"]}
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        refuse("the route list or the statement record cannot be read (%s)" % exc)
+    if not selected:
+        refuse("the route list names no route")
+
+    types_seen = 0
+    writes = {}
+    for route in selected:
+        entry = by_route.get(route)
+        if entry is None:
+            refuse("the record has no entry for %s" % route)
+        if entry.get("status") != "captured":
+            refuse("%s is %s in the record, not captured" % (route, entry.get("status")))
+        types = entry.get("statement_types")
+        totals = entry.get("totals")
+        if not isinstance(types, list) or not isinstance(totals, dict) or not entry.get("captured_scales"):
+            refuse("%s has no statement types or totals in the record" % route)
+        for scale in entry["captured_scales"]:
+            key = str(scale)
+            try:
+                counted = sum(int(t["per_scale"][key]["count"]) for t in types if key in t["per_scale"])
+                total = int(totals[key]["statements"])
+                unaccounted = int(totals[key]["unaccounted"])
+            except (KeyError, TypeError, ValueError):
+                refuse("%s at scale %s: the totals or the counts cannot be read" % (route, key))
+            if counted != total or unaccounted != 0:
+                refuse("%s at scale %s: the record is not complete (counted %d of %d statements, unaccounted %d)"
+                       % (route, key, counted, total, unaccounted))
+        for t in types:
+            types_seen += 1
+            kind = str(t.get("kind", "")).lower()
+            pattern = str(t.get("pattern", "")).strip()
+            if ";" in pattern.rstrip(";") or not pattern:
+                refuse("%s: statement type %s cannot be judged (empty, or more than one statement): %s" % (route, t.get("id"), pattern[:80]))
+            if kind == "select":
+                if not re.match(r"^\(?\s*select\s", pattern, re.I):
+                    refuse("%s: statement type %s says select but reads %s" % (route, t.get("id"), pattern[:80]))
+                continue
+            rule = VIEWS_ONLY.get(kind)
+            if rule is None:
+                refuse("%s: statement type %s is a %s statement, which is neither a select nor a write to views: %s"
+                       % (route, t.get("id"), kind or "?", pattern[:80]))
+            if not rule.match(pattern):
+                refuse("%s: statement type %s writes somewhere other than `views` alone: %s" % (route, t.get("id"), pattern[:100]))
+            writes[(kind, route)] = writes.get((kind, route), 0) + 1
+
+    summary = ", ".join("%s views in %s" % (kind, route) for (kind, route) in sorted(writes)) or "no write"
+    print("WRITE CHECK OK %d routes, %d statement types, every write is to views only (%s); record sha256 %s"
+          % (len(selected), types_seen, summary, hashlib.sha256(raw).hexdigest()[:16]))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

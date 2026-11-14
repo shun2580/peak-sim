@@ -55,6 +55,9 @@ if [ "\$1" = exec ]; then
   shift
   while [ "\${1:-}" = "-i" ] || [ "\${1:-}" = "-e" ]; do if [ "\$1" = "-e" ]; then shift 2; else shift; fi; done
   c="\$1"; shift
+  if [ "\$c" = peak-lab-db ] && [ "\$1" = mysql ]; then   # the count and checksum of the N tables (bin/check-tables): the tables do not change
+    case "\$*" in *CHECKSUM*) printf '10000\ndb.t\t111\n'; exit 0 ;; esac
+  fi
   case "\$c \$1 \$2" in
     "peak-lab-web nginx -T")
       [ -f "\$s/nginx_fail" ] && { echo "nginx: [emerg] cannot load"; exit 1; }
@@ -79,14 +82,19 @@ FAKE
 chmod +x "$work/fakebin/docker"
 
 # a copy of the lab's bin directory with the real scripts; preflight (the closed-network check) and the CPU sampler are stubs
-for f in measure-ladder check-limits _lab.sh prediction-gate; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-ladder check-limits check-writes check-tables _lab.sh prediction-gate; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+mkdir -p "$work/rec" "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
+python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/ok.json" --variant=ok
+rec="$work/rec/ok.json"   # the made-up record of the statements the write check reads (every write in it is to views)
+
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/bin/preflight"; chmod +x "$work/lab/bin/preflight"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/observe/sample-cpu"; chmod +x "$work/lab/observe/sample-cpu"
 
 # a git repository with one committed prediction file, so that the gate in front of measure-ladder is open
 grepo="$work/repo"; mkdir -p "$grepo/poc/lab/predictions"
 git -C "$grepo" init -q . && git -C "$grepo" config user.email t@example.invalid && git -C "$grepo" config user.name t
-echo '{"v":1}' >"$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
+# the prediction holds the scenarios of the re-check (their tables are of 50,000 and 200,000 rows), so that the refusal for counts not seen yet is open for them
+python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; json.dump({"scenarios":[{"id":"r-1","tables":n(50000)},{"id":"r-2","tables":n(50000)},{"id":"r-3","tables":n(200000)},{"id":"r-4","tables":n(200000)},{"id":"r-5","tables":n(200000)}]}, open(sys.argv[1],"w"))' "$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
 pred="$grepo/poc/lab/predictions/p.json"
 for scale in 10000 50000 200000; do echo '{}' >"$out/targets-$scale.json"; done
 
@@ -97,7 +105,7 @@ set_lab() {  # set_lab php=0 pool=0s nginx=600s ...
 }
 env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$grepo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
 cl() { env_run "$work/lab/bin/check-limits" "$@" >"$work/cl.out" 2>"$work/cl.err"; }
-ml() { env_run "$work/lab/bin/measure-ladder" "$@" >"$work/ml.out" 2>"$work/ml.err"; }
+ml() { env_run "$work/lab/bin/measure-ladder" "$@" --statement-record="$rec" >"$work/ml.out" 2>"$work/ml.err"; }
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 said() { has "$work/cl.err" "$1" || has "$work/cl.out" "$1"; }
 

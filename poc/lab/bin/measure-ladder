@@ -2,9 +2,9 @@
 # Measures one prediction scenario (t-1 .. t-5, or r-1 .. r-5 of the re-check) on the lab, step by step up the rps ladder
 # (docs/simulator-spec.md sections 7.2 and 7.4.1).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5> --predictions=<poc/lab/predictions/....json> [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
-#   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
+#   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> --statement-record=<capture.json> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
 # One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). That is the
 # scheme `spec`, the default and the spec as written. `--scheme` chooses how a step is laid out in time, in one place
@@ -35,6 +35,14 @@
 # THE LIMITS GUARD: for r-1 .. r-5 the values must also be the ones B needs (max_execution_time 0, request_terminate_timeout 0,
 # fastcgi_read_timeout >= --request-timeout), or the scenario stops with exit 13 at that step and nothing is measured. t-1 .. t-5 and
 # a trial are read and recorded only, as before.
+# THE WRITE GUARDS (lab-only rule: the lab may write the view-count table `views` and nothing else; decisions.md D187, D189). A dry run needs none.
+#   (i)   bin/check-writes reads --statement-record (the capture's record of the statements of the eight routes) and stops with exit 15, before the
+#         closed-network check and before any container is touched, unless every write in it is to `views` alone (line marked WRITE-CHECK).
+#   (iii) bin/check-tables takes the count and CHECKSUM TABLE of the N tables once at the start of the scenario (line marked TABLES-BEFORE; the
+#         baseline is <scenario>/tables-before.tsv and is kept, so a restart is compared with the state the scenario began from) and again after every
+#         step, once k6 and the samplers have stopped (TABLES-AFTER; <step>/tables-after.tsv). A difference stops at exit 16 before the step is
+#         summarized, so the step has no record. A scale that has not been seen (not <= 30,000, 70,000 or 100,000) is refused with exit 17 before any
+#         query unless --predictions is a committed prediction that holds a scenario of that scale.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -61,14 +69,16 @@
 # <out dir>/trial/ (default and only place), named trial-<cal>-<scale>, and each record says "trial": true.
 #
 # exit codes: 0 the ladder was measured to its end or to its stopping step / 2 usage, or the app reads another scale, or a
-# missing prerequisite / 11 not sealed / 12 the prediction gate is closed / 13 a step could not be measured (the cause is printed)
+# missing prerequisite / 11 not sealed / 12 the prediction gate is closed / 13 a step could not be measured (the cause is printed) /
+# 15 a statement in the record writes outside `views` / 16 an N table changed / 17 a scale not seen yet and no committed prediction for it /
+# 18 the N tables could not be read
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout=
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record=
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -79,6 +89,7 @@ for arg in "$@"; do
     --scheme=*) scheme="${arg#--scheme=}" ;;
     --trial=*) trial="${arg#--trial=}" ;;
     --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
+    --statement-record=*) statement_record="${arg#--statement-record=}" ;;
     *) usage ;;
   esac
 done
@@ -126,6 +137,17 @@ fi
 pred_file="" ; pred_commit="" ; pred_time=""
 if [ "$dry" = 0 ] && [ -z "$trial" ]; then
   read -r _ _ pred_file pred_commit pred_time <<<"$gate_line"
+fi
+
+# 1b. THE WRITE GUARD (i). Not in a dry run (nothing is measured). Nothing below touches a container until it has passed. ------------------------
+if [ "$dry" = 0 ]; then
+  [ -n "$statement_record" ] || { echo "measure-ladder: --statement-record=<capture.json> is required (the guard that the lab writes only views reads it)" >&2; exit 2; }
+  "$bindir/check-writes" --statements="$statement_record"   # WRITE-CHECK
+  write_rc=$?
+  if [ "$write_rc" != 0 ]; then
+    echo "measure-ladder: the write check did not pass (exit $write_rc); nothing was measured" >&2
+    exit "$write_rc"
+  fi
 fi
 
 # A PHP that does not touch the lab. In a dry run: the host's, else the dev image with no network. In a measurement: the tools
@@ -204,6 +226,14 @@ fi
 
 # 2. closed network, then the scale -----------------------------------------------------------------------------------------------
 "$bindir/preflight" >/dev/null || { echo "measure-ladder: the closed-network check failed; nothing was measured" >&2; exit 11; }
+
+# THE WRITE GUARD (iii), the start of the scenario: the count and checksum of the N tables (the baseline is kept in the scenario's directory).
+# A scale that has not been seen is refused here, before any query, unless the committed prediction holds a scenario of that scale.
+tables_args=(--scale="$scale" --baseline="$sdir/tables-before.tsv")
+[ -z "$predictions" ] || tables_args+=(--prediction="$predictions")
+"$bindir/check-tables" before "${tables_args[@]}"   # TABLES-BEFORE
+tables_rc=$?
+if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the N tables guard stopped $scenario at its start (exit $tables_rc); nothing was measured" >&2; exit "$tables_rc"; fi
 targets="$lab_out/targets-$scale.json"
 [ -f "$targets" ] || { echo "measure-ladder: $targets is missing (make it with: bin/targets --static=<analysis.json> --scale=$scale)" >&2; exit 2; }
 app_scale="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' peak-lab-app 2>/dev/null | sed -n 's/^PEAK_LAB_SCALE=//p')"
@@ -273,6 +303,10 @@ for rps in "${rungs[@]}"; do
     echo "measure-ladder: a sampler failed at rung $i (DB $db_rc, app $app_rc); see $d/sampler.err. Stopped; no instantaneous figure is used instead." >&2
     exit 13
   fi
+  # THE WRITE GUARD (iii), after the step: the load and the samplers are over. The N tables must be what the scenario began with, or the step is not judged.
+  "$bindir/check-tables" after "${tables_args[@]}" --out="$d/tables-after.tsv"   # TABLES-AFTER
+  tables_rc=$?
+  if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the N tables guard stopped $scenario after rung $i (exit $tables_rc); the step is not judged and has no record" >&2; exit "$tables_rc"; fi
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
     --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }

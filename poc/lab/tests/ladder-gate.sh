@@ -74,6 +74,10 @@ rm -f "$repo/poc/lab/predictions/second.json"
 echo '{}' >"$repo/other.json"; git -C "$repo" add other.json && git -C "$repo" commit -q -m "chore: add other"
 gate "$repo/other.json"; expect_code "8 a .json outside predictions/: closed" 12 $?
 
+# the made-up record of the statements that the write check of measure-ladder reads (every write in it is to views); the real route list is read
+python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec.json" --variant=ok || { echo "ladder-gate: the record could not be made" >&2; exit 2; }
+rec="$work/rec.json"
+
 # 9-11: measure-ladder, with a `docker` that only records that it was called
 cat >"$work/fakebin/docker" <<FAKE
 #!/usr/bin/env bash
@@ -84,7 +88,7 @@ chmod +x "$work/fakebin/docker"
 ml() {
   : >"$work/docker.calls"
   PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$repo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$work/out" \
-    "$lab/bin/measure-ladder" "$@" >"$work/ml.out" 2>&1
+    "$lab/bin/measure-ladder" "$@" --statement-record="$rec" >"$work/ml.out" 2>&1
 }
 calls() { wc -l <"$work/docker.calls" | tr -d ' '; }
 
