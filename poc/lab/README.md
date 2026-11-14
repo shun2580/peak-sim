@@ -14,13 +14,15 @@ conditions 1 to 5 hold here too, and condition 6 is the lab's own (below: how ea
 | `bin/preflight` | the closed-network check, also run by `up`, `build-db` and `use-db` |
 | `bin/build-db`, `bin/use-db` | build the database of one scale; point the app at one |
 | `bin/predict-ladder` | the ladder prediction (`docs/simulator-spec.md` 7.2 and 7.3): for each target scenario, the utilisation at each of the 13 rps stages (point and safe side), the naive estimate, and the limit rps solved from the proportional form. The point is one estimate; the safe side takes the marks of the estimate made at the scenario's own count of rows (`--safe-estimate=<dir>`, one per count; a count with no estimate stops it). The naive estimate is chosen among the calibration scenarios at N_0 only, the count of rows given with the required `--naive-count=<rows>` (for example `--naive-count=10000`; no default, nothing is guessed from the largest count in the file): a calibration scenario at any other count (cal-4, cal-5) is no candidate, and with no scenario at N_0 it stops (exit 37). It writes, as a record that is not used for a pass or a failure, the calibration's range per scenario (each leave-one-out fit's coefficients, utilisation at every stage and limit rps). It makes no prediction when a calibration coefficient was cut to 0 or `cal-3-orig` is among the calibration scenarios. Sends no request; the code is `poc/runtime/src/Simulate/Ladder/`, which calls the calibration and prediction parts of `bin/simulate` |
-| `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file |
+| `bin/measure-ladder`, `bin/prediction-gate` | measure one prediction scenario up the rps ladder (below), behind the gate: the committed prediction file, and behind the write guards (`--statement-record=<capture.json>` is required unless `--dry-run`) |
 | `bin/check-limits` | read the lab's three limits (PHP `max_execution_time`, php-fpm `request_terminate_timeout`, nginx `fastcgi_read_timeout`) and refuse (exit 13) unless they are the ones the measurement needs: `--require=unlimited --request-timeout=<k6 duration>` (PHP 0, pool 0, nginx at least the load tool's timeout), `--require=limited` (PHP 30, the mark's check), `--require=none` (read and record only). It only reads; a limit that cannot be read refuses too |
-| `bin/measure-calibration` | **the one entry that measures calibration runs.** Calibration is measured from this entry only. It takes the plan and the count of rows of every run of the planned set (`--run=<id>:<plan.json>`, `--run-scale`), and the runs to measure now (`--measure`). Before anything else it calls the calibration gate (`scenarios/calibration-gate`; below) and stops with exit 14, with no container touched, if the set cannot tell the two coefficients apart. For each run it then checks the closed network, reads the limits and refuses unless they are the ones the measurement needs (`bin/check-limits --require=unlimited`, exit 13), records `mysql.innodb_table_stats` before and after, and measures with the same samplers, k6 and `summarize-run` as the ladder. `--gate-only` runs the gate and nothing else |
+| `bin/check-writes`, `bin/check-tables` | the write guards (i) and (iii) of safety condition 6 (below). `check-writes` reads the capture's record of statements and refuses with exit 15; `check-tables` reads the N tables and the server's write counters before and after a scenario and refuses with exit 16, 17 (a count of rows not seen, no query sent) or 18 (unreadable) |
+| `bin/measure-calibration` | **the one entry that measures calibration runs.** Calibration is measured from this entry only. It takes the plan and the count of rows of every run of the planned set (`--run=<id>:<plan.json>`, `--run-scale`), and the runs to measure now (`--measure`). Before anything else it calls the calibration gate (`scenarios/calibration-gate`; below) and stops with exit 14, with no container touched, if the set cannot tell the two coefficients apart. For each run it then checks the closed network, reads the limits and refuses unless they are the ones the measurement needs (`bin/check-limits --require=unlimited`, exit 13), records `mysql.innodb_table_stats` before and after, checks the record of statements and the N tables (safety condition 6; `--statement-record=<capture.json>` is required), and measures with the same samplers, k6 and `summarize-run` as the ladder. `--gate-only` runs the gate and nothing else |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
 | `tests/limits-guard.sh` | the tests of `bin/check-limits` and of its place in front of every step of `r-1`..`r-5` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured) |
 | `tests/calibration-gate.sh` | the tests of the calibration gate and of its place in front of `bin/measure-calibration` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured; one test takes the gate's line out of a copy of the entry and shows that the refused set then reaches the load tool) |
+| `tests/write-guards.sh` | the tests of the write guards (144 checks; a stand-in `docker`; never touches the lab; the load tool being never called is what shows that nothing was measured): `bin/check-writes` on made-up records (a write to another table, a DDL statement, an incomplete record and so on are refused, exit 15), `bin/check-tables` (baseline, restart, a changed count, checksum or write counter, an unreadable reading: exit 16 and 18; the refusal for counts not seen: exit 17, with no query sent), and the wiring in the real `bin/measure-calibration` and `bin/measure-ladder` (each guard stops a measurement before the load tool, and each taken out of a copy no longer does; the guards' order; a lab whose N tables change under the load stops before the summary). `tests/make-statement-record.py` makes the records |
 | `tests/scenario-timeout.sh` | the tests of `load/scenario.js`'s `REQUEST_TIMEOUT` and its status counts by route, with the real k6 against a stand-in server in throw-away containers (needs Docker; never touches the lab) |
 | `poc/runtime/tests/Unit/LabEntry/` | the tests of the entry's guards (no Docker needed beyond the throw-away PHP container; never touches the lab): the statement rule (`ViewsOnlyWritesTest`), the guard around a request (`EntryGuardTest`), that `app/entry.php` calls every guard, in order, and puts no transaction around a request, and that each guard taken out of a copy of it is caught (`EntryWiringTest`), and that `poc/runtime` still rolls every request back (`RuntimeKeepsRollbackTest`) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
@@ -29,7 +31,7 @@ conditions 1 to 5 hold here too, and condition 6 is the lab's own (below: how ea
 
 ```bash
 poc/lab/bin/measure-ladder --scenario=t-4 --dry-run                      # plans only; no container is touched
-poc/lab/bin/measure-ladder --scenario=t-4 --predictions=poc/lab/predictions/<file>.json [--switch-scale]
+poc/lab/bin/measure-ladder --scenario=t-4 --predictions=poc/lab/predictions/<file>.json --statement-record=<capture.json> [--switch-scale]
 ```
 
 The scenarios (`t-1` to `t-5`: the count of the 8 N tables and the mix) and the ladder (13 steps from 0.05 to 5.0 rps in total, each
@@ -85,7 +87,7 @@ and the limits guard, and is not a calibration run of this project.
 poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=cal-1:<plan.json> ... --run=cal-7:<plan.json> --run-scale=cal-4:3000 ... --gate-only
 # measure some of the runs (the set is still given whole: the gate looks at all of it)
 poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=cal-1:<plan.json> ... --run=cal-7:<plan.json> --run-scale=cal-4:3000 ... \
-  --measure=cal-6,cal-7 --request-timeout=600s [--switch-scale]
+  --measure=cal-6,cal-7 --request-timeout=600s --statement-record=<capture.json> [--switch-scale]
 ```
 
 **The calibration gate** (`poc/lab/scenarios/calibration-gate`, `docs/simulator-spec.md` 7.4.1). Before a run is measured, the plans, the counts of rows and the estimate alone give the
@@ -142,9 +144,16 @@ because the database volume outlives `down`. Records go to `~/.cache/peak-lab/ou
    the page view counter, the `views` table, and only with the two statements the app uses for it (`insert into views` and
    `update views set`; each is committed at once). Only GET and HEAD are served (405 for the rest). Four guards keep it so,
    and each is called from the one place every measurement goes through:
-   - (i) *before measuring*: `bin/check-writes` reads the capture's record of the statements of the measured routes and refuses
-     (exit 15) unless every write in it is to `views` alone. `bin/measure-calibration` and `bin/measure-ladder` call it, on the
-     line marked `WRITE-CHECK`, before anything of the lab is touched.
+   - (i) *before measuring*: `bin/check-writes --statements=<capture.json>` reads the capture's record of the statements of the
+     eight measured routes (`statement_types`: the kind and the text with every literal taken out, counted per route) and refuses
+     (exit 15) unless every route is captured, the counts add up to the route's total with nothing unaccounted, and every statement
+     is a `select` or an `update`, `insert` or `delete` of `views` alone (a DDL statement, a `SET`, another table, a multi-table
+     update, a schema-qualified name, an empty text or two statements in one text are refused: what cannot be judged is refused).
+     The record is taken once, in the capture's own throw-away stack; the lab's measuring stack records no statements, so nothing
+     here can disturb a measured time. The tool reads a file and touches no container. `bin/measure-calibration` and
+     `bin/measure-ladder` call it, on the line marked `WRITE-CHECK`, before the closed-network check and before anything of the
+     lab is touched. Both take a **required** `--statement-record=<capture.json>` for it (a real capture's `capture.json`; a
+     `--dry-run` of the ladder and `--gate-only` of the calibration need none, nothing is measured there).
    - (ii) *at the entry*: `EntryGuard` (`poc/runtime/src/LabEntry/`), called by `app/entry.php` for every request. Every statement
      is looked at on every connection before it is sent. One that writes anything but `views`, commits implicitly (`COMMIT`,
      `BEGIN`, `SET autocommit`, DDL, `LOCK TABLES`, ...), writes on a connection other than the default one, changes a
@@ -152,16 +161,29 @@ because the database volume outlives `down`. Records go to `~/.cache/peak-lab/ou
      the entry leaves a latch file and the statement raises an error. Every
      later request is then refused with 503 until the lab is rebuilt. A transaction left open by a request, or a statement that
      the watch saw only after it ran (a connection it was not on), leaves the latch too.
-   - (iii) *around each scenario*: `bin/check-tables` takes the row count and `CHECKSUM TABLE` of the N tables before a scenario
-     and again after every step, and stops (exit 16) if either differs. `bin/measure-calibration` and `bin/measure-ladder` call
-     it, on the lines marked `TABLES-BEFORE` and `TABLES-AFTER`. It also refuses to query a database of a count of rows that has
-     not been seen yet before the prediction for it is committed.
+   - (iii) *around each scenario*: `bin/check-tables` reads, outside the measured window (before the samplers start and after they
+     have stopped), the row count and `CHECKSUM TABLE` of the N tables (`entities`, `images`, `references`; `views` is left out
+     because the lab may write it), and the server's own write counters per table (`performance_schema`'s
+     `table_io_waits_summary_by_table`: inserts, updates and deletes, which count a prepared statement and a write that leaves
+     every row as it was). It stops (exit 16) if a count or a checksum differs, or if any table other than `views` of the measured
+     database, in that schema or in any schema of the server other than its own four, has been written to. A reading that cannot
+     be taken, or a server with no counters for the measured database, stops it too (exit 18): it fails closed.
+     `bin/measure-calibration` calls it once per run (`TABLES-BEFORE`, baseline `<run>/tables-before.tsv`; `TABLES-AFTER`, after k6
+     and the samplers have stopped, `<run>/tables-after.tsv`). `bin/measure-ladder` calls it once at the start of the scenario
+     (`TABLES-BEFORE`, baseline `<scenario>/tables-before.tsv`, which is kept: a restart is compared with the state the scenario
+     began from) and after every step (`TABLES-AFTER`, `<step>/tables-after.tsv`). A difference stops the run before it is
+     summarized, so that run or step has no record. Delete the baseline when the database is rebuilt on purpose, or the restart
+     stops with exit 16.
+     It also refuses (exit 17, no query sent) to read a database of a count of rows that has not been seen yet: anything other
+     than 30,000 or fewer, 70,000 and 100,000 (so 50,000 and 200,000 too) is allowed only when `--prediction` names a prediction
+     file that passes `bin/prediction-gate` (committed, no difference from `HEAD`) and holds a scenario of that count. The ladder
+     passes its `--predictions` file; the calibration has no such file, so it is always refused there.
    - (iv) *the method and the schema*: `app/entry.php` serves GET and HEAD only (405), and a statement that names a schema other
      than the measurement database leaves the latch after the request (every connection of the app is also fixed to the
      measurement database and proved to be, on every request: condition 2).
 
    What the entry's watch cannot see is a statement the app sends straight to PDO instead of through Laravel's connection;
-   (iii) is what covers that. A `delete from views` or a `replace into views` is refused at the entry although the record in
+   (iii) is what covers that, through the checksums and the server's own counters. A `delete from views` or a `replace into views` is refused at the entry although the record in
    (i) may let it pass: only the insert and the update are allowed there, and a route that needs another one stops the lab
    visibly instead of being let through. The tests are in `poc/runtime/tests/Unit/LabEntry/`: each guard taken out of a copy of
    the entry (or turned off) is caught, and `poc/runtime`'s own rollback, its checks of a request that could not be rolled back,
