@@ -2,14 +2,14 @@
 
 A closed environment in which BookStack really runs under load, so the backtest has something to be compared with. An
 experiment like `poc/runtime/`, not part of the official tool. It needs Docker and the `poc/runtime/README.md` safety
-conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm).
+conditions 1 to 5 hold here too, and condition 6 is the lab's own (below: how each one is carried over to php-fpm).
 
 | Path | What it is |
 | --- | --- |
 | `compose/lab.compose.yaml` | the sealed stack: MySQL 8, BookStack under php-fpm, nginx, k6, and a container that builds databases |
 | `compose/lab.leaky.override.yaml`, `compose/lab.ports.override.yaml` | TEST ONLY: laid over the stack to make it leak (an ordinary network, a published port) |
 | `compose/Dockerfile.fpm`, `compose/php/`, `compose/nginx/`, `compose/mysql-conf/` | the PHP image and the settings of each server |
-| `app/entry.php` | the one entry script of php-fpm (the safety conditions 2, 4, 5 and 6; below) |
+| `app/entry.php` | the one entry script of php-fpm (the safety conditions 2, 4, 5 and 6; below). It calls `EntryGuard` (`poc/runtime/src/LabEntry/`) for every request |
 | `bin/up`, `bin/down`, `bin/ps` | start (with the closed-network check; exit 11 and nothing left running if it fails), stop, list |
 | `bin/preflight` | the closed-network check, also run by `up`, `build-db` and `use-db` |
 | `bin/build-db`, `bin/use-db` | build the database of one scale; point the app at one |
@@ -22,6 +22,7 @@ conditions 1 to 6 hold here too (below: how each one is carried over to php-fpm)
 | `tests/limits-guard.sh` | the tests of `bin/check-limits` and of its place in front of every step of `r-1`..`r-5` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured) |
 | `tests/calibration-gate.sh` | the tests of the calibration gate and of its place in front of `bin/measure-calibration` (a stand-in `docker`; the PHP tools run in throw-away containers; never touches the lab; the load tool being never called is what shows that nothing was measured; one test takes the gate's line out of a copy of the entry and shows that the refused set then reaches the load tool) |
 | `tests/scenario-timeout.sh` | the tests of `load/scenario.js`'s `REQUEST_TIMEOUT` and its status counts by route, with the real k6 against a stand-in server in throw-away containers (needs Docker; never touches the lab) |
+| `poc/runtime/tests/Unit/LabEntry/` | the tests of the entry's guards (no Docker needed beyond the throw-away PHP container; never touches the lab): the statement rule (`ViewsOnlyWritesTest`), the guard around a request (`EntryGuardTest`), that `app/entry.php` calls every guard, in order, and puts no transaction around a request, and that each guard taken out of a copy of it is caught (`EntryWiringTest`), and that `poc/runtime` still rolls every request back (`RuntimeKeepsRollbackTest`) |
 | `routes/`, `load/`, `observe/` | the route list, the load and the observation tools (not described here) |
 
 ## Measuring a prediction scenario
@@ -136,12 +137,38 @@ because the database volume outlives `down`. Records go to `~/.cache/peak-lab/ou
 4. **The app is not modified.** Mounted read-only; the container root is read-only; only `/tmp` and `/scratch` (tmpfs) are
    writable. The compiled views are kept in `/scratch` between requests (`ScratchDir::fixed`), as they are in production.
 5. **Side effects are fakes.** `Fakes::install` runs on every request, as in a measurement.
-6. **Writes are rolled back.** Every request runs in a transaction that is rolled back. Only GET and HEAD are served (405 for
-   the rest). A request that could not be rolled back leaves a latch file and every later request gets 503: the database can no
-   longer be trusted. (The per-table row counts a measurement compares are not taken per request here: too heavy for a load.)
+6. **Writes: `views` only, GET only.** This is the lab's own wording of condition 6; `poc/runtime/README.md` keeps its rollback
+   and the lab does not use it. The entry script does not wrap a request in a transaction. The only thing the lab may write is
+   the page view counter, the `views` table, and only with the two statements the app uses for it (`insert into views` and
+   `update views set`; each is committed at once). Only GET and HEAD are served (405 for the rest). Four guards keep it so,
+   and each is called from the one place every measurement goes through:
+   - (i) *before measuring*: `bin/check-writes` reads the capture's record of the statements of the measured routes and refuses
+     (exit 15) unless every write in it is to `views` alone. `bin/measure-calibration` and `bin/measure-ladder` call it, on the
+     line marked `WRITE-CHECK`, before anything of the lab is touched.
+   - (ii) *at the entry*: `EntryGuard` (`poc/runtime/src/LabEntry/`), called by `app/entry.php` for every request. Every statement
+     is looked at on every connection before it is sent. One that writes anything but `views`, commits implicitly (`COMMIT`,
+     `BEGIN`, `SET autocommit`, DDL, `LOCK TABLES`, ...), writes on a connection other than the default one, changes a
+     server-wide setting or writes a file is not sent: the entry leaves a latch file and the statement raises an error. Every
+     later request is then refused with 503 until the lab is rebuilt. A transaction left open by a request, or a statement that
+     the watch saw only after it ran (a connection it was not on), leaves the latch too.
+   - (iii) *around each scenario*: `bin/check-tables` takes the row count and `CHECKSUM TABLE` of the N tables before a scenario
+     and again after every step, and stops (exit 16) if either differs. `bin/measure-calibration` and `bin/measure-ladder` call
+     it, on the lines marked `TABLES-BEFORE` and `TABLES-AFTER`. It also refuses to query a database of a count of rows that has
+     not been seen yet before the prediction for it is committed.
+   - (iv) *the method and the schema*: `app/entry.php` serves GET and HEAD only (405), and a statement that names a schema other
+     than the measurement database leaves the latch after the request (every connection of the app is also fixed to the
+     measurement database and proved to be, on every request: condition 2).
+
+   What the entry's watch cannot see is a statement the app sends straight to PDO instead of through Laravel's connection;
+   (iii) is what covers that. A `delete from views` or a `replace into views` is refused at the entry although the record in
+   (i) may let it pass: only the insert and the update are allowed there, and a route that needs another one stops the lab
+   visibly instead of being let through. The tests are in `poc/runtime/tests/Unit/LabEntry/`: each guard taken out of a copy of
+   the entry (or turned off) is caught, and `poc/runtime`'s own rollback, its checks of a request that could not be rolled back,
+   and its condition 6 are tied down there so that this rule cannot get into the tool's measurement.
 
 ## What the lab cannot say
 
 Cache behaviour of a real deployment, data that does not fit in the database's memory (the buffer pool is made large on
 purpose), contention with other work, and write load. A request costs one more statement than in production: the entry
-script asks the server which database it is on (the guard of safety condition 2).
+script asks the server which database it is on (the guard of safety condition 2). The view counter's writes are kept (each
+is committed at once), so the rows of `views` change during a measurement; the N tables must not (guard (iii)).

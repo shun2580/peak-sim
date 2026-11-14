@@ -10,10 +10,13 @@ declare(strict_types=1);
  *      a statement that names another schema, or a write on another connection, is a refusal below.
  *   4. the app is not modified: it is mounted read-only; everything it writes goes to the shared scratch directory (a tmpfs).
  *   5. side effects are fakes: Fakes::install (mail, notifications, queue, outbound HTTP, storage) as in a measurement.
- *   6. a request is rolled back: it runs inside a transaction that is always rolled back. A request that could not be
- *      rolled back (a statement that commits implicitly, a write on another connection, the transaction ended by the
- *      request) leaves a latch file: the database can no longer be trusted, and every later request is refused with 503
- *      until the lab is rebuilt. Only GET and HEAD are served (405 otherwise): the load is GET only.
+ *   6. (the lab's own wording, poc/lab/README.md) a request is NOT wrapped in a transaction here: the only thing it may
+ *      write is the page view counter (the `views` table), and only GET and HEAD are served (405 otherwise). The
+ *      guard that keeps it so is PeakSim\Runtime\LabEntry\EntryGuard, called below for every request: the method
+ *      and the latch before the app starts, the statement watch around the app, the verdict after it. A statement that
+ *      writes anything but `views`, commits implicitly, writes on another connection or names another schema leaves a
+ *      latch file: the database can no longer be trusted, and every later request is refused with 503 until the lab is
+ *      rebuilt. poc/runtime (the tool's measurement) keeps its rollback; none of this is used there.
  *
  * What is added over a measurement, and nothing more: the scratch directory is fixed, so the compiled views are kept
  * between requests as they are in production (ScratchDir::fixed).
@@ -25,6 +28,7 @@ use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Boot\ScratchDir;
 use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
+use PeakSim\Runtime\LabEntry\EntryGuard;
 use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Run\ActingAs;
 use PeakSim\Runtime\Run\QueryCounter;
@@ -40,9 +44,9 @@ $refuse = static function (int $status, string $why, string $detail = ''): never
     exit;
 };
 
-$method = $_SERVER['REQUEST_METHOD'] ?? '';
-if ($method !== 'GET' && $method !== 'HEAD') {
-    $refuse(405, 'only GET and HEAD are served');
+$methodRefusal = EntryGuard::methodRefusal((string) ($_SERVER['REQUEST_METHOD'] ?? ''));
+if ($methodRefusal !== null) {
+    $refuse(405, $methodRefusal);
 }
 
 $scratchPath = (string) getenv('PEAK_LAB_SCRATCH');
@@ -50,8 +54,9 @@ if ($scratchPath === '') {
     $refuse(503, 'PEAK_LAB_SCRATCH is not set');
 }
 $latch = $scratchPath . '/contaminated.flag';
-if (is_file($latch)) {
-    $refuse(503, 'the database can no longer be trusted: ' . trim((string) @file_get_contents($latch)));
+$latchReason = EntryGuard::latchRefusal($latch);
+if ($latchReason !== null) {
+    $refuse(503, 'the database can no longer be trusted: ' . $latchReason);
 }
 
 try {
@@ -87,30 +92,15 @@ try {
 $db = $app['db'];
 $counter = new QueryCounter($booted->dbName, (string) $app['config']->get('database.default'));
 $counter->listenTo($app['events']);
+$guard = new EntryGuard($latch, $booted->dbName, (string) $app['config']->get('database.default'), (string) ($_SERVER['REQUEST_URI'] ?? ''));
+$guard->watch($db, $app['events']);
 
 $request = \Illuminate\Http\Request::capture();
-$db->beginTransaction();
 $counter->start();
 $response = $booted->kernel->handle($request);
-$response->send(); // inside the transaction: a streamed body may still run statements
+$response->send();
 $booted->kernel->terminate($request, $response);
 $counter->stop();
 
-$level = $db->transactionLevel();
-for ($i = 0; $i < 50 && $db->transactionLevel() > 0; $i++) {
-    $db->rollBack();
-}
-
-$problem = null;
-if ($counter->foreignSchemas() !== []) {
-    $problem = 'a statement referred to a schema other than the measurement database: ' . implode(', ', $counter->foreignSchemas());
-} elseif (($rollbackProblem = $counter->rollbackProblem()) !== null) {
-    $problem = $rollbackProblem;
-} elseif ($level < 1) {
-    $problem = 'transaction_control: the transaction was ended by the request';
-}
-if ($problem !== null) {
-    // The response has gone out already; what is left is to stop anything more from being measured on this database.
-    @file_put_contents($latch, mb_substr(($_SERVER['REQUEST_URI'] ?? '') . ' ' . $problem, 0, 500) . "\n");
-    error_log(json_encode(['lab' => 'contaminated', 'uri' => $_SERVER['REQUEST_URI'] ?? '', 'problem' => mb_substr($problem, 0, 300)], JSON_UNESCAPED_SLASHES));
-}
+// The response has gone out already; what is left is to stop anything more from being measured on this database.
+$guard->finish($db, $counter);
