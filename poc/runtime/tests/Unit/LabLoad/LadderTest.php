@@ -129,8 +129,8 @@ final class LadderTest extends TestCase
         $this->assertSame(['id' => 's-1', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::EVEN], Ladder::scenario('s-1'));
         $this->assertSame(['id' => 's-2', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::FIRST_80], Ladder::scenario('s-2'));
         $this->assertSame(['id' => 's-3', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::LAST_80], Ladder::scenario('s-3'));
-        $this->assertSame(['id' => 's-4', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::ODD_80], Ladder::scenario('s-4'));
-        $this->assertSame(['id' => 's-5', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::EVEN_80], Ladder::scenario('s-5'));
+        $this->assertSame(['id' => 's-4', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::PLACES_1235], Ladder::scenario('s-4'));
+        $this->assertSame(['id' => 's-5', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::PLACES_1345], Ladder::scenario('s-5'));
         $this->assertSame([['scale' => 300000, 'scenarios' => ['s-1', 's-2', 's-3', 's-4', 's-5']]], Ladder::order(Ladder::SET_THIRD));
     }
 
@@ -208,15 +208,23 @@ final class LadderTest extends TestCase
         }
     }
 
-    public function test_s5_sends_80_percent_to_the_even_places_of_the_list_at_every_step(): void
+    public function test_s4_and_s5_send_80_percent_to_their_four_named_places_of_the_list_at_every_step(): void
     {
-        foreach (Ladder::RUNGS_S as $rps) {
-            $plan = ScenarioPlan::build(self::routes(), Ladder::scenario('s-5')['mix'], $rps, 360, 60);
-            $byRoute = array_column($plan['routes'], 'rps', 'route');
-            $evenPlaces = $byRoute['GET /r2'] + $byRoute['GET /r4'] + $byRoute['GET /r6'] + $byRoute['GET /r8'];
-            $oddPlaces = $byRoute['GET /r1'] + $byRoute['GET /r3'] + $byRoute['GET /r5'] + $byRoute['GET /r7'];
-            $this->assertEqualsWithDelta(0.8 * $rps, $evenPlaces, 1e-9, "at $rps");
-            $this->assertEqualsWithDelta(0.2 * $rps, $oddPlaces, 1e-9, "at $rps");
+        foreach (['s-4' => [1, 2, 3, 5], 's-5' => [1, 3, 4, 5]] as $id => $places) {
+            foreach (Ladder::RUNGS_S as $rps) {
+                $plan = ScenarioPlan::build(self::routes(), Ladder::scenario($id)['mix'], $rps, 360, 60);
+                $byRoute = array_column($plan['routes'], 'rps', 'route');
+                $named = $rest = 0.0;
+                foreach (range(1, 8) as $place) {
+                    if (in_array($place, $places, true)) {
+                        $named += $byRoute["GET /r$place"];
+                    } else {
+                        $rest += $byRoute["GET /r$place"];
+                    }
+                }
+                $this->assertEqualsWithDelta(0.8 * $rps, $named, 1e-9, "$id at $rps");
+                $this->assertEqualsWithDelta(0.2 * $rps, $rest, 1e-9, "$id at $rps");
+            }
         }
     }
 

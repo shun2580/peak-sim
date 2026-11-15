@@ -81,7 +81,30 @@ final class RouteMixTest extends TestCase
         $this->assertSame([0.2, 0.2, 0.2, 0.2, 0.05, 0.05, 0.05, 0.05], RouteMix::shares(8, RouteMix::FIRST_80));
         $this->assertSame([0.05, 0.05, 0.05, 0.05, 0.2, 0.2, 0.2, 0.2], RouteMix::shares(8, RouteMix::LAST_80));
         $this->assertSame([0.2, 0.05, 0.2, 0.05, 0.2, 0.05, 0.2, 0.05], RouteMix::shares(8, RouteMix::ODD_80));
-        $this->assertSame([RouteMix::EVEN, RouteMix::FIRST_80, RouteMix::LAST_80, RouteMix::ODD_80, RouteMix::EVEN_80], RouteMix::names());
+        $this->assertSame([RouteMix::EVEN, RouteMix::FIRST_80, RouteMix::LAST_80, RouteMix::ODD_80, RouteMix::EVEN_80, RouteMix::PLACES_1235, RouteMix::PLACES_1345], RouteMix::names());
+    }
+
+    public function test_places1235_puts_80_percent_on_the_1st_2nd_3rd_and_5th_and_20_on_the_rest(): void
+    {
+        $this->assertSame('places1235', RouteMix::PLACES_1235);
+        $this->assertEqualsWithDelta([0.2, 0.2, 0.2, 0.05, 0.2, 0.05, 0.05, 0.05], RouteMix::shares(8, RouteMix::PLACES_1235), 1e-12);
+    }
+
+    public function test_places1345_puts_80_percent_on_the_1st_3rd_4th_and_5th_and_20_on_the_rest(): void
+    {
+        $this->assertSame('places1345', RouteMix::PLACES_1345);
+        $this->assertEqualsWithDelta([0.2, 0.05, 0.2, 0.2, 0.2, 0.05, 0.05, 0.05], RouteMix::shares(8, RouteMix::PLACES_1345), 1e-12);
+    }
+
+    public function test_the_two_place_mixes_drive_the_zip_and_the_book_page_apart_in_the_spec_list(): void
+    {
+        $routes = self::listRoutes();
+        $a = array_combine($routes, RouteMix::shares(8, RouteMix::PLACES_1235));
+        $b = array_combine($routes, RouteMix::shares(8, RouteMix::PLACES_1345));
+        $this->assertEqualsWithDelta(0.2, $a[RouteMix::ZIP_ROUTE], 1e-12);
+        $this->assertEqualsWithDelta(0.05, $a[RouteMix::BOOK_PAGE_ROUTE], 1e-12);
+        $this->assertEqualsWithDelta(0.05, $b[RouteMix::ZIP_ROUTE], 1e-12);
+        $this->assertEqualsWithDelta(0.2, $b[RouteMix::BOOK_PAGE_ROUTE], 1e-12);
     }
 
     public function test_every_mix_adds_up_to_one(): void

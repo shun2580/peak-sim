@@ -119,8 +119,8 @@ final class LadderCliTest extends TestCase
         $this->assertSame([0, "300000 even\n"], array_slice(self::tool('ladder.php', ['scenario', 's-1', '--line']), 0, 2));
         $this->assertSame([0, "300000 first80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-2', '--line']), 0, 2));
         $this->assertSame([0, "300000 last80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-3', '--line']), 0, 2));
-        $this->assertSame([0, "300000 odd80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-4', '--line']), 0, 2));
-        $this->assertSame([0, "300000 even80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-5', '--line']), 0, 2));
+        $this->assertSame([0, "300000 places1235\n"], array_slice(self::tool('ladder.php', ['scenario', 's-4', '--line']), 0, 2));
+        $this->assertSame([0, "300000 places1345\n"], array_slice(self::tool('ladder.php', ['scenario', 's-5', '--line']), 0, 2));
         $this->assertSame(2, self::tool('ladder.php', ['scenario', 's-6', '--line'])[0]);
         $this->assertSame(2, self::tool('ladder.php', ['scenario', 's-1', '--trial', '--line'])[0], 'a third-backtest scenario is never a trial');
         $this->assertSame([['scale' => 300000, 'scenarios' => ['s-1', 's-2', 's-3', 's-4', 's-5']]], json_decode(self::tool('ladder.php', ['order', '--set=s'])[1], true));
@@ -136,6 +136,19 @@ final class LadderCliTest extends TestCase
             $plan = json_decode($out, true);
             $byRoute = array_column($plan['routes'], 'rps', 'route');
             $this->assertEqualsWithDelta(0.8 * (float) $rps, $byRoute['GET /r2'] + $byRoute['GET /r4'] + $byRoute['GET /r6'] + $byRoute['GET /r8'], 1e-9, "at $rps");
+        }
+    }
+
+    public function test_make_plan_makes_a_plan_for_the_two_place_mixes_at_every_one_of_the_15_steps_and_gives_the_named_places_80_percent(): void
+    {
+        $heavy = ['places1235' => ['GET /r1', 'GET /r2', 'GET /r3', 'GET /r5'], 'places1345' => ['GET /r1', 'GET /r3', 'GET /r4', 'GET /r5']];
+        foreach ($heavy as $mix => $places) {
+            foreach (['0.025', '0.035', '0.05', '0.07', '0.1', '0.15', '0.2', '0.3', '0.45', '0.7', '1', '1.5', '2.2', '3.3', '5'] as $rps) {
+                [$code, $out, $err] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), "--mix=$mix", "--rps=$rps", '--duration=360', '--warmup=60']);
+                $this->assertSame(0, $code, "$mix at $rps: $err");
+                $byRoute = array_column(json_decode($out, true)['routes'], 'rps', 'route');
+                $this->assertEqualsWithDelta(0.8 * (float) $rps, array_sum(array_intersect_key($byRoute, array_flip($places))), 1e-9, "$mix at $rps");
+            }
         }
     }
 

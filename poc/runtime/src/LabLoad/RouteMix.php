@@ -13,6 +13,12 @@ namespace PeakSim\Runtime\LabLoad;
  * odd places 20%; section 7.4.2's s-5). Inside a group every route gets the same share.
  * The list must have an even number of routes (the spec's list has 8) so that "first half" and "second half" are exact.
  *
+ * `places1235` and `places1345` (section 7.4.2's s-4 and s-5) name the places that get 80% instead of splitting the list by parity: 1st, 2nd,
+ * 3rd and 5th (`places1235`) or 1st, 3rd, 4th and 5th (`places1345`) get 80% in all (0.2 each), the other four places get 20% in all
+ * (0.05 each). They are fixed by the order of the list alone: in the spec's list the ZIP export is the 2nd place and the book page the
+ * 4th, so `places1235` gives the ZIP 0.2 and the book page 0.05, and `places1345` the book page 0.2 and the ZIP 0.05. (`odd80` and
+ * `even80` put both of those two routes in the same group, so they could not tell the two apart.)
+ *
  * `bookpage80zip0` is the one mix that names its routes instead of counting places: the book page route (`GET /books/{slug}`)
  * gets 80%, the book ZIP export route (`GET /books/{bookSlug}/export/zip`) gets 0%, and the other routes of the list share the
  * remaining 20% equally (1/30 each of 8 routes minus those two). Pointing at the two routes by name means a list in another
@@ -25,7 +31,15 @@ final class RouteMix
     public const LAST_80 = 'last80';
     public const ODD_80 = 'odd80';
     public const EVEN_80 = 'even80';
+    public const PLACES_1235 = 'places1235';
+    public const PLACES_1345 = 'places1345';
     public const BOOK_PAGE_80_ZIP_0 = 'bookpage80zip0';
+
+    /** The places (0-based) of the list that get 80% in all, for the mixes that name places. */
+    private const HEAVY_PLACES = [
+        self::PLACES_1235 => [0, 1, 2, 4],
+        self::PLACES_1345 => [0, 2, 3, 4],
+    ];
 
     public const BOOK_PAGE_ROUTE = 'GET /books/{slug}';
     public const ZIP_ROUTE = 'GET /books/{bookSlug}/export/zip';
@@ -33,7 +47,7 @@ final class RouteMix
     /** The mixes that spread the rate by place in the list (they need no route names). @return list<string> */
     public static function names(): array
     {
-        return [self::EVEN, self::FIRST_80, self::LAST_80, self::ODD_80, self::EVEN_80];
+        return [self::EVEN, self::FIRST_80, self::LAST_80, self::ODD_80, self::EVEN_80, self::PLACES_1235, self::PLACES_1345];
     }
 
     /** The mixes that point at routes by name (they need the list of routes). @return list<string> */
@@ -69,6 +83,7 @@ final class RouteMix
                 self::LAST_80 => ($i < $half ? 0.2 : 0.8) / $half,
                 self::ODD_80 => ($i % 2 === 0 ? 0.8 : 0.2) / $half, // index 0, 2, ... = the 1st, 3rd, ... place
                 self::EVEN_80 => ($i % 2 === 1 ? 0.8 : 0.2) / $half, // index 1, 3, ... = the 2nd, 4th, ... place
+                self::PLACES_1235, self::PLACES_1345 => (in_array($i, self::HEAVY_PLACES[$mix], true) ? 0.8 : 0.2) / $half,
             };
         }
 

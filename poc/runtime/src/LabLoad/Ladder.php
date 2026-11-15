@@ -67,8 +67,9 @@ final class Ladder
 
     /**
      * The prediction scenarios of the third backtest (section 7.4.2): the same N_0 and mixes as the cal-3 definition, with the count at
-     * 30 x N_0 = 300,000. s-5 is the one mix no earlier scenario used: 80% on the routes at the even places of the list. A third table,
-     * so that the order and the records of t-* and r-* stay what they were.
+     * 30 x N_0 = 300,000. s-4 and s-5 name the places that get 80% (the 1st, 2nd, 3rd and 5th; the 1st, 3rd, 4th and 5th) so that the two
+     * heavy routes (the ZIP export at the 2nd place, the book page at the 4th) are driven apart, which `odd80` and `even80` could not do
+     * (section 7.4.2, as amended on 2026-11-16). A third table, so that the order and the records of t-* and r-* stay what they were.
      *
      * @var array<string, array{0: int, 1: string}>
      */
@@ -76,8 +77,8 @@ final class Ladder
         's-1' => [30, RouteMix::EVEN],
         's-2' => [30, RouteMix::FIRST_80],
         's-3' => [30, RouteMix::LAST_80],
-        's-4' => [30, RouteMix::ODD_80],
-        's-5' => [30, RouteMix::EVEN_80],
+        's-4' => [30, RouteMix::PLACES_1235],
+        's-5' => [30, RouteMix::PLACES_1345],
     ];
 
     /** The scenario sets: `t` (the first backtest, section 7.2), `r` (the re-check, section 7.4.1) and `s` (the third, section 7.4.2). */
