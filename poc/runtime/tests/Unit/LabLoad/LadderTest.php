@@ -124,6 +124,102 @@ final class LadderTest extends TestCase
         }
     }
 
+    public function test_the_third_backtest_scenarios_have_the_count_and_the_mix_of_section_7_4_2(): void
+    {
+        $this->assertSame(['id' => 's-1', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::EVEN], Ladder::scenario('s-1'));
+        $this->assertSame(['id' => 's-2', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::FIRST_80], Ladder::scenario('s-2'));
+        $this->assertSame(['id' => 's-3', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::LAST_80], Ladder::scenario('s-3'));
+        $this->assertSame(['id' => 's-4', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::ODD_80], Ladder::scenario('s-4'));
+        $this->assertSame(['id' => 's-5', 'scale' => 300000, 'multiple' => 30, 'mix' => RouteMix::EVEN_80], Ladder::scenario('s-5'));
+        $this->assertSame([['scale' => 300000, 'scenarios' => ['s-1', 's-2', 's-3', 's-4', 's-5']]], Ladder::order(Ladder::SET_THIRD));
+    }
+
+    public function test_the_third_backtest_ladder_is_the_13_steps_with_0_025_and_0_035_under_the_lowest(): void
+    {
+        $this->assertSame([0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0], Ladder::RUNGS_S);
+        $this->assertSame(array_merge([0.025, 0.035], Ladder::RUNGS), Ladder::RUNGS_S);
+        $this->assertCount(15, Ladder::RUNGS_S);
+        foreach (['s-1', 's-2', 's-3', 's-4', 's-5'] as $id) {
+            $this->assertSame(Ladder::RUNGS_S, Ladder::rungsFor($id), $id);
+        }
+    }
+
+    public function test_the_first_two_sets_keep_their_13_steps_their_scenarios_and_their_order_to_the_bit(): void
+    {
+        // a pin on what #15 and #17 measured: adding the third set changes none of it
+        $this->assertSame([0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0], Ladder::RUNGS);
+        foreach (['t-1', 't-2', 't-3', 't-4', 't-5', 'r-1', 'r-2', 'r-3', 'r-4', 'r-5'] as $id) {
+            $this->assertSame(Ladder::RUNGS, Ladder::rungsFor($id), $id);
+        }
+        $this->assertSame(
+            [['scale' => 10000, 'scenarios' => ['t-4']], ['scale' => 30000, 'scenarios' => ['t-1']], ['scale' => 100000, 'scenarios' => ['t-2', 't-3', 't-5']]],
+            Ladder::order(Ladder::SET_FIRST),
+        );
+        $this->assertSame(
+            [['scale' => 50000, 'scenarios' => ['r-1', 'r-2']], ['scale' => 200000, 'scenarios' => ['r-3', 'r-4', 'r-5']]],
+            Ladder::order(Ladder::SET_RECHECK),
+        );
+        $expected = [
+            't-1' => [30000, 3, 'even'], 't-2' => [100000, 10, 'even'], 't-3' => [100000, 10, 'first80'], 't-4' => [10000, 1, 'even'], 't-5' => [100000, 10, 'last80'],
+            'r-1' => [50000, 5, 'even'], 'r-2' => [50000, 5, 'first80'], 'r-3' => [200000, 20, 'even'], 'r-4' => [200000, 20, 'first80'], 'r-5' => [200000, 20, 'last80'],
+        ];
+        foreach ($expected as $id => [$scale, $multiple, $mix]) {
+            $this->assertSame(['id' => $id, 'scale' => $scale, 'multiple' => $multiple, 'mix' => $mix], Ladder::scenario($id), $id);
+        }
+        // no set holds another's scenario
+        foreach (['t' => Ladder::SET_FIRST, 'r' => Ladder::SET_RECHECK, 's' => Ladder::SET_THIRD] as $prefix => $set) {
+            foreach (Ladder::order($set) as $group) {
+                foreach ($group['scenarios'] as $id) {
+                    $this->assertStringStartsWith($prefix . '-', $id);
+                }
+            }
+        }
+    }
+
+    public function test_a_trial_is_never_a_third_backtest_scenario_and_an_unknown_one_is_refused(): void
+    {
+        foreach (['s-1', 's-2', 's-3', 's-4', 's-5', 's-6', 's-0'] as $id) {
+            try {
+                Ladder::trial($id);
+                $this->fail("expected a refusal for trial '$id'");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        foreach (['s-6', 's-0', 'S-1'] as $id) {
+            try {
+                Ladder::scenario($id);
+                $this->fail("expected a refusal for '$id'");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_every_step_of_the_third_ladder_makes_a_plan_for_every_mix_of_the_third_set_with_the_decided_total(): void
+    {
+        foreach (['s-1', 's-2', 's-3', 's-4', 's-5'] as $id) {
+            $mix = Ladder::scenario($id)['mix'];
+            foreach (Ladder::rungsFor($id) as $rps) {
+                $plan = ScenarioPlan::build(self::routes(), $mix, $rps, 360, 60);
+                $this->assertEqualsWithDelta($rps, array_sum(array_column($plan['routes'], 'rps')), 1e-9, "$id at $rps");
+                $this->assertEqualsWithDelta(1.0, array_sum(array_column($plan['routes'], 'share')), 1e-12, "$id at $rps");
+            }
+        }
+    }
+
+    public function test_s5_sends_80_percent_to_the_even_places_of_the_list_at_every_step(): void
+    {
+        foreach (Ladder::RUNGS_S as $rps) {
+            $plan = ScenarioPlan::build(self::routes(), Ladder::scenario('s-5')['mix'], $rps, 360, 60);
+            $byRoute = array_column($plan['routes'], 'rps', 'route');
+            $evenPlaces = $byRoute['GET /r2'] + $byRoute['GET /r4'] + $byRoute['GET /r6'] + $byRoute['GET /r8'];
+            $oddPlaces = $byRoute['GET /r1'] + $byRoute['GET /r3'] + $byRoute['GET /r5'] + $byRoute['GET /r7'];
+            $this->assertEqualsWithDelta(0.8 * $rps, $evenPlaces, 1e-9, "at $rps");
+            $this->assertEqualsWithDelta(0.2 * $rps, $oddPlaces, 1e-9, "at $rps");
+        }
+    }
+
     public function test_a_step_under_80_percent_with_its_rps_out_goes_on(): void
     {
         $this->assertSame(['stop' => false, 'reasons' => [], 'note' => null], Ladder::decide(0.79999, true));

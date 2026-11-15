@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Measures one prediction scenario (t-1 .. t-5, or r-1 .. r-5 of the re-check) on the lab, step by step up the rps ladder
-# (docs/simulator-spec.md sections 7.2 and 7.4.1).
+# Measures one prediction scenario (t-1 .. t-5, r-1 .. r-5 of the re-check, or s-1 .. s-5 of the third backtest) on the lab, step by step up the rps ladder
+# (docs/simulator-spec.md sections 7.2, 7.4.1 and 7.4.2).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> --statement-record=<capture.json> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
 # One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). That is the
@@ -12,12 +12,13 @@
 # each route has a chosen whole number of requests in the window and the total is exactly the decided rps x the window; `B` also
 # lengthens the window to the smallest multiple of 40 / rps that is at least 300 s. The stopping rule, the 5% check and the gate do
 # not depend on the scheme. The steps
-# are 0.05 0.07 0.1 0.15 0.2 0.3 0.45 0.7 1.0 1.5 2.2 3.3 5.0, from the bottom up. The count of the tables and the mix are the
+# are 0.05 0.07 0.1 0.15 0.2 0.3 0.45 0.7 1.0 1.5 2.2 3.3 5.0, from the bottom up (s-1 .. s-5, section 7.4.2, have 0.025 and 0.035 under the lowest: 15 steps). The count of the tables and the mix are the
 # scenario's (t-1: 3 x N_0 even; t-2: 10 x N_0 even; t-3: 10 x N_0 first80; t-4: N_0 even; t-5: 10 x N_0 last80;
-# r-1: 5 x N_0 even; r-2: 5 x N_0 first80; r-3: 20 x N_0 even; r-4: 20 x N_0 first80; r-5: 20 x N_0 last80; N_0 = 10,000).
+# r-1: 5 x N_0 even; r-2: 5 x N_0 first80; r-3: 20 x N_0 even; r-4: 20 x N_0 first80; r-5: 20 x N_0 last80;
+# s-1: 30 x N_0 even; s-2: 30 x N_0 first80; s-3: 30 x N_0 last80; s-4: 30 x N_0 odd80; s-5: 30 x N_0 even80; N_0 = 10,000).
 #
 # --request-timeout=<k6 duration> (for example 600s) is passed to the load tool as REQUEST_TIMEOUT, so that k6 does not cut a slow
-# response before the server's own limits (k6's own default is 60 s). It is REQUIRED for r-1 .. r-5 (section 7.4.1 measures with the
+# response before the server's own limits (k6's own default is 60 s). It is REQUIRED for r-1 .. r-5 and s-1 .. s-5 (sections 7.4.1 and 7.4.2 measure with the
 # PHP limit off and 600 s here, so the value is stated, not left to a default); for t-1 .. t-5 and the trial, without it the load is
 # sent exactly as before. The value is written into each step's record next to the other two limits (below).
 #
@@ -32,7 +33,7 @@
 # max_execution_time as a request through php-fpm sees it (poc/lab/diagnosis/ini-probe.php over FastCGI; `php -i` would show the CLI's
 # value), the web server's fastcgi_read_timeout (`nginx -T`), and the timeout given to k6 (php-fpm's request_terminate_timeout
 # from `php-fpm -tt` is kept beside them). A limit that cannot be read stops the scenario (exit 13) before the step is measured.
-# THE LIMITS GUARD: for r-1 .. r-5 the values must also be the ones B needs (max_execution_time 0, request_terminate_timeout 0,
+# THE LIMITS GUARD: for r-1 .. r-5 and s-1 .. s-5 the values must also be the ones B needs (max_execution_time 0, request_terminate_timeout 0,
 # fastcgi_read_timeout >= --request-timeout), or the scenario stops with exit 13 at that step and nothing is measured. t-1 .. t-5 and
 # a trial are read and recorded only, as before.
 # THE WRITE GUARDS (lab-only rule: the lab may write the view-count table `views` and nothing else; decisions.md D187, D189). A dry run needs none.
@@ -111,9 +112,9 @@ if [ -n "$trial" ]; then
   scenario="trial-$trial"
   [ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/trial"
 else
-  [[ "$scenario" =~ ^[tr]-[1-5]$ ]] || usage
+  [[ "$scenario" =~ ^[trs]-[1-5]$ ]] || usage
   # the re-check measures with the limits stated: the load tool's timeout is never left to its default (section 7.4.1)
-  if [[ "$scenario" =~ ^r- ]] && [ "$dry" = 0 ] && [ -z "$request_timeout" ]; then
+  if [[ "$scenario" =~ ^[rs]- ]] && [ "$dry" = 0 ] && [ -z "$request_timeout" ]; then
     echo "measure-ladder: $scenario needs --request-timeout=<k6 duration> (for example 600s): the re-check states it instead of leaving it to the load tool's default" >&2
     exit 2
   fi
@@ -186,7 +187,9 @@ tflag=() ; tname="$scenario"
 if [ -n "$trial" ]; then tflag=(--trial) ; tname="$trial"; fi
 read -r scale mix < <(php_tool poc/lab/load/ladder.php scenario "$tname" "${tflag[@]}" --line) || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
 [ -n "${scale:-}" ] && [ -n "${mix:-}" ] || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
-mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${tflag[@]}")
+# the steps of the scenario: the 15 of section 7.4.2 for s-1 .. s-5, the 13 of section 7.2 for t-* and r-* (a trial has its one step)
+rungs_args=("${tflag[@]}"); [ -n "$trial" ] || rungs_args=(--scenario="$scenario")
+mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${rungs_args[@]}")
 [ "${#rungs[@]}" -gt 0 ] || { echo "measure-ladder: cannot read the ladder" >&2; exit 13; }
 
 sdir="$out/${scenario}-${scale}"
@@ -249,7 +252,7 @@ if [ "$app_scale" != "$scale" ]; then
   fi
 fi
 
-# read_settings <dir>: the three limits right now, as the containers hold them, and (for r-1 .. r-5) whether they are the ones B needs.
+# read_settings <dir>: the three limits right now, as the containers hold them, and (for r-1 .. r-5 and s-1 .. s-5) whether they are the ones B needs.
 # That is bin/check-limits: it only reads (nginx -T and php-fpm -tt print the configuration; ini-probe.php is one request through
 # php-fpm that opens no database connection) and it runs before the samplers start, so nothing of it is in a window. The raw outputs and
 # settings.json are kept in the step's directory. A limit that cannot be worked out returns 1, and so does a lab that is not set for
@@ -258,7 +261,7 @@ fi
 # t-1 .. t-5 and a trial are measured as before: read and recorded, not required to be anything.
 read_settings() {
   local d="$1" need=none timeout_args=()
-  [[ "$scenario" =~ ^r- ]] && need=unlimited
+  [[ "$scenario" =~ ^[rs]- ]] && need=unlimited
   [ -z "$request_timeout" ] || timeout_args=(--request-timeout="$request_timeout")
   "$bindir/check-limits" --require="$need" "${timeout_args[@]}" --dir="$d" >"$d/check-limits.out" 2>"$d/check-limits.err"
 }

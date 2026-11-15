@@ -42,6 +42,15 @@ final class LadderPrediction
     /** The rps ladder of section 7.2: totals over all routes, fixed before any model was built. */
     public const STAGES = [0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
 
+    /**
+     * The ladder of section 7.4.2 (the third backtest): the 13 stages above with 0.025 and 0.035 under the lowest. Used for the
+     * scenarios s-1 .. s-5 and for no other (see {@see stagesFor}); the 13 above stay what they were for every other scenario file.
+     */
+    public const STAGES_S = [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
+
+    /** The id of a target scenario of the third backtest: s-1 .. s-5. */
+    private const THIRD_ID = '/^s-[1-5]$/';
+
     public const LIMIT_FOUND = 'found';
 
     /** The scenario puts no load on the database under this reading (no costed route): there is no rps that reaches the threshold. */
@@ -52,14 +61,15 @@ final class LadderPrediction
      * @param array{estimate_commit: string|null, estimate_commit_source: string|null, estimate_sha256: string, scenario_sha256: string} $inputs    where the estimate and the scenario file came from
      * @param int                                                                                                                 $naiveCount  N_0, the count of rows the naive estimate is chosen at: only the calibration scenarios at exactly this
      *                                                                                                                                 count are candidates (no default: the caller says it)
-     * @param list<float>                                                                                                         $stages      the totals of the ladder
+     * @param list<float>|null                                                                                                    $stages      the totals of the ladder; null: {@see stagesFor} (15 for s-1 .. s-5, else the 13 of section 7.2)
      *
      * @return array<string, mixed>
      *
      * @throws \InvalidArgumentException when there is no target scenario, no calibration scenario at `$naiveCount`, or the calibration cannot be made from the loaded input
      */
-    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, array $stages = self::STAGES): array
+    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, ?array $stages = null): array
     {
+        $stages ??= self::stagesFor($loaded);
         $resources = (array) $loaded['resources'];
         $cores = (float) $resources['cores'];
         $threshold = (float) $resources['threshold'];
@@ -203,6 +213,33 @@ final class LadderPrediction
         }
 
         return $sum;
+    }
+
+    /**
+     * The ladder a scenario file is predicted at: the 15 stages of section 7.4.2 when every target scenario is one of s-1 .. s-5, the 13 of
+     * section 7.2 when none is. A file with both is refused, for one prediction file has one list of stages.
+     *
+     * @param array<string, mixed> $loaded LoadedInput::toArray()
+     *
+     * @return list<float>
+     *
+     * @throws \InvalidArgumentException the targets are some of the third backtest's and some not
+     */
+    public static function stagesFor(array $loaded): array
+    {
+        $third = 0;
+        $other = 0;
+        foreach ((array) $loaded['scenarios'] as $s) {
+            if (($s['kind'] ?? null) !== 'target') {
+                continue;
+            }
+            preg_match(self::THIRD_ID, (string) $s['id']) === 1 ? ++$third : ++$other;
+        }
+        if ($third > 0 && $other > 0) {
+            throw new \InvalidArgumentException('the target scenarios are some of s-1 .. s-5 (15 stages) and some not (13 stages); one prediction file has one ladder, so make them separate files');
+        }
+
+        return $third > 0 ? self::STAGES_S : self::STAGES;
     }
 
     /**

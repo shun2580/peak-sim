@@ -23,6 +23,10 @@
 #   r-1 without --request-timeout is refused (2), a timeout without a unit is refused (2), an unknown r-6 is refused (2), all with
 #   `docker` zero times; r-1 with a closed gate is still 12 and with an open gate it reaches docker; t-4 still needs no
 #   --request-timeout (the first backtest is measured as it was); a dry run of r-1 needs none either.
+# 29-34 the third backtest's scenarios (s-1 .. s-5, spec 7.4.2) go through the same gate, state the load tool's timeout as r-* do, and
+#   the t-*/r-* rules are untouched: s-1 without --request-timeout is refused (2), an unknown s-6 is refused (2), both with `docker` zero times;
+#   s-5 with a closed gate is still 12 and with an open gate it reaches docker; --trial=s-1 is refused (2). (The 15 steps of s-* against
+#   the 13 of t-* and r-* are pinned in LadderTest and LadderCliTest: this script has no PHP, and its `docker` is a recorder.)
 # 28  every file the ladder measurement writes is outside .gitignore (none is named *.log), so a record is not lost from a commit
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
@@ -162,6 +166,26 @@ expect_code "26 t-4 with a timeout that has no unit: refused too" 2 $rc
 ml --scenario=r-1 --dry-run; rc=$?
 [ "$rc" -ne 2 ] && pass "27 a dry run of r-1 needs no --request-timeout (exit $rc)" || fail "27 a dry run of r-1 was refused ($(head -2 "$work/ml.out" | tr '\n' ' '))"
 
+# 29-34: the third backtest's scenarios
+ml --scenario=s-1 --predictions="$pred"; rc=$?
+expect_code "29 s-1 without --request-timeout: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "29b docker was not called" || fail "29b docker was called"
+ml --scenario=s-1 --predictions="$pred" --request-timeout=600; rc=$?
+expect_code "30 s-1 --request-timeout=600 (no unit): refused" 2 $rc
+ml --scenario=s-6 --predictions="$pred" --request-timeout=600s; rc=$?
+expect_code "31 s-6 does not exist: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "31b docker was not called" || fail "31b docker was called"
+echo '{"v":3}' >"$pred"            # closed
+ml --scenario=s-5 --predictions="$pred" --request-timeout=600s; rc=$?
+expect_code "32 s-5 with a closed gate: 12" 12 $rc
+[ "$(calls)" = 0 ] && pass "32b docker was not called" || fail "32b docker was called"
+git -C "$repo" checkout -q HEAD -- poc/lab/predictions/p.json
+ml --scenario=s-5 --predictions="$pred" --request-timeout=600s; rc=$?
+[ "$rc" -ne 12 ] && [ "$rc" -ne 2 ] && pass "33 s-5 with an open gate and a timeout goes past the arguments (exit $rc)" || fail "33 s-5 was stopped (exit $rc: $(head -2 "$work/ml.out" | tr '\n' ' '))"
+[ "$(calls)" -ge 1 ] && pass "33b it reached docker" || fail "33b it never reached docker"
+ml --trial=s-1; rc=$?
+expect_code "34 --trial=s-1: refused" 2 $rc
+[ "$(calls)" = 0 ] && pass "34b docker was not called" || fail "34b docker was called"
 # 28: every file the ladder measurement writes can be committed: none of its names is matched by .gitignore (the load tool's log was once
 # named k6.log and was dropped by *.log). The names are the ones the script writes under "$d/", "$sdir/" and the ones check-limits writes in
 # its --dir; this test never reaches the load tool, so the names are read from the scripts.

@@ -9,7 +9,8 @@ namespace PeakSim\Runtime\LabLoad;
  *
  * The routes are taken in the order of the list. `even` gives every route the same share. `first80` gives the first half of
  * the list 80% in all and the second half 20%; `last80` is the reverse. `odd80` gives the routes at the odd places of the list
- * (1st, 3rd, 5th, 7th) 80% in all and the routes at the even places 20%. Inside a group every route gets the same share.
+ * (1st, 3rd, 5th, 7th) 80% in all and the routes at the even places 20%; `even80` is the reverse (the 2nd, 4th, 6th, 8th get 80%, the
+ * odd places 20%; section 7.4.2's s-5). Inside a group every route gets the same share.
  * The list must have an even number of routes (the spec's list has 8) so that "first half" and "second half" are exact.
  *
  * `bookpage80zip0` is the one mix that names its routes instead of counting places: the book page route (`GET /books/{slug}`)
@@ -23,6 +24,7 @@ final class RouteMix
     public const FIRST_80 = 'first80';
     public const LAST_80 = 'last80';
     public const ODD_80 = 'odd80';
+    public const EVEN_80 = 'even80';
     public const BOOK_PAGE_80_ZIP_0 = 'bookpage80zip0';
 
     public const BOOK_PAGE_ROUTE = 'GET /books/{slug}';
@@ -31,7 +33,7 @@ final class RouteMix
     /** The mixes that spread the rate by place in the list (they need no route names). @return list<string> */
     public static function names(): array
     {
-        return [self::EVEN, self::FIRST_80, self::LAST_80, self::ODD_80];
+        return [self::EVEN, self::FIRST_80, self::LAST_80, self::ODD_80, self::EVEN_80];
     }
 
     /** The mixes that point at routes by name (they need the list of routes). @return list<string> */
@@ -66,6 +68,7 @@ final class RouteMix
                 self::FIRST_80 => ($i < $half ? 0.8 : 0.2) / $half,
                 self::LAST_80 => ($i < $half ? 0.2 : 0.8) / $half,
                 self::ODD_80 => ($i % 2 === 0 ? 0.8 : 0.2) / $half, // index 0, 2, ... = the 1st, 3rd, ... place
+                self::EVEN_80 => ($i % 2 === 1 ? 0.8 : 0.2) / $half, // index 1, 3, ... = the 2nd, 4th, ... place
             };
         }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Predicts the lab backtest's rps ladder (simulator-spec.md sections 7.2 and 7.3): for every target scenario of the scenario file, the
-# utilisation of the database CPU at each of the 13 stages (point and safe side), the naive estimate, and the limit rps (point, safe, naive).
+# utilisation of the database CPU at each of the 13 stages (15 when every target scenario is s-1 .. s-5, section 7.4.2) (point and safe side), the naive estimate, and the limit rps (point, safe, naive).
 # Writes ladder-prediction.json. Sends no request, touches no database and no app.
 #
 #   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows>

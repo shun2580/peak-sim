@@ -34,6 +34,22 @@ final class LadderShapeTest extends TestCase
         }
     }
 
+    public function test_the_two_steps_added_for_the_third_backtest_get_their_windows_from_the_same_rule_and_the_same_rounding(): void
+    {
+        // 0.025: 40 / 0.025 = 1600 s, already at least 300 s. 0.035: 40 / 0.035 = 1142.857 s, rounded to whole seconds as 0.07 (571.43 -> 571) is.
+        foreach ([[0.025, 1600], [0.035, 1143]] as [$rps, $window]) {
+            $this->assertSame($window, LadderShape::multipleWindow($rps), "rps $rps");
+            $shape = LadderShape::shape(LadderShape::B, $rps);
+            $this->assertSame($window + 60, $shape['duration_sec'], "rps $rps");
+            $this->assertSame(60, $shape['warmup_sec']);
+            $this->assertSame(300 + 60, LadderShape::shape(LadderShape::SPEC, $rps)['duration_sec'], "spec, rps $rps");
+        }
+        // every step of the 15 has a window of at least 300 s under B (the 13 old windows are pinned in the next test)
+        foreach (Ladder::RUNGS_S as $rps) {
+            $this->assertGreaterThanOrEqual(300, LadderShape::multipleWindow($rps), "rps $rps");
+        }
+    }
+
     public function test_scheme_b_lengthens_the_window_to_the_smallest_multiple_of_40_over_rps_of_at_least_300_seconds(): void
     {
         $windows = [[0.05, 800], [0.07, 571], [0.1, 400], [0.15, 533], [0.2, 400], [0.3, 400], [0.45, 356], [0.7, 343], [1.0, 320], [1.5, 320], [2.2, 309], [3.3, 303], [5.0, 304]];

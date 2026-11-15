@@ -52,7 +52,7 @@ final class LadderPredictionTest extends TestCase
         't-2' => '{ "GET /a": 2.0, "POST /m": 8.0 }',
     ];
 
-    private const TARGET_TABLES = ['t-1' => '{ pages: 3000, books: 3000 }', 't-2' => '{ pages: 10000, books: 10000 }'];
+    private const TARGET_TABLES = ['t-1' => '{ pages: 3000, books: 3000 }', 't-2' => '{ pages: 10000, books: 10000 }', 's-1' => '{ pages: 30000, books: 30000 }', 's-5' => '{ pages: 30000, books: 30000 }'];
 
     /**
      * @param array<string, string>                                      $targets      id => rps map as YAML text
@@ -486,6 +486,53 @@ final class LadderPredictionTest extends TestCase
     }
 
     // ---- the calibration range is a record ----
+
+    public function testTheScenariosOfTheThirdBacktestAreWrittenAtTheFifteenStagesOfSection742(): void
+    {
+        $targets = ['s-1' => '{ "GET /a": 6.0, "POST /m": 2.0, "GET /axisless": 2.0 }', 's-5' => '{ "GET /a": 2.0, "POST /m": 8.0 }'];
+        [$code, $stdout, $stderr, $io] = self::ladder(self::yaml($targets));
+        self::assertSame(0, $code, $stderr);
+        $r = json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+
+        $fifteen = [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
+        self::assertSame($fifteen, $r['stages_rps_total']);
+        self::assertSame($fifteen, LadderPrediction::STAGES_S);
+        self::assertSame(array_merge([0.025, 0.035], LadderPrediction::STAGES), LadderPrediction::STAGES_S);
+        self::assertSame(['s-1', 's-5'], array_column($r['scenarios'], 'id'));
+        foreach ($r['scenarios'] as $s) {
+            self::assertSame($fifteen, array_column($s['stages'], 'rps_total'), $s['id']);
+            self::assertCount(15, $s['calibration_range']['stages']);
+            foreach ($s['stages'] as $stage) {
+                self::assertEqualsWithDelta($stage['rps_total'], array_sum($stage['rps']), 1e-12);
+            }
+        }
+        self::assertStringContainsString('15 stage(s) x 2 scenario(s)', $stdout);
+    }
+
+    public function testTheThirteenStagesOfTheFirstTwoBacktestsAreUntouchedAndTheThirteenAreThePrefixOfNothing(): void
+    {
+        // t-* and r-* targets (and any other id) keep the 13 of section 7.2, byte for byte; the other tests of this class pin the bytes of the output
+        foreach ([['t-1', 't-2'], ['r-1', 'r-5'], ['t-1']] as $ids) {
+            $loaded = ['scenarios' => array_map(static fn (string $id): array => ['id' => $id, 'kind' => 'target'], $ids)];
+            self::assertSame(LadderPrediction::STAGES, LadderPrediction::stagesFor($loaded), implode(',', $ids));
+        }
+        self::assertSame([0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0], LadderPrediction::STAGES);
+        // an id that only looks like one (s-6, s-10, xs-1) is not of the third backtest
+        foreach (['s-6', 's-10', 'xs-1', 's-0'] as $id) {
+            self::assertSame(LadderPrediction::STAGES, LadderPrediction::stagesFor(['scenarios' => [['id' => $id, 'kind' => 'target']]]), $id);
+        }
+        // calibration scenarios do not choose the ladder
+        self::assertSame(LadderPrediction::STAGES, LadderPrediction::stagesFor(['scenarios' => [['id' => 's-1', 'kind' => 'calibration'], ['id' => 't-1', 'kind' => 'target']]]));
+    }
+
+    public function testAFileWithTargetsOfBothBacktestsIsRefusedBecauseOnePredictionHasOneLadder(): void
+    {
+        $targets = ['t-1' => self::TARGETS['t-1'], 's-1' => '{ "GET /a": 2.0, "POST /m": 8.0 }'];
+        [$code, , $stderr, $io] = self::ladder(self::yaml($targets));
+        self::assertSame(LadderStage::EXIT_NO_TARGET, $code);
+        self::assertStringContainsString('one prediction file has one ladder', $stderr);
+        self::assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
 
     public function testTheCalibrationRangeGivesEachFitsCoefficientsUtilisationAtEveryStageAndLimitRps(): void
     {

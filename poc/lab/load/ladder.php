@@ -6,10 +6,11 @@ declare(strict_types=1);
  * The PHP half of `poc/lab/bin/measure-ladder`: the steps, the scenarios, the stopping rule and the record of one step. It
  * measures nothing and touches no container.
  *
- *   php ladder.php rungs [--trial]                the rps of each step, one per line (--trial: the one step of a trial, R_0)
+ *   php ladder.php rungs [--trial|--scenario=<id>]  the rps of each step, one per line (--trial: the one step of a trial, R_0; --scenario=s-1..s-5:
+ *                                                 the 15 steps of section 7.4.2; no option, or any other id: the 13 of section 7.2)
  *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
  *   php ladder.php scenario <cal-2|cal-3> --trial [--line]   the same for a trial (N_0; a prediction scenario id is refused)
- *   php ladder.php order [--set=<t|r>]            the order of the measurement by scale (JSON; t = t-1..t-5, the default; r = r-1..r-5)
+ *   php ladder.php order [--set=<t|r|s>]          the order of the measurement by scale (JSON; t = t-1..t-5, the default; r = r-1..r-5; s = s-1..s-5)
  *   php ladder.php settings --nginx=<file> --fpm=<file> --ini=<file> [--k6-timeout=<duration>] [--require=<unlimited|limited>]
  *                                                 the three limits of the lab (JSON), worked out from what was read in the containers;
  *                                                 with --require, also whether they are the ones the measurement needs (the JSON is
@@ -73,7 +74,15 @@ foreach ($args as $arg) {
 switch ($command) {
     case 'rungs':
         // --trial: the one step of a trial (R_0)
-        foreach (isset($opts['trial']) ? [Ladder::TRIAL_RPS] : Ladder::RUNGS as $rps) {
+        if (isset($opts['scenario'])) {
+            try {
+                Ladder::scenario($opts['scenario']); // an unknown id is refused, so the 13 are never given to a name that is no scenario
+            } catch (InvalidArgumentException $e) {
+                fail($e->getMessage());
+            }
+        }
+        $rungs = isset($opts['trial']) ? [Ladder::TRIAL_RPS] : (isset($opts['scenario']) ? Ladder::rungsFor($opts['scenario']) : Ladder::RUNGS);
+        foreach ($rungs as $rps) {
             echo rtrim(rtrim(number_format($rps, 4, '.', ''), '0'), '.'), "\n";
         }
         exit(0);
@@ -187,7 +196,7 @@ switch ($command) {
         }
         // a prediction scenario (--scenario) or a trial (--trial), never both
         if (isset($opts['scenario']) === isset($opts['trial'])) {
-            fail('record needs --scenario=<t-1..t-5|r-1..r-5> or --trial=<cal-2|cal-3>, and not both');
+            fail('record needs --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> or --trial=<cal-2|cal-3>, and not both');
         }
         if (isset($opts['trial']) && isset($opts['prediction-file'])) {
             fail('a trial has no prediction: --prediction-file is refused with --trial');
@@ -247,7 +256,7 @@ switch ($command) {
             'mix' => $rungs[0]['mix'] ?? null,
             'rungs_measured' => count($rungs),
             'trial' => (bool) ($rungs[0]['trial'] ?? false),
-            'rungs_in_ladder' => ($rungs[0]['trial'] ?? false) ? 1 : count(Ladder::RUNGS),
+            'rungs_in_ladder' => ($rungs[0]['trial'] ?? false) ? 1 : count(Ladder::rungsFor((string) ($rungs[0]['scenario'] ?? ''))),
             'stopped_after_rung' => $last !== null && $last['decision']['stop'] ? $last['rung'] : null,
             'stop_reasons' => $last !== null && $last['decision']['stop'] ? $last['decision']['reasons'] : [],
             'rungs' => $rungs,
@@ -255,5 +264,5 @@ switch ($command) {
         exit(0);
 
     default:
-        fail('usage: ladder.php rungs | scenario <id> [--trial] [--line] | order [--set=t|r] | settings --nginx=<f> --fpm=<f> --ini=<f> [--require=<unlimited|limited>] | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs [--trial|--scenario=<id>] | scenario <id> [--trial] [--line] | order [--set=t|r|s] | settings --nginx=<f> --fpm=<f> --ini=<f> [--require=<unlimited|limited>] | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
 }

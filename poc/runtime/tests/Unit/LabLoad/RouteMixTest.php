@@ -51,6 +51,39 @@ final class RouteMixTest extends TestCase
         $this->assertEqualsWithDelta(0.2, $even, 1e-12);
     }
 
+    public function test_even80_puts_80_percent_on_the_2nd_4th_6th_and_8th_and_20_on_the_rest(): void
+    {
+        $shares = RouteMix::shares(8, RouteMix::EVEN_80);
+        $this->assertSame('even80', RouteMix::EVEN_80);
+        foreach ([0, 2, 4, 6] as $i) {
+            $this->assertEqualsWithDelta(0.05, $shares[$i], 1e-12, 'place ' . ($i + 1));
+        }
+        foreach ([1, 3, 5, 7] as $i) {
+            $this->assertEqualsWithDelta(0.2, $shares[$i], 1e-12, 'place ' . ($i + 1));
+        }
+        $this->assertEqualsWithDelta(0.8, $shares[1] + $shares[3] + $shares[5] + $shares[7], 1e-12);
+    }
+
+    public function test_even80_is_odd80_with_the_two_groups_swapped_and_the_two_add_up_to_even(): void
+    {
+        $even80 = RouteMix::shares(8, RouteMix::EVEN_80);
+        $odd80 = RouteMix::shares(8, RouteMix::ODD_80);
+        $even = RouteMix::shares(8, RouteMix::EVEN);
+        foreach (range(0, 7) as $i) {
+            $this->assertEqualsWithDelta($odd80[$i ^ 1], $even80[$i], 1e-12, 'route ' . ($i + 1) . ' of even80 is the neighbour of odd80');
+            $this->assertEqualsWithDelta(2 * $even[$i], $even80[$i] + $odd80[$i], 1e-12, 'route ' . ($i + 1));
+        }
+    }
+
+    public function test_the_mixes_that_existed_before_even80_keep_their_shares_to_the_bit(): void
+    {
+        $this->assertSame([0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125], RouteMix::shares(8, RouteMix::EVEN));
+        $this->assertSame([0.2, 0.2, 0.2, 0.2, 0.05, 0.05, 0.05, 0.05], RouteMix::shares(8, RouteMix::FIRST_80));
+        $this->assertSame([0.05, 0.05, 0.05, 0.05, 0.2, 0.2, 0.2, 0.2], RouteMix::shares(8, RouteMix::LAST_80));
+        $this->assertSame([0.2, 0.05, 0.2, 0.05, 0.2, 0.05, 0.2, 0.05], RouteMix::shares(8, RouteMix::ODD_80));
+        $this->assertSame([RouteMix::EVEN, RouteMix::FIRST_80, RouteMix::LAST_80, RouteMix::ODD_80, RouteMix::EVEN_80], RouteMix::names());
+    }
+
     public function test_every_mix_adds_up_to_one(): void
     {
         foreach (RouteMix::names() as $mix) {

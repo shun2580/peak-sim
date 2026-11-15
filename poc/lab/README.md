@@ -64,6 +64,12 @@ app-side stall, with the app's CPU utilization.
   samplers start; `settings-nginx.txt`, `settings-fpm.txt` and `settings-ini.txt` keep the raw output. A limit that cannot be read stops the
   scenario (exit 13). `ladder.json` collects the steps of the scenario. Each step prints a `RUNG START`
   and a `RUNG END` line. A restart skips the steps that already have a `record.json`.
+- **The third backtest (`s-1`..`s-5`, spec 7.4.2).** `--scenario=s-N` measures 30 x N_0 = 300,000 rows (s-1 even, s-2 first80, s-3 last80, s-4 odd80,
+  s-5 even80: 80% on the 2nd, 4th, 6th and 8th routes of the list). Its ladder is the 13 steps with 0.025 and 0.035 under the lowest (15 steps;
+  `ladder.php rungs --scenario=s-N`); the window and the stopping rule are those of 7.2, so under scheme B the two added steps last 1,600 s
+  and 1,143 s (40 / rps seconds, rounded to whole seconds as every other step is). Like `r-*` it requires `--request-timeout` and the limits
+  guard. `t-*` and `r-*` keep their 13 steps, their tables and their records as they were. `predict-ladder` writes 15 stages when every
+  target scenario of the file is one of `s-1`..`s-5`, and 13 otherwise.
 - **The re-check (`r-1`..`r-5`, spec 7.4.1).** `--scenario=r-N` measures 5 x N_0 and 20 x N_0 with the same steps, window and stopping rule.
   It requires `--request-timeout=<k6 duration>` (600s in the spec) so that the load tool's timeout is stated and not left to its default;
   for `t-*` the option is optional and without it the load is sent as before. The limits of the lab itself (PHP, nginx) are set outside this

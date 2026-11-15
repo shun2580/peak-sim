@@ -16,6 +16,12 @@ final class Ladder
     /** The total rps of each step, from the bottom up (section 7.2). */
     public const RUNGS = [0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
 
+    /**
+     * The steps of the third backtest's scenarios (section 7.4.2): the 13 steps above with 0.025 and 0.035 put under the lowest, 15 in all.
+     * A separate list, so that the 13 of t-1 .. t-5 and r-1 .. r-5 (and their records and tables) stay what they were.
+     */
+    public const RUNGS_S = [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0];
+
     /** One step: 6 minutes of constant arrival, the first minute discarded. */
     public const DURATION_SEC = 360;
     public const WARMUP_SEC = 60;
@@ -59,9 +65,25 @@ final class Ladder
         'r-5' => [20, RouteMix::LAST_80],
     ];
 
-    /** The scenario sets: `t` (the first backtest, section 7.2) and `r` (the re-check, section 7.4.1). */
+    /**
+     * The prediction scenarios of the third backtest (section 7.4.2): the same N_0 and mixes as the cal-3 definition, with the count at
+     * 30 x N_0 = 300,000. s-5 is the one mix no earlier scenario used: 80% on the routes at the even places of the list. A third table,
+     * so that the order and the records of t-* and r-* stay what they were.
+     *
+     * @var array<string, array{0: int, 1: string}>
+     */
+    private const THIRD_SCENARIOS = [
+        's-1' => [30, RouteMix::EVEN],
+        's-2' => [30, RouteMix::FIRST_80],
+        's-3' => [30, RouteMix::LAST_80],
+        's-4' => [30, RouteMix::ODD_80],
+        's-5' => [30, RouteMix::EVEN_80],
+    ];
+
+    /** The scenario sets: `t` (the first backtest, section 7.2), `r` (the re-check, section 7.4.1) and `s` (the third, section 7.4.2). */
     public const SET_FIRST = 't';
     public const SET_RECHECK = 'r';
+    public const SET_THIRD = 's';
 
     /**
      * @return array<string, array{0: int, 1: string}>
@@ -71,13 +93,25 @@ final class Ladder
         return match ($set) {
             self::SET_FIRST => self::SCENARIOS,
             self::SET_RECHECK => self::RECHECK_SCENARIOS,
-            default => throw new \InvalidArgumentException(sprintf('unknown scenario set "%s" (t or r)', $set)),
+            self::SET_THIRD => self::THIRD_SCENARIOS,
+            default => throw new \InvalidArgumentException(sprintf('unknown scenario set "%s" (t, r or s)', $set)),
         };
     }
 
     /**
+     * The steps of a prediction scenario's ladder: the 15 of section 7.4.2 for s-1 .. s-5, the 13 of section 7.2 for every other id
+     * (an unknown id is refused by {@see scenario}, not here).
+     *
+     * @return list<float>
+     */
+    public static function rungsFor(string $scenarioId): array
+    {
+        return isset(self::THIRD_SCENARIOS[$scenarioId]) ? self::RUNGS_S : self::RUNGS;
+    }
+
+    /**
      * The order of the measurement (spec: by scale, so the 8 N tables are rebuilt as seldom as possible). Set `t`: N_0, then
-     * 3 x N_0, then 10 x N_0. Set `r`: 5 x N_0, then 20 x N_0.
+     * 3 x N_0, then 10 x N_0. Set `r`: 5 x N_0, then 20 x N_0. Set `s`: 30 x N_0 (one scale).
      *
      * @return list<array{scale: int, scenarios: list<string>}>
      */
@@ -103,7 +137,7 @@ final class Ladder
      */
     public static function scenario(string $id): array
     {
-        $all = self::SCENARIOS + self::RECHECK_SCENARIOS;
+        $all = self::SCENARIOS + self::RECHECK_SCENARIOS + self::THIRD_SCENARIOS;
         if (!isset($all[$id])) {
             throw new \InvalidArgumentException(sprintf('unknown scenario "%s" (one of %s)', $id, implode(', ', array_keys($all))));
         }

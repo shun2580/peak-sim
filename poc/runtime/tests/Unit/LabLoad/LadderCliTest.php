@@ -98,6 +98,60 @@ final class LadderCliTest extends TestCase
         }
     }
 
+    public function test_rungs_of_a_third_backtest_scenario_are_the_15_steps_and_every_other_id_or_none_keeps_the_13(): void
+    {
+        $thirteen = ['0.05', '0.07', '0.1', '0.15', '0.2', '0.3', '0.45', '0.7', '1', '1.5', '2.2', '3.3', '5'];
+        foreach (['s-1', 's-2', 's-3', 's-4', 's-5'] as $id) {
+            [$code, $out] = self::tool('ladder.php', ['rungs', "--scenario=$id"]);
+            $this->assertSame(0, $code, $id);
+            $this->assertSame(array_merge(['0.025', '0.035'], $thirteen), explode("\n", trim($out)), $id);
+        }
+        foreach (['t-1', 't-4', 'r-1', 'r-5'] as $id) {
+            $this->assertSame($thirteen, explode("\n", trim(self::tool('ladder.php', ['rungs', "--scenario=$id"])[1])), $id);
+        }
+        $this->assertSame($thirteen, explode("\n", trim(self::tool('ladder.php', ['rungs'])[1])), 'no option: unchanged');
+        $this->assertSame(2, self::tool('ladder.php', ['rungs', '--scenario=s-6'])[0], 'a name that is no scenario never gets the 13');
+        $this->assertSame(['1'], explode("\n", trim(self::tool('ladder.php', ['rungs', '--trial'])[1])), 'a trial keeps its one step');
+    }
+
+    public function test_the_third_backtest_scenarios_are_read_through_the_same_door_as_the_others(): void
+    {
+        $this->assertSame([0, "300000 even\n"], array_slice(self::tool('ladder.php', ['scenario', 's-1', '--line']), 0, 2));
+        $this->assertSame([0, "300000 first80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-2', '--line']), 0, 2));
+        $this->assertSame([0, "300000 last80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-3', '--line']), 0, 2));
+        $this->assertSame([0, "300000 odd80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-4', '--line']), 0, 2));
+        $this->assertSame([0, "300000 even80\n"], array_slice(self::tool('ladder.php', ['scenario', 's-5', '--line']), 0, 2));
+        $this->assertSame(2, self::tool('ladder.php', ['scenario', 's-6', '--line'])[0]);
+        $this->assertSame(2, self::tool('ladder.php', ['scenario', 's-1', '--trial', '--line'])[0], 'a third-backtest scenario is never a trial');
+        $this->assertSame([['scale' => 300000, 'scenarios' => ['s-1', 's-2', 's-3', 's-4', 's-5']]], json_decode(self::tool('ladder.php', ['order', '--set=s'])[1], true));
+        // t and r are what they were
+        $this->assertSame([['scale' => 10000, 'scenarios' => ['t-4']], ['scale' => 30000, 'scenarios' => ['t-1']], ['scale' => 100000, 'scenarios' => ['t-2', 't-3', 't-5']]], json_decode(self::tool('ladder.php', ['order'])[1], true));
+    }
+
+    public function test_make_plan_makes_a_plan_for_even80_at_every_one_of_the_15_steps_and_gives_the_even_places_80_percent(): void
+    {
+        foreach (['0.025', '0.035', '0.05', '0.07', '0.1', '0.15', '0.2', '0.3', '0.45', '0.7', '1', '1.5', '2.2', '3.3', '5'] as $rps) {
+            [$code, $out, $err] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), '--mix=even80', "--rps=$rps", '--duration=360', '--warmup=60']);
+            $this->assertSame(0, $code, "even80 at $rps: $err");
+            $plan = json_decode($out, true);
+            $byRoute = array_column($plan['routes'], 'rps', 'route');
+            $this->assertEqualsWithDelta(0.8 * (float) $rps, $byRoute['GET /r2'] + $byRoute['GET /r4'] + $byRoute['GET /r6'] + $byRoute['GET /r8'], 1e-9, "at $rps");
+        }
+    }
+
+    public function test_collect_of_a_third_backtest_scenario_says_the_ladder_has_15_steps_and_of_a_first_one_13(): void
+    {
+        foreach (['s-3' => 15, 'r-1' => 13, 't-4' => 13] as $id => $steps) {
+            $dir = $this->dir . '/c-' . $id;
+            mkdir($dir . '/rung-01', 0777, true);
+            $record = json_decode($this->record(0.2, true, 1)[1], true);
+            $record['scenario'] = $id;
+            file_put_contents($dir . '/rung-01/record.json', json_encode($record));
+            $c = json_decode(self::tool('ladder.php', ['collect', '--dir=' . $dir])[1], true);
+            $this->assertSame($steps, $c['rungs_in_ladder'], $id);
+        }
+    }
+
     /** @return array<string, string> the three files `settings` reads */
     private function settingsFiles(string $maxExecutionTime = '0', string $readTimeout = '600s'): array
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * Makes the plan the k6 scenario reads (poc/lab/load/scenario.js) from the route list and a mix and a total rps.
  *
- *   php poc/lab/load/make-plan.php --routes=<route-list.json> --mix=even|first80|last80|odd80|bookpage80zip0 --rps=<number> [--duration=600] [--warmup=120]
+ *   php poc/lab/load/make-plan.php --routes=<route-list.json> --mix=even|first80|last80|odd80|even80|bookpage80zip0 --rps=<number> [--duration=600] [--warmup=120]
  *
  * The routes are taken in the order of the list's `selected` (its rank order); the list is read, never changed.
  * exit codes: 0 done / 2 wrong usage or an unreadable list
@@ -25,7 +25,7 @@ foreach (array_slice($argv, 1) as $arg) {
 }
 foreach (['routes', 'mix', 'rps'] as $need) {
     if (!isset($opts[$need])) {
-        fwrite(STDERR, "usage: make-plan --routes=<route-list.json> --mix=<even|first80|last80|odd80|bookpage80zip0> --rps=<number> [--duration=600] [--warmup=120]\n");
+        fwrite(STDERR, "usage: make-plan --routes=<route-list.json> --mix=<even|first80|last80|odd80|even80|bookpage80zip0> --rps=<number> [--duration=600] [--warmup=120]\n");
         exit(2);
     }
 }
