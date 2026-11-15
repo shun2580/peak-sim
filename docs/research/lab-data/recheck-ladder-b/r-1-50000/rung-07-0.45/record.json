@@ -1,0 +1,133 @@
+{
+    "scenario": "r-1",
+    "scale": 50000,
+    "mix": "even",
+    "scheme": "B",
+    "rung": 7,
+    "decided_rps": 0.45,
+    "achieved_rps": 0.449438202247191,
+    "rps_ratio": 0.9987515605493134,
+    "rps_valid": true,
+    "rps_status": "valid",
+    "db_utilization": 0.5168647857384467,
+    "db_utilization_percent": 51.686478573844674,
+    "app_cpu_utilization": 0.24549040133001207,
+    "app_cpu_percent": 24.549040133001206,
+    "k6_dropped_iterations": 0,
+    "requests_in_window": 160,
+    "requests_not_2xx": 20,
+    "http_status": {
+        "200": 140,
+        "302": 20
+    },
+    "http_status_by_route": {
+        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+            "200": 20
+        },
+        "GET /books/{bookSlug}/export/zip": {
+            "200": 20
+        },
+        "GET /books/{bookSlug}/page/{pageSlug}/references": {
+            "200": 20
+        },
+        "GET /books/{slug}": {
+            "200": 20
+        },
+        "GET /books/{slug}/references": {
+            "200": 20
+        },
+        "GET /images/edit/{id}": {
+            "200": 20
+        },
+        "GET /oidc/callback": {
+            "302": 20
+        },
+        "GET /shelves/{slug}": {
+            "200": 20
+        }
+    },
+    "window_sec": 356,
+    "window_epoch": {
+        "from": 1794691627.0786612,
+        "to": 1794691983.0786612
+    },
+    "started_at": "2026-11-15T06:26:01+09:00",
+    "ended_at": "2026-11-15T06:33:59+09:00",
+    "decision": {
+        "stop": false,
+        "reasons": [],
+        "note": null
+    },
+    "trial": false,
+    "prediction": {
+        "file": "poc/lab/predictions/ladder-prediction-2.json",
+        "commit": "089d9ad9c2cb5cb9f12d7ed746f4104a91b048ec",
+        "commit_time": "2026-11-15T05:14:41+09:00"
+    },
+    "settings": {
+        "php_max_execution_time": "0",
+        "php_fpm_request_terminate_timeout": "0s",
+        "nginx_fastcgi_read_timeout": "600s",
+        "k6_request_timeout": "600s",
+        "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+        "k6_request_timeout_seen_by_k6": "600s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.05625,
+            "achieved_rps": 0.056179775280898875,
+            "requests": 20,
+            "planned_requests": 20
+        }
+    ]
+}

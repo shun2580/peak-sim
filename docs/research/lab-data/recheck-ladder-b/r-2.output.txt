@@ -1,0 +1,10 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-2.json 089d9ad9c2cb5cb9f12d7ed746f4104a91b048ec 2026-11-15T05:14:41+09:00
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+TABLES BASELINE scale 50000: entities 50000 3618105766;images 50000 1661127463;references 50000 1446565401; (154 write counters)
+RUNG SETTINGS r-2 rung 1: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-2 rung 1 of 13 rps 0.05 scale 50000 mix first80 scheme B at 2026-11-15T06:49:29+09:00 (14 min 20 s)
+WRITES SAME after a step scale 50000: 154 write counters
+RUNG END r-2 rung 1 rps decided 0.05 achieved 0.0500 (valid) db 9.5% app 4.3% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS r-2 rung 2: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-2 rung 2 of 13 rps 0.07 scale 50000 mix first80 scheme B at 2026-11-15T07:04:55+09:00 (10 min 31 s)
+measure-ladder: k6 failed at rung 2 (rps 0.07), exit 255; see /home/nishikawa/.cache/peak-lab/out/ladder/r-2-50000/rung-02-0.07/k6-output.txt. Stopped; nothing was judged.
