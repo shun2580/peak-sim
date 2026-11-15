@@ -1,0 +1,288 @@
+{
+    "schema_version": "1",
+    "rule": "a route with at least one statement marked plan_changes_at_scale or plan_unstable in the EXPLAIN at the target size (simulator-spec.md section 7.1)",
+    "app": "bookstack",
+    "at": 300000,
+    "routes_in_explain": 35,
+    "marked_count": 22,
+    "routes": [
+        {
+            "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "DELETE /books/{id}",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "DELETE /shelves/{slug}",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "statements": [
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/draft/{pageId}",
+            "statements": [
+                {
+                    "id": "s0240511c05",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                },
+                {
+                    "id": "s859709c740",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "statements": [
+                {
+                    "id": "s0fc8c91c7d",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "statements": [
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{slug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                },
+                {
+                    "id": "se916fbea31",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "statements": [
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /shelves/{slug}/references",
+            "statements": [
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "POST /books/{bookSlug}/copy",
+            "statements": [
+                {
+                    "id": "s0fc8c91c7d",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "POST /settings/maintenance/regenerate-references",
+            "statements": [
+                {
+                    "id": "s55d8c74b35",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "POST /settings/recycle-bin/empty",
+            "statements": [
+                {
+                    "id": "sad4efc33ee",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+            "statements": [
+                {
+                    "id": "s1a3fa8aa3c",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                },
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+            "statements": [
+                {
+                    "id": "s1a3fa8aa3c",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                },
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+            "statements": [
+                {
+                    "id": "s1a3fa8aa3c",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                },
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "PUT /shelves/{slug}",
+            "statements": [
+                {
+                    "id": "s1a3fa8aa3c",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                },
+                {
+                    "id": "sd7799eeccf",
+                    "marks": [
+                        "plan_changes_at_scale"
+                    ]
+                }
+            ]
+        }
+    ]
+}

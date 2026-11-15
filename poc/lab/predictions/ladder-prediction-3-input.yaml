@@ -1,0 +1,198 @@
+# Calibration scenarios and the prediction scenarios s-1 to s-5 of the third lab backtest (docs/simulator-spec.md sections 3.4, 7.2 and 7.4.2).
+#
+# Made by poc/lab/scenarios/make-calibration-scenario from the plan and the record of each calibration run (the calibration part is
+# calibration-r4/fit-7runs/calibration.yaml as committed, `observed` untouched); the five target scenarios s-1 to s-5 were written by
+# estimate-300k's companion script mk_s_input.py from the rule of RouteMix (the mix of routes only: the stages rescale it). The three
+# limits under `resources:` (the database CPU threshold 0.8, the app CPU time limit 30 s and the app memory limit 512M) are given on purpose.
+# `observed` is the utilization of the database CPU over the kept window of the run (0 to 1).
+#
+# Inputs (sha256 of the files as read):
+#   cal-1: plan 989cddd771f6bfd8eaefeccb5de5a71e13bb51ef07dcb4bff0a2068bb4769406, record aeab96af1f5fca8c1364aba8dcd5ef34c17931b39d083f37ad310eaa9a3f492d
+#   cal-2: plan 4eaf6604063d8f8a4b886bfbc749792e036ff91a09c93f85e8ad87b150a2fa95, record dbba88734285c0f5990eb618f87bcffb9873966986b5eb7a5071f69e7428f9be
+#   cal-3: plan 185254663223be8b86343ecee781f90a9adabf096b8a58531a99f490c918f736, record 071c9ebbe1aa162504365cc1eae33b8347d83028e31dbc815476ce4daaec0fc4
+#   cal-4: plan 9609130954f6cfef14b03e0d06c849f69f796eab465ab69ee4730ee83583eb34, record 11e56b211efd88195c95b34a505a950714bfb8ec2e1326d4ff793e6ace36cef9
+#   cal-5: plan 21070967684430b3df24bdd3dfea5bbc73c36cd6cf27528dcb9782e48e45b149, record f79f985aa48a8d62838a967d93fa3bba7fdc0c17c37559972a0d3542a61e1bc2
+#   cal-6: plan 41e66df2e567f750cda1a6fc41aede0c32a104ba82217a152c591abfb067d1f1, record a0708b350561c1a598f3c18f063a8ed660c656c54d5cacf795a8e31aaa50027a
+#   cal-7: plan 41e66df2e567f750cda1a6fc41aede0c32a104ba82217a152c591abfb067d1f1, record f303b620a02d4e4946c6cdc7c6bac2bb8b720c006fd9cebae94279fc3154c178
+schema_version: "0.1"
+
+resources:
+  db_cpu:
+    cores: 2
+    threshold: 0.8
+  app_cpu_time_limit: 30
+  app_memory_limit: 512M
+
+scenarios:
+  - id: cal-1
+    # mix of routes: even, total 1.0 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125
+      "GET /books/{bookSlug}/export/zip": 0.125
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125
+      "GET /books/{slug}": 0.125
+      "GET /books/{slug}/references": 0.125
+      "GET /images/edit/{id}": 0.125
+      "GET /oidc/callback": 0.125
+      "GET /shelves/{slug}": 0.125
+    observed: { db_cpu_utilization: 0.22553947024797 }
+
+  - id: cal-2
+    # mix of routes: first80, total 1.0000000000000002 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.2
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.2
+      "GET /books/{slug}/references": 0.05
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.3642310410604942 }
+
+  - id: cal-3
+    # mix of routes: odd80, total 1.0 rps
+    kind: calibration
+    tables: { entities: 10000, images: 10000, references: 10000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.05
+      "GET /books/{slug}/references": 0.2
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.2
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.09607858090870393 }
+
+  - id: cal-4
+    # mix of routes: even, total 4.0 rps
+    kind: calibration
+    tables: { entities: 3000, images: 3000, references: 3000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.5
+      "GET /books/{bookSlug}/export/zip": 0.5
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.5
+      "GET /books/{slug}": 0.5
+      "GET /books/{slug}/references": 0.5
+      "GET /images/edit/{id}": 0.5
+      "GET /oidc/callback": 0.5
+      "GET /shelves/{slug}": 0.5
+    observed: { db_cpu_utilization: 0.27645213485327585 }
+
+  - id: cal-5
+    # mix of routes: even, total 0.3 rps
+    kind: calibration
+    tables: { entities: 30000, images: 30000, references: 30000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0375
+      "GET /books/{bookSlug}/export/zip": 0.0375
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0375
+      "GET /books/{slug}": 0.0375
+      "GET /books/{slug}/references": 0.0375
+      "GET /images/edit/{id}": 0.0375
+      "GET /oidc/callback": 0.0375
+      "GET /shelves/{slug}": 0.0375
+    observed: { db_cpu_utilization: 0.2025425608159264 }
+
+  - id: cal-6
+    # mix of routes: bookpage80zip0, total 1.5000000000000004 rps
+    kind: calibration
+    tables: { entities: 30000, images: 30000, references: 30000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05
+      "GET /books/{slug}": 1.2000000000000002
+      "GET /books/{slug}/references": 0.05
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.22489440671272426 }
+
+  - id: cal-7
+    # mix of routes: bookpage80zip0, total 1.5000000000000004 rps
+    kind: calibration
+    tables: { entities: 30000, images: 30000, references: 30000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05
+      "GET /books/{slug}": 1.2000000000000002
+      "GET /books/{slug}/references": 0.05
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+    observed: { db_cpu_utilization: 0.21812813617843638 }
+
+  - id: s-1
+    # mix of routes: even, total 1.0 rps (the stages rescale it)
+    kind: target
+    tables: { entities: 300000, images: 300000, references: 300000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125
+      "GET /books/{bookSlug}/export/zip": 0.125
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125
+      "GET /books/{slug}": 0.125
+      "GET /books/{slug}/references": 0.125
+      "GET /images/edit/{id}": 0.125
+      "GET /oidc/callback": 0.125
+      "GET /shelves/{slug}": 0.125
+
+  - id: s-2
+    # mix of routes: first80, total 1.0 rps (the stages rescale it)
+    kind: target
+    tables: { entities: 300000, images: 300000, references: 300000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.2
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.2
+      "GET /books/{slug}/references": 0.05
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+
+  - id: s-3
+    # mix of routes: last80, total 1.0 rps (the stages rescale it)
+    kind: target
+    tables: { entities: 300000, images: 300000, references: 300000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05
+      "GET /books/{bookSlug}/export/zip": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05
+      "GET /books/{slug}": 0.05
+      "GET /books/{slug}/references": 0.2
+      "GET /images/edit/{id}": 0.2
+      "GET /oidc/callback": 0.2
+      "GET /shelves/{slug}": 0.2
+
+  - id: s-4
+    # mix of routes: places1235, total 1.0 rps (the stages rescale it)
+    kind: target
+    tables: { entities: 300000, images: 300000, references: 300000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.2
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.05
+      "GET /books/{slug}/references": 0.2
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
+
+  - id: s-5
+    # mix of routes: places1345, total 1.0 rps (the stages rescale it)
+    kind: target
+    tables: { entities: 300000, images: 300000, references: 300000 }
+    rps:
+      "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2
+      "GET /books/{bookSlug}/export/zip": 0.05
+      "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2
+      "GET /books/{slug}": 0.2
+      "GET /books/{slug}/references": 0.2
+      "GET /images/edit/{id}": 0.05
+      "GET /oidc/callback": 0.05
+      "GET /shelves/{slug}": 0.05
