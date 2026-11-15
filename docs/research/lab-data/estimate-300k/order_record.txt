@@ -1,0 +1,11 @@
+tool_head=14a7de60eaf4c34155338f8b718b53743b61b36e (git archive poc/runtime) tool_head_at_archive=14a7de60eaf4c34155338f8b718b53743b61b36e
+start=2026-11-16T01:22:34+09:00 bin=explain-at-scale n=300000 small=30000 capture_sha=69f08fcad32bdd31367747d8231dab69df32596a837876253169eda88807d839 tasks_sha=2dd8145996fc89e35a2af7d938f5b57597683fbbc9c542f68feaed4cdbd7f815
+start=2026-11-16T01:22:47+09:00 bin=predict n=300000 fits_sha=5f409c300b490463b9a198e677f301e09125d288a0d06d89fbce19c01a3a518f
+end=2026-11-16T01:22:48+09:00 bin=predict exit=0
+end=2026-11-16T01:30:43+09:00 bin=explain-at-scale n=300000 exit=0
+start=2026-11-16T01:31:07+09:00 bin=estimate run=1
+end=2026-11-16T01:31:08+09:00 bin=estimate run=1 exit=0
+start=2026-11-16T01:31:08+09:00 bin=estimate run=2
+end=2026-11-16T01:31:08+09:00 bin=estimate run=2 exit=0
+start=2026-11-16T01:31:08+09:00 bin=marked-routes
+end=2026-11-16T01:31:09+09:00 bin=marked-routes exit=0
