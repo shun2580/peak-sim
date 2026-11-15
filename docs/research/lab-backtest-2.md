@@ -1,10 +1,16 @@
 # Lab backtest (B), second round: does the repaired simulator predict the lab at row counts it had not seen?
 
-Status: PARTLY WRITTEN. Sections 1, 2 and 3 and the settled items of section 7 are written, from records that were closed before the first step of the new scenarios was measured. Sections 4 to 6 are still an outline: each says only what will go into it, and no figure is written in them; they are written once the measurements are in. Every figure below is copied from a record or from the output of a tool, with the commit or the directory it comes from.
+Status: COMPLETE. Sections 1 to 3 and the first part of section 7 were written from records that were closed before the first step of the new scenarios was measured (section 3.6). Sections 4 to 6 and the last part of section 7 were written after the measurements. Every figure below is copied from a record or from the output of a tool, with the commit or the directory it comes from, or computed from those records by a script outside the repository (the means, ratios and limit rps of sections 5 and 6, which a second, independent calculation from the same records reproduced). Nothing was repaired after the result was seen.
 
 This file is the record of the second round of test B and of the mark `app_limit_risk` (`docs/simulator-spec.md`, version 0.2, sections 6.4, 7.2, 7.4 and 7.4.1). It follows `docs/research/lab-backtest.md` (the first round, which did not pass) and `docs/research/lab-backtest-causes.md` (where the first round's miss came from). It says what was repaired, what was done in which order, what was measured, and what the numbers can and cannot support. The pass lines, the tolerances and the rule for "undecidable" are those of the spec and are not moved by this file.
 
 What is checked is a **check against a busy period reproduced in the lab**: a prediction compared with a measurement made in the lab. Nothing here was observed on a real deployment, and no value measured in production appears.
+
+**Result in brief** (sections 5 and 6 have the figures and the readings behind them):
+
+- **B** (the database's limit, with the application's time limit lifted) **meets the lowest standard on all four items. It misses the goal on item 4 only**: the limit rps was measured for 4 scenarios and the point is within ±10% of the measured in 3 of them (75%; 80% is needed). 4 measured scenarios is exactly the least that does not make B undecidable. The mean difference of utilization is 1.989 points against 31.933 for the naive estimate.
+- **The mark `app_limit_risk` fails**: 1 hit (ZIP export, 200,000 rows), 1 miss (the book page at 200,000 rows: HTTP 500 with no mark) and 1 false alarm (ZIP export, 50,000 rows). The line for passing is no misses. The records point to the memory limit, not the run-time limit, as the cause of the miss (an inference, section 5.3); the mark does not look at memory.
+- **Nothing was repaired.** Two candidates for what to repair are named in section 5.4; both change the specification.
 
 ## 1. What was repaired
 
@@ -393,43 +399,345 @@ After the prediction is committed, the prediction, the estimate, the calibration
 | Commit time | 2026-11-15T05:14:41+09:00 |
 | SHA-256 of the prediction file as committed | `24b9280216d7917e3c9613273e8d317493616aa38e5a9998d98923d66c7453ec` |
 | SHA-256 of its input as committed | `eca797e14efcbf66a43b1ff25a3d57698fd73652117ce80c87f9b088553f31e4` |
-| First step of a new scenario started | to be written from the record of the first step, once it is measured (section 4) |
+| First step of a new scenario started | 2026-11-15T05:21:46+09:00 (r-1, step 1; `docs/research/lab-data/recheck-ladder-b/r-1-50000/rung-01-0.05/started_at.txt`), 7 minutes 5 seconds after the commit |
 
 ## 4. Measurement (B and the mark)
 
-To be written after the measurements are in.
+Two measurements, kept apart. **B** was measured with the application's run-time limit lifted, in five ladders (sections 4.1 to 4.4). **The mark** was measured afterwards with the limit back at its default, one cold request per route at each of two row counts (section 4.5). Times are the host's clock on 2026-11-15 unless a date is given. The records are in `docs/research/lab-data/recheck-ladder-b/` and `docs/research/lab-data/recheck-mark/` (committed as `2c5599d`, `d506c0c` and `55803d3` for B, `fa60db8` for the mark at 50,000 rows and `2432522` for the mark at 200,000 rows; the order of events is also in D192 of `docs/decisions.md`). They are kept as the tools wrote them, and no pass or fail is written in them: this file is where the verdict is first written.
 
-What goes in: the two measurements, kept apart.
+### 4.1 The order of work, and what was built
 
-**B** (the application's time limit lifted, so that the database's limit is what is tested):
+The 50,000- and 200,000-row databases had been built and analyzed before the prediction was committed (section 1.4), and until then were only counted (section 3.6). The `last_update` of their statistics is 2026-11-11 05:17:06 (50,000 rows) and 05:17:08 to 05:17:09 (200,000 rows). No `ANALYZE` was run during any measurement of this section, and the statistics were read before and after every ladder and after every step (`stats-scenarios*.tsv`, `stats-steps*.tsv`: 41 tables in each of the two databases, 82 pairs): **no `last_update` changed in any reading**, so the automatic recalculation (section 1.5) did not run in B.
 
-- the order of work, and what was built for each row count;
-- for every step: the intended and the achieved rps, the database utilization, the application's CPU, the dropped requests and the HTTP statuses, and the three settings in force (the limit of the application's run time, the load tool's time limit for one request, the web server's read limit);
-- how each setting was changed and how it was put back, with the values read from the side of the application server and not from the command line;
-- the steps that were invalid, and why.
+| time | event |
+| --- | --- |
+| 05:14:41 | the prediction was committed (`089d9ad`, section 3.6) |
+| 05:21:46 to 06:49:12 | r-1 (50,000 rows), 9 steps |
+| 06:49:29 | r-2 started. Step 1 was finished. Step 2 (started 07:04:55) was cut at 07:13 when the host stopped (the containers exited with 255; the ladder tool ended with exit 13). This run is kept apart, in `r-2-50000-interrupted-0713/`, and enters no count below |
+| 13:05 | restart (`bin/up`, `bin/use-db 50000`). The statistics tables (41), and the count and `CHECKSUM TABLE` of the three N tables, were read before the interrupted r-2 and after the restart and were identical (`after-restart/`) |
+| 13:06:52 to 14:26:49 | r-2 measured again from step 1 (8 steps) |
+| 14:27:23 to 15:22:50 | r-3 (200,000 rows), 5 steps |
+| 15:23:07 to 15:58:52 | r-4 (200,000 rows), 3 steps |
+| 15:59:09 to 17:19:11 | r-5 (200,000 rows), 8 steps |
+| 17:20 | the settings were put back (section 4.2) |
+| 17:20:27 to 17:22:29 | the mark at 50,000 rows |
+| 17:23:39 to 17:26:38 | the mark at 200,000 rows |
+| 2026-11-16 00:23 | the lab was put back on the 10,000-row database with the limit at 30 s (`check-limits --require=limited` exit 0; `git diff -- poc/lab/compose` empty) |
 
-**The mark** (the application's time limit at its default):
+- **r-1 was measured before the host stopped, and r-2 to r-5 and both marks after the restart**, so those ran on a database that had been restarted cold. The effect of that was not separated. One comparison exists: step 1 of the interrupted r-2 measured 9.53% of database utilization and step 1 of the repeated r-2 measured 9.93% (0.39 points apart; both below 10%, so neither is used in item 2).
+- **The mark at 200,000 rows was measured after a pause had been asked for.** The pause was asked for at 17:22 and received at 17:23:05; the switch to the 200,000-row database had been made at 17:23:23, before it was read, and the measurement was made as specified. It was decided at 17:28 to use the record, because it was measured as specified and a second measurement would change the cold state of the database. The only thing that differs from the plan is the time.
+- Order by row count was kept (50,000 rows first, then 200,000), and no `ANALYZE` was run between two scenarios on the same database (section 1.5).
 
-- at each of the two row counts, one cold request to each route, without load: the HTTP status and the CPU time of the application's process, route by route;
-- how the setting was put back, shown in the same way.
+### 4.2 The three settings, and how they were changed and put back
+
+In B the three settings of section 7.4.1 of the spec were in force in **every one of the 34 step records** (the 33 steps below and the one step of the interrupted r-2; each record carries them in `settings`, and none differs): PHP's `max_execution_time` 0; php-fpm's `request_terminate_timeout` 0s (it was already 0s); the web server's `fastcgi_read_timeout` 600s; and the load tool's time limit for one request 600s (`REQUEST_TIMEOUT`, which the load tool reported back as 600s). The measuring entry ran `bin/check-limits --require=unlimited` before every step and refused to start a step otherwise; all 35 `check-limits.out` of the ladders (including the two steps of the interrupted r-2) read `LIMITS OK (require unlimited)`, and the load tool of each of the 33 steps ended with exit 0 (the one other exit, 255, is the step cut by the host stop). The values were read from the side of the application server (one request through php-fpm, `nginx -T`, the php-fpm configuration), not from the command line.
+
+- How the limits were lifted: as a difference in the working tree of the two compose files under `poc/lab/compose/` (PHP's `max_execution_time` and the web server's read limit), never committed.
+- **`memory_limit` was not touched**: it was 512M before, during and after B (`zz-lab.ini`), as the spec lifts the time limits only. Section 4.4 and section 7 depend on this.
+- How they were put back: at 17:20 the two compose files were restored from copies kept outside the repository (`recheck-mark/orig-sha256.txt` and `compose-sha256-after-restore.txt` hold the same two hashes) and `bin/use-db 50000` rebuilt the application and web containers. Read back from the server side with `check-limits --require=limited` (exit 0): `max_execution_time` 30, `request_terminate_timeout` 0s, web server read limit 120s (`recheck-mark/limits-after-restore/`). The same reading was taken again at 17:23:38 on the 200,000-row database (`limits-mark-200000/`), at 17:26:55 (`limits-at-stop/`) and at 2026-11-16 00:23, with the same values; `git diff -- poc/lab/compose` was empty when it was looked at (17:26:55, and 2026-11-16 00:21 and 00:23).
+
+### 4.3 The steps of B
+
+One table per scenario. A step discards its first minute and keeps a window (section 3.1); "requests in window" counts the requests that started in the window, and the statuses are those of the requests of the window. "Valid" means the intended rps came out within ±5% (ratio from 0.95 to 1.05). Database utilization is the database's CPU time over the window against the database's capacity (the threshold of 0.8 with 2 CPUs, section 3.2); application CPU is the application's CPU utilization as the tool records it. Dropped is the load tool's count of iterations it could not start; it was 0 in every step. The three settings are those of section 4.2 in every step.
+
+**r-1: 50,000 rows, even** (`recheck-ladder-b/r-1-50000/`; stopped after step 9: db utilization at or above 80 percent, rps not reached)
+
+| step | intended rps | achieved rps | ratio | valid | database utilization (%) | application CPU (%) | dropped | requests in window | HTTP statuses in window | started to ended |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | 0.0500 | 1.000 | yes | 6.29 | 2.77 | 0 | 40 | 200 ×35, 302 ×5 | 05:21:46 to 05:37:11 |
+| 2 | 0.07 | 0.0701 | 1.001 | yes | 8.45 | 3.76 | 0 | 40 | 200 ×35, 302 ×5 | 05:37:12 to 05:48:45 |
+| 3 | 0.1 | 0.1000 | 1.000 | yes | 11.66 | 5.32 | 0 | 40 | 200 ×35, 302 ×5 | 05:48:47 to 05:57:31 |
+| 4 | 0.15 | 0.1501 | 1.001 | yes | 17.09 | 7.95 | 0 | 80 | 200 ×70, 302 ×10 | 05:57:32 to 06:08:29 |
+| 5 | 0.2 | 0.2000 | 1.000 | yes | 22.50 | 10.56 | 0 | 80 | 200 ×70, 302 ×10 | 06:08:31 to 06:17:15 |
+| 6 | 0.3 | 0.3000 | 1.000 | yes | 34.16 | 16.18 | 0 | 120 | 200 ×105, 302 ×15 | 06:17:16 to 06:26:00 |
+| 7 | 0.45 | 0.4494 | 0.999 | yes | 51.69 | 24.55 | 0 | 160 | 200 ×140, 302 ×20 | 06:26:01 to 06:33:59 |
+| 8 | 0.7 | 0.6706 | 0.958 | yes | 77.13 | 36.96 | 0 | 230 | 200 ×200, 302 ×30 | 06:34:01 to 06:41:48 |
+| 9 | 1.0 | 0.8406 | 0.841 | **no** | 98.56 | 46.85 | 0 | 269 | 200 ×242, 302 ×27 | 06:41:50 to 06:49:12 |
+
+**r-2: 50,000 rows, first four routes 80%** (`recheck-ladder-b/r-2-50000/`; stopped after step 8: db utilization at or above 80 percent, rps not reached)
+
+| step | intended rps | achieved rps | ratio | valid | database utilization (%) | application CPU (%) | dropped | requests in window | HTTP statuses in window | started to ended |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | 0.0500 | 1.000 | yes | 9.93 | 4.48 | 0 | 40 | 200 ×38, 302 ×2 | 13:06:52 to 13:22:16 |
+| 2 | 0.07 | 0.0701 | 1.001 | yes | 12.98 | 5.97 | 0 | 40 | 200 ×38, 302 ×2 | 13:22:18 to 13:33:50 |
+| 3 | 0.1 | 0.1000 | 1.000 | yes | 18.10 | 8.44 | 0 | 40 | 200 ×38, 302 ×2 | 13:33:51 to 13:42:35 |
+| 4 | 0.15 | 0.1501 | 1.001 | yes | 26.84 | 12.68 | 0 | 80 | 200 ×76, 302 ×4 | 13:42:36 to 13:53:33 |
+| 5 | 0.2 | 0.2000 | 1.000 | yes | 36.50 | 17.25 | 0 | 80 | 200 ×76, 302 ×4 | 13:53:34 to 14:02:17 |
+| 6 | 0.3 | 0.3000 | 1.000 | yes | 54.85 | 26.04 | 0 | 120 | 200 ×114, 302 ×6 | 14:02:19 to 14:11:02 |
+| 7 | 0.45 | 0.4466 | 0.993 | yes | 78.80 | 37.89 | 0 | 159 | 200 ×151, 302 ×8 | 14:11:03 to 14:19:01 |
+| 8 | 0.7 | 0.5627 | 0.804 | **no** | 99.63 | 47.76 | 0 | 193 | 200 ×185, 302 ×8 | 14:19:02 to 14:26:49 |
+
+**r-3: 200,000 rows, even** (`recheck-ladder-b/r-3-200000/`; stopped after step 5: db utilization at or above 80 percent)
+
+| step | intended rps | achieved rps | ratio | valid | database utilization (%) | application CPU (%) | dropped | requests in window | HTTP statuses in window | started to ended |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | 0.0488 | 0.975 | yes | 20.29 | 9.86 | 0 | 39 | 200 ×29, 302 ×5, 500 ×5 | 14:27:23 to 14:42:46 |
+| 2 | 0.07 | 0.0683 | 0.976 | yes | 31.30 | 14.84 | 0 | 39 | 200 ×29, 302 ×5, 500 ×5 | 14:42:47 to 14:54:20 |
+| 3 | 0.1 | 0.0950 | 0.950 | yes | 43.54 | 20.75 | 0 | 38 | 200 ×28, 302 ×5, 500 ×5 | 14:54:21 to 15:03:05 |
+| 4 | 0.15 | 0.1463 | 0.976 | yes | 62.15 | 29.91 | 0 | 78 | 200 ×58, 302 ×10, 500 ×10 | 15:03:06 to 15:14:03 |
+| 5 | 0.2 | 0.1900 | 0.950 | yes | 81.46 | 40.61 | 0 | 76 | 200 ×56, 302 ×10, 500 ×10 | 15:14:05 to 15:22:50 |
+
+**r-4: 200,000 rows, first four routes 80%** (`recheck-ladder-b/r-4-200000/`; stopped after step 3: rps not reached)
+
+| step | intended rps | achieved rps | ratio | valid | database utilization (%) | application CPU (%) | dropped | requests in window | HTTP statuses in window | started to ended |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | 0.0488 | 0.975 | yes | 39.02 | 18.50 | 0 | 39 | 200 ×29, 302 ×2, 500 ×8 | 15:23:07 to 15:38:31 |
+| 2 | 0.07 | 0.0665 | 0.951 | yes | 51.58 | 24.75 | 0 | 38 | 200 ×28, 302 ×2, 500 ×8 | 15:38:33 to 15:50:06 |
+| 3 | 0.1 | 0.0925 | 0.925 | **no** | 65.95 | 32.49 | 0 | 37 | 200 ×27, 302 ×2, 500 ×8 | 15:50:08 to 15:58:52 |
+
+**r-5: 200,000 rows, last four routes 80%** (`recheck-ladder-b/r-5-200000/`; stopped after step 8: db utilization at or above 80 percent, rps not reached)
+
+| step | intended rps | achieved rps | ratio | valid | database utilization (%) | application CPU (%) | dropped | requests in window | HTTP statuses in window | started to ended |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | 0.0500 | 1.000 | yes | 9.95 | 4.47 | 0 | 40 | 200 ×30, 302 ×8, 500 ×2 | 15:59:09 to 16:14:33 |
+| 2 | 0.07 | 0.0701 | 1.001 | yes | 13.15 | 6.00 | 0 | 40 | 200 ×30, 302 ×8, 500 ×2 | 16:14:34 to 16:26:07 |
+| 3 | 0.1 | 0.0975 | 0.975 | yes | 15.97 | 7.53 | 0 | 39 | 200 ×29, 302 ×8, 500 ×2 | 16:26:09 to 16:34:52 |
+| 4 | 0.15 | 0.1482 | 0.988 | yes | 24.51 | 11.86 | 0 | 79 | 200 ×59, 302 ×16, 500 ×4 | 16:34:54 to 16:45:51 |
+| 5 | 0.2 | 0.1975 | 0.988 | yes | 37.30 | 17.70 | 0 | 79 | 200 ×59, 302 ×16, 500 ×4 | 16:45:53 to 16:54:36 |
+| 6 | 0.3 | 0.2950 | 0.983 | yes | 52.52 | 25.31 | 0 | 118 | 200 ×88, 302 ×24, 500 ×6 | 16:54:38 to 17:03:22 |
+| 7 | 0.45 | 0.4410 | 0.980 | yes | 70.07 | 34.76 | 0 | 157 | 200 ×117, 302 ×32, 500 ×8 | 17:03:23 to 17:11:21 |
+| 8 | 0.7 | 0.6501 | 0.929 | **no** | 92.74 | 46.94 | 0 | 223 | 200 ×166, 302 ×46, 500 ×11 | 17:11:23 to 17:19:11 |
+
+`GET /oidc/callback` answers 302 in every step (the redirect a guest gets) and is not an error. Every scenario stopped by the stopping rule of section 3.1 before the ladder's top; no step was repeated or left out.
+
+**Steps that were not valid** (4 of 33, and why):
+
+- r-1 step 9 (intended 1.0, achieved 0.8406, ratio 0.841; database utilization 98.56%): the rps did not come out while the database was at or above 80%. The scenario stopped.
+- r-2 step 8 (intended 0.7, achieved 0.5627, ratio 0.804; 99.63%): the same.
+- r-4 step 3 (intended 0.1, achieved 0.0925, ratio 0.925; 65.95%): **the rps did not come out while the database was below 80%**, and the scenario stopped there. The record notes `app_side_stall: the rps did not come out while the DB was under 80%`. The cause was not determined (section 7).
+- r-5 step 8 (intended 0.7, achieved 0.6501, ratio 0.929; 92.74%): the same as r-1 step 9.
+
+Two steps of r-3 (3 and 5) have a ratio of exactly 0.950; the spec's "within ±5%" includes the boundary, and the record marks them valid. Section 5.5 shows that reading them the other way changes no verdict.
+
+### 4.4 The HTTP 500 at 200,000 rows
+
+At 200,000 rows **every `GET /books/{slug}` request in every step's window answered HTTP 500**, and no other route did. At 50,000 rows (r-1 and r-2) there was no 500. The application's own log (php-fpm's standard error, copied read-only in `recheck-ladder-b/status500/` after r-3, r-4 and r-5) gives the cause: `Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes)` at one line of Laravel's view code (`ManagesLayouts.php`, line 102), which puts the rendered body of the page into its outer frame. `Maximum execution time` appears in the log 0 times, as it should with the time limit lifted. The same failure was seen in the mark's measurement at 200,000 rows without the application's log being kept for it (section 4.5).
+
+| scenario | 500 in the windows (step records) | 500 that started in a discarded first minute | 500 in all (web server's access log) | falls of the memory limit (application's log) |
+| --- | --- | --- | --- | --- |
+| r-3 | 35 (5, 5, 5, 10, 10) | 5 | 40 | 40 |
+| r-4 | 24 (8, 8, 8) | 3 | 27 | 27 |
+| r-5 | 39 (2, 2, 2, 4, 4, 6, 8, 11) | 5 | 44 | 45 |
+
+- A fall of the memory limit writes two lines in the application's log (one by PHP, one by Laravel); **falls are counted as the lines by PHP**, as the difference between the cumulative counts of the three copies (40, 67 and 112 after r-3, r-4 and r-5).
+- For r-3 and r-4 the number of falls is the number of 500 (one fall for each 500, none without the other). **For r-5 they differ by one**: at the end of step 8 the load tool ended the requests that were still open (HTTP 499 on the web server's side), among them one book page that had been running for 72.9 s; PHP went on and ran out of memory at 17:19:08, after the client had gone. There is no 500 without a fall.
+- The access log of the web server is in the lab's output directory and not in the repository; the window counts and the falls are in the repository.
+
+The prediction counts a book page as running to its end. What this does to the measured utilization is in section 7.
+
+### 4.5 The mark
+
+The limit was at its default (`max_execution_time` 30; section 4.2). `request_probe.py run --part=http --reps=1 --require-limits=limited`, per route one warm-up request (repetition 0) and one request (repetition 1), one at a time and without load, on the 50,000-row database from 17:20:27 to 17:22:29 and on the 200,000-row database from 17:23:39 to 17:26:38 (load tool's time limit 180 s). The mark is judged on repetition 1; the warm-up's result is kept beside it (decision D191). No `ANALYZE` was run, and `last_update` was the same before and after. The prediction marked one route at both counts, `GET /books/{bookSlug}/export/zip`, and none of the other seven.
+
+PHP CPU time is that of the application's process for the request; "database CPU" is the database's CPU time net of idle (`net.cpu_net_usec`); seconds to answer are the time until the response ended. A small negative database CPU value is the correction for idle time exceeding the little work the request did.
+
+**50,000 rows** (`recheck-mark/mark-50000/`)
+
+| route | marked | warm-up: HTTP / PHP CPU (s) | request: HTTP / PHP CPU (s) | request: database CPU (s) | request: seconds to answer | request: body (bytes) | cut by the limit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `GET /books/{bookSlug}/chapter/{chapterSlug}/references` | no | 200 / 0.288 | 200 / 0.030 | 0.003 | 0.3 | 23,577 | no |
+| `GET /books/{bookSlug}/export/zip` | yes | 200 / 21.566 | 200 / 21.432 | 17.083 | 37.1 | 278,474 | no |
+| `GET /books/{bookSlug}/page/{pageSlug}/references` | no | 200 / 0.028 | 200 / 0.033 | 0.005 | 0.3 | 23,505 | no |
+| `GET /books/{slug}` | no | 200 / 5.176 | 200 / 4.348 | 0.546 | 5.2 | 24,329,703 | no |
+| `GET /books/{slug}/references` | no | 200 / 0.025 | 200 / 0.024 | 0.035 | 0.3 | 21,082 | no |
+| `GET /images/edit/{id}` | no | 200 / 0.022 | 200 / 0.019 | 0.002 | 0.3 | 4,175 | no |
+| `GET /oidc/callback` | no | 302 / 0.015 | 302 / 0.013 | -0.001 | 0.3 | 334 | no |
+| `GET /shelves/{slug}` | no | 200 / 0.031 | 200 / 0.028 | 0.009 | 0.3 | 33,490 | no |
+
+**200,000 rows** (`recheck-mark/mark-200000/`)
+
+| route | marked | warm-up: HTTP / PHP CPU (s) | request: HTTP / PHP CPU (s) | request: database CPU (s) | request: seconds to answer | request: body (bytes) | cut by the limit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `GET /books/{bookSlug}/chapter/{chapterSlug}/references` | no | 200 / 0.265 | 200 / 0.031 | 0.003 | 0.3 | 23,577 | no |
+| `GET /books/{bookSlug}/export/zip` | yes | 500 / 31.247 | 500 / 30.629 | 24.318 | 52.6 | 15,790 | HTTP 500 |
+| `GET /books/{bookSlug}/page/{pageSlug}/references` | no | 200 / 0.034 | 200 / 0.027 | 0.005 | 0.3 | 23,505 | no |
+| `GET /books/{slug}` | no | 500 / 18.974 | 500 / 15.265 | 1.098 | 16.6 | 15,934 | HTTP 500 |
+| `GET /books/{slug}/references` | no | 200 / 0.034 | 200 / 0.026 | 0.002 | 0.3 | 21,082 | no |
+| `GET /images/edit/{id}` | no | 200 / 0.026 | 200 / 0.026 | 0.003 | 0.3 | 4,175 | no |
+| `GET /oidc/callback` | no | 302 / 0.023 | 302 / 0.015 | -0.000 | 0.3 | 334 | no |
+| `GET /shelves/{slug}` | no | 200 / 0.045 | 200 / 0.029 | 0.008 | 0.3 | 33,490 | no |
+
+At both counts the warm-up and the measured request gave the same status on every route. The ZIP export at 200,000 rows answered 500 after 30.63 s of PHP CPU time, a little over the limit of 30 s, with a short body (15,790 bytes): it was stopped by the limit (no log of the application was kept for this measurement, so that reading is from the CPU time). The book page at 200,000 rows answered 500 after 15.27 s of PHP CPU time, about half the limit, with a short body (15,934 bytes). **No log of the application was kept for the mark's measurement** (the containers were rebuilt afterwards), so the cause of that 500 is not directly observed (section 5.3).
 
 ## 5. Verdict
 
-To be written after the measurements are in.
+### 5.1 What was checked before the verdict
 
-What goes in: the verdict of B by items 1 to 4 of section 7.4 of the spec, at the lowest standard and at the goal, and the verdict of the mark by hits, misses and false alarms (the line for passing is no misses; the false alarms are counted and shown). The table of the marks the prediction gave against the routes that were cut. The verdict is made from the raw records alone, and the order of the prediction's commit and the first step is checked in the history and in the records. If the result is a fail or undecidable, the items that missed are recorded and nothing is repaired in this file.
+- **The order.** The prediction was committed at 2026-11-15T05:14:41+09:00 (`089d9ad`). The first step started at 05:21:46. Each of the 34 step records names the same prediction commit and commit time (`prediction` in the record). The two marks were measured at 17:20:27 and 17:23:39.
+- **Nothing was changed after the prediction.** `git diff 089d9ad..HEAD` over `poc/` (the tools, the prediction file, the scoring code) and `docs/simulator-spec.md` is empty; the files that changed are this document, `docs/decisions.md` and `docs/research/lab-data/recheck-ladder-b/` and `recheck-mark/` (the records). No rule, threshold, estimate, calibration, formula or mark was touched after the result was seen.
+- **From the raw records alone.** Every figure in this section was computed from the step records (`record.json` and `ladder.json`), the mark's `http.jsonl` and the prediction as committed (`git show 089d9ad:poc/lab/predictions/ladder-prediction-2.json`), by a script outside the repository, and set beside a second calculation made independently from the same records; the two agree in every figure. The scoring tool of `poc/lab/score/` was read for its stated reading of the rules (its README was committed before the prediction) and not run.
+- **Not undecidable** (spec 7.2): 25 steps are usable in item 2 (valid, and measured between 10% and 90%; the rule asks for 10 or more), and the limit rps was measured for 4 scenarios (the rule asks for 4 or more). **The second number is exactly at the line**: if one more scenario had not been measurable, B would have been undecidable.
+- The prediction used is the point (spec 6.3: the pass lines use the predicted value, not its width). The safe side and the naive estimate are shown beside it.
+
+### 5.2 B
+
+Error is predicted minus measured, in points of database utilization. Steps used in item 2 are the valid steps measured between 10% and 90%. "Over 80%" says whether the measured and the predicted point are above 80% (item 3 counts the valid steps where the two agree).
+
+**r-1: 50,000 rows, even**
+
+| step | intended rps | valid | measured (%) | point | safe side | naive | point − measured | used in item 2 | over 80%: measured / point |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | yes | 6.29 | 5.65 | 6.53 | 1.82 | -0.64 | no | no / no |
+| 2 | 0.07 | yes | 8.45 | 7.91 | 9.15 | 2.55 | -0.54 | no | no / no |
+| 3 | 0.1 | yes | 11.66 | 11.30 | 13.07 | 3.64 | -0.36 | yes | no / no |
+| 4 | 0.15 | yes | 17.09 | 16.95 | 19.60 | 5.46 | -0.14 | yes | no / no |
+| 5 | 0.2 | yes | 22.50 | 22.60 | 26.13 | 7.28 | +0.10 | yes | no / no |
+| 6 | 0.3 | yes | 34.16 | 33.90 | 39.20 | 10.93 | -0.26 | yes | no / no |
+| 7 | 0.45 | yes | 51.69 | 50.86 | 58.80 | 16.39 | -0.83 | yes | no / no |
+| 8 | 0.7 | yes | 77.13 | 79.11 | 91.47 | 25.50 | +1.98 | yes | no / no |
+| 9 | 1.0 | **no** | 98.56 | 113.01 | 130.67 | 36.42 | +14.46 | no | yes / yes |
+
+**r-2: 50,000 rows, first four routes 80%**
+
+| step | intended rps | valid | measured (%) | point | safe side | naive | point − measured | used in item 2 | over 80%: measured / point |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | yes | 9.93 | 9.04 | 10.45 | 1.82 | -0.89 | no | no / no |
+| 2 | 0.07 | yes | 12.98 | 12.65 | 14.63 | 2.55 | -0.33 | yes | no / no |
+| 3 | 0.1 | yes | 18.10 | 18.08 | 20.90 | 3.64 | -0.03 | yes | no / no |
+| 4 | 0.15 | yes | 26.84 | 27.11 | 31.35 | 5.46 | +0.27 | yes | no / no |
+| 5 | 0.2 | yes | 36.50 | 36.15 | 41.80 | 7.28 | -0.35 | yes | no / no |
+| 6 | 0.3 | yes | 54.85 | 54.23 | 62.70 | 10.93 | -0.62 | yes | no / no |
+| 7 | 0.45 | yes | 78.80 | 81.34 | 94.05 | 16.39 | +2.54 | yes | no / yes **(differ)** |
+| 8 | 0.7 | **no** | 99.63 | 126.53 | 146.30 | 25.50 | +26.90 | no | yes / yes |
+
+**r-3: 200,000 rows, even**
+
+| step | intended rps | valid | measured (%) | point | safe side | naive | point − measured | used in item 2 | over 80%: measured / point |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | yes | 20.29 | 22.58 | 22.61 | 1.82 | +2.29 | yes | no / no |
+| 2 | 0.07 | yes | 31.30 | 31.62 | 31.66 | 2.55 | +0.32 | yes | no / no |
+| 3 | 0.1 | yes | 43.54 | 45.16 | 45.23 | 3.64 | +1.63 | yes | no / no |
+| 4 | 0.15 | yes | 62.15 | 67.75 | 67.84 | 5.46 | +5.60 | yes | no / no |
+| 5 | 0.2 | yes | 81.46 | 90.33 | 90.45 | 7.28 | +8.87 | yes | yes / yes |
+
+**r-4: 200,000 rows, first four routes 80%**
+
+| step | intended rps | valid | measured (%) | point | safe side | naive | point − measured | used in item 2 | over 80%: measured / point |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | yes | 39.02 | 36.13 | 36.18 | 1.82 | -2.90 | yes | no / no |
+| 2 | 0.07 | yes | 51.58 | 50.58 | 50.65 | 2.55 | -1.00 | yes | no / no |
+| 3 | 0.1 | **no** | 65.95 | 72.26 | 72.35 | 3.64 | +6.31 | no | no / no |
+
+**r-5: 200,000 rows, last four routes 80%**
+
+| step | intended rps | valid | measured (%) | point | safe side | naive | point − measured | used in item 2 | over 80%: measured / point |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.05 | yes | 9.95 | 9.04 | 9.05 | 1.82 | -0.92 | no | no / no |
+| 2 | 0.07 | yes | 13.15 | 12.65 | 12.67 | 2.55 | -0.50 | yes | no / no |
+| 3 | 0.1 | yes | 15.97 | 18.07 | 18.10 | 3.64 | +2.10 | yes | no / no |
+| 4 | 0.15 | yes | 24.51 | 27.11 | 27.15 | 5.46 | +2.60 | yes | no / no |
+| 5 | 0.2 | yes | 37.30 | 36.15 | 36.20 | 7.28 | -1.16 | yes | no / no |
+| 6 | 0.3 | yes | 52.52 | 54.22 | 54.30 | 10.93 | +1.69 | yes | no / no |
+| 7 | 0.45 | yes | 70.07 | 81.33 | 81.45 | 16.39 | +11.25 | yes | no / yes **(differ)** |
+| 8 | 0.7 | **no** | 92.74 | 126.51 | 126.71 | 25.50 | +33.77 | no | yes / yes |
+
+**Items 1 and 2: the mean absolute difference, over the 25 steps used** (points of utilization)
+
+| scenario | steps used | point | safe side | naive | signed mean of point − measured |
+| --- | --- | --- | --- | --- | --- |
+| r-1 | 6 | 0.61 | 5.67 | 24.17 | +0.08 |
+| r-2 | 6 | 0.69 | 6.23 | 30.30 | +0.25 |
+| r-3 | 5 | 3.74 | 3.81 | 43.59 | +3.74 |
+| r-4 | 2 | 1.95 | 1.89 | 43.12 | -1.95 |
+| r-5 | 6 | 3.22 | 3.25 | 27.88 | +2.67 |
+| **all** | **25** | **1.989** | **4.550** | **31.933** | **+1.31** |
+
+**Item 3: the threshold.** The predicted point and the measurement agree on whether utilization is above 80% in **27 of 29 valid steps (93.1%)**. The two steps that differ are r-2 step 7 (measured 78.80%, predicted 81.34%) and r-5 step 7 (measured 70.07%, predicted 81.33%); both are steps where the prediction was above and the measurement was not. The safe side agrees in 26 of 29 and the naive estimate in 28 of 29; neither is used for the verdict. **Only 1 of the 29 valid steps was measured above 80%** (r-3 step 5, 81.46%), so item 3 hardly separates a prediction that finds the threshold from one that never reaches it (section 6).
+
+**Item 4: the limit rps.** The measured limit rps is found by the rule of spec 7.2: a straight line between the two valid steps that straddle 80%; where the step at or above 80% was not valid, a straight line through the two valid steps with the largest rps, extended to 80% and recorded as extended. The abscissa is the intended rps of the step (the reading of the scoring tool's README).
+
+| scenario | measured limit rps | how, from which steps | point | point ÷ measured | safe side | safe side ÷ measured | naive | naive ÷ measured |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| r-1 | 0.7282 | extended, steps 7 and 8 | 0.7079 | 0.972 | 0.6122 | 0.841 | 2.1964 | 3.02 |
+| r-2 | 0.4575 | extended, steps 6 and 7 | 0.4426 | 0.967 | 0.3828 | 0.837 | 2.1964 | 4.80 |
+| r-3 | 0.1962 | interpolated, steps 4 and 5 | 0.1771 | 0.903 | 0.1769 | 0.901 | 2.1964 | 11.19 |
+| r-4 | **not measured** | steps 1 and 2 are valid but both below 80%; step 3 (65.95%) is not valid, and a step at or above 80% was not measured (`app_bound_below_threshold`) | 0.1107 | — | 0.1106 | — | 2.1964 | — |
+| r-5 | 0.5348 | extended, steps 6 and 7 | 0.4427 | 0.828 | 0.4420 | 0.826 | 2.1964 | 4.11 |
+
+- Limit rps measured for **4 scenarios** (r-1, r-2, r-3, r-5). The point is within ±20% of the measured in **4 of 4 (100%)** and within ±10% in **3 of 4 (75%)**. r-5 is the one outside ±10% (0.828 of the measured). The safe side is within ±20% in 4 of 4 and within ±10% in 1 of 4 (r-3, 0.901); the naive estimate in 0 of 4.
+- **r-4 was not measured.** The rule extends the line only when the step at or above 80% was not valid, and r-4's invalid step is at 65.95%. The rule has no other way to extend; this was the reading of the rule written before the prediction (the scoring tool's README, committed before the prediction). Only as a reference, and **not a value the rule provides**: extending the line through the two valid steps anyway would give 0.1153 rps and a point ÷ measured of 0.961. It is not used in any count.
+- Three of the four measured limits are extended, not interpolated (r-1, r-2, r-5): the step above 80% was not valid and the line is carried from two steps below 80%. Only r-3 is between two measured steps that straddle 80%.
+- In every measured scenario the point is below the measured limit (0.828 to 0.972 of it); the error of the limit goes one way.
+
+**The verdict of B**
+
+| item | lowest standard | goal |
+| --- | --- | --- |
+| 1. the mean difference is smaller than the naive estimate's | **met**: 1.989 against 31.933 points | **met** |
+| 2. the mean absolute difference of utilization | **met**: 1.989 points (at most 15) | **met** (at most 5) |
+| 3. agreement on "over the threshold" | **met**: 27 of 29 = 93.1% (at least 80%) | **met** |
+| 4. the limit rps within ±X% | **met**: ±20%, 4 of 4 = 100% | **not met**: ±10%, 3 of 4 = 75% (80% needed) |
+
+**B meets the lowest standard on all four items (pass). B meets the goal on items 1 to 3 and misses it on item 4 only.** Item 4 at the goal is short by one scenario (4 scenarios measured, 80% of 4 rounded up is 4, 3 are inside ±10%). Spec section 0, condition 1 asks for the lab backtest to pass at the goal: B misses it on item 4 only. In the count made for the conditions for version 1.0 (D153, as changed by D167), item 4 is one scenario short at the goal and none short at the lowest standard.
+
+### 5.3 The mark
+
+By spec 7.4.1: marked and cut is a hit; not marked and cut is a miss; marked and not cut is a false alarm. A route counts as cut if it answered HTTP 500 or was stopped by the limit. The line for passing is no misses; the false alarms are counted and shown.
+
+| route | rows | marked | cut (request) | class | PHP CPU (s) | note |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET /books/{bookSlug}/export/zip` | 50,000 | yes | no (HTTP 200, whole body) | **false alarm** | 21.432 | 37.1 s to answer; PHP CPU time did not reach 30 s |
+| `GET /books/{bookSlug}/export/zip` | 200,000 | yes | yes (HTTP 500) | **hit** | 30.629 | stopped at the limit |
+| `GET /books/{slug}` | 200,000 | no | yes (HTTP 500) | **miss** | 15.265 | about half the limit; not cut by time |
+| the other 13 route-and-count pairs | 50,000 and 200,000 | no | no | correctly not marked | 0.013 to 4.348 | |
+
+**Hits 1, misses 1, false alarms 1. The line (no misses) is not met: the mark fails.** The count follows the wording of spec 7.4.1, which names HTTP 500 as a cut and does not limit it by cause; it was not changed after the result was seen, and neither was any reading of it chosen after seeing it (the same wording is applied to the 13 pairs that were not cut).
+
+**The cause of the miss, kept apart from the count** (a reading from other records, not observed in this measurement): the book page was cut at 15.3 s of PHP CPU time, about half the limit, so it was not the run-time limit. In B the same route at the same row count ran out of memory (512M) in every window (section 4.4). The mark's rule (D178) looks at PHP CPU time only and has no input for memory; the tool's memory estimate (spec 6.2) was not checked for this route and was not given for it in the lab's estimate at 200,000 rows. So the miss is a gap in what the mark watches that the measurement brought out. The application's log of the mark's own request was not kept, so that the memory is the cause of that very request is an inference.
+
+**Things the false alarm and the hit show.** The mark's factor 9.11 comes from the book page (section 1.3). For the ZIP export the ratio of PHP CPU time to database CPU time is near 1.25 (1.25 at 50,000 rows, 1.26 at 200,000 rows in a run that was cut), so the bound the mark gives it is about 7.7 times the real one (165.7 s predicted at 50,000 rows against 21.4 s measured); the false alarm was expected from section 1.3. For the book page at 200,000 rows the ratio of PHP CPU time to database CPU time is 13.90 (15.265 s over 1.098 s), above 9.11; but the request ended early with a 500, so the database time is of a partial run, and **this ratio is not a check of the factor**.
+
+### 5.4 What is not repaired, and candidates
+
+Nothing was repaired. The prediction, the estimates, the calibration, the formula, the thresholds, the mark and the pass rules are as they were committed; none was changed after the result was seen. The two items that missed are recorded above: item 4 at the goal (one scenario short) and the mark (one miss). Candidates for what to repair, **not implemented**, each a change of the specification and therefore not made here:
+
+- put a memory limit into the mark's input and rule, so that a route that runs out of memory before it reaches the time limit is marked;
+- make the tool's memory estimate (spec 6.2, `peak_memory`) available for the book page, so that a route like it can be warned about from the estimate.
+
+Neither is a test until it is made and checked on counts that were not seen: 50,000 and 200,000 rows are now seen counts and cannot be used again for a test (spec 7.4.1).
+
+### 5.5 Readings of the rules that could have gone another way
+
+Each reading below is fixed by the wording of the spec or the scoring tool's README, both committed before the prediction. The effect of the other reading is shown so that the reader can see how far the verdict depends on it.
+
+| point | reading used | the other reading and its effect |
+| --- | --- | --- |
+| r-4's limit (item 4) | not measured: the rule extends only when the step at or above 80% was invalid (spec 7.2) | extending anyway would give 4 of 5 inside ±10% (80%) and the goal would be met; but that is a change of the rule, so it is not used (section 5.2) |
+| the book page at 200,000 rows (mark) | a miss: spec 7.4.1 counts "HTTP 500 or stopped by the limit" as cut and names no cause | counting only cuts by the run-time limit would give 0 misses and the mark would pass; the wording does not support it, so it is not used |
+| the ZIP export at 50,000 rows (mark) | not cut: HTTP 200, whole body, PHP CPU 21.4 s | counting its 37.1 s to answer as "stopped by the limit" would make it a hit; the limit counts CPU time (D178), and the number of misses does not change |
+| ratio of exactly 0.950 (r-3 steps 3 and 5) | valid ("within ±5%" includes the boundary) | reading both as not valid: 23 steps used, mean difference 1.706 points, item 3 25 of 27 (92.6%), the limit of r-3 0.1963 (point ÷ measured 0.902); every item keeps its verdict |
+| abscissa of the line | the intended rps | using the achieved rps: point ÷ measured 1.018, 0.975, 0.949 and 0.845 for r-1, r-2, r-3 and r-5; ±10% still 3 of 4, ±20% 4 of 4 |
+| "over 80%" for a step at exactly 80% | strictly above | there is no step at exactly 80% (the nearest are 78.80% and 81.46%) |
+| the warm-up or the measured request (mark) | the measured request (repetition 1), by D191 | the warm-up gives the same class for every route at both counts |
 
 ## 6. Comparison with the naive estimate
 
-To be written after the measurements are in.
+The naive estimate (spec 7.3) scales the utilization of the largest calibration run at 10,000 rows (`cal-2`, 36.4231% at 1.0 rps in total) by the total rps; it knows nothing of the row count or the mix of routes. It is in the step tables of section 5.2.
 
-What goes in: the naive estimate (spec section 7.3) set beside the simulator on items 1 and 4, step by step and scenario by scenario, as in the first round. Whether the simulator beats it is shown; it is not used for the verdict of item 4.
+**Item 1 and item 2: the simulator beats it at every scenario.** Mean absolute difference over the steps used, in points of utilization:
+
+| scenario | point | naive |
+| --- | --- | --- |
+| r-1 | 0.61 | 24.17 |
+| r-2 | 0.69 | 30.30 |
+| r-3 | 3.74 | 43.59 |
+| r-4 | 1.95 | 43.12 |
+| r-5 | 3.22 | 27.88 |
+| all (25 steps) | 1.989 | 31.933 |
+
+The naive estimate is below the measured utilization at **every one** of the 25 steps used (its signed mean is −31.93), because it keeps the 10,000-row load for a 50,000- or 200,000-row database; the simulator's mean is +1.31.
+
+**Item 3.** The naive estimate agrees with the measurement in 28 of 29 valid steps and the simulator in 27 of 29; the naive estimate is not used for the verdict. That is because only one valid step was measured above 80% (r-3 step 5, 81.46%): the naive estimate misses that one (predicted 7.28%) and agrees on the other 28 by never reaching 80% before 2.2 rps; the simulator finds the one step above 80% and is above 80% in two steps where the measurement was not (r-2 step 7, r-5 step 7). **This ladder cannot say much about item 3.**
+
+**Item 4: the limit rps.** The naive estimate gives one number for all five scenarios, 2.1964 rps, which is 3.0 to 11.2 times the measured limit (0.7282, 0.4575, 0.1962, 0.5348 rps; r-4 was not measured) and is outside ±20% in 0 of 4 scenarios; the simulator's point is inside ±20% in 4 of 4. Beating the naive estimate on item 4 is not part of the pass rule (spec 7.4); the figures are shown.
+
+**What this shows and what it does not.** The simulator beats the naive estimate on the mean difference (item 1) and on the limit rps (item 4's figures) in every scenario, by a wide margin; the naive estimate is a poor comparison at these row counts, because the load grows with the rows and it does not. It does not show that the simulator is right on a deployment. The naive estimate's one advantage is item 3, for the reason above.
 
 ## 7. What the lab cannot say
 
 The limits of the lab are those of section 6 of `lab-backtest.md`: the cache behaviour of a real deployment, data that does not fit in the database's memory, and contention with other work on the same database or machine. Write load is different in this round and is stated below: a request now commits an update of the view counter, and nothing else is written. What is specific to this round:
 
-- B was measured with the application's time limit lifted, so B says nothing about the application stopping early;
+- B was measured with the application's time limit lifted (its memory limit was left at 512M, section 4.4), so B says nothing about the application stopping early, and at 200,000 rows the book page did stop early, for lack of memory;
 - the mark is checked one request at a time and says nothing about the application under load;
 - the lab's data (for example how many books a shelf holds) is the generator's and may differ from a deployment's.
 
@@ -439,15 +747,25 @@ Settled before the measurements of this round, from the records written before t
 - **The offsetting of the four main statements cannot be checked.** `s7ff3e12408`, `s24834a57a6`, `s400220f42f` and `s58efd897dc` carry almost all of the book page's rows (their estimated sum is 891,216 of 891,734 at 70,000 rows). The route totals agree with the measurement (1.011), but the measurement holds rows per request and not per statement, so an over-estimate of one statement and an under-estimate of another could cancel without being seen. Showing it would take a per-statement reading, which this round does not have.
 - **How far the estimate is carried beyond what was captured.** The capture's largest size is 30,000 rows; the targets are 50,000 rows (about 1.7 times that size, 1.667) and 200,000 rows (about 6.7 times, 6.667). The 70,000-row check (2.333 times) is the only check of the estimate beyond the capture, and it is one count; the estimate at 200,000 rows is carried further than anything checked. The calibration, too, was measured at 3,000, 10,000 and 30,000 rows only, and its coefficients are used at 50,000 and 200,000; both runs of the book-page mix are at 30,000 rows.
 - **Which routes are marked as changing plan with the row count depends on the smaller size they are compared with.** The comparison is made against a database of one tenth of the target (5,000 rows for 50,000; 20,000 for 200,000). At 50,000 rows the four main statements are marked and the book page's upper side is 4.51 times its point (the ZIP export's 2.85 times); at 200,000 rows none of the four is marked and the upper side is 1.018 times the point for the book page and 1.009 times for the ZIP export (`8f0984c`). So the safe side at 200,000 rows is practically the same as the point: in the prediction the safe-side limit rps of r-3 is 0.1769 against a point of 0.1771 (section 3.4). One possible reason, not tested: a plan that has already changed between 5,000 and 30,000 rows shows as a change at 50,000 rows and not at 200,000. The records cannot say which of the two is nearer to the plan of a database of that size. The marks were not adjusted, since adjusting them after seeing the EXPLAIN would be fitting them. At 200,000 rows it is the agreement of the point that is looked at.
-- **The upper side is wide at 50,000 and 70,000 rows, and not at 200,000.** At 70,000 rows it is about four times the point (book page 4.32, ZIP export 3.79 times the measured rows); at 50,000 rows the book page's is 4.51 times (the ZIP export's 2.85). At those two counts the safe side of B will be much stricter than the point, and point and safe side are read apart (in the prediction, limit rps 0.6122 against 0.7079 for r-1 and 0.3828 against 0.4426 for r-2). At 200,000 rows the upper side is 1.018 and 1.009 times the point, so the two nearly coincide. How much the upper side moves the utilization also depends on the calibration (section 1.7).
+- **The upper side is wide at 50,000 and 70,000 rows, and not at 200,000.** At 70,000 rows it is about four times the point (book page 4.32, ZIP export 3.79 times the measured rows); at 50,000 rows the book page's is 4.51 times (the ZIP export's 2.85). At those two counts the safe side of B is much stricter than the point, and point and safe side are read apart (in the prediction, limit rps 0.6122 against 0.7079 for r-1 and 0.3828 against 0.4426 for r-2; against the measured limit rps the safe side is 0.841 and 0.837 and the point 0.972 and 0.967, section 5.2). How much stricter depends on the calibration (section 1.7), and at 200,000 rows it does not apply: the upper side is 1.018 and 1.009 times the point, so the two nearly coincide (r-3: 0.901 and 0.903 of the measured).
 - **The lab's entry is not the application's.** Until this round the lab's entry wrapped each request in a transaction that was rolled back after the response. The transaction kept the lock of the book page's view-counter row until after the response, so book pages were served one at a time (section 1.6). That is a property of the lab's construction and not of BookStack in production. The first calibration with the limits off was affected (its first `cal-6` reached 0.398 rps of the 2.2 asked); the calibration of section 1.7 and the steps of this round are measured at the entry without the transaction. The comparison of the two calibrations is a comparison of two records and not of a single change.
-- **The disappearance of the lock wait is seen only up to 30,000 rows, with two requests at once.** The check was two pairs of requests for one book, on a database of 30,000 rows, and polls of the lock tables about every 0.3 s, which cannot see a hold shorter than that; no rate was sent in it. A book-page rate of 1.2 rps passed in `cal-6` (576 requests, all HTTP 200, at 30,000 rows; `calibration-r4/cal-6/record.json`). At 50,000 and 200,000 rows nothing of the kind was checked, because the table check and the measuring entries refuse those databases until the prediction is committed (section 3.6). Whether the lock returns at those counts, or at a higher rate, is not known before the steps are measured.
+- **The disappearance of the lock wait is seen only up to 30,000 rows, with two requests at once.** The check was two pairs of requests for one book, on a database of 30,000 rows, and polls of the lock tables about every 0.3 s, which cannot see a hold shorter than that; no rate was sent in it. A book-page rate of 1.2 rps passed in `cal-6` (576 requests, all HTTP 200, at 30,000 rows; `calibration-r4/cal-6/record.json`). At 50,000 and 200,000 rows nothing of the kind was checked, because the table check and the measuring entries refuse those databases until the prediction is committed (section 3.6). The step records of this round do not include polls of the lock tables, so it is still not known whether the lock returned at those counts or at a higher rate; the step where the rps did not come out while the database was below 80% (r-4 step 3) was not examined for it.
 - **All 6,000 books of the lab's 30,000-row database have the same slug**, so `GET /books/{slug}` always reaches the same book and the same row of `views`. The serialization of book pages came partly from this construction of the data; what would happen with requests for different books is not seen. Whether the databases of 50,000 and 200,000 rows have the same property was not read.
-- **The number of php-fpm workers is 16, as in the first round, and was not changed.** A step may stop climbing because all the workers are busy and not because of the database; the application's CPU and the waits recorded for each step are where this is looked for (section 4).
+- **The number of php-fpm workers is 16, as in the first round, and was not changed.** A step may stop climbing because all the workers are busy and not because of the database; the application's CPU and the waits recorded for each step are where this is looked for (section 4). r-4 step 3 is the sign this item names: the rps did not come out while the database was at 65.95% (`app_side_stall` in its record), with the application's CPU at 32.49%. The cause was not determined; the number of busy workers was not recorded.
 - **The entry carries a statement-by-statement check in PHP.** Its measured cost per statement and the arithmetic for the book page and the ZIP export are in section 1.6. It is in the application's CPU in every step and not in the database's. Taking away the transaction removed one BEGIN and one ROLLBACK a request, and the balance of the two was not measured. The amount depends on the number of statements a request sends, which is large for the ZIP export.
 - **The check at 70,000 rows was made at the earlier entry.** Its measurements (limits off, with the rollback, before the guards) were not repeated at the entry of this round, so the counts of statements and rows per request at the present entry were not measured at that count.
 - **The view counter is committed and grows.** The lab differs from production in that the requests' increments of `views` stay, so that `views` is not constant between measurements (D187); it is not one of the three N tables, whose counts and checksums are compared before and after, and the estimate does not model its growth.
 
-Items that depend on the measurements (for example steps stopped on the application side, routes the application's limit cut, and the validity of any step) are added after section 5.
+What the measurements added (sections 4 to 6):
+
+- **At 200,000 rows B measured a book page that ran out of memory, and the prediction counts it as running to its end.** In every window of r-3, r-4 and r-5 every `GET /books/{slug}` request answered HTTP 500 after running out of its 512M memory limit (section 4.4); the spec lifts the time limits for B and not this one. The measured utilization of those steps therefore lacks the database work the book page would have done after the failure, and the prediction does not. A bound, not a measurement: in the prediction's points the book page is about 3.3% to 3.4% of the predicted database time in each 200,000-row scenario (the book page 2.413 s and the ZIP export 69.84 s a request at equal rates, the other routes negligible; computed from the prediction file, not a measured share), so if all its work were missing the measured utilization would be at most about 3.4% too low and the measured limit rps at most about 3.4% too high. The effect can only reduce the errors found, since the prediction is above the measured utilization and below the measured limit rps at 200,000 rows. If the measured limit had been 3.4% lower, r-5's point ÷ measured would be 0.857 instead of 0.828 (still outside ±10%) and r-3's 0.935 instead of 0.903 (still inside). So **no item's verdict depends on it**, at the lowest standard or at the goal. How much of the work a failing book page does is known from one cold request only: at 200,000 rows the mark's book-page request read 1.098 s of database CPU time before it failed, 0.455 of the 2.413 s predicted for it. That is a request of the mark and not one of the steps.
+- **The error is larger at 200,000 rows than at 50,000 rows**, and it is in one direction: the mean absolute difference of utilization is 0.61 and 0.69 points for r-1 and r-2 and 3.74 and 3.22 for r-3 and r-5, with the point above the measured (signed means +0.08 and +0.25 against +3.74 and +2.67); the limit rps of the point is 0.972 and 0.967 of the measured at 50,000 rows and 0.903 and 0.828 at 200,000 rows. This coincides with the failing book page above and with the longer reach of the estimate (6.7 times the capture's largest size against 1.7 times); the two causes were not separated.
+- **B's goal on item 4 was missed by one scenario, and the measured limits are mostly extended.** The limit rps was measured for exactly 4 scenarios, the least that does not make B undecidable; r-4 was not measured because its rps stopped coming out at 65.95%, before the database reached 80%. Three of the four measured limits are extended from two steps below 80% (r-1, r-2, r-5), because the step above 80% was not valid; only r-3's is between two measured steps. The extended ones depend on the straight line carried to 80% (the reading of the abscissa changes none of the verdicts, section 5.5).
+- **Item 3 hardly separates predictors.** Only one of the 29 valid steps was measured above 80% (r-3 step 5). The naive estimate, which never reaches 80% in the valid steps, agrees in 28 of 29 steps, one more than the simulator (section 6).
+- **The ZIP export's planned number of requests was not reached in the windows at 200,000 rows.** In every step of r-3 and r-4 and in most of r-5, the window holds fewer ZIP requests than planned (for example 4 of 5 in r-3 step 1, 5 of 8 in r-4 step 3, `per_route` in the step records), and the other routes hold their planned numbers. A guess, not tested: a ZIP request that lasts about 52 s is not counted when it has not ended by the end of the window. Whether this moved the measured utilization was not examined; the ZIP export is about 97% of the predicted database time at 200,000 rows.
+- **r-1 was measured before the host stopped and r-2 to r-5 and both marks after a cold restart** (section 4.1). The effect was not separated; the only comparison is one step of the interrupted r-2 against the same step of the repeated r-2, 0.39 points apart.
+- **The mark is one cold request per route at each of two row counts**, without load, and says nothing about the application under load or about a second request to the same route. The application's log was not kept for it, so the cause of the book page's 500 at 200,000 rows is an inference from the CPU time and from B (section 5.3). The mark gave a false alarm for the ZIP export at 50,000 rows because its factor, 9.11, comes from the book page, while the ZIP export's PHP CPU time is about 1.25 times its database time (section 5.3); this was expected (section 1.3).
+- **What the mark does not watch.** The mark's rule looks at PHP CPU time against the run-time limit and has no input for the memory limit, so it gives no warning for a route that fails by memory first. This is a gap of the tool that the measurement showed, and not only a limit of the lab (section 5.3).
+- **50,000 and 200,000 rows are now seen counts.** They cannot be used again as a test of anything repaired after this round (spec 7.4.1).
 
 This file does not claim any precision on a real deployment.
