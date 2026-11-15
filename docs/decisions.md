@@ -2069,3 +2069,19 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - A の構築の環境:ラボとは**別の compose project**(別の DB コンテナ・別の volume)で、**同じホスト・同じ Docker**。ゆえに A とラボの DB の CPU 時間の測りは重ねられない(D199 (6) のとおり)。構築用の 2 つのスタックは `compose down -v` で畳んだ(kill 系なし)ので、これらの DB は今は無く、A の測定が自分で作り直す。
 - 終わりのラボ:設定は触っていない。アプリは 10,000 件の DB を指したまま(`PEAK_LAB_SCALE=10000`)、`poc/lab/compose` の git diff は 0 行。php-fpm を通して読んだ実物は `max_execution_time` 30・`memory_limit` 512M・pool の `request_terminate_timeout` 0s・nginx の `fastcgi_read_timeout` 120s(`bin/check-limits --require=limited`・02:38)。
 - 変わらないもの:予測・見積もり・較正・式・印の閾値・合否の規則・段・窓・#15〜#17 の記録と合否・D181〜D200 の決め。
+
+### D202. 件数 300,000 の A(外挿試験)の見積もりの作り方と置き場(2026-11-16 02:43 記帳。件数 300,000 の予測を commit する前に決めた。件数 300,000 のリクエストは 1 本も出していない)
+- 位置づけ:A の見積もりは、予測の commit(T5)まで repo の外に置く(commit は T5 で 4 ファイル=検証用アプリと BookStack の見積もり・印のあるルートの一覧)。ここに残すのは作り方と、控えた sha256 である。見積もり・較正・式・印の閾値・合否の規則は変えていない(結果を見て変えぬ)。
+- 道具:peak-sim 8f4cd65(`git archive` の複製。D200 の構築の上限 7,200 秒を含む)。A のリクエストを出す道具(`bin/measure`・`bin/variance-run`・`measure-*`)は起こしていない。起こしたのは `bin/capture`・`bin/explain-at-scale`・`bin/predict`・`bin/estimate`・`bin/marked-routes` だけで、開始・終了の時刻は `~/projects/peak-sim-trials/_out/cmd281/a3/order_record.txt` に残した(捕捉 01:23:32〜02:21:45・EXPLAIN 02:06:45〜02:41:13・見積もり 02:41:46〜02:41:51)。
+- 規模:
+  1. 捕捉(`--analyze-after-build=on`)は 100・1,000・10,000・30,000 件(検証用アプリ 24 ルート・BookStack 36 ルート)。D105 の 12 本は別に 10・100・1,000・10,000・30,000 件(D199 (10))。捕捉は検証用アプリ 01:44 まで(約 21 分)・12 本 01:41 まで(約 18 分)・BookStack 本体 02:21 まで(約 58 分)。3 本を並行に回したので、所要は並行の分を含む。
+  2. EXPLAIN(`bin/explain-at-scale`)は目標 300,000 件・小さい側は**道具の既定の 10,000 件**(D199 (9)。`--small-scale` は付けず、出力の `small_scale` は 10000)。所要は検証用アプリ約 3 分・BookStack の 12 本約 10 分・BookStack 本体約 19 分。いずれも exit 0。この EXPLAIN の構築(ルートごとに N の表を伸ばす形)には glob 群は無く、構築が上限に当たることは無かった(最長 237 秒)。glob 群の 300,000 件の構築は A の測定(T6)で出る。
+  3. 見積もりの `small_scale`(H1 の点を取る規模)は、道具が**捕捉の最大規模**から取る(`representative_scale`)。第 2 試験の捕捉は最大 10,000 件だったので 10,000 だったが、今回は D199 の決め(30,000 件を足す)で捕捉の最大が 30,000 件なので、`estimate.json` の `small_scale` は **30000** になった。EXPLAIN の小さい側 10,000(印の作り方)とは別の数である。道具の挙動であり、規則は変えていない。第 2 試験との違いとして記す。
+- 使った fits:`docs/research/extrapolation-data-2/{fixtures,bookstack}/fits.json` をそのまま(当てはめ直さぬ。検証用アプリ `216f2b46435d…`・BookStack `5f409c300b49…`。第 2 試験の README の sha256 と同じ)。`bin/predict --at=300000`、`bin/estimate --candidate=H1_RANGE --at=300000 --predictions=…`(`--axes-only` なし)。BookStack は `merge_inputs.py` で本体の捕捉・EXPLAIN に 12 本を合わせた(12 本は D124 のとおり 12 本の側から丸ごと)。fits は第 2 試験の統合済みのものをそのまま渡したので、`fits.json` は入力とバイト同一。`bin/estimate` は二度打って `cmp` で同一(検証用アプリ・BookStack とも)。
+- ルート数:`estimate.json` は検証用アプリ 24・BookStack 36。EXPLAIN は検証用アプリ 24・BookStack 35(`GET /oidc/callback` は EXPLAIN に無い=第 2 試験と同じ)。
+- **A の印のあるルート**(EXPLAIN の `plan_changes_at_scale`/`plan_unstable` の規則だけで作る・§7.1 の A の印):検証用アプリ **0/24**・BookStack **22/35**(第 2 試験は 0/24 と 20/34)。これは T2 のメモリの印(`app_limit_risk_memory`・D196。ラボの 8 本に付く、1.51 × 予測ピークメモリ ≥ 上限)とは別物で、混ぜない。
+- 置き場:`~/projects/peak-sim-trials/_out/cmd281/a3/`(repo の外・T5 で `poc/lab/predictions/` へ 4 ファイルとして commit)。見積もり・印の一覧の sha256(先頭 12 文字。全文は同置き場の `sha256.txt`):
+  - 検証用アプリ:`estimate.json` `5c341692b9a3`・`marked-routes.json` `6990173cb6e7`・`predictions.json` `2550bc464b30`・`capture.json` `37a8dcd9383a`・`explain.json` `410625d7c23d`
+  - BookStack:`estimate.json` `9162945b83ce`・`marked-routes.json` `51ac4bf056a7`・`predictions.json` `5753567fbad5`・合わせた後の `capture.json` `8e2830c3733e`・`explain.json` `83218b2ca9a6`
+  - 合わせる前の BookStack:本体 `capture.json` `be9439f7da5c`・12 本 `capture.json` `41c9de0147be`・本体 `explain.json` `3fc4a5e79cb3`・12 本 `explain.json` `68f066b5f06f`
+- 変わらないもの:予測・見積もり・較正・式・印の閾値・合否の規則・段・窓・#15〜#17 の記録と合否・D181〜D203 の決め。
