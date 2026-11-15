@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# The door to the measurement of test A (docs/simulator-spec.md section 7.1, at 300,000 rows), behind the same gate as the ladder.
+# Test A is measured by two tools of the runtime, `poc/runtime/bin/measure` (every route cold once) and `poc/runtime/bin/variance-run`
+# (the marked routes, three more cold tries). Neither of them knows about a prediction. This script is the only way this repository
+# gives to start them for test A: it runs poc/lab/bin/prediction-gate on the committed estimate and on the committed list of marked
+# routes first, and starts the measurement only if both gates are open.
+#
+#   poc/lab/bin/measure-extrapolation --estimate=<estimate.json> --marked=<marked-routes.json> measure|repeat [-- <arguments>]
+#
+#   --estimate=<file>   the committed estimate of test A (a .json inside poc/lab/predictions/)
+#   --marked=<file>     the committed list of marked routes (a .json inside poc/lab/predictions/)
+#   measure             runs poc/runtime/bin/measure with <arguments> (step 5 of test A: every route cold once)
+#   repeat              runs poc/runtime/bin/variance-run with <arguments> (step 6: the marked routes, three more cold tries)
+#
+# The gate (bin/prediction-gate) is open only if each of the two files is a .json inside poc/lab/predictions/, is in HEAD, has no
+# difference from HEAD (staged or not), and nothing else in that directory is untracked or changed. It reads git only. If it is closed
+# for either file the script exits 12 and the runtime tool is not started, so no container is touched. The two files must be two
+# different files. Anything else wrong with the usage exits 2, also before anything is started.
+# The gate lines (`PREDICTION OK <path> <commit> <time>`) are printed first, so the record of the run names the commit it ran after.
+# This does not take the runtime tools out of the world: a person can still call bin/measure by hand (bin/selfcheck does, with its own
+# seal, for a user's app). What it gives is one door where the gate cannot be left out, and a test that fails if the call is removed.
+# environment: PEAK_REPO_ROOT (default: this repository), PEAK_RUNTIME_BIN (default: poc/runtime/bin; for the tests)
+# exit codes: 0 / 2 usage / 12 gate closed / otherwise the exit code of the runtime tool
+set -uo pipefail
+bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+: "${PEAK_REPO_ROOT:=$(cd "$bindir/../../.." && pwd)}"
+: "${PEAK_RUNTIME_BIN:=$PEAK_REPO_ROOT/poc/runtime/bin}"
+export PEAK_REPO_ROOT
+
+usage() { echo "usage: measure-extrapolation --estimate=<estimate.json> --marked=<marked-routes.json> measure|repeat [-- <arguments>]" >&2; exit 2; }
+
+estimate=""; marked=""; mode=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --estimate=*) estimate="${1#--estimate=}"; shift ;;
+    --marked=*) marked="${1#--marked=}"; shift ;;
+    measure|repeat) mode="$1"; shift; break ;;
+    *) usage ;;
+  esac
+done
+[ -n "$estimate" ] && [ -n "$marked" ] && [ -n "$mode" ] || usage
+if [ "$#" -gt 0 ]; then
+  [ "$1" = "--" ] || usage
+  shift
+fi
+[ -f "$estimate" ] && [ -f "$marked" ] && [ "$(realpath -- "$estimate")" != "$(realpath -- "$marked")" ] || {
+  echo "measure-extrapolation: --estimate and --marked must be two existing, different files" >&2; exit 2; }
+
+# THE GATE. Both files, before anything else; a closed gate is exit 12 and nothing is started.
+est_line="$("$bindir/prediction-gate" "$estimate" 2>&1)" || { echo "$est_line" >&2; exit 12; }
+mk_line="$("$bindir/prediction-gate" "$marked" 2>&1)" || { echo "$mk_line" >&2; exit 12; }
+echo "$est_line"; echo "$mk_line"
+
+case "$mode" in
+  measure) tool="$PEAK_RUNTIME_BIN/measure" ;;
+  repeat) tool="$PEAK_RUNTIME_BIN/variance-run" ;;
+esac
+exec "$tool" "$@"
