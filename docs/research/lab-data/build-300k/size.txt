@@ -1,0 +1,11 @@
+# size of every lab database, MiB (information_schema data_length + index_length), 2026-11-16
+scale=3000	7.9	12.0	20.0
+scale=10000	30.7	32.7	63.5
+scale=30000	71.3	103.4	174.6
+scale=50000	108.3	148.5	256.8
+scale=70000	144.3	185.7	330.0
+scale=100000	201.4	255.1	456.5
+scale=200000	396.7	482.9	879.6
+scale=300000	574.3	676.6	1250.9
+# columns: database, data, index, total
+# directory of the 300,000-row database on the database volume (du -sm): 1552 MiB; whole data directory (all scales, binary logs): 6166 MiB
