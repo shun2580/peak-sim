@@ -1,7 +1,7 @@
 # Can the lab build the database at 300,000 rows? (the build and the count, nothing else)
 
 A check made before any prediction at 300,000 rows: the lab's builder is run once at 300,000 rows with the same recipe as the 10,000 to
-200,000-row databases, and the rows are counted. **No request was sent to the application, no EXPLAIN was run, no ANALYZE was run and no
+200,000-row databases, and the rows are counted. **No request was sent to the application, no EXPLAIN was run and no
 load was applied to this database**; the only statements run on its data are the `SELECT COUNT(*)` of `counts.tsv` (the sizes in
 `size.txt` come from `information_schema`, which reads the table metadata). The application was left pointing at the 10,000-row
 database (`bin/use-db` was not run for this scale).
@@ -38,6 +38,30 @@ build; no commit touches them between 11-11 and the build; other paths of the wo
 except for that commit (a change of the capture record, which the builder does not read). If the generator is changed later, this
 database has to be built again, and this record no longer describes the data.
 
+## The statistics were put in order once (ANALYZE TABLE), and the baseline of the server's statement counters was read
+
+After the build and the count, `ANALYZE TABLE` was run once on each of the 41 tables of this database, at the server's default sample
+size (the same way as `analyze-lab/`; no table option was changed and the automatic recalculation was left at its default). Then the
+statement statistics of the server were read once as a baseline. **From then on no `ANALYZE` is run again on this database.** No request,
+no EXPLAIN and no load was applied; the only statements were `ANALYZE TABLE` and reads of `mysql.innodb_table_stats` and of
+`performance_schema.table_io_waits_summary_by_table`.
+
+| | |
+| --- | --- |
+| Statements | 41 `ANALYZE TABLE`, all `status OK` (`analyze-output.txt`) |
+| Wall time | 1.6 s (2026-11-16 01:21:47 to 01:21:49, local time; `analyze-timing.tsv`) |
+| `last_update` before (server clock, UTC) | 2026-11-15 16:04:23 to 16:08:11 (`analyze-table-stats-before.tsv`; the time of the build) |
+| `last_update` after (UTC) | 2026-11-15 16:21:47 to 16:21:49 (`analyze-table-stats-after.tsv`) |
+| Tables whose `n_rows` changed | 8 of 41 |
+
+What `n_rows` was in the tables the estimate reads most (before to after; these are the optimizer's estimates, not counts, the counts are
+in `counts.tsv`): `entities` 290,832 to 296,185; `entity_container_data` 175,544 to 180,803; `images` 298,043 to 297,086; `references`
+299,088 (unchanged); `joint_permissions` 2,476,907 to 2,706,001.
+
+`dbstats-baseline.tsv` holds, per table of this schema, the read, write, fetch, insert, update and delete counts of the server
+(`table_io_waits_summary_by_table`) read at 2026-11-16T01:21:49+09:00 (server uptime 3,584 s at that time), right after the `ANALYZE`; these
+counters include the build's own inserts. A later reading is to be compared with this one.
+
 ## What this does not say
 
 That the lab can *answer* at this size: no request was made. The time of a request, the plans the optimizer picks at 300,000 rows, and
@@ -47,3 +71,5 @@ whether the buffer pool holds what a request reads were not looked at, so that t
 
 - `build-db-output.txt`: the output of the build command, unedited.
 - `counts.tsv`: the row counts. `size.txt`: the sizes of all lab databases.
+- `analyze-output.txt`, `analyze-timing.tsv`, `analyze-table-stats-before.tsv`, `analyze-table-stats-after.tsv`: the one `ANALYZE TABLE` run.
+- `dbstats-baseline.tsv`: the baseline of the server's statement counters of this database.
