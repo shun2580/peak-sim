@@ -1,0 +1,5425 @@
+{
+ "schema_version": "0.1",
+ "source": "s1b",
+ "routes": [
+  {
+   "route": "DELETE /api/books/{id}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /api/chapters/{id}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /api/imports/{id}",
+   "axis": "N",
+   "table": "imports",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /api/pages/{id}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /api/shelves/{id}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /api/users/{id}",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 51.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 326.569252293,
+     "b": 9.34033031784,
+     "k": 0.99,
+     "sse": 35149.210556,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0936578933,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.3132068034,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.34016620149,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 41246.051611,
+     "b": 54351.1021556,
+     "k": 0.67,
+     "sse": 36891287601.1,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 34102.0993503,
+       "k": 0.74
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41208.0168114,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59548.9626266,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 49.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 320.929659369,
+     "b": 9.34028680279,
+     "k": 0.99,
+     "sse": 34918.7116444,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0929662748,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.31315409,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.34012309123,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 40054.8253905,
+     "b": 54361.9921719,
+     "k": 0.67,
+     "sse": 36243772491.6,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 34115.4404107,
+       "k": 0.74
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41215.9861293,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59560.7302351,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 50.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 326.650473521,
+     "b": 9.34019977267,
+     "k": 0.99,
+     "sse": 34461.5513786,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0915830378,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.3130486633,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.3400368707,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 44181.2624739,
+     "b": 54356.2298377,
+     "k": 0.67,
+     "sse": 37016162038.4,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 34099.6230228,
+       "k": 0.74
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41212.2109057,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59554.6166551,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "DELETE /books/{id}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 55.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 339.12762399,
+     "b": 9.34050437807,
+     "k": 0.99,
+     "sse": 36083.9980612,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0964243673,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.3134176569,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.34033864255,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 45371.2096463,
+     "b": 54372.207973,
+     "k": 0.67,
+     "sse": 34490486554.1,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 36570.3915615,
+       "k": 0.73
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41222.0894992,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59571.4177372,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "DELETE /import/{id}",
+   "axis": "N",
+   "table": "imports",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 5.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 194.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 94088.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "DELETE /settings/maintenance/cleanup-images",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 3.96442687747,
+     "b": 2.00100381013,
+     "k": 1.0,
+     "sse": 0.00648078908948,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2.00102884201,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 2.00100349254,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.0010038743,
+       "k": 1.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 358.664438481,
+     "b": 6.45209643765,
+     "k": 1.12,
+     "sse": 43227.6858947,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 8.53748193903,
+       "k": 1.08
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 7.75693401675,
+       "k": 1.1
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 6.45207482269,
+       "k": 1.12
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 0.0,
+     "b": 176996.292516,
+     "k": 0.29,
+     "sse": 412482430872.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 4328.65639466,
+       "k": 0.87
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 24404.7683168,
+       "k": 0.5
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 671584.381462,
+       "k": 0.14
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "DELETE /settings/sorting/rules/{id}",
+   "axis": "N",
+   "table": "sort_rules",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 6.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 197.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 94072.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "DELETE /settings/users/{id}",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "DELETE /shelves/{slug}",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 48.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 320.556798476,
+     "b": 9.34132055846,
+     "k": 0.99,
+     "sse": 35639.0065516,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0956007846,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.3145110702,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.34115539915,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 35310.5661915,
+     "b": 54373.4198658,
+     "k": 0.67,
+     "sse": 35830803311.3,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 34111.2265433,
+       "k": 0.74
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41225.339866,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59573.1727009,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /api/books/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/books/{id}/export/zip",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/chapters/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/imports/{id}",
+   "axis": "N",
+   "table": "imports",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/pages/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/shelves/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/users",
+   "axis": "N",
+   "table": null,
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /api/users/{id}",
+   "axis": "N",
+   "table": "users",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 23.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 302.219846772,
+     "b": 0.290135590218,
+     "k": 1.29,
+     "sse": 5014.30329638,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.00016474176864,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 2.13978011501e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 6.64669022717e-08,
+       "k": 2.95
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.00080274516,
+       "k": 1.11
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.664668885351,
+       "k": 1.2
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.290134642401,
+       "k": 1.29
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 320245.066408,
+     "b": 3664.84786088,
+     "k": 1.0,
+     "sse": 2932216697.18,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 18674.9640747,
+       "k": 0.63
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 11799.0181964,
+       "k": 0.83
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 10094.404136,
+       "k": 0.89
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2963.73930349,
+       "k": 1.03
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3048.46523225,
+       "k": 1.02
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 3664.87002247,
+       "k": 1.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)",
+     "rejected_fit": {
+      "a": 7.0010587424,
+      "b": 0.931772186956,
+      "k": 0.01,
+      "sse": 0.00105874239543
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 207.840729956,
+     "b": 0.384539379712,
+     "k": 0.99,
+     "sse": 47.2527873959,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.579281483375,
+       "k": 0.93
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.506938738599,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.384533202976,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 272077.551966,
+     "b": 55.1397978565,
+     "k": 1.15,
+     "sse": 33601751.4096,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 135.805720963,
+       "k": 1.02
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 95.8196205199,
+       "k": 1.09
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 55.1393167633,
+       "k": 1.15
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /books/{bookSlug}/copy",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 4.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 198.75,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 6.75,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.75,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.75,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.75,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 274344.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /books/{bookSlug}/draft/{pageId}",
+   "axis": "N",
+   "table": "page_revisions",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 13.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 211.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 1260792.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /books/{bookSlug}/export/zip",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 4.0,
+     "b": 1.2,
+     "k": 1.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 1.2,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 1.2,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 1.2,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.2,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1.2,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1.2,
+       "k": 1.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 268.942768203,
+     "b": 0.772245591776,
+     "k": 1.21,
+     "sse": 6103.45798998,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.000264023025006,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 3.27905719785e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 6.4233450756e-08,
+       "k": 2.98
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.76085068671,
+       "k": 1.09
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1.34202653401,
+       "k": 1.15
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.772242412635,
+       "k": 1.21
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 110982.091056,
+     "b": 2045.6788748,
+     "k": 0.99,
+     "sse": 202383380.89,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 4297.29498152,
+       "k": 0.83
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 3534.42643455,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 3242.37536974,
+       "k": 0.94
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2034.0901949,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 2045.80170201,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2045.67660098,
+       "k": 0.99
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /books/{bookSlug}/page/{pageSlug}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 24.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 296.692468719,
+     "b": 0.290175690256,
+     "k": 1.29,
+     "sse": 5492.50817104,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.000165263673549,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 2.14530748759e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 5.52920477904e-08,
+       "k": 2.97
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.00339164241,
+       "k": 1.11
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.664756520276,
+       "k": 1.2
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.290174738239,
+       "k": 1.29
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 361561.122125,
+     "b": 3666.73730977,
+     "k": 1.0,
+     "sse": 377484149.754,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 7468.06054345,
+       "k": 0.84
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 6359.87271456,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 5811.51036103,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3415.43837789,
+       "k": 1.01
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3344.18136655,
+       "k": 1.01
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 3666.7449867,
+       "k": 1.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)",
+     "rejected_fit": {
+      "a": 7.0010587424,
+      "b": 0.931772186956,
+      "k": 0.01,
+      "sse": 0.00105874239543
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 210.384331069,
+     "b": 0.43940519601,
+     "k": 0.99,
+     "sse": 49.5020543847,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.661023521705,
+       "k": 0.93
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.579275723106,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.439398772987,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 272288.335575,
+     "b": 52.8812352319,
+     "k": 1.15,
+     "sse": 35344926.2933,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 158.626801632,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 110.487026245,
+       "k": 1.07
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 52.8806599573,
+       "k": 1.15
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /books/{slug}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.06 (<= 0.2)",
+     "rejected_fit": {
+      "a": 0.0,
+      "b": 27.8094474113,
+      "k": 0.06,
+      "sse": 72.347158317
+     },
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 449.009521472,
+     "b": 0.539667278028,
+     "k": 1.29,
+     "sse": 50078.2104677,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.000360840108166,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 4.00599032851e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 1.02830604339e-07,
+       "k": 2.97
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2.83627172381,
+       "k": 1.05
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1.62975567184,
+       "k": 1.17
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.539664599529,
+       "k": 1.29
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 418874.329051,
+     "b": 4227.78784126,
+     "k": 0.99,
+     "sse": 3751960446.27,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.447355525264,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.00394539766925,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.000351648521663,
+       "k": 2.76
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 5573.75434161,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 5082.87463522,
+       "k": 0.97
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 4227.74329381,
+       "k": 0.99
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /books/{slug}/references",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)",
+     "rejected_fit": {
+      "a": 6.0010587424,
+      "b": 0.931772186956,
+      "k": 0.01,
+      "sse": 0.00105874239543
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 203.201137032,
+     "b": 0.384495864655,
+     "k": 0.99,
+     "sse": 40.2109204074,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.578637191096,
+       "k": 0.93
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.506886025231,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.384490092712,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 269031.399706,
+     "b": 42.7639091758,
+     "k": 1.17,
+     "sse": 45017805.2204,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 138.682633984,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 97.9644409775,
+       "k": 1.08
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 42.763470654,
+       "k": 1.17
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /images/edit/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 6.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 199.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 4019104.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /import/{id}",
+   "axis": "N",
+   "table": "imports",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /login/service/{socialDriver}/callback",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /oidc/callback",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 0.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 0.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 25632.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /register",
+   "axis": "N",
+   "table": null,
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "GET /settings/sorting/rules/{id}",
+   "axis": "N",
+   "table": "sort_rules",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 4.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 196.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 314088.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /settings/users/create",
+   "axis": "N",
+   "table": "roles",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 4.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 202.0,
+     "b": 1.0,
+     "k": 1.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 261084.084184,
+     "b": 3021.52878633,
+     "k": 1.01,
+     "sse": 1817793876.93,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2291.11437141,
+       "k": 1.05
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 2513.22723058,
+       "k": 1.03
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 3021.55444461,
+       "k": 1.01
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /settings/users/{id}",
+   "axis": "N",
+   "table": "roles",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 8.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 210.0,
+     "b": 1.0,
+     "k": 1.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1.0,
+       "k": 1.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 297680.92265,
+     "b": 3023.01372375,
+     "k": 1.01,
+     "sse": 2139105601.52,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2288.55200172,
+       "k": 1.05
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 2514.50144887,
+       "k": 1.03
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 3023.03916146,
+       "k": 1.01
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "GET /shelves/{slug}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.02 (<= 0.2)",
+     "rejected_fit": {
+      "a": 4.66792106765,
+      "b": 11.4214580493,
+      "k": 0.02,
+      "sse": 1.25531170295
+     },
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 0.0,
+     "b": 380.248902397,
+     "k": 0.05,
+     "sse": 679124.307365,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 148.390847166,
+       "k": 0.18
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 95.6925500628,
+       "k": 0.37
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 216.486490053,
+       "k": 0.01
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 25.7685286799,
+       "k": 0.56
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 288.5,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 734.5,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 50638.9426876,
+     "b": 275577.336208,
+     "k": 0.01,
+     "sse": 156536471.543,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 258061.015516,
+       "k": 0.03
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 260805.154272,
+       "k": 0.02
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 270223.056486,
+       "k": 0.01
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 297649.057312,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 297649.057312,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 297649.057312,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "GET /shelves/{slug}/references",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0.01 (<= 0.2)",
+     "rejected_fit": {
+      "a": 6.0010587424,
+      "b": 0.931772186956,
+      "k": 0.01,
+      "sse": 0.00105874239543
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 203.201137032,
+     "b": 0.384495864655,
+     "k": 0.99,
+     "sse": 40.2109204074,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.578637191096,
+       "k": 0.93
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.506886025231,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.384490092712,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 267641.605947,
+     "b": 45.8120646258,
+     "k": 1.18,
+     "sse": 39070104.7222,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 146.773586226,
+       "k": 1.01
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 95.7183476203,
+       "k": 1.1
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 45.811653909,
+       "k": 1.18
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "POST /api/imports/{id}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "POST /api/users",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "POST /books/{bookSlug}/copy",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 10000: not measured"
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "POST /books/{bookSlug}/draft/{pageId}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 47.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 582.737657644,
+     "b": 0.183895798367,
+     "k": 1.31,
+     "sse": 5010.9558543,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.000126215478483,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 1.56626229562e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 4.61922979537e-08,
+       "k": 2.96
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.841087222278,
+       "k": 1.09
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.506488414676,
+       "k": 1.2
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.183895149365,
+       "k": 1.31
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 524847.442678,
+     "b": 35638.3424579,
+     "k": 0.01,
+     "sse": 2500052.93677,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 33372.5967277,
+       "k": 0.03
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 33727.258308,
+       "k": 0.02
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 34964.8969622,
+       "k": 0.01
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 38472.5573222,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 38492.5573222,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 38492.5573222,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "POST /import/{id}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 2.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 191.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 91456.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "POST /register",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "POST /settings/maintenance/regenerate-references",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 8.88833378391,
+     "b": 0.0181571870899,
+     "k": 1.01,
+     "sse": 2.37304424242,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.08153462178,
+       "k": 0.79
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0500144139859,
+       "k": 0.9
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0165621478138,
+       "k": 1.02
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 304.550420125,
+     "b": 0.0610119379637,
+     "k": 1.68,
+     "sse": 15755.8774098,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.198451341139,
+       "k": 1.51
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.12747170746,
+       "k": 1.6
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0610119324199,
+       "k": 1.68
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 92859.9668969,
+     "b": 24232.0497775,
+     "k": 0.19,
+     "sse": 2295896408.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1753.90137522,
+       "k": 0.62
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 7311.47784958,
+       "k": 0.31
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 127052.033103,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "POST /settings/recycle-bin/empty",
+   "axis": "N",
+   "table": "deletions",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 44.5865935386,
+     "b": 2.19863603715,
+     "k": 0.99,
+     "sse": 3365.35656836,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 3.81969261298,
+       "k": 0.91
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 3.177932828,
+       "k": 0.95
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.1985889447,
+       "k": 0.99
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 306.440055083,
+     "b": 9.340972438,
+     "k": 0.99,
+     "sse": 33815.0317231,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 15.0900678367,
+       "k": 0.92
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 12.3140893633,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 9.34081051704,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 24264.0327881,
+     "b": 54358.8390317,
+     "k": 0.67,
+     "sse": 36101884153.2,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 34107.6823675,
+       "k": 0.74
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 41213.9358912,
+       "k": 0.7
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 59557.2546646,
+       "k": 0.66
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "POST /settings/users/create",
+   "axis": "N",
+   "table": "images",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /api/books/{id}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N*M)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /api/chapters/{id}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /api/pages/{id}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /api/shelves/{id}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /api/users/{id}",
+   "axis": "N",
+   "table": "users",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "rows_examined": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    },
+    "peak_memory": {
+     "fit_status": "insufficient_scales",
+     "reason": "scale 0: not measured; scale 100: not measured; scale 1000: not measured; scale 10000: not measured"
+    }
+   }
+  },
+  {
+   "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 20.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 224.28235826,
+     "b": 0.384365319485,
+     "k": 0.99,
+     "sse": 26.7604345313,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.538379133868,
+       "k": 0.94
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.462144296631,
+       "k": 0.97
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.38436076192,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 109903.249983,
+     "b": 20461.7172256,
+     "k": 0.01,
+     "sse": 510569.626761,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 21936.750017,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 21936.750017,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 21936.750017,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 29.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 249.28235826,
+     "b": 0.384365319485,
+     "k": 0.99,
+     "sse": 26.7604345313,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.538379133868,
+       "k": 0.94
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.462144296631,
+       "k": 0.97
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.38436076192,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 113635.794248,
+     "b": 17420.4128073,
+     "k": 0.01,
+     "sse": 370073.257337,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 18676.2057522,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 18676.2057522,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 18676.2057522,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 26.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 203.046545457,
+     "b": 1.26573933883,
+     "k": 0.99,
+     "sse": 3308.31946393,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.29966714433,
+       "k": 1.2
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.503868103947,
+       "k": 1.09
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1.26579038365,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 1266976.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "PUT /books/{slug}",
+   "axis": "N",
+   "table": "entities",
+   "static_lower_bound": "O(N*M)",
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 11.898931001,
+     "b": 2.34990137498,
+     "k": 1.0,
+     "sse": 4.00513812314,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 2.68786019877,
+       "k": 0.97
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 2.51711278808,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 2.57662518587,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 2.34902096624,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 2.34990921705,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 2.34990209662,
+       "k": 1.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 492.435207239,
+     "b": 4.61960688497,
+     "k": 1.11,
+     "sse": 96869.8769848,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.000982399375154,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 9.88656462832e-06,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 1.27232564793e-07,
+       "k": 3.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 9.88596165548,
+       "k": 1.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 7.32147750919,
+       "k": 1.06
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 4.6195637143,
+       "k": 1.11
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 147475.613061,
+     "b": 1736.70052322,
+     "k": 0.99,
+     "sse": 30760223.6977,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 2737.00088207,
+       "k": 0.89
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 2447.73337201,
+       "k": 0.94
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 2289.47088703,
+       "k": 0.96
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 1732.80636479,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 1736.74019004,
+       "k": 0.99
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1736.70108176,
+       "k": 0.99
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "PUT /settings/sorting/rules/{id}",
+   "axis": "N",
+   "table": "sort_rules",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 2.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 191.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 94048.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      10,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        10,
+        100
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        10,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   },
+   "empty_system": "not_found"
+  },
+  {
+   "route": "PUT /settings/users/{id}",
+   "axis": "N",
+   "table": "users",
+   "static_lower_bound": null,
+   "quantities": {
+    "queries": {
+     "fit_status": "ok",
+     "a": 4.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 193.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 90624.0,
+     "b": 0.0,
+     "k": 0.0,
+     "sse": 0.0,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 0.0,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  },
+  {
+   "route": "PUT /shelves/{slug}",
+   "axis": "N",
+   "table": "references",
+   "static_lower_bound": "O(N)",
+   "quantities": {
+    "queries": {
+     "fit_status": "contradicts_static",
+     "reason": "the static analysis puts a lower bound of O(N) on the query count, the measured exponent is k=0 (<= 0.2)",
+     "rejected_fit": {
+      "a": 21.0,
+      "b": 0.0,
+      "k": 0.0,
+      "sse": 0.0
+     },
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ]
+    },
+    "rows_examined": {
+     "fit_status": "ok",
+     "a": 189.046545457,
+     "b": 1.26573933883,
+     "k": 0.99,
+     "sse": 3308.31946393,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 0.29966714433,
+       "k": 1.2
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 0.503868103947,
+       "k": 1.09
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 1.26579038365,
+       "k": 0.99
+      }
+     ]
+    },
+    "peak_memory": {
+     "fit_status": "ok",
+     "a": 102428.120198,
+     "b": 24747.8692856,
+     "k": 0.01,
+     "sse": 746872.459483,
+     "scales": [
+      0,
+      100,
+      1000,
+      10000
+     ],
+     "pairs": [
+      {
+       "scales": [
+        100,
+        1000
+       ],
+       "b": 26531.879802,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        100,
+        10000
+       ],
+       "b": 26531.879802,
+       "k": 0.0
+      },
+      {
+       "scales": [
+        1000,
+        10000
+       ],
+       "b": 26531.879802,
+       "k": 0.0
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

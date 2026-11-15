@@ -1,0 +1,17 @@
+tool_commit 8f4cd65ed059285f8c774a6e2e2597aea6c2360b (replica rep-8f4cd65) tools_started: bin/capture only
+start_capture_fixtures=2026-11-16T01:23:32+09:00
+start_capture_bookstack=2026-11-16T01:23:32+09:00
+start_capture_bookstack12=2026-11-16T01:23:32+09:00
+end_capture_bookstack12=2026-11-16T01:41:32+09:00 exit=0
+end_capture_fixtures=2026-11-16T01:44:37+09:00 exit=0
+start_explain_fixtures=2026-11-16T02:06:45+09:00
+start_explain_bookstack12=2026-11-16T02:06:45+09:00
+end_explain_fixtures=2026-11-16T02:09:30+09:00 exit=0
+end_explain_bookstack12=2026-11-16T02:16:47+09:00 exit=0
+end_capture_bookstack=2026-11-16T02:21:45+09:00 exit=0
+capture_all_end=2026-11-16T02:21:45+09:00
+start_explain_bookstack=2026-11-16T02:21:55+09:00
+end_explain_bookstack=2026-11-16T02:41:13+09:00 exit=0
+start_estimate_tools=2026-11-16T02:41:46+09:00 (bin/predict bin/estimate bin/marked-routes: file readers, no DB, no request)
+end_estimate_tools=2026-11-16T02:41:51+09:00
+D202_commit 9757f51781fbbb0f318bd730e55ef524b12b55ef 2026-11-16T02:43:08+09:00
