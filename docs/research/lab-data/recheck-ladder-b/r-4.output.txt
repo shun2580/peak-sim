@@ -1,0 +1,18 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-2.json 089d9ad9c2cb5cb9f12d7ed746f4104a91b048ec 2026-11-15T05:14:41+09:00
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+TABLES BASELINE scale 200000: entities 200000 966262877;images 200000 3287293827;references 200000 1010827681; (39 write counters)
+RUNG SETTINGS r-4 rung 1: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-4 rung 1 of 13 rps 0.05 scale 200000 mix first80 scheme B at 2026-11-15T15:23:07+09:00 (14 min 20 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-4 rung 1 rps decided 0.05 achieved 0.0488 (valid) db 39.0% app 18.5% dropped 0 | 200x29 302x2 500x8 | continue
+RUNG SETTINGS r-4 rung 2: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-4 rung 2 of 13 rps 0.07 scale 200000 mix first80 scheme B at 2026-11-15T15:38:33+09:00 (10 min 31 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-4 rung 2 rps decided 0.07 achieved 0.0665 (valid) db 51.6% app 24.8% dropped 0 | 200x28 302x2 500x8 | continue
+RUNG SETTINGS r-4 rung 3: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-4 rung 3 of 13 rps 0.1 scale 200000 mix first80 scheme B at 2026-11-15T15:50:08+09:00 (7 min 40 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-4 rung 3 rps decided 0.1 achieved 0.0925 (invalid) db 66.0% app 32.5% dropped 0 | 200x27 302x2 500x8 | STOP (rps_not_reached)
+the scenario r-4 stops after rung 3
+TABLES SAME after the load scale 200000: entities 200000 966262877;images 200000 3287293827;references 200000 1010827681; (39 write counters)
+ladder record: /home/nishikawa/.cache/peak-lab/out/ladder/r-4-200000/ladder.json

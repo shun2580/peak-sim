@@ -1,0 +1,21 @@
+# nginx access.log (/out/web/access.log), statuses other than 200 and 302, by scenario and step window (started_at..ended_at+1s). Read only.
+ladder/r-1-50000	rung-01-0.05	none
+ladder/r-1-50000	rung-02-0.07	none
+ladder/r-1-50000	rung-03-0.1	none
+ladder/r-1-50000	rung-04-0.15	none
+ladder/r-1-50000	rung-05-0.2	none
+ladder/r-1-50000	rung-06-0.3	none
+ladder/r-1-50000	rung-07-0.45	none
+ladder/r-1-50000	rung-08-0.7	{('499', 'GET /books/{n}/export/zip'): 1, ('499', 'GET /images/edit/{n}'): 3, ('499', 'GET /books/{n}'): 1, ('499', 'GET /books/{n}/references'): 1, ('499', 'GET /books/{n}/chapter/{n}/references'): 4}
+ladder/r-1-50000	rung-09-1	{('499', 'GET /books/{n}/export/zip'): 4, ('499', 'GET /books/{n}/chapter/{n}/references'): 1, ('499', 'GET /books/{n}/page/{n}/references'): 4, ('499', 'GET /books/{n}/references'): 10, ('499', 'GET /images/edit/{n}'): 9, ('499', 'GET /books/{n}'): 10, ('499', 'GET /oidc/callback'): 13}
+ladder/r-2-50000	rung-01-0.05	none
+ladder/r-2-50000	rung-02-0.07	none
+ladder/r-2-50000	rung-03-0.1	none
+ladder/r-2-50000	rung-04-0.15	none
+ladder/r-2-50000	rung-05-0.2	none
+ladder/r-2-50000	rung-06-0.3	none
+ladder/r-2-50000	rung-07-0.45	{('499', 'GET /books/{n}/export/zip'): 1}
+ladder/r-2-50000	rung-08-0.7	{('499', 'GET /oidc/callback'): 4, ('499', 'GET /books/{n}/page/{n}/references'): 9, ('499', 'GET /books/{n}'): 11, ('499', 'GET /books/{n}/chapter/{n}/references'): 5, ('499', 'GET /books/{n}/export/zip'): 12, ('499', 'GET /images/edit/{n}'): 2, ('499', 'GET /shelves/{n}'): 4}
+ladder/r-3-200000	rung-01-0.05	{('500', 'GET /books/{n}'): 5, ('499', 'GET /books/{n}/export/zip'): 1}
+cmd277t6/interrupted-r-2-50000-0713	rung-01-0.05	none
+cmd277t6/interrupted-r-2-50000-0713	rung-02-0.07	none

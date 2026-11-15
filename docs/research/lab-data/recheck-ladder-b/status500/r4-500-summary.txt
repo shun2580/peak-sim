@@ -1,0 +1,6 @@
+r-4 (200000) 500 log copy, taken 2026-11-15 15:59:05 (read only; r-5 had already started 15:58:54)
+- r-4 stopped after rung 3, reason rps_not_reached (ladder.json); rungs 1-3 only
+- 500 per rung (ladder.json): rung1 8, rung2 8, rung3 8 = 24; all 'GET /books/{slug}' (nginx access.log ~17-21 s each); 499 export/zip x4 (client cancel)
+- app docker log cumulative since 05:27Z: 134x "Allowed memory size of 536870912 bytes exhausted" (snap2 had 40); 0x "Maximum execution time". The +94 does not equal the r-4 500 count (24); not investigated
+- nginx docker log: 0 lines
+- files: app-docker-log.snap3.txt web-docker-log.snap3.txt laravel.log.snap3.txt non2xx-r4-snap3.txt

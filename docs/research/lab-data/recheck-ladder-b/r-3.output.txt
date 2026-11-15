@@ -1,0 +1,82 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-2.json 089d9ad9c2cb5cb9f12d7ed746f4104a91b048ec 2026-11-15T05:14:41+09:00
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+TABLES BASELINE scale 200000: entities 200000 966262877;images 200000 3287293827;references 200000 1010827681; (23 write counters)
+switching the app to scale 200000 (it read 50000) with bin/use-db
+ Container peak-lab-app Recreate 
+ Container peak-lab-app Recreated 
+ Container peak-lab-web Recreate 
+ Container peak-lab-web Recreated 
+ Container peak-lab-app Starting 
+ Container peak-lab-app Started 
+ Container peak-lab-web Starting 
+ Container peak-lab-web Started 
+PASS container: peak-lab-db is running
+PASS container: peak-lab-app is running
+PASS container: peak-lab-web is running
+PASS container: peak-lab-k6 is running
+PASS container: peak-lab-tools is running
+PASS network: peak-lab_lab-internal internal=true
+PASS peak-lab-db: network mode peak-lab_lab-internal
+PASS peak-lab-db: no published port
+PASS peak-lab-app: network mode peak-lab_lab-internal
+PASS peak-lab-app: no published port
+PASS peak-lab-web: network mode peak-lab_lab-internal
+PASS peak-lab-web: no published port
+PASS peak-lab-k6: network mode peak-lab_lab-internal
+PASS peak-lab-k6: no published port
+PASS peak-lab-tools: network mode peak-lab_lab-internal
+PASS peak-lab-tools: no published port
+peak-lab-app: PASS negative dns:example.com              did not resolve
+peak-lab-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-app: PASS negative http:example.com             no response
+peak-lab-app: PASS negative default-route                no default route
+peak-lab-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-app: PASS positive dns:measure-db               resolved to 172.20.0.2
+peak-lab-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-app: PREFLIGHT OK
+peak-lab-tools: PASS negative dns:example.com              did not resolve
+peak-lab-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-tools: PASS negative http:example.com             no response
+peak-lab-tools: PASS negative default-route                no default route
+peak-lab-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-tools: PASS positive dns:measure-db               resolved to 172.20.0.2
+peak-lab-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-tools: PREFLIGHT OK
+PASS peak-lab-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-web: http://example.com is unreachable
+PASS peak-lab-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-k6: http://example.com is unreachable
+PASS peak-lab-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-db: the name example.com is unreachable
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+RUNG SETTINGS r-3 rung 1: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-3 rung 1 of 13 rps 0.05 scale 200000 mix even scheme B at 2026-11-15T14:27:23+09:00 (14 min 20 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-3 rung 1 rps decided 0.05 achieved 0.0488 (valid) db 20.3% app 9.9% dropped 0 | 200x29 302x5 500x5 | continue
+RUNG SETTINGS r-3 rung 2: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-3 rung 2 of 13 rps 0.07 scale 200000 mix even scheme B at 2026-11-15T14:42:47+09:00 (10 min 31 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-3 rung 2 rps decided 0.07 achieved 0.0683 (valid) db 31.3% app 14.8% dropped 0 | 200x29 302x5 500x5 | continue
+RUNG SETTINGS r-3 rung 3: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-3 rung 3 of 13 rps 0.1 scale 200000 mix even scheme B at 2026-11-15T14:54:21+09:00 (7 min 40 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-3 rung 3 rps decided 0.1 achieved 0.0950 (valid) db 43.5% app 20.8% dropped 0 | 200x28 302x5 500x5 | continue
+RUNG SETTINGS r-3 rung 4: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-3 rung 4 of 13 rps 0.15 scale 200000 mix even scheme B at 2026-11-15T15:03:06+09:00 (9 min 53 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-3 rung 4 rps decided 0.15 achieved 0.1463 (valid) db 62.1% app 29.9% dropped 0 | 200x58 302x10 500x10 | continue
+RUNG SETTINGS r-3 rung 5: { "php_max_execution_time": "0", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START r-3 rung 5 of 13 rps 0.2 scale 200000 mix even scheme B at 2026-11-15T15:14:05+09:00 (7 min 40 s)
+WRITES SAME after a step scale 200000: 39 write counters
+RUNG END r-3 rung 5 rps decided 0.2 achieved 0.1900 (valid) db 81.5% app 40.6% dropped 0 | 200x56 302x10 500x10 | STOP (db_utilization_at_or_above_80_percent)
+the scenario r-3 stops after rung 5
+TABLES SAME after the load scale 200000: entities 200000 966262877;images 200000 3287293827;references 200000 1010827681; (39 write counters)
+ladder record: /home/nishikawa/.cache/peak-lab/out/ladder/r-3-200000/ladder.json

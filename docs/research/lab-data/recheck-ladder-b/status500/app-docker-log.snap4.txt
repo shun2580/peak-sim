@@ -1,0 +1,569 @@
+2026-11-15T05:27:09.449645697Z [15-Nov-2026 05:27:09] NOTICE: [pool www] 'user' directive is ignored when FPM is not running as root
+2026-11-15T05:27:09.449711392Z [15-Nov-2026 05:27:09] NOTICE: [pool www] 'group' directive is ignored when FPM is not running as root
+2026-11-15T05:27:09.450020182Z [15-Nov-2026 05:27:09] NOTICE: fpm is running, pid 1
+2026-11-15T05:27:09.461260555Z [15-Nov-2026 05:27:09] NOTICE: ready to handle connections
+2026-11-15T05:29:48.490349627Z [15-Nov-2026 05:29:48 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+2026-11-15T05:29:48.490385054Z [15-Nov-2026 05:29:48 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+2026-11-15T05:29:48.490392338Z [15-Nov-2026 05:29:48 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+2026-11-15T05:29:48.490396987Z [15-Nov-2026 05:29:48 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+2026-11-15T05:29:48.490401295Z [15-Nov-2026 05:29:48 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+2026-11-15T05:30:12.213104903Z [15-Nov-2026 05:30:12 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:30:12.316400811Z [2026-11-15 05:30:12] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:30:12.316430397Z [stacktrace]
+2026-11-15T05:30:12.316434044Z #0 {main}
+2026-11-15T05:30:12.316437000Z "} 
+2026-11-15T05:32:45.576464895Z [15-Nov-2026 05:32:45 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:32:45.614328019Z [2026-11-15 05:32:45] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:32:45.614356583Z [stacktrace]
+2026-11-15T05:32:45.614360521Z #0 {main}
+2026-11-15T05:32:45.614363456Z "} 
+2026-11-15T05:35:25.667477840Z [15-Nov-2026 05:35:25 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:35:25.705401405Z [2026-11-15 05:35:25] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:35:25.705439006Z [stacktrace]
+2026-11-15T05:35:25.705441741Z #0 {main}
+2026-11-15T05:35:25.705443505Z "} 
+2026-11-15T05:38:05.548633897Z [15-Nov-2026 05:38:05 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:38:05.586115216Z [2026-11-15 05:38:05] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:38:05.586142347Z [stacktrace]
+2026-11-15T05:38:05.586146044Z #0 {main}
+2026-11-15T05:38:05.586149070Z "} 
+2026-11-15T05:40:44.883672697Z [15-Nov-2026 05:40:44 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:40:44.921341832Z [2026-11-15 05:40:44] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:40:44.921370476Z [stacktrace]
+2026-11-15T05:40:44.921374273Z #0 {main}
+2026-11-15T05:40:44.921377309Z "} 
+2026-11-15T05:43:12.339575958Z [15-Nov-2026 05:43:12 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:43:12.377510939Z [2026-11-15 05:43:12] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:43:12.377539243Z [stacktrace]
+2026-11-15T05:43:12.377543932Z #0 {main}
+2026-11-15T05:43:12.377547639Z "} 
+2026-11-15T05:45:06.787162703Z [15-Nov-2026 05:45:06 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:45:06.825107272Z [2026-11-15 05:45:06] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:45:06.825145906Z [stacktrace]
+2026-11-15T05:45:06.825148571Z #0 {main}
+2026-11-15T05:45:06.825150374Z "} 
+2026-11-15T05:47:01.794837443Z [15-Nov-2026 05:47:01 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:47:01.836707679Z [2026-11-15 05:47:01] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:47:01.836737095Z [stacktrace]
+2026-11-15T05:47:01.836740882Z #0 {main}
+2026-11-15T05:47:01.836743928Z "} 
+2026-11-15T05:48:55.319966361Z [15-Nov-2026 05:48:55 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:48:55.356952109Z [2026-11-15 05:48:55] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:48:55.356980653Z [stacktrace]
+2026-11-15T05:48:55.356984561Z #0 {main}
+2026-11-15T05:48:55.356987596Z "} 
+2026-11-15T05:50:49.825991675Z [15-Nov-2026 05:50:49 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:50:49.865774269Z [2026-11-15 05:50:49] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:50:49.865803024Z [stacktrace]
+2026-11-15T05:50:49.865806691Z #0 {main}
+2026-11-15T05:50:49.865809646Z "} 
+2026-11-15T05:52:43.898866552Z [15-Nov-2026 05:52:43 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:52:43.940029101Z [2026-11-15 05:52:43] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:52:43.940067894Z [stacktrace]
+2026-11-15T05:52:43.940071271Z #0 {main}
+2026-11-15T05:52:43.940073465Z "} 
+2026-11-15T05:55:04.550977159Z [15-Nov-2026 05:55:04 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:55:04.590790400Z [2026-11-15 05:55:04] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:55:04.590819936Z [stacktrace]
+2026-11-15T05:55:04.590823833Z #0 {main}
+2026-11-15T05:55:04.590826969Z "} 
+2026-11-15T05:56:24.554188120Z [15-Nov-2026 05:56:24 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:56:24.592691498Z [2026-11-15 05:56:24] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:56:24.592723019Z [stacktrace]
+2026-11-15T05:56:24.592727557Z #0 {main}
+2026-11-15T05:56:24.592731254Z "} 
+2026-11-15T05:57:44.520868777Z [15-Nov-2026 05:57:44 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:57:44.559189977Z [2026-11-15 05:57:44] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:57:44.559213652Z [stacktrace]
+2026-11-15T05:57:44.559217299Z #0 {main}
+2026-11-15T05:57:44.559220215Z "} 
+2026-11-15T05:59:03.680204446Z [15-Nov-2026 05:59:03 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T05:59:03.718768516Z [2026-11-15 05:59:03] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T05:59:03.718798082Z [stacktrace]
+2026-11-15T05:59:03.718802871Z #0 {main}
+2026-11-15T05:59:03.718817098Z "} 
+2026-11-15T06:00:23.770911592Z [15-Nov-2026 06:00:23 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:00:23.810378859Z [2026-11-15 06:00:23] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:00:23.810407604Z [stacktrace]
+2026-11-15T06:00:23.810411462Z #0 {main}
+2026-11-15T06:00:23.810414447Z "} 
+2026-11-15T06:01:43.715889440Z [15-Nov-2026 06:01:43 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:01:43.754976420Z [2026-11-15 06:01:43] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:01:43.755002269Z [stacktrace]
+2026-11-15T06:01:43.755005916Z #0 {main}
+2026-11-15T06:01:43.755008872Z "} 
+2026-11-15T06:04:01.643513733Z [15-Nov-2026 06:04:01 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:04:01.682266096Z [2026-11-15 06:04:01] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:04:01.682296684Z [stacktrace]
+2026-11-15T06:04:01.682301263Z #0 {main}
+2026-11-15T06:04:01.682304860Z "} 
+2026-11-15T06:04:55.092921918Z [15-Nov-2026 06:04:55 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:04:55.133647703Z [2026-11-15 06:04:55] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:04:55.133676077Z [stacktrace]
+2026-11-15T06:04:55.133679774Z #0 {main}
+2026-11-15T06:04:55.133682750Z "} 
+2026-11-15T06:05:48.886786461Z [15-Nov-2026 06:05:48 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:05:48.926000619Z [2026-11-15 06:05:48] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:05:48.926028903Z [stacktrace]
+2026-11-15T06:05:48.926032640Z #0 {main}
+2026-11-15T06:05:48.926035616Z "} 
+2026-11-15T06:06:42.012533341Z [15-Nov-2026 06:06:42 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:06:42.050768774Z [2026-11-15 06:06:42] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:06:42.050799573Z [stacktrace]
+2026-11-15T06:06:42.050803500Z #0 {main}
+2026-11-15T06:06:42.050806556Z "} 
+2026-11-15T06:07:35.348019772Z [15-Nov-2026 06:07:35 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:07:35.387968010Z [2026-11-15 06:07:35] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:07:35.387997256Z [stacktrace]
+2026-11-15T06:07:35.388002346Z #0 {main}
+2026-11-15T06:07:35.388006023Z "} 
+2026-11-15T06:08:28.780658161Z [15-Nov-2026 06:08:28 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:08:28.825632484Z [2026-11-15 06:08:28] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:08:28.825658954Z [stacktrace]
+2026-11-15T06:08:28.825663283Z #0 {main}
+2026-11-15T06:08:28.825666358Z "} 
+2026-11-15T06:09:22.176316737Z [15-Nov-2026 06:09:22 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:09:22.217334213Z [2026-11-15 06:09:22] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:09:22.217360162Z [stacktrace]
+2026-11-15T06:09:22.217362737Z #0 {main}
+2026-11-15T06:09:22.217364501Z "} 
+2026-11-15T06:10:15.448113985Z [15-Nov-2026 06:10:15 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:10:15.487791609Z [2026-11-15 06:10:15] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:10:15.487820293Z [stacktrace]
+2026-11-15T06:10:15.487824060Z #0 {main}
+2026-11-15T06:10:15.487827106Z "} 
+2026-11-15T06:11:08.955170508Z [15-Nov-2026 06:11:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:11:08.995497446Z [2026-11-15 06:11:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:11:08.995530739Z [stacktrace]
+2026-11-15T06:11:08.995536931Z #0 {main}
+2026-11-15T06:11:08.995541279Z "} 
+2026-11-15T06:12:02.248592753Z [15-Nov-2026 06:12:02 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:12:02.288640373Z [2026-11-15 06:12:02] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:12:02.288669599Z [stacktrace]
+2026-11-15T06:12:02.288673406Z #0 {main}
+2026-11-15T06:12:02.288676352Z "} 
+2026-11-15T06:12:55.506196822Z [15-Nov-2026 06:12:55 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:12:55.546895454Z [2026-11-15 06:12:55] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:12:55.546925742Z [stacktrace]
+2026-11-15T06:12:55.546928918Z #0 {main}
+2026-11-15T06:12:55.546931172Z "} 
+2026-11-15T06:14:27.592511178Z [15-Nov-2026 06:14:27 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:14:27.631766171Z [2026-11-15 06:14:27] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:14:27.631792462Z [stacktrace]
+2026-11-15T06:14:27.631796569Z #0 {main}
+2026-11-15T06:14:27.631799585Z "} 
+2026-11-15T06:15:07.635020449Z [15-Nov-2026 06:15:07 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:15:07.676773446Z [2026-11-15 06:15:07] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:15:07.676802041Z [stacktrace]
+2026-11-15T06:15:07.676805748Z #0 {main}
+2026-11-15T06:15:07.676808844Z "} 
+2026-11-15T06:15:47.817500508Z [15-Nov-2026 06:15:47 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:15:47.874213140Z [2026-11-15 06:15:47] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:15:47.874238889Z [stacktrace]
+2026-11-15T06:15:47.874244350Z #0 {main}
+2026-11-15T06:15:47.874248808Z "} 
+2026-11-15T06:16:29.756874971Z [15-Nov-2026 06:16:29 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:16:29.795633096Z [2026-11-15 06:16:29] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:16:29.795660618Z [stacktrace]
+2026-11-15T06:16:29.795663153Z #0 {main}
+2026-11-15T06:16:29.795664957Z "} 
+2026-11-15T06:17:09.581790771Z [15-Nov-2026 06:17:09 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:17:09.639640717Z [2026-11-15 06:17:09] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:17:09.639688558Z [stacktrace]
+2026-11-15T06:17:09.639694910Z #0 {main}
+2026-11-15T06:17:09.639698607Z "} 
+2026-11-15T06:17:50.020399246Z [15-Nov-2026 06:17:50 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:17:50.090421467Z [2026-11-15 06:17:50] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:17:50.090453809Z [stacktrace]
+2026-11-15T06:17:50.090457686Z #0 {main}
+2026-11-15T06:17:50.090460742Z "} 
+2026-11-15T06:18:31.560998431Z [15-Nov-2026 06:18:31 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:18:31.612372419Z [2026-11-15 06:18:31] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:18:31.612436451Z [stacktrace]
+2026-11-15T06:18:31.612443034Z #0 {main}
+2026-11-15T06:18:31.612447522Z "} 
+2026-11-15T06:19:10.705648665Z [15-Nov-2026 06:19:10 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:19:10.747476779Z [2026-11-15 06:19:10] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:19:10.747515062Z [stacktrace]
+2026-11-15T06:19:10.747518359Z #0 {main}
+2026-11-15T06:19:10.747520262Z "} 
+2026-11-15T06:19:52.278975852Z [15-Nov-2026 06:19:52 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:19:52.337305902Z [2026-11-15 06:19:52] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:19:52.337343093Z [stacktrace]
+2026-11-15T06:19:52.337349135Z #0 {main}
+2026-11-15T06:19:52.337353954Z "} 
+2026-11-15T06:20:32.698043307Z [15-Nov-2026 06:20:32 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:20:32.758583996Z [2026-11-15 06:20:32] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:20:32.758626748Z [stacktrace]
+2026-11-15T06:20:32.758634573Z #0 {main}
+2026-11-15T06:20:32.758639683Z "} 
+2026-11-15T06:21:11.981624510Z [15-Nov-2026 06:21:11 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:21:12.028849667Z [2026-11-15 06:21:12] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:21:12.028879103Z [stacktrace]
+2026-11-15T06:21:12.028882950Z #0 {main}
+2026-11-15T06:21:12.028885966Z "} 
+2026-11-15T06:21:52.494468405Z [15-Nov-2026 06:21:52 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:21:52.544656077Z [2026-11-15 06:21:52] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:21:52.544694285Z [stacktrace]
+2026-11-15T06:21:52.544697091Z #0 {main}
+2026-11-15T06:21:52.544698975Z "} 
+2026-11-15T06:23:43.485413086Z [15-Nov-2026 06:23:43 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:23:43.554867644Z [2026-11-15 06:23:43] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:23:43.554901108Z [stacktrace]
+2026-11-15T06:23:43.554904935Z #0 {main}
+2026-11-15T06:23:43.554908041Z "} 
+2026-11-15T06:25:20.928551073Z [15-Nov-2026 06:25:20 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:25:20.970303825Z [2026-11-15 06:25:20] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:25:20.970333893Z [stacktrace]
+2026-11-15T06:25:20.970337620Z #0 {main}
+2026-11-15T06:25:20.970340596Z "} 
+2026-11-15T06:27:00.514470589Z [15-Nov-2026 06:27:00 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:27:00.568880758Z [2026-11-15 06:27:00] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:27:00.568919112Z [stacktrace]
+2026-11-15T06:27:00.568924713Z #0 {main}
+2026-11-15T06:27:00.568928700Z "} 
+2026-11-15T06:28:40.677140391Z [15-Nov-2026 06:28:40 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:28:40.727721632Z [2026-11-15 06:28:40] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:28:40.727766808Z [stacktrace]
+2026-11-15T06:28:40.727769654Z #0 {main}
+2026-11-15T06:28:40.727771457Z "} 
+2026-11-15T06:30:20.510956901Z [15-Nov-2026 06:30:20 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:30:20.556081147Z [2026-11-15 06:30:20] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:30:20.556112758Z [stacktrace]
+2026-11-15T06:30:20.556117416Z #0 {main}
+2026-11-15T06:30:20.556121274Z "} 
+2026-11-15T06:32:00.317675720Z [15-Nov-2026 06:32:00 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:32:00.363973483Z [2026-11-15 06:32:00] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:32:00.364002719Z [stacktrace]
+2026-11-15T06:32:00.364006516Z #0 {main}
+2026-11-15T06:32:00.364009532Z "} 
+2026-11-15T06:33:41.176939556Z [15-Nov-2026 06:33:41 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:33:41.229415901Z [2026-11-15 06:33:41] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:33:41.229454515Z [stacktrace]
+2026-11-15T06:33:41.229459604Z #0 {main}
+2026-11-15T06:33:41.229463652Z "} 
+2026-11-15T06:35:20.451662458Z [15-Nov-2026 06:35:20 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:35:20.496845022Z [2026-11-15 06:35:20] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:35:20.496887273Z [stacktrace]
+2026-11-15T06:35:20.496890149Z #0 {main}
+2026-11-15T06:35:20.496891972Z "} 
+2026-11-15T06:37:01.040952124Z [15-Nov-2026 06:37:01 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:37:01.094800211Z [2026-11-15 06:37:01] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:37:01.094847091Z [stacktrace]
+2026-11-15T06:37:01.094856158Z #0 {main}
+2026-11-15T06:37:01.094864023Z "} 
+2026-11-15T06:39:20.741454841Z [15-Nov-2026 06:39:20 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:39:20.783123081Z [2026-11-15 06:39:20] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:39:20.783152547Z [stacktrace]
+2026-11-15T06:39:20.783156234Z #0 {main}
+2026-11-15T06:39:20.783159601Z "} 
+2026-11-15T06:40:32.066068821Z [15-Nov-2026 06:40:32 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:40:32.112366232Z [2026-11-15 06:40:32] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:40:32.112394256Z [stacktrace]
+2026-11-15T06:40:32.112397963Z #0 {main}
+2026-11-15T06:40:32.112400959Z "} 
+2026-11-15T06:41:44.842255610Z [15-Nov-2026 06:41:44 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:41:44.884165628Z [2026-11-15 06:41:44] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:41:44.884194764Z [stacktrace]
+2026-11-15T06:41:44.884209322Z #0 {main}
+2026-11-15T06:41:44.884211346Z "} 
+2026-11-15T06:42:56.177436629Z [15-Nov-2026 06:42:56 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:42:56.227453016Z [2026-11-15 06:42:56] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:42:56.227480168Z [stacktrace]
+2026-11-15T06:42:56.227484206Z #0 {main}
+2026-11-15T06:42:56.227487291Z "} 
+2026-11-15T06:44:08.329572714Z [15-Nov-2026 06:44:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:44:08.372355070Z [2026-11-15 06:44:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:44:08.372393674Z [stacktrace]
+2026-11-15T06:44:08.372399626Z #0 {main}
+2026-11-15T06:44:08.372404004Z "} 
+2026-11-15T06:45:18.650398852Z [15-Nov-2026 06:45:18 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:45:18.695330276Z [2026-11-15 06:45:18] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:45:18.695370492Z [stacktrace]
+2026-11-15T06:45:18.695377726Z #0 {main}
+2026-11-15T06:45:18.695381784Z "} 
+2026-11-15T06:46:30.305609829Z [15-Nov-2026 06:46:30 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:46:30.355819177Z [2026-11-15 06:46:30] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:46:30.355849996Z [stacktrace]
+2026-11-15T06:46:30.355854785Z #0 {main}
+2026-11-15T06:46:30.355873792Z "} 
+2026-11-15T06:47:40.685343913Z [15-Nov-2026 06:47:40 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:47:40.729506095Z [2026-11-15 06:47:40] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:47:40.729533998Z [stacktrace]
+2026-11-15T06:47:40.729537755Z #0 {main}
+2026-11-15T06:47:40.729540681Z "} 
+2026-11-15T06:48:52.292481189Z [15-Nov-2026 06:48:52 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:48:52.336690490Z [2026-11-15 06:48:52] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:48:52.336720608Z [stacktrace]
+2026-11-15T06:48:52.336724425Z #0 {main}
+2026-11-15T06:48:52.336727421Z "} 
+2026-11-15T06:51:05.689986822Z [15-Nov-2026 06:51:05 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:51:05.736147062Z [2026-11-15 06:51:05] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:51:05.736176208Z [stacktrace]
+2026-11-15T06:51:05.736180827Z #0 {main}
+2026-11-15T06:51:05.736184614Z "} 
+2026-11-15T06:51:55.574222325Z [15-Nov-2026 06:51:55 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:51:55.617943315Z [2026-11-15 06:51:55] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:51:55.617973618Z [stacktrace]
+2026-11-15T06:51:55.617978257Z #0 {main}
+2026-11-15T06:51:55.617981394Z "} 
+2026-11-15T06:52:46.676749198Z [15-Nov-2026 06:52:46 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:52:46.717735200Z [2026-11-15 06:52:46] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:52:46.717764807Z [stacktrace]
+2026-11-15T06:52:46.717768654Z #0 {main}
+2026-11-15T06:52:46.717771600Z "} 
+2026-11-15T06:53:37.196860274Z [15-Nov-2026 06:53:37 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:53:37.236790003Z [2026-11-15 06:53:37] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:53:37.236816464Z [stacktrace]
+2026-11-15T06:53:37.236820351Z #0 {main}
+2026-11-15T06:53:37.236823297Z "} 
+2026-11-15T06:54:28.173126021Z [15-Nov-2026 06:54:28 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:54:28.214747700Z [2026-11-15 06:54:28] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:54:28.214773109Z [stacktrace]
+2026-11-15T06:54:28.214776937Z #0 {main}
+2026-11-15T06:54:28.214779902Z "} 
+2026-11-15T06:55:18.759161634Z [15-Nov-2026 06:55:18 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:55:18.805048962Z [2026-11-15 06:55:18] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:55:18.805079068Z [stacktrace]
+2026-11-15T06:55:18.805082885Z #0 {main}
+2026-11-15T06:55:18.805086021Z "} 
+2026-11-15T06:56:08.774887693Z [15-Nov-2026 06:56:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:56:08.823614342Z [2026-11-15 06:56:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:56:08.823644741Z [stacktrace]
+2026-11-15T06:56:08.823647786Z #0 {main}
+2026-11-15T06:56:08.823650071Z "} 
+2026-11-15T06:56:58.235652508Z [15-Nov-2026 06:56:58 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:56:58.282429481Z [2026-11-15 06:56:58] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:56:58.282459709Z [stacktrace]
+2026-11-15T06:56:58.282463586Z #0 {main}
+2026-11-15T06:56:58.282466512Z "} 
+2026-11-15T06:57:49.005241652Z [15-Nov-2026 06:57:49 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T06:57:49.059825803Z [2026-11-15 06:57:49] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T06:57:49.059856973Z [stacktrace]
+2026-11-15T06:57:49.059860971Z #0 {main}
+2026-11-15T06:57:49.059863967Z "} 
+2026-11-15T07:03:52.301517199Z [15-Nov-2026 07:03:52 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:03:52.349528116Z [2026-11-15 07:03:52] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:03:52.349562562Z [stacktrace]
+2026-11-15T07:03:52.349567131Z #0 {main}
+2026-11-15T07:03:52.349570818Z "} 
+2026-11-15T07:10:31.982913868Z [15-Nov-2026 07:10:31 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:10:32.022977926Z [2026-11-15 07:10:32] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:10:32.023007022Z [stacktrace]
+2026-11-15T07:10:32.023012652Z #0 {main}
+2026-11-15T07:10:32.023014456Z "} 
+2026-11-15T07:18:19.520579014Z [15-Nov-2026 07:18:19 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:18:19.560336312Z [2026-11-15 07:18:19] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:18:19.560368043Z [stacktrace]
+2026-11-15T07:18:19.560372792Z #0 {main}
+2026-11-15T07:18:19.560376609Z "} 
+2026-11-15T07:23:05.750984707Z [15-Nov-2026 07:23:05 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:23:05.792998962Z [2026-11-15 07:23:05] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:23:05.793028369Z [stacktrace]
+2026-11-15T07:23:05.793032166Z #0 {main}
+2026-11-15T07:23:05.793035182Z "} 
+2026-11-15T07:29:11.741357354Z [15-Nov-2026 07:29:11 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:29:11.782179553Z [2026-11-15 07:29:11] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:29:11.782214099Z [stacktrace]
+2026-11-15T07:29:11.782219048Z #0 {main}
+2026-11-15T07:29:11.782223036Z "} 
+2026-11-15T07:32:31.474620917Z [15-Nov-2026 07:32:31 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:32:31.522494491Z [2026-11-15 07:32:31] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:32:31.522530199Z [stacktrace]
+2026-11-15T07:32:31.522537643Z #0 {main}
+2026-11-15T07:32:31.522540970Z "} 
+2026-11-15T07:37:23.687650345Z [15-Nov-2026 07:37:23 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:37:23.727879179Z [2026-11-15 07:37:23] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:37:23.727908375Z [stacktrace]
+2026-11-15T07:37:23.727912202Z #0 {main}
+2026-11-15T07:37:23.727915218Z "} 
+2026-11-15T07:39:37.684171033Z [15-Nov-2026 07:39:37 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:39:37.727712884Z [2026-11-15 07:39:37] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:39:37.727742561Z [stacktrace]
+2026-11-15T07:39:37.727746348Z #0 {main}
+2026-11-15T07:39:37.727749404Z "} 
+2026-11-15T07:41:50.476680206Z [15-Nov-2026 07:41:50 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:41:50.520617904Z [2026-11-15 07:41:50] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:41:50.520645346Z [stacktrace]
+2026-11-15T07:41:50.520687527Z #0 {main}
+2026-11-15T07:41:50.520698438Z "} 
+2026-11-15T07:44:03.370342018Z [15-Nov-2026 07:44:03 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:44:03.415886797Z [2026-11-15 07:44:03] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:44:03.415929288Z [stacktrace]
+2026-11-15T07:44:03.415932093Z #0 {main}
+2026-11-15T07:44:03.415933907Z "} 
+2026-11-15T07:46:26.140278905Z [15-Nov-2026 07:46:26 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:46:26.182020375Z [2026-11-15 07:46:26] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:46:26.182048580Z [stacktrace]
+2026-11-15T07:46:26.182052557Z #0 {main}
+2026-11-15T07:46:26.182055463Z "} 
+2026-11-15T07:48:06.292671438Z [15-Nov-2026 07:48:06 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:48:06.332418058Z [2026-11-15 07:48:06] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:48:06.332451462Z [stacktrace]
+2026-11-15T07:48:06.332455670Z #0 {main}
+2026-11-15T07:48:06.332458655Z "} 
+2026-11-15T07:49:46.310124577Z [15-Nov-2026 07:49:46 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:49:46.357259445Z [2026-11-15 07:49:46] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:49:46.357305934Z [stacktrace]
+2026-11-15T07:49:46.357313027Z #0 {main}
+2026-11-15T07:49:46.357316504Z "} 
+2026-11-15T07:51:26.307559130Z [15-Nov-2026 07:51:26 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:51:26.346457104Z [2026-11-15 07:51:26] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:51:26.346499475Z [stacktrace]
+2026-11-15T07:51:26.346502231Z #0 {main}
+2026-11-15T07:51:26.346504044Z "} 
+2026-11-15T07:53:06.105035044Z [15-Nov-2026 07:53:06 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:53:06.151445670Z [2026-11-15 07:53:06] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:53:06.151479575Z [stacktrace]
+2026-11-15T07:53:06.151483673Z #0 {main}
+2026-11-15T07:53:06.151486739Z "} 
+2026-11-15T07:55:27.895606452Z [15-Nov-2026 07:55:27 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:55:27.938356449Z [2026-11-15 07:55:27] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:55:27.938386937Z [stacktrace]
+2026-11-15T07:55:27.938390674Z #0 {main}
+2026-11-15T07:55:27.938393640Z "} 
+2026-11-15T07:56:34.790628418Z [15-Nov-2026 07:56:34 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:56:34.832517065Z [2026-11-15 07:56:34] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:56:34.832551561Z [stacktrace]
+2026-11-15T07:56:34.832555498Z #0 {main}
+2026-11-15T07:56:34.832558514Z "} 
+2026-11-15T07:57:42.385753333Z [15-Nov-2026 07:57:42 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:57:42.426406403Z [2026-11-15 07:57:42] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:57:42.426445147Z [stacktrace]
+2026-11-15T07:57:42.426447872Z #0 {main}
+2026-11-15T07:57:42.426449696Z "} 
+2026-11-15T07:58:48.990105604Z [15-Nov-2026 07:58:48 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:58:49.031804456Z [2026-11-15 07:58:49] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:58:49.031833802Z [stacktrace]
+2026-11-15T07:58:49.031837569Z #0 {main}
+2026-11-15T07:58:49.031840485Z "} 
+2026-11-15T07:59:55.472692204Z [15-Nov-2026 07:59:55 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T07:59:55.514724816Z [2026-11-15 07:59:55] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T07:59:55.514756166Z [stacktrace]
+2026-11-15T07:59:55.514760825Z #0 {main}
+2026-11-15T07:59:55.514764552Z "} 
+2026-11-15T08:01:02.048688797Z [15-Nov-2026 08:01:02 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:01:02.091438286Z [2026-11-15 08:01:02] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:01:02.091467592Z [stacktrace]
+2026-11-15T08:01:02.091471229Z #0 {main}
+2026-11-15T08:01:02.091474205Z "} 
+2026-11-15T08:02:08.759819050Z [15-Nov-2026 08:02:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:02:08.802900727Z [2026-11-15 08:02:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:02:08.802950973Z [stacktrace]
+2026-11-15T08:02:08.802954170Z #0 {main}
+2026-11-15T08:02:08.802956494Z "} 
+2026-11-15T08:04:24.770422092Z [15-Nov-2026 08:04:24 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:04:24.813245261Z [2026-11-15 08:04:24] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:04:24.813274677Z [stacktrace]
+2026-11-15T08:04:24.813278404Z #0 {main}
+2026-11-15T08:04:24.813281370Z "} 
+2026-11-15T08:05:09.497050534Z [15-Nov-2026 08:05:09 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:05:09.539769005Z [2026-11-15 08:05:09] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:05:09.539808350Z [stacktrace]
+2026-11-15T08:05:09.539817047Z #0 {main}
+2026-11-15T08:05:09.539820694Z "} 
+2026-11-15T08:05:54.725186902Z [15-Nov-2026 08:05:54 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:05:54.766154923Z [2026-11-15 08:05:54] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:05:54.766181824Z [stacktrace]
+2026-11-15T08:05:54.766185732Z #0 {main}
+2026-11-15T08:05:54.766188687Z "} 
+2026-11-15T08:06:40.130310847Z [15-Nov-2026 08:06:40 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:06:40.172755705Z [2026-11-15 08:06:40] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:06:40.172784620Z [stacktrace]
+2026-11-15T08:06:40.172799409Z #0 {main}
+2026-11-15T08:06:40.172801372Z "} 
+2026-11-15T08:07:24.512683767Z [15-Nov-2026 08:07:24 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:07:24.559350570Z [2026-11-15 08:07:24] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:07:24.559385437Z [stacktrace]
+2026-11-15T08:07:24.559390877Z #0 {main}
+2026-11-15T08:07:24.559395286Z "} 
+2026-11-15T08:08:08.679005069Z [15-Nov-2026 08:08:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:08:08.721122809Z [2026-11-15 08:08:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:08:08.721151614Z [stacktrace]
+2026-11-15T08:08:08.721155381Z #0 {main}
+2026-11-15T08:08:08.721158377Z "} 
+2026-11-15T08:08:53.060518320Z [15-Nov-2026 08:08:53 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:08:53.105145842Z [2026-11-15 08:08:53] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:08:53.105177082Z [stacktrace]
+2026-11-15T08:08:53.105180859Z #0 {main}
+2026-11-15T08:08:53.105183995Z "} 
+2026-11-15T08:09:37.391859580Z [15-Nov-2026 08:09:37 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:09:37.433990147Z [2026-11-15 08:09:37] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:09:37.434025315Z [stacktrace]
+2026-11-15T08:09:37.434030845Z #0 {main}
+2026-11-15T08:09:37.434047808Z "} 
+2026-11-15T08:10:21.856886374Z [15-Nov-2026 08:10:21 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:10:21.903146891Z [2026-11-15 08:10:21] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:10:21.903179834Z [stacktrace]
+2026-11-15T08:10:21.903188701Z #0 {main}
+2026-11-15T08:10:21.903192689Z "} 
+2026-11-15T08:12:01.059501420Z [15-Nov-2026 08:12:01 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 73416704 bytes) in /scratch/peak-measure-lab/storage/framework/views/3cf12b44f3e83850ee4e45e3d85221b9.php on line 32
+2026-11-15T08:12:01.064665103Z [2026-11-15 08:12:01] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 73416704 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 73416704 bytes) at /scratch/peak-measure-lab/storage/framework/views/3cf12b44f3e83850ee4e45e3d85221b9.php:32)
+2026-11-15T08:12:01.064700120Z [stacktrace]
+2026-11-15T08:12:01.064707183Z #0 {main}
+2026-11-15T08:12:01.064712053Z "} 
+2026-11-15T08:12:33.043135038Z [15-Nov-2026 08:12:33 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:12:33.084186560Z [2026-11-15 08:12:33] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:12:33.084216517Z [stacktrace]
+2026-11-15T08:12:33.084220355Z #0 {main}
+2026-11-15T08:12:33.084223330Z "} 
+2026-11-15T08:13:02.370438382Z [15-Nov-2026 08:13:02 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:13:02.411378662Z [2026-11-15 08:13:02] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:13:02.411407487Z [stacktrace]
+2026-11-15T08:13:02.411411324Z #0 {main}
+2026-11-15T08:13:02.411414330Z "} 
+2026-11-15T08:13:30.920477580Z [15-Nov-2026 08:13:30 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:13:30.961433739Z [2026-11-15 08:13:30] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:13:30.961471551Z [stacktrace]
+2026-11-15T08:13:30.961477823Z #0 {main}
+2026-11-15T08:13:30.961482302Z "} 
+2026-11-15T08:14:00.286162562Z [15-Nov-2026 08:14:00 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:14:00.326729881Z [2026-11-15 08:14:00] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:14:00.326760179Z [stacktrace]
+2026-11-15T08:14:00.326764096Z #0 {main}
+2026-11-15T08:14:00.326767212Z "} 
+2026-11-15T08:14:29.967157610Z [15-Nov-2026 08:14:29 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:14:30.013688398Z [2026-11-15 08:14:30] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:14:30.013719508Z [stacktrace]
+2026-11-15T08:14:30.013724457Z #0 {main}
+2026-11-15T08:14:30.013728194Z "} 
+2026-11-15T08:14:59.951323027Z [15-Nov-2026 08:14:59 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:14:59.991982326Z [2026-11-15 08:14:59] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:14:59.992012514Z [stacktrace]
+2026-11-15T08:14:59.992016321Z #0 {main}
+2026-11-15T08:14:59.992019447Z "} 
+2026-11-15T08:15:28.626159772Z [15-Nov-2026 08:15:28 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:15:28.680336603Z [2026-11-15 08:15:28] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:15:28.680371279Z [stacktrace]
+2026-11-15T08:15:28.680374265Z #0 {main}
+2026-11-15T08:15:28.680376068Z "} 
+2026-11-15T08:15:58.533846016Z [15-Nov-2026 08:15:58 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:15:58.578287819Z [2026-11-15 08:15:58] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:15:58.578318788Z [stacktrace]
+2026-11-15T08:15:58.578322726Z #0 {main}
+2026-11-15T08:15:58.578325702Z "} 
+2026-11-15T08:16:26.902424435Z [15-Nov-2026 08:16:26 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:16:26.950979605Z [2026-11-15 08:16:26] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:16:26.951008871Z [stacktrace]
+2026-11-15T08:16:26.951012639Z #0 {main}
+2026-11-15T08:16:26.951015604Z "} 
+2026-11-15T08:16:54.628599324Z [15-Nov-2026 08:16:54 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:16:54.679048519Z [2026-11-15 08:16:54] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:16:54.679094807Z [stacktrace]
+2026-11-15T08:16:54.679104836Z #0 {main}
+2026-11-15T08:16:54.679113012Z "} 
+2026-11-15T08:17:23.645092550Z [15-Nov-2026 08:17:23 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:17:23.708796318Z [2026-11-15 08:17:23] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:17:23.708847807Z [stacktrace]
+2026-11-15T08:17:23.708852185Z #0 {main}
+2026-11-15T08:17:23.708855071Z "} 
+2026-11-15T08:18:21.328365966Z [15-Nov-2026 08:18:21 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:18:21.377432885Z [2026-11-15 08:18:21] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:18:21.377471759Z [stacktrace]
+2026-11-15T08:18:21.377475736Z #0 {main}
+2026-11-15T08:18:21.377478742Z "} 
+2026-11-15T08:19:08.208450569Z [15-Nov-2026 08:19:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php on line 102
+2026-11-15T08:19:08.256264588Z [2026-11-15 08:19:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) at /app/vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesLayouts.php:102)
+2026-11-15T08:19:08.256303022Z [stacktrace]
+2026-11-15T08:19:08.256309905Z #0 {main}
+2026-11-15T08:19:08.256314364Z "} 

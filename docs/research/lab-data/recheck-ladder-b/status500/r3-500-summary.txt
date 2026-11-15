@@ -1,0 +1,6 @@
+r-3 (200000) 500 log copy, taken 2026-11-15 15:23:19 (read only; no log deleted, no setting touched; r-4 had already started 15:22:52)
+- 500 per rung (ladder.json): rung1 5, rung2 5, rung3 5, rung4 10, rung5 10 = 35; all 'GET /books/{slug}' (nginx access.log: ~16.5-24 s each)
+- app docker log (php-fpm stderr) since 05:27Z: 40x "PHP Fatal error: Allowed memory size of 536870912 bytes exhausted (tried to allocate 97271808 bytes) in .../View/Concerns/ManagesLayouts.php on line 102"; 0x "Maximum execution time"
+- nginx docker log: 0 lines
+- r-1/r-2 (50000): no 500 (only 499 client-cancel; see non2xx-by-step.txt)
+- files: app-docker-log.snap2.txt web-docker-log.snap2.txt laravel.log.snap2.txt non2xx-r3-snap2.txt

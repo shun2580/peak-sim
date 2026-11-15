@@ -1,0 +1,133 @@
+{
+    "scenario": "r-2",
+    "scale": 50000,
+    "mix": "first80",
+    "scheme": "B",
+    "rung": 7,
+    "decided_rps": 0.45,
+    "achieved_rps": 0.44662921348314605,
+    "rps_ratio": 0.9925093632958801,
+    "rps_valid": true,
+    "rps_status": "valid",
+    "db_utilization": 0.7879866653497427,
+    "db_utilization_percent": 78.79866653497427,
+    "app_cpu_utilization": 0.37890195359206935,
+    "app_cpu_percent": 37.890195359206935,
+    "k6_dropped_iterations": 0,
+    "requests_in_window": 159,
+    "requests_not_2xx": 8,
+    "http_status": {
+        "200": 151,
+        "302": 8
+    },
+    "http_status_by_route": {
+        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+            "200": 32
+        },
+        "GET /books/{bookSlug}/export/zip": {
+            "200": 31
+        },
+        "GET /books/{bookSlug}/page/{pageSlug}/references": {
+            "200": 32
+        },
+        "GET /books/{slug}": {
+            "200": 32
+        },
+        "GET /books/{slug}/references": {
+            "200": 8
+        },
+        "GET /images/edit/{id}": {
+            "200": 8
+        },
+        "GET /oidc/callback": {
+            "302": 8
+        },
+        "GET /shelves/{slug}": {
+            "200": 8
+        }
+    },
+    "window_sec": 356,
+    "window_epoch": {
+        "from": 1794719529.256376,
+        "to": 1794719885.256376
+    },
+    "started_at": "2026-11-15T14:11:03+09:00",
+    "ended_at": "2026-11-15T14:19:01+09:00",
+    "decision": {
+        "stop": false,
+        "reasons": [],
+        "note": null
+    },
+    "trial": false,
+    "prediction": {
+        "file": "poc/lab/predictions/ladder-prediction-2.json",
+        "commit": "089d9ad9c2cb5cb9f12d7ed746f4104a91b048ec",
+        "commit_time": "2026-11-15T05:14:41+09:00"
+    },
+    "settings": {
+        "php_max_execution_time": "0",
+        "php_fpm_request_terminate_timeout": "0s",
+        "nginx_fastcgi_read_timeout": "600s",
+        "k6_request_timeout": "600s",
+        "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+        "k6_request_timeout_seen_by_k6": "600s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.09000000000000001,
+            "achieved_rps": 0.0898876404494382,
+            "requests": 32,
+            "planned_requests": 32
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.09000000000000001,
+            "achieved_rps": 0.08707865168539326,
+            "requests": 31,
+            "planned_requests": 32
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.09000000000000001,
+            "achieved_rps": 0.0898876404494382,
+            "requests": 32,
+            "planned_requests": 32
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.09000000000000001,
+            "achieved_rps": 0.0898876404494382,
+            "requests": 32,
+            "planned_requests": 32
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.022500000000000003,
+            "achieved_rps": 0.02247191011235955,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.022500000000000003,
+            "achieved_rps": 0.02247191011235955,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.022500000000000003,
+            "achieved_rps": 0.02247191011235955,
+            "requests": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.022500000000000003,
+            "achieved_rps": 0.02247191011235955,
+            "requests": 8,
+            "planned_requests": 8
+        }
+    ]
+}
