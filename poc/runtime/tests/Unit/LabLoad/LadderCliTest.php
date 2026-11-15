@@ -166,11 +166,11 @@ final class LadderCliTest extends TestCase
     }
 
     /** @return array<string, string> the three files `settings` reads */
-    private function settingsFiles(string $maxExecutionTime = '0', string $readTimeout = '600s'): array
+    private function settingsFiles(string $maxExecutionTime = '0', string $readTimeout = '600s', ?string $memoryLimit = null): array
     {
         file_put_contents($this->dir . '/nginx.txt', "http {\n    server {\n        location / {\n            fastcgi_read_timeout $readTimeout;\n        }\n    }\n}\n");
         file_put_contents($this->dir . '/fpm.txt', "[10-Nov-2026 10:39:21] NOTICE: \trequest_terminate_timeout = 0s\n");
-        file_put_contents($this->dir . '/ini.txt', json_encode(['sapi' => 'fpm-fcgi', 'max_execution_time' => $maxExecutionTime]) . "\n");
+        file_put_contents($this->dir . '/ini.txt', json_encode(['sapi' => 'fpm-fcgi', 'max_execution_time' => $maxExecutionTime, 'memory_limit' => $memoryLimit ?? ($maxExecutionTime === '0' ? '4G' : '512M')]) . "\n");
 
         return ['--nginx=' . $this->dir . '/nginx.txt', '--fpm=' . $this->dir . '/fpm.txt', '--ini=' . $this->dir . '/ini.txt'];
     }
@@ -247,6 +247,24 @@ final class LadderCliTest extends TestCase
         [$code, , $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('0', '600s'), ['--require=limited']));
         $this->assertSame(4, $code);
         $this->assertStringContainsString('max_execution_time', $err);
+    }
+
+    public function test_settings_require_checks_the_memory_limit_too_4g_for_b_and_512m_for_the_mark(): void
+    {
+        // B with the time limit off but the memory limit left at 512M: refused, and the refusal names memory_limit
+        [$code, $out, $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('0', '600s', '512M'), ['--k6-timeout=600s', '--require=unlimited']));
+        $this->assertSame(4, $code);
+        $this->assertStringContainsString('memory_limit', $err);
+        $this->assertSame('512M', json_decode($out, true)['php_memory_limit']);
+        // the mark with the time limit back on but the memory limit left at 4G
+        [$code, , $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s', '4G'), ['--require=limited']));
+        $this->assertSame(4, $code);
+        $this->assertStringContainsString('memory_limit', $err);
+        // both set as they should be: B 0 / 4G, the mark 30 / 512M
+        [$code, $out, $err] = self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('0', '600s', '4G'), ['--k6-timeout=600s', '--require=unlimited']));
+        $this->assertSame([0, ''], [$code, $err]);
+        $this->assertSame('4G', json_decode($out, true)['php_memory_limit']);
+        $this->assertSame(0, self::tool('ladder.php', array_merge(['settings'], $this->settingsFiles('30', '120s', '512M'), ['--require=limited']))[0]);
     }
 
     public function test_settings_require_with_an_unreadable_limit_still_stops_with_exit_3_first(): void

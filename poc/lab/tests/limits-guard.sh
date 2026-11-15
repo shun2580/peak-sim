@@ -22,6 +22,10 @@
 # 12  r-1 with nginx 599s, with the pool at 300s, with an unreadable probe             -> 13, `k6` never called
 # 13  t-4 is measured as before: a lab at the default reaches `k6`; a limit that cannot be read still stops it (13) before `k6`
 # 14  the refusal says why and where the readings are kept
+# the memory limit (2026-11-16 ruling, D206 and D208): B needs memory_limit 4G, the mark 512M
+# 15  unlimited with memory_limit 512M (or 2G, 8G, -1, 4GB, a word)                   -> 13, says memory_limit and 4G; 4096M is 4G -> 0
+# 16  limited with memory_limit left at 4G                                            -> 13, says memory_limit and 512M; 30 and 512M -> 0; none reads only
+# 17  r-1 with the time limits off but memory_limit 512M                              -> 13 before any load; set for B (4G) it reaches `k6`
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,7 +54,12 @@ cat >"$work/fakebin/docker" <<FAKE
 w="$work"; s="\$w/s"
 echo "\$*" >>"\$w/docker.calls"
 val() { if [ -f "\$s/\$1" ]; then cat "\$s/\$1"; else echo "\$2"; fi; }
-if [ "\$1" = inspect ]; then echo "PEAK_LAB_SCALE=\$(val scale 50000)"; exit 0; fi
+if [ "\$1" = inspect ]; then
+  case "\$*" in
+    *State.OOMKilled*) [ -f "\$s/inspect_fail" ] && exit 1; echo "\$(val oom_killed false) \$(val restart 0) \$(val started 2026-11-16T00:00:00Z)"; exit 0 ;;
+    *) echo "PEAK_LAB_SCALE=\$(val scale 50000)"; exit 0 ;;
+  esac
+fi
 if [ "\$1" = exec ]; then
   shift
   while [ "\${1:-}" = "-i" ] || [ "\${1:-}" = "-e" ]; do if [ "\$1" = "-e" ]; then shift 2; else shift; fi; done
@@ -65,13 +74,17 @@ if [ "\$1" = exec ]; then
     "peak-lab-web nginx -T")
       [ -f "\$s/nginx_fail" ] && { echo "nginx: [emerg] cannot load"; exit 1; }
       printf 'http {\n    server {\n        location / {\n            fastcgi_pass lab_app;\n            fastcgi_read_timeout %s;\n        }\n    }\n}\n' "\$(val nginx 120s)"; exit 0 ;;
+    "peak-lab-app cat /sys/fs/cgroup/memory.events")
+      [ -f "\$s/events_fail" ] && exit 1
+      [ -f "\$s/events_bad" ] && { printf 'low 0\nhigh 0\nmax 0\n'; exit 0; }
+      printf 'low 0\nhigh 0\nmax 0\noom %s\noom_kill %s\noom_group_kill 0\n' "\$(val cg_oom 0)" "\$(val cg_oom_kill 0)"; exit 0 ;;
     "peak-lab-app php-fpm -tt")
       [ -f "\$s/fpm_fail" ] && { echo "ERROR: unable to read the configuration"; exit 1; }
       printf '[11-Nov-2026 10:00:00] NOTICE: \trequest_terminate_timeout = %s\n' "\$(val pool 0s)"; exit 0 ;;
   esac
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ] && [ "\$2" = /peak-sim/poc/lab/diagnosis/fcgi_get.php ]; then
     [ -f "\$s/ini_fail" ] && { echo "cannot connect: Connection refused"; exit 1; }
-    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s"}\n' "\$(val php 30)"; exit 0
+    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s","memory_limit":"%s"}\n' "\$(val php 30)" "\$(val mem 512M)"; exit 0
   fi
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ]; then
     [ -f "\$s/php_down" ] && { echo "the tools container is not running" >&2; exit 1; }
@@ -85,7 +98,7 @@ FAKE
 chmod +x "$work/fakebin/docker"
 
 # a copy of the lab's bin directory with the real scripts; preflight (the closed-network check) and the CPU sampler are stubs
-for f in measure-ladder check-limits check-writes check-tables _lab.sh prediction-gate; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-ladder check-limits check-writes check-tables _lab.sh prediction-gate check-oom; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
 mkdir -p "$work/rec" "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
 python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/ok.json" --variant=ok
 rec="$work/rec/ok.json"   # the made-up record of the statements the write check reads (every write in it is to views)
@@ -112,7 +125,7 @@ ml() { env_run "$work/lab/bin/measure-ladder" "$@" --statement-record="$rec" >"$
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 said() { has "$work/cl.err" "$1" || has "$work/cl.out" "$1"; }
 
-B=(php=0 pool=0s nginx=600s)
+B=(php=0 pool=0s nginx=600s mem=4G)
 
 # ---- check-limits ------------------------------------------------------------------------------------------------------------
 set_lab "${B[@]}"; cl --require=unlimited --request-timeout=600s; expect_code "1 unlimited, lab set for B: passes" 0 $?
@@ -125,7 +138,7 @@ set_lab php=0 pool=0s nginx=120s; cl --require=unlimited --request-timeout=600s;
 said 'fastcgi_read_timeout' && pass "3b it names fastcgi_read_timeout" || fail "3b ($(cat "$work/cl.err"))"
 
 set_lab php=0 pool=0s nginx=599s; cl --require=unlimited --request-timeout=600s; expect_code "4 nginx 599s, one second short: refused" 13 $?
-set_lab php=0 pool=0s nginx=10m; cl --require=unlimited --request-timeout=600s; expect_code "4b nginx 10m = 600s: passes" 0 $?
+set_lab php=0 pool=0s nginx=10m mem=4G; cl --require=unlimited --request-timeout=600s; expect_code "4b nginx 10m = 600s: passes" 0 $?
 
 set_lab php=0 pool=300s nginx=600s; cl --require=unlimited --request-timeout=600s; expect_code "5 pool request_terminate_timeout 300s: refused" 13 $?
 said 'request_terminate_timeout' && pass "5b it names request_terminate_timeout" || fail "5b ($(cat "$work/cl.err"))"
@@ -150,6 +163,26 @@ said 'max_execution_time' && pass "8c it names max_execution_time" || fail "8c (
 
 set_lab php=30 pool=0s nginx=120s; cl --require=none; expect_code "9 none: a lab at the default is read, not judged" 0 $?
 [ -s "$(ls -d "$out"/limits/*/ | tail -1)settings.json" ] && pass "9b the readings are kept in the default directory" || fail "9b no settings.json under out/limits"
+
+# ---- the memory limit (2026-11-16 ruling, D206 and D208): B needs 4G, the mark 512M ------------------------------------------------
+set_lab php=0 pool=0s nginx=600s; cl --require=unlimited --request-timeout=600s; expect_code "15 unlimited, time limits off but memory_limit left at 512M: refused" 13 $?
+said 'memory_limit' && said '4G' && pass "15b it names memory_limit and says B needs 4G" || fail "15b ($(cat "$work/cl.err"))"
+for m in 2G 8G -1 4GB unlimited; do
+  set_lab php=0 pool=0s nginx=600s mem=$m; cl --require=unlimited --request-timeout=600s; expect_code "15c unlimited, memory_limit $m: refused" 13 $?
+done
+set_lab php=0 pool=0s nginx=600s mem=4096M; cl --require=unlimited --request-timeout=600s; expect_code "15d memory_limit 4096M is 4G: passes" 0 $?
+set_lab php=30 pool=0s nginx=120s mem=4G; cl --require=limited; expect_code "16 limited, memory_limit left at 4G after B: refused" 13 $?
+said 'memory_limit' && said '512M' && pass "16b it names memory_limit and says the mark is measured with 512M" || fail "16b ($(cat "$work/cl.err"))"
+set_lab php=30 pool=0s nginx=120s mem=512M; cl --require=limited; expect_code "16c limited, 30 and 512M: passes" 0 $?
+set_lab php=30 pool=0s nginx=120s mem=4G; cl --require=none; expect_code "16d none: memory_limit 4G is read, not judged" 0 $?
+has "$(ls -d "$out"/limits/*/ | tail -1)settings.json" '"php_memory_limit": "4G"' && pass "16e the reading of memory_limit is kept in settings.json" || fail "16e ($(cat "$(ls -d "$out"/limits/*/ | tail -1)settings.json"))"
+set_lab php=0 pool=0s nginx=600s scale=50000
+ml --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s; rc=$?
+expect_code "17 r-1 with the time limits off but memory_limit at 512M: 13 before any load" 13 $rc
+[ "$(k6_calls)" = 0 ] && has "$work/ml.err" 'memory_limit' && pass "17b the load tool was never called and the refusal names memory_limit" || fail "17b ($(k6_calls) calls, $(head -2 "$work/ml.err"))"
+set_lab "${B[@]}" scale=50000
+ml --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s; rc=$?
+[ "$(k6_calls)" -ge 1 ] && has "$work/ml.out" 'php_memory_limit": "4G"' && pass "17c r-1 on a lab set for B (4G) reaches the load tool, and the step's settings carry memory_limit 4G" || fail "17c ($(head -2 "$work/ml.err"))"
 
 # ---- measure-ladder ----------------------------------------------------------------------------------------------------------
 echo "# the guard in front of r-1 (every call to the stand-in docker is recorded; the load tool k6 is the thing that must not be reached)"

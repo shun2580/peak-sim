@@ -34,9 +34,9 @@ final class LabSettingsTest extends TestCase
         [10-Nov-2026 10:39:21] NOTICE: 	request_terminate_timeout_track_finished = no
         TXT;
 
-    private static function ini(string $maxExecutionTime, string $sapi = 'fpm-fcgi'): string
+    private static function ini(string $maxExecutionTime, string $sapi = 'fpm-fcgi', string $memoryLimit = '512M'): string
     {
-        return json_encode(['sapi' => $sapi, 'php' => '8.3.36', 'max_execution_time' => $maxExecutionTime, 'memory_limit' => '512M']) . "\n";
+        return json_encode(['sapi' => $sapi, 'php' => '8.3.36', 'max_execution_time' => $maxExecutionTime, 'memory_limit' => $memoryLimit]) . "\n";
     }
 
     public function test_it_reads_the_three_limits_and_the_pool_setting_from_what_the_containers_printed(): void
@@ -125,7 +125,7 @@ final class LabSettingsTest extends TestCase
     {
         $nginx = str_replace('fastcgi_read_timeout 120s;', 'fastcgi_read_timeout 600s;', self::NGINX);
 
-        return LabSettings::fromReadings($nginx, self::FPM, self::ini('0'), '600s');
+        return LabSettings::fromReadings($nginx, self::FPM, self::ini('0', 'fpm-fcgi', '4G'), '600s');
     }
 
     public function test_the_lab_set_for_b_passes_the_unlimited_guard(): void
@@ -143,9 +143,10 @@ final class LabSettingsTest extends TestCase
         $default = LabSettings::fromReadings(self::NGINX, self::FPM, self::ini('30'), '600s');
         $found = LabSettings::violations($default, LabSettings::UNLIMITED, '600s');
 
-        $this->assertCount(2, $found);   // max_execution_time 30, and nginx 120s < 600s; the pool's 0s is right
+        $this->assertCount(3, $found);   // max_execution_time 30, memory_limit 512M (B needs 4G), and nginx 120s < 600s; the pool's 0s is right
         $this->assertStringContainsString('max_execution_time', $found[0]);
-        $this->assertStringContainsString('fastcgi_read_timeout', $found[1]);
+        $this->assertStringContainsString('memory_limit', $found[1]);
+        $this->assertStringContainsString('fastcgi_read_timeout', $found[2]);
     }
 
     #[DataProvider('oneThingWrong')]
@@ -166,6 +167,10 @@ final class LabSettingsTest extends TestCase
             'pool limit 1' => ['php_fpm_request_terminate_timeout', '1', 'request_terminate_timeout'],
             'nginx 599s is one second short' => ['nginx_fastcgi_read_timeout', '599s', 'fastcgi_read_timeout'],
             'nginx 9m is shorter than 600s' => ['nginx_fastcgi_read_timeout', '9m', 'fastcgi_read_timeout'],
+            'memory limit left at 512M' => ['php_memory_limit', '512M', 'memory_limit'],
+            'memory limit 2G is not 4G' => ['php_memory_limit', '2G', 'memory_limit'],
+            'memory limit 8G is not 4G' => ['php_memory_limit', '8G', 'memory_limit'],
+            'memory limit -1 (no limit) is not 4G' => ['php_memory_limit', '-1', 'memory_limit'],
         ];
     }
 
@@ -187,12 +192,15 @@ final class LabSettingsTest extends TestCase
             'nginx text' => ['nginx_fastcgi_read_timeout', 'forever'],
             'nginx combined units' => ['nginx_fastcgi_read_timeout', '10m 30s'],
             'nginx null' => ['nginx_fastcgi_read_timeout', null],
+            'memory text' => ['php_memory_limit', 'unlimited'],
+            'memory empty' => ['php_memory_limit', ''],
+            'memory null' => ['php_memory_limit', null],
         ];
     }
 
     public function test_a_missing_reading_is_a_violation(): void
     {
-        foreach (['php_max_execution_time', 'php_fpm_request_terminate_timeout', 'nginx_fastcgi_read_timeout'] as $key) {
+        foreach (['php_max_execution_time', 'php_memory_limit', 'php_fpm_request_terminate_timeout', 'nginx_fastcgi_read_timeout'] as $key) {
             $settings = self::unlimited();
             unset($settings[$key]);
             $this->assertNotSame([], LabSettings::violations($settings, LabSettings::UNLIMITED, '600s'), "without $key");
@@ -223,12 +231,53 @@ final class LabSettingsTest extends TestCase
 
     public function test_the_two_guards_never_both_pass_on_the_same_lab(): void
     {
-        foreach (['0', '30'] as $php) {
+        foreach ([['0', '4G'], ['30', '512M']] as [$php, $memory]) {
             $nginx = str_replace('fastcgi_read_timeout 120s;', 'fastcgi_read_timeout 600s;', self::NGINX);
-            $s = LabSettings::fromReadings($nginx, self::FPM, self::ini($php), '600s');
+            $s = LabSettings::fromReadings($nginx, self::FPM, self::ini($php, 'fpm-fcgi', $memory), '600s');
             $unlimited = LabSettings::violations($s, LabSettings::UNLIMITED, '600s') === [];
             $limited = LabSettings::violations($s, LabSettings::LIMITED, '600s') === [];
-            $this->assertNotSame($unlimited, $limited, "max_execution_time $php");
+            $this->assertNotSame($unlimited, $limited, "max_execution_time $php, memory_limit $memory");
+        }
+    }
+
+    public function test_the_memory_limit_is_read_from_the_probe_and_4g_is_4g_in_any_spelling(): void
+    {
+        $this->assertSame('4G', LabSettings::fromReadings(self::NGINX, self::FPM, self::ini('0', 'fpm-fcgi', '4G'), null)['php_memory_limit']);
+        foreach (['4G', '4g', '4096M', '4194304K', '4294967296'] as $spelling) {
+            $settings = ['php_memory_limit' => $spelling] + self::unlimited();
+            $this->assertSame([], LabSettings::violations($settings, LabSettings::UNLIMITED, '600s'), $spelling);
+        }
+        foreach (['4095M', '4097M', '4G ', '4GB'] as $spelling) {
+            $settings = ['php_memory_limit' => $spelling] + self::unlimited();
+            $found = LabSettings::violations($settings, LabSettings::UNLIMITED, '600s');
+            // '4G ' is trimmed and so is 4G; the others are not 4G
+            $this->assertCount($spelling === '4G ' ? 0 : 1, $found, $spelling);
+        }
+    }
+
+    public function test_a_probe_without_a_memory_limit_is_recorded_as_null_and_refused_by_both_guards(): void
+    {
+        $probe = json_encode(['sapi' => 'fpm-fcgi', 'max_execution_time' => '0']) . "\n";
+        $nginx = str_replace('fastcgi_read_timeout 120s;', 'fastcgi_read_timeout 600s;', self::NGINX);
+        $s = LabSettings::fromReadings($nginx, self::FPM, $probe, '600s');
+        $this->assertNull($s['php_memory_limit']);
+        $this->assertStringContainsString('memory_limit', implode(' | ', LabSettings::violations($s, LabSettings::UNLIMITED, '600s')));
+        $thirty = LabSettings::fromReadings(self::NGINX, self::FPM, json_encode(['sapi' => 'fpm-fcgi', 'max_execution_time' => '30']), null);
+        $this->assertStringContainsString('memory_limit', implode(' | ', LabSettings::violations($thirty, LabSettings::LIMITED, null)));
+    }
+
+    public function test_the_limited_guard_wants_512m_as_well_as_30(): void
+    {
+        $default = LabSettings::fromReadings(self::NGINX, self::FPM, self::ini('30'), null);
+        $this->assertSame([], LabSettings::violations($default, LabSettings::LIMITED, null));
+        // the memory limit left at 4G after B is not the mark's setting, even with the time limit back on
+        $left = LabSettings::fromReadings(self::NGINX, self::FPM, self::ini('30', 'fpm-fcgi', '4G'), null);
+        $found = LabSettings::violations($left, LabSettings::LIMITED, null);
+        $this->assertCount(1, $found);
+        $this->assertStringContainsString('memory_limit', $found[0]);
+        foreach (['256M', '1G', '-1'] as $value) {
+            $settings = LabSettings::fromReadings(self::NGINX, self::FPM, self::ini('30', 'fpm-fcgi', $value), null);
+            $this->assertCount(1, LabSettings::violations($settings, LabSettings::LIMITED, null), $value);
         }
     }
 

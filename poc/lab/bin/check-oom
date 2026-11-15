@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Reads whether the lab's app container (peak-lab-app) was stopped for lack of memory, and stops a measurement if it was. B is
+# measured with PHP's memory_limit at 4G (docs/simulator-spec.md section 7.4.2, decisions.md D206, D208): with no limit of the
+# container's own, a request that takes memory it does not get can end in the kernel killing a process, not in PHP's own
+# "Allowed memory size exhausted". That must never pass unseen, because a worker that died took its requests with it. It only reads
+# (`docker inspect` and the container's own cgroup counters); it sends no load and changes nothing.
+#
+#   poc/lab/bin/check-oom save <file>
+#       reads the app container now and writes the reading to <file> (the baseline of a scenario)
+#   poc/lab/bin/check-oom compare <file> [--out=<file>] [--where=<text>]
+#       reads the app container now, writes that reading to --out when given, and compares it with the baseline in <file>
+#
+# What is read (one line of `key=value`): State.OOMKilled, RestartCount, State.StartedAt (a container that was restarted or made
+# again has another one), and from /sys/fs/cgroup/memory.events of the container the counters `oom` and `oom_kill` (a php-fpm worker
+# killed for memory is made again by the master, so the container itself neither exits nor restarts: only this counter shows it).
+# A baseline that differs from the reading in any of them is a stop. A reading that cannot be made (the container does not answer,
+# no such counter) is a stop as well: the guard fails closed.
+#
+# exit codes: 0 same as the baseline (or saved) / 2 usage / 19 the app container was stopped for memory since the baseline, or it
+# could not be read (the cause and --where, where it happened, are printed)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+container="${PEAK_LAB_APP_CONTAINER:-peak-lab-app}"
+usage() { sed -n '8,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+mode="${1:-}"; file="${2:-}"; shift $(( $# >= 2 ? 2 : $# ))
+out="" ; where="the scenario"
+for arg in "$@"; do
+  case "$arg" in
+    --out=*) out="${arg#--out=}" ;;
+    --where=*) where="${arg#--where=}" ;;
+    *) usage ;;
+  esac
+done
+{ [ "$mode" = save ] || [ "$mode" = compare ]; } && [ -n "$file" ] || usage
+[ "$mode" = compare ] || [ -z "$out" ] || usage
+
+refuse() { echo "check-oom: STOPPED at $where: $1" >&2; exit 19; }
+
+state="$(docker inspect -f '{{.State.OOMKilled}} {{.RestartCount}} {{.State.StartedAt}}' "$container" 2>/dev/null)" || refuse "cannot read $container with docker inspect"
+read -r oom_killed restart_count started_at <<<"$state"
+[ -n "${oom_killed:-}" ] && [ -n "${restart_count:-}" ] && [ -n "${started_at:-}" ] || refuse "docker inspect of $container gave '$state'"
+events="$(docker exec "$container" cat /sys/fs/cgroup/memory.events 2>/dev/null)" || refuse "cannot read the cgroup memory.events of $container"
+cg_oom="$(printf '%s\n' "$events" | awk '$1 == "oom" {print $2}')"
+cg_kill="$(printf '%s\n' "$events" | awk '$1 == "oom_kill" {print $2}')"
+[[ "$cg_oom" =~ ^[0-9]+$ ]] && [[ "$cg_kill" =~ ^[0-9]+$ ]] || refuse "memory.events of $container has no oom / oom_kill counter"
+now="oom_killed=$oom_killed restart_count=$restart_count started_at=$started_at cgroup_oom=$cg_oom cgroup_oom_kill=$cg_kill"
+
+if [ "$mode" = save ]; then
+  printf '%s\n' "$now" >"$file" || refuse "cannot write $file"
+  echo "OOM BASELINE $container: $now"
+  exit 0
+fi
+[ -z "$out" ] || printf '%s\n' "$now" >"$out" || refuse "cannot write $out"
+[ -s "$file" ] || refuse "there is no baseline $file (save was not run)"
+before="$(head -n 1 "$file")"
+if [ "$before" != "$now" ]; then
+  refuse "the app container $container is not as it was: it was [$before], it is now [$now] (memory ran out, or the container was restarted or made again); the measurement is stopped and this step is not judged"
+fi
+echo "OOM OK $container: $now"
+exit 0

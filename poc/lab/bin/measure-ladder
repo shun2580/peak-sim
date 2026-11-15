@@ -36,6 +36,12 @@
 # THE LIMITS GUARD: for r-1 .. r-5 and s-1 .. s-5 the values must also be the ones B needs (max_execution_time 0, request_terminate_timeout 0,
 # fastcgi_read_timeout >= --request-timeout), or the scenario stops with exit 13 at that step and nothing is measured. t-1 .. t-5 and
 # a trial are read and recorded only, as before.
+# THE MEMORY GUARD (B is measured with PHP's memory_limit at 4G, decisions.md D206 and D208): bin/check-oom reads the app container's
+#   State.OOMKilled, RestartCount, StartedAt and its cgroup's oom / oom_kill counters. The baseline is taken once the app reads the scenario's scale
+#   (<scenario>/oom-baseline.txt), and the reading is compared with it before every step starts (OOM-BEFORE) and again as soon as k6 and the samplers have
+#   stopped (OOM-AFTER; <step>/oom-after.txt). If anything changed the scenario stops with exit 19 at that step, the step is not judged and has no
+#   record, and <step>/oom-stop.txt says which step it was. A reading that cannot be made stops it too. A memory limit that PHP itself reports
+#   ("Allowed memory size exhausted") is not this: it shows in the step's HTTP status counts.
 # THE WRITE GUARDS (lab-only rule: the lab may write the view-count table `views` and nothing else; decisions.md D187, D189). A dry run needs none.
 #   (i)   bin/check-writes reads --statement-record (the capture's record of the statements of the eight routes) and stops with exit 15, before the
 #         closed-network check and before any container is touched, unless every write in it is to `views` alone (line marked WRITE-CHECK).
@@ -58,7 +64,7 @@
 # Nothing is compared with the prediction here.
 #
 # Records: <out>/<scenario>-<scale>/rung-NN-<rps>/{plan,summary,record,settings}.json, cpu.txt, app-cpu.txt, k6-output.txt, started_at.txt,
-# ended_at.txt, settings-*.txt (no output is named *.log: the repository's .gitignore drops them, and a test checks every output name); and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
+# ended_at.txt, settings-*.txt, oom-before.txt, oom-after.txt (and oom-stop.txt when the memory guard stopped it; <scenario>/oom-baseline.txt) (no output is named *.log: the repository's .gitignore drops them, and a test checks every output name); and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
 # measured again (a restart goes on from the first step without one). Default <out>: $PEAK_LAB_OUT_DIR/ladder.
 #
 # --dry-run touches no container and sends no load: it makes the plan of every step (with make-plan), prints the table (the rate of
@@ -74,7 +80,7 @@
 # exit codes: 0 the ladder was measured to its end or to its stopping step / 2 usage, or the app reads another scale, or a
 # missing prerequisite / 11 not sealed / 12 the prediction gate is closed / 13 a step could not be measured (the cause is printed) /
 # 15 a statement in the record writes outside `views` / 16 an N table changed / 17 a scale not seen yet and no committed prediction for it /
-# 18 the N tables could not be read
+# 18 the N tables could not be read / 19 the app container was stopped for memory since the scenario's baseline (or could not be read): the memory guard
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -252,6 +258,11 @@ if [ "$app_scale" != "$scale" ]; then
   fi
 fi
 
+# THE MEMORY GUARD, the baseline: the app container as it is now (after any `bin/use-db`, which makes the container again). Outside every window.
+"$bindir/check-oom" save "$sdir/oom-baseline.txt"   # OOM-BASELINE
+oom_rc=$?
+if [ "$oom_rc" != 0 ]; then echo "measure-ladder: the memory guard could not read the app container; nothing was measured" >&2; exit 19; fi
+
 # read_settings <dir>: the three limits right now, as the containers hold them, and (for r-1 .. r-5 and s-1 .. s-5) whether they are the ones B needs.
 # That is bin/check-limits: it only reads (nginx -T and php-fpm -tt print the configuration; ini-probe.php is one request through
 # php-fpm that opens no database connection) and it runs before the samplers start, so nothing of it is in a window. The raw outputs and
@@ -281,6 +292,11 @@ for rps in "${rungs[@]}"; do
   make_plan "$rps" "$d/plan.json" "$scheme" || { echo "measure-ladder: the plan failed for rps $rps (scheme $scheme)" >&2; exit 13; }
   read_settings "$d" || { echo "measure-ladder: the limits (PHP, k6, web server) are not as $scenario needs them, or could not be read, at rung $i: $(cat "$d/check-limits.err" 2>/dev/null). Stopped; nothing was measured." >&2; exit 13; }
   echo "RUNG SETTINGS $scenario rung $i: $(tr '\n' ' ' <"$d/settings.json" | tr -s ' ')"
+  # THE MEMORY GUARD, before the step (the samplers have not started): nothing may have happened to the app container since the baseline
+  "$bindir/check-oom" compare "$sdir/oom-baseline.txt" --out="$d/oom-before.txt" --where="$scenario rung $i (rps $rps), before the step" 2>"$d/oom-stop.txt" >/dev/null   # OOM-BEFORE
+  oom_rc=$?
+  if [ "$oom_rc" != 0 ]; then cat "$d/oom-stop.txt" >&2; echo "measure-ladder: the app container was stopped for memory (or could not be read) before rung $i; nothing was measured at it" >&2; exit 19; fi
+  rm -f "$d/oom-stop.txt"
   started_epoch="$(date +%s)"; started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
   echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s)"
 
@@ -299,6 +315,11 @@ for rps in "${rungs[@]}"; do
   wait "$db_pid"; db_rc=$?; wait "$app_pid"; app_rc=$?
   ended_at="$(date -Iseconds)"; echo "$ended_at" >"$d/ended_at.txt"
   echo "$db_rc $app_rc" >"$d/sampler.exit"
+  # THE MEMORY GUARD, after the step (k6 and the samplers have stopped): the step's load must not have cost the app container a worker or the container
+  "$bindir/check-oom" compare "$sdir/oom-baseline.txt" --out="$d/oom-after.txt" --where="$scenario rung $i (rps $rps), during or just after the step" 2>"$d/oom-stop.txt" >/dev/null   # OOM-AFTER
+  oom_rc=$?
+  if [ "$oom_rc" != 0 ]; then cat "$d/oom-stop.txt" >&2; echo "measure-ladder: the app container was stopped for memory at rung $i (rps $rps); the measurement is stopped, the step is not judged and has no record (see $d/oom-stop.txt)" >&2; exit 19; fi
+  rm -f "$d/oom-stop.txt"
   # k6 exits 99 when a threshold fails; the thresholds here are all count>=0, so any non-zero exit is a real failure
   if [ "$k6_rc" != 0 ] || [ ! -f "$d/summary.json" ]; then
     echo "measure-ladder: k6 failed at rung $i (rps $rps), exit $k6_rc; see $d/k6-output.txt. Stopped; nothing was judged." >&2

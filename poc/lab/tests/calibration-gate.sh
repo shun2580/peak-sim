@@ -68,7 +68,7 @@ if [ "\$1" = exec ]; then
       printf 'entities\t2026-11-11 05:17:04\t10000\t100\t50\n'; exit 0 ;;
   esac
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ] && [ "\$2" = /peak-sim/poc/lab/diagnosis/fcgi_get.php ]; then
-    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s"}\n' "\$(val php 30)"; exit 0
+    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s","memory_limit":"%s"}\n' "\$(val php 30)" "\$(val mem 512M)"; exit 0
   fi
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ]; then
     shift
@@ -113,7 +113,7 @@ env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STAT
 mc() { env_run "$work/lab/bin/measure-calibration" "$@" --statement-record="$rec" >"$work/mc.out" 2>"$work/mc.err"; }
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 lab_calls() { wc -l <"$work/docker.calls" | tr -d ' '; }
-B=(php=0 pool=0s nginx=600s)
+B=(php=0 pool=0s nginx=600s mem=4G)
 
 # 1 ---------------------------------------------------------------------------------------------------------------------------------------
 set_lab "${B[@]}"

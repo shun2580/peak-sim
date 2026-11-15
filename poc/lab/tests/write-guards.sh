@@ -23,6 +23,10 @@
 #    summarize and record a step are made no-ops in a copy, so it runs to its end): COUNT and CHECKSUM are sent only at its start and its end, the
 #    counters after every step, a write to another table stops it at that step, a changed checksum at the end, and each guard taken out of a copy no longer does; each marker is on one line,
 #    in the right order; the files the guards write are outside .gitignore
+# D  the memory guard (bin/check-oom and its place in bin/measure-ladder; 2026-11-16 ruling, D206 and D208): the app container's OOMKilled, RestartCount,
+#    StartedAt and cgroup oom / oom_kill counters are saved at the start of a scenario and compared before and after every step; any change, or a reading that
+#    cannot be made, stops it (19) at that step with no record. A worker killed by the kernel (the container does not exit) is seen by the cgroup counter alone.
+#    Each of the two lines taken out of a copy no longer stops it; the markers are on one line each, in the right order
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -90,7 +94,12 @@ w="$work"; s="\$w/s"
 if [ "\$1" = run ] || [ "\$1" = image ]; then exec "$real_docker" "\$@"; fi
 echo "\$*" >>"\$w/docker.calls"
 val() { if [ -f "\$s/\$1" ]; then cat "\$s/\$1"; else echo "\$2"; fi; }
-if [ "\$1" = inspect ]; then echo "PEAK_LAB_SCALE=\$(val scale 10000)"; exit 0; fi
+if [ "\$1" = inspect ]; then
+  case "\$*" in
+    *State.OOMKilled*) [ -f "\$s/inspect_fail" ] && exit 1; echo "\$(val oom_killed false) \$(val restart 0) \$(val started 2026-11-16T00:00:00Z)"; exit 0 ;;
+    *) echo "PEAK_LAB_SCALE=\$(val scale 10000)"; exit 0 ;;
+  esac
+fi
 if [ "\$1" = exec ]; then
   shift
   summary=""
@@ -115,13 +124,17 @@ if [ "\$1" = exec ]; then
   case "\$c \$1 \$2" in
     "peak-lab-web nginx -T")
       printf 'http {\n    server {\n        location / {\n            fastcgi_pass lab_app;\n            fastcgi_read_timeout %s;\n        }\n    }\n}\n' "\$(val nginx 120s)"; exit 0 ;;
+    "peak-lab-app cat /sys/fs/cgroup/memory.events")
+      [ -f "\$s/events_fail" ] && exit 1
+      [ -f "\$s/events_bad" ] && { printf 'low 0\nhigh 0\nmax 0\n'; exit 0; }
+      printf 'low 0\nhigh 0\nmax 0\noom %s\noom_kill %s\noom_group_kill 0\n' "\$(val cg_oom 0)" "\$(val cg_oom_kill 0)"; exit 0 ;;
     "peak-lab-app php-fpm -tt")
       printf '[11-Nov-2026 10:00:00] NOTICE: \trequest_terminate_timeout = %s\n' "\$(val pool 0s)"; exit 0 ;;
     "peak-lab-db mysql -uroot")
       printf 'entities\t2026-11-11 05:17:04\t10000\t100\t50\n'; exit 0 ;;
   esac
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ] && [ "\$2" = /peak-sim/poc/lab/diagnosis/fcgi_get.php ]; then
-    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s"}\n' "\$(val php 30)"; exit 0
+    printf '{"sapi":"fpm-fcgi","php":"8.3.36","max_execution_time":"%s","memory_limit":"%s"}\n' "\$(val php 30)" "\$(val mem 512M)"; exit 0
   fi
   if [ "\$c" = peak-lab-tools ] && [ "\$1" = php ]; then
     shift
@@ -136,6 +149,9 @@ if [ "\$1" = exec ]; then
       [ -f "\$s/k6_flip_views" ] && printf '5' >"\$s/io_views"       # the one write that is allowed
       [ -f "\$s/k6_open" ] && : >"\$s/io_pages0"                      # a table opened for the first time: a row of zeros
       [ -f "\$s/k6_open_write" ] && : >"\$s/io_pages1"                # ... and written to
+      [ -f "\$s/k6_oom" ] && { printf '1' >"\$s/cg_oom_kill"; printf '1' >"\$s/cg_oom"; }   # the kernel kills a php-fpm worker for memory: the container neither exits nor restarts
+      [ -f "\$s/k6_restart" ] && printf '1' >"\$s/restart"                                  # the container is restarted in place
+      [ -f "\$s/k6_oomkilled" ] && printf 'true' >"\$s/oom_killed"
       exit 0
     fi
     exit 99
@@ -145,7 +161,7 @@ exit 99
 FAKE
 chmod +x "$work/fakebin/docker"
 
-for f in measure-calibration measure-ladder check-limits check-writes check-tables prediction-gate _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-calibration measure-ladder check-limits check-writes check-tables check-oom prediction-gate _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
 mkdir -p "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
 ln -s "$lab/scenarios" "$work/lab/scenarios"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/bin/preflight"; chmod +x "$work/lab/bin/preflight"
@@ -171,7 +187,7 @@ set_lab() { reset_lab; local kv; for kv in "$@"; do printf '%s' "${kv#*=}" >"$wo
 env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$grepo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 queries() { grep -c 'CHECKSUM\|COUNT(' "$work/docker.calls" | tr -d ' '; }
-B=(php=0 pool=0s nginx=600s)
+B=(php=0 pool=0s nginx=600s mem=4G)
 
 # ---- B: check-tables ----------------------------------------------------------------------------------------------------------
 ct() { env_run "$work/lab/bin/check-tables" "$@" >"$work/ct.out" 2>"$work/ct.err"; }
@@ -476,6 +492,85 @@ expect_code "C18 a write to entities during the ladder: stopped at the first ste
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_open=1
 ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 [ "$rc" = 0 ] && pass "C19 a ladder in which the app opens a table for the first time at step 1 (a new row of zeros) runs to its end" || fail "C19 (rc $rc, $(cat "$work/ml.err" | head -3 | tr '\n' ' '))"
+
+# ---- D: the memory guard (2026-11-16 ruling, D206 and D208): the app container must not have been stopped for memory ----------------------------------
+echo "# memory guard"
+co() { env_run "$work/lab/bin/check-oom" "$@" >"$work/co.out" 2>"$work/co.err"; }
+base_oom="$work/oom-base.txt"
+set_lab; co save "$base_oom"; expect_code "D1 save: the baseline is written" 0 $?
+has "$base_oom" 'oom_killed=false restart_count=0 started_at=2026-11-16T00:00:00Z cgroup_oom=0 cgroup_oom_kill=0' && pass "D1b it holds OOMKilled, RestartCount, StartedAt and the cgroup's oom and oom_kill" || fail "D1b ($(cat "$base_oom"))"
+co compare "$base_oom" --out="$work/oom-now.txt"; expect_code "D2 compare with nothing changed: 0" 0 $?
+has "$work/co.out" 'OOM OK' && [ -s "$work/oom-now.txt" ] && pass "D2b it says OK and keeps the reading in --out" || fail "D2b"
+for change in "cg_oom_kill=1|a worker killed by the kernel (the container neither exits nor restarts: only the cgroup counter shows it)" "cg_oom=1|an oom event of the cgroup" "restart=1|the container restarted" "oom_killed=true|State.OOMKilled" "started=2026-11-16T01:00:00Z|the container made again (another StartedAt)"; do
+  kv="${change%%|*}"; why="${change#*|}"
+  set_lab; printf '%s' "${kv#*=}" >"$work/s/${kv%%=*}"
+  co compare "$base_oom" --where="rung 3 of the test"; expect_code "D3 $why: stopped (19)" 19 $?
+  has "$work/co.err" 'STOPPED at rung 3 of the test' && pass "D3b ${kv%%=*}: the message says where it happened" || fail "D3b ${kv%%=*} ($(cat "$work/co.err"))"
+done
+for broken in inspect_fail events_fail events_bad; do
+  set_lab; : >"$work/s/$broken"
+  co compare "$base_oom"; expect_code "D4 $broken on compare: a reading that cannot be made stops it (19)" 19 $?
+  co save "$work/oom-x.txt"; expect_code "D4b $broken on save: 19" 19 $?
+done
+set_lab; co compare "$work/no-such-baseline.txt"; expect_code "D5 compare with no baseline: 19" 19 $?
+co; expect_code "D5b no argument: usage (2)" 2 $?
+co save; expect_code "D5c save without a file: usage (2)" 2 $?
+co compare "$base_oom" --nonsense; expect_code "D5d an unknown option: usage (2)" 2 $?
+co save "$work/oom-y.txt" --out="$work/oom-z.txt"; expect_code "D5e --out with save: usage (2)" 2 $?
+
+# the wiring in measure-ladder: one line for each marker, in the right order
+for m in OOM-BASELINE OOM-BEFORE OOM-AFTER; do
+  n="$(grep -c "# $m\$" "$lab/bin/measure-ladder")"
+  [ "$n" = 1 ] && pass "D6 measure-ladder has one line marked $m" || fail "D6 measure-ladder has $n lines marked $m"
+done
+lob="$(line measure-ladder '# OOM-BASELINE$')"; lbf="$(line measure-ladder '# OOM-BEFORE$')"; laf="$(line measure-ladder '# OOM-AFTER$')"
+lsd="$(line measure-ladder '^  read_settings "\$d"')"; lsp="$(line measure-ladder 'sample-cpu" --container=peak-lab-db')"
+[ "$lob" -lt "$lsd" ] && [ "$lsd" -lt "$lbf" ] && [ "$lbf" -lt "$lsp" ] && [ "$lsp" -lt "$lk" ] && [ "$lk" -lt "$laf" ] && [ "$laf" -lt "$lt" ] && [ "$lt" -lt "$ls_" ] \
+  && pass "D6b baseline < the limits of the step < OOM before < the samplers < the load tool < OOM after < the step's counters < the summary" || fail "D6b ($lob $lsd $lbf $lsp $lk $laf $lt $ls_)"
+# a whole ladder, to its end (the same copy as C16: the tools that summarize and record a step are no-ops)
+set_lab "${B[@]}" scale=50000 k6_ok=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+steps="$(k6_calls)"
+[ "$rc" = 0 ] && [ "$steps" -ge 2 ] && pass "D7 a whole B ladder of $steps steps, the app container untouched, runs to its end (exit 0)" || fail "D7 (rc $rc, $steps steps, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+[ -s "$out/ladder/r-1-50000/oom-baseline.txt" ] && [ -s "$(ls -d "$out"/ladder/r-1-50000/rung-01-* | head -1)/oom-before.txt" ] && [ -s "$(ls -d "$out"/ladder/r-1-50000/rung-01-* | head -1)/oom-after.txt" ] && pass "D7b the baseline and each step's readings before and after are kept" || fail "D7b"
+[ -z "$(ls "$out"/ladder/r-1-50000/rung-*/oom-stop.txt 2>/dev/null)" ] && pass "D7c no oom-stop.txt when nothing happened" || fail "D7c"
+for kill in k6_oom k6_restart k6_oomkilled; do
+  set_lab "${B[@]}" scale=50000 k6_ok=1 "$kill=1"
+  ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+  expect_code "D8 $kill during step 1: the ladder is stopped (19)" 19 $rc
+  r1="$(ls -d "$out"/ladder/r-1-50000/rung-01-* | head -1)"
+  [ "$(k6_calls)" = 1 ] && has "$work/ml.err" 'at rung 1' && has "$work/ml.err" 'not judged' && pass "D8b $kill: one load only, and the message says which step and that it is not judged" || fail "D8b $kill ($(k6_calls) loads, $(cat "$work/ml.err"))"
+  [ -s "$r1/oom-stop.txt" ] && has "$r1/oom-stop.txt" 'rung 1' && pass "D8c $kill: oom-stop.txt in the step's directory says which step it was" || fail "D8c $kill"
+  [ ! -e "$r1/record.json" ] && [ ! -e "$r1/writes-after.tsv" ] && pass "D8d $kill: no record, and the step went no further (no counters read after it)" || fail "D8d $kill"
+done
+# the guard in front of the step: something that happened between two steps (the container made again) stops the next one before its load
+set_lab "${B[@]}" scale=50000 k6_ok=1 restart=1
+# the stand-in's restart counter is already 1 when the tool takes its baseline, so the baseline holds 1 (what happened before the scenario began is not the scenario's)
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+expect_code "D9 a container that was already restarted before the scenario began is the baseline, not a stop (exit 0)" 0 $rc
+# WITHOUT both lines (after the step and in front of the next) the same kill goes unseen: the two guards are what stopped it
+set_lab "${B[@]}" scale=50000 k6_ok=1 k6_oom=1
+sed -e '/# OOM-AFTER$/d' -e '/# OOM-BEFORE$/d' "$lab/bin/measure-ladder" >"$work/lab/bin/ml-no-oom"; chmod +x "$work/lab/bin/ml-no-oom"
+ml "$(through "$work/lab/bin/ml-no-oom")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+[ "$rc" = 0 ] && pass "D10 WITHOUT the OOM-BEFORE and OOM-AFTER lines the same worker kill goes through to the end (exit 0): the guards are what stopped it" || fail "D10 (rc $rc, $(head -3 "$work/ml.err" | tr '\n' ' '))"
+# WITHOUT the line in front of the step, a change between two steps is not seen at the next one (step 1 killed, the after-check taken out: step 2 would start)
+set_lab "${B[@]}" scale=50000 k6_ok=1 k6_oom=1
+sed -e '/# OOM-AFTER$/d' "$lab/bin/measure-ladder" >"$work/lab/bin/ml-no-after"; chmod +x "$work/lab/bin/ml-no-after"
+ml "$(through "$work/lab/bin/ml-no-after")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+expect_code "D11 with the after-check taken out, the check in front of the next step still stops the ladder (19)" 19 $rc
+[ "$(k6_calls)" = 1 ] && has "$work/ml.err" 'before rung 2' && pass "D11b it stopped in front of rung 2, after one load: nothing was measured at rung 2" || fail "D11b ($(k6_calls) loads, $(cat "$work/ml.err"))"
+set_lab "${B[@]}" scale=50000 k6_ok=1 k6_oom=1
+ml "$(through "$(without measure-ladder OOM-BEFORE)")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+expect_code "D11c WITHOUT the OOM-BEFORE line the after-check still stops it at rung 1 (19)" 19 $rc
+# a container that cannot be read when the scenario begins: nothing is measured
+set_lab "${B[@]}" scale=50000 k6_ok=1 events_fail=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+expect_code "D12 the app container's memory events cannot be read at the start: 19" 19 $rc
+[ "$(k6_calls)" = 0 ] && pass "D12b no load was sent" || fail "D12b ($(k6_calls) loads)"
+# t-* is read the same way (the guard is read-only; a kill during a t-4 step also stops it)
+set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_oom=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
+expect_code "D13 a worker killed for memory during a t-4 step stops it too (19)" 19 $rc
 
 # a dry run needs no record and touches nothing
 set_lab

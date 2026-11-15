@@ -20,7 +20,7 @@ final class LabSettings
      * @param string      $iniProbe    the body that `poc/lab/diagnosis/ini-probe.php` gave through php-fpm (a JSON object)
      * @param string|null $k6Timeout   the value given to the load tool as REQUEST_TIMEOUT, or null when none was given
      *
-     * @return array{php_max_execution_time: string, php_fpm_request_terminate_timeout: string, nginx_fastcgi_read_timeout: string, k6_request_timeout: string|null, k6_request_timeout_note: string}
+     * @return array{php_max_execution_time: string, php_memory_limit: string|null, php_fpm_request_terminate_timeout: string, nginx_fastcgi_read_timeout: string, k6_request_timeout: string|null, k6_request_timeout_note: string}
      *
      * @throws \InvalidArgumentException a figure is missing or not unique
      */
@@ -28,6 +28,8 @@ final class LabSettings
     {
         return [
             'php_max_execution_time' => self::iniMaxExecutionTime($iniProbe),
+            // read when the probe gives it (it always has); a probe without it is kept as null and refused by `violations` for any requirement
+            'php_memory_limit' => self::iniMemoryLimit($iniProbe),
             'php_fpm_request_terminate_timeout' => self::fpmTerminateTimeout($fpmConfig),
             'nginx_fastcgi_read_timeout' => self::nginxReadTimeout($nginxConfig),
             'k6_request_timeout' => $k6Timeout,
@@ -46,14 +48,20 @@ final class LabSettings
     /** The PHP limit of the mark, in seconds (the lab's default, left as it is for the mark; docs/simulator-spec.md section 6.4). */
     public const LIMITED_PHP_SECONDS = 30;
 
+    /** The PHP memory limit B is measured with (2026-11-16 lord's ruling, spec 7.4.2, D206/D208): 4G, so that a heavy route is not cut at 512M. */
+    public const UNLIMITED_MEMORY_BYTES = 4 * 1024 * 1024 * 1024;
+
+    /** The PHP memory limit of the lab by default, left as it is for the mark (spec 7.4.2): 512M. */
+    public const LIMITED_MEMORY_BYTES = 512 * 1024 * 1024;
+
     /**
      * Whether the limits read from the lab are the ones a measurement needs. Fails closed: a value that is missing or that cannot be
      * read as a duration is a violation, never a pass.
      *
-     * - `unlimited` (B and the calibration that is measured with the limit off): `max_execution_time` is 0, php-fpm's
-     *   `request_terminate_timeout` is 0, and the web server's `fastcgi_read_timeout` is at least the timeout given to the load tool
+     * - `unlimited` (B and the calibration that is measured with the limit off): `max_execution_time` is 0, `memory_limit` is 4G,
+     *   php-fpm's `request_terminate_timeout` is 0, and the web server's `fastcgi_read_timeout` is at least the timeout given to the load tool
      *   (which must be given, or there is nothing to compare with);
-     * - `limited` (the mark, measured with the limit on): `max_execution_time` is 30.
+     * - `limited` (the mark, measured with the limit on): `max_execution_time` is 30 and `memory_limit` is 512M.
      *
      * @param array<string, mixed> $settings what `fromReadings` returned
      *
@@ -64,12 +72,16 @@ final class LabSettings
     public static function violations(array $settings, string $require, ?string $k6Timeout): array
     {
         if ($require === self::LIMITED) {
+            $found = [];
             $php = self::seconds($settings['php_max_execution_time'] ?? null);
             if ($php === null || $php !== (float) self::LIMITED_PHP_SECONDS) {
-                return [sprintf('max_execution_time is %s, the mark is measured with %d', self::show($settings['php_max_execution_time'] ?? null), self::LIMITED_PHP_SECONDS)];
+                $found[] = sprintf('max_execution_time is %s, the mark is measured with %d', self::show($settings['php_max_execution_time'] ?? null), self::LIMITED_PHP_SECONDS);
+            }
+            if (self::bytes($settings['php_memory_limit'] ?? null) !== self::LIMITED_MEMORY_BYTES) {
+                $found[] = sprintf('memory_limit is %s, the mark is measured with 512M', self::show($settings['php_memory_limit'] ?? null));
             }
 
-            return [];
+            return $found;
         }
         if ($require !== self::UNLIMITED) {
             throw new \InvalidArgumentException("the requirement must be '" . self::UNLIMITED . "' or '" . self::LIMITED . "' (got '$require')");
@@ -78,6 +90,9 @@ final class LabSettings
         $php = self::seconds($settings['php_max_execution_time'] ?? null);
         if ($php !== 0.0) {
             $found[] = sprintf('max_execution_time is %s, this measurement needs 0 (no limit)', self::show($settings['php_max_execution_time'] ?? null));
+        }
+        if (self::bytes($settings['php_memory_limit'] ?? null) !== self::UNLIMITED_MEMORY_BYTES) {
+            $found[] = sprintf('memory_limit is %s, this measurement needs 4G', self::show($settings['php_memory_limit'] ?? null));
         }
         $pool = self::seconds($settings['php_fpm_request_terminate_timeout'] ?? null);
         if ($pool !== 0.0) {
@@ -108,6 +123,20 @@ final class LabSettings
         return (float) $m[1] * $unit;
     }
 
+    /** @return int|null bytes of a PHP shorthand (a plain number, or a number with K, M or G); null for anything else, -1 (no limit) included */
+    private static function bytes(mixed $value): ?int
+    {
+        if (!is_string($value) && !is_int($value)) {
+            return null;
+        }
+        if (preg_match('/^(\d+)([KMG])?$/i', trim((string) $value), $m) !== 1) {
+            return null;
+        }
+        $unit = ['' => 1, 'K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3][strtoupper($m[2] ?? '')];
+
+        return (int) $m[1] * $unit;
+    }
+
     private static function show(mixed $value): string
     {
         return is_scalar($value) ? "'" . $value . "'" : 'missing';
@@ -134,6 +163,22 @@ final class LabSettings
         }
 
         return (string) $data['max_execution_time'];
+    }
+
+    /** The memory_limit a request through php-fpm sees, as the probe printed it ("4G", "512M"); null when the probe does not give it. */
+    private static function iniMemoryLimit(string $body): ?string
+    {
+        $data = json_decode(trim($body), true);
+        if (!is_array($data)) {
+            foreach (preg_split('/\R/', trim($body)) ?: [] as $line) {
+                $data = json_decode(trim($line), true);
+                if (is_array($data)) {
+                    break;
+                }
+            }
+        }
+
+        return is_array($data) && isset($data['memory_limit']) && is_scalar($data['memory_limit']) ? (string) $data['memory_limit'] : null;
     }
 
     /** `request_terminate_timeout = 0s` in the pool as php-fpm parsed it. */

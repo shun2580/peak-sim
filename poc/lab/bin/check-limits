@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Reads the three limits that can end a request in the lab, as the containers hold them right now, and refuses (exit 13) unless they
-# are the ones the coming measurement needs (docs/simulator-spec.md section 7.4.1). It only reads: `nginx -T` and `php-fpm -tt` print
+# Reads the three limits that can end a request in the lab (and PHP's memory_limit, which can end one too), as the containers hold them
+# right now, and refuses (exit 13) unless they are the ones the coming measurement needs (docs/simulator-spec.md sections 7.4.1, 7.4.2). It only reads: `nginx -T` and `php-fpm -tt` print
 # a configuration, and ini-probe.php is one request through php-fpm that opens no database connection. It sends no load and changes
 # nothing, so it can be run before a measurement and costs the lab nothing.
 #
 #   poc/lab/bin/check-limits --require=<unlimited|limited|none> [--request-timeout=<k6 duration>] [--dir=<dir under the out directory>]
 #
 #   --require=unlimited  the ladder measurement of the re-check (B) and any measurement that is made with the limit off: PHP's
-#                        max_execution_time is 0, php-fpm's request_terminate_timeout is 0, and nginx's fastcgi_read_timeout is at
+#                        max_execution_time is 0, PHP's memory_limit is 4G (2026-11-16 ruling, D206 and D208; "4096M" is the same),
+#                        php-fpm's request_terminate_timeout is 0, and nginx's fastcgi_read_timeout is at
 #                        least --request-timeout (which is then required: it is what nginx is compared with)
-#   --require=limited    the mark's one-request-at-a-time check: max_execution_time is 30 (the limit the application really has)
+#   --require=limited    the mark's one-request-at-a-time check: max_execution_time is 30 and memory_limit is 512M (the limits the application
+#                        really has; a lab left at 4G after B is refused)
 #   --require=none       read and record only (what measure-ladder does for t-1 .. t-5 and a trial, which are measured as before)
 #
 # A value that cannot be read (a container that does not answer, a configuration that does not parse, no JSON from the probe) refuses
