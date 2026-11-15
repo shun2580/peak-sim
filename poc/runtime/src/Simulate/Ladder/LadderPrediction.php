@@ -7,6 +7,7 @@ namespace PeakSim\Runtime\Simulate\Ladder;
 use PeakSim\Runtime\Backtest\NaiveEstimate;
 use PeakSim\Runtime\Simulate\Calibrate\CalibrationResult;
 use PeakSim\Runtime\Simulate\Predict\AppLimitRisk;
+use PeakSim\Runtime\Simulate\Predict\AppMemoryRisk;
 use PeakSim\Runtime\Simulate\Predict\CalibrationWidth;
 use PeakSim\Runtime\Simulate\Predict\Coefficients;
 use PeakSim\Runtime\Simulate\Predict\LimitSearch;
@@ -97,12 +98,17 @@ final class LadderPrediction
         // the app's execution limit is an input with no default; with none given the mark is not made and the output has no trace of it
         $appLimit = isset($resources['app_cpu_time_limit_s']) ? (float) $resources['app_cpu_time_limit_s'] : null;
         $coefficients = $appLimit === null ? null : Coefficients::pointOf($calibration);
+        // the memory side of the mark, likewise: an input with no default, and with none given the output has no trace of it
+        $appMemoryLimit = isset($resources['app_memory_limit_bytes']) ? (int) $resources['app_memory_limit_bytes'] : null;
         $scenarios = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'target') {
                 $made = self::scenario($s, $calibration, $width, $naiveBasis, $cores, $threshold, $stages);
                 if ($coefficients !== null && $appLimit !== null) {
                     $made['app_limit_risk'] = AppLimitRisk::evaluate(array_values((array) $s['routes']), $coefficients, $appLimit);
+                }
+                if ($appMemoryLimit !== null) {
+                    $made['app_limit_risk_memory'] = AppMemoryRisk::evaluate(array_values((array) $s['routes']), $appMemoryLimit);
                 }
                 $scenarios[] = $made;
             }
@@ -119,7 +125,7 @@ final class LadderPrediction
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
             'estimate_basis_note' => PredictionReport::ESTIMATE_BASIS_NOTE,
-            'resources' => ['cores' => $cores, 'threshold' => $threshold] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]),
+            'resources' => ['cores' => $cores, 'threshold' => $threshold] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]) + ($appMemoryLimit === null ? [] : ['app_memory_limit_bytes' => $appMemoryLimit]),
             'stages_rps_total' => array_values($stages),
             'inputs' => $inputs,
             'calibration' => [

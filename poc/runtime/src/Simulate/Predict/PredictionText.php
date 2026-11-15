@@ -74,6 +74,11 @@ final class PredictionText
                     $out[] = $line;
                 }
             }
+            if (isset($s['app_limit_risk_memory'])) {
+                foreach (self::appLimitRiskMemory($s['app_limit_risk_memory'], !isset($s['app_limit_risk'])) as $line) {
+                    $out[] = $line;
+                }
+            }
             $out[] = sprintf(
                 '  coverage     %d route(s): %d marked (%s of rps), %d unmarked, %d with no cost (%s of rps); extrapolated %d, interpolated %d, measured %d',
                 $s['coverage']['routes'],
@@ -197,6 +202,38 @@ final class PredictionText
         return $lines;
     }
 
+    /**
+     * The lines of the memory side of the `app_limit_risk` mark: which limit it is (memory, apart from the execution time), how many routes are marked
+     * and which. The note on the limit rps is printed once, by the execution-time lines when they are there.
+     *
+     * @param array<string, mixed> $risk AppMemoryRisk::evaluate()
+     *
+     * @return list<string>
+     */
+    private static function appLimitRiskMemory(array $risk, bool $withNote): array
+    {
+        $lines = [sprintf(
+            '  app limit    %s of memory: %d route(s) marked app_limit_risk (peak memory bound = %s x predicted peak memory)',
+            self::mib($risk['limit_bytes']),
+            count($risk['marked_routes']),
+            self::num($risk['measured_over_predicted']),
+        )];
+        foreach ($risk['routes'] as $r) {
+            if ($r['status'] === AppMemoryRisk::MARKED) {
+                $lines[] = sprintf('    marked  %s  (bound %s, %s of the limit)', $r['route'], self::mib($r['bound_bytes']), self::pct($r['share_of_limit']));
+            }
+        }
+        if ($withNote && $risk['limit_rps_note'] !== null) {
+            $lines[] = '    NOTE ' . $risk['limit_rps_note'];
+        }
+        $notEvaluated = array_column(array_filter($risk['routes'], static fn (array $r): bool => $r['status'] === AppMemoryRisk::NOT_EVALUATED), 'route');
+        if ($notEvaluated !== []) {
+            $lines[] = '    not judged (no peak-memory estimate): ' . implode(', ', $notEvaluated);
+        }
+
+        return $lines;
+    }
+
     /** @param array{status: string, multiplier: float|null} $l */
     private static function limit(array $l): string
     {
@@ -228,6 +265,11 @@ final class PredictionText
     private static function pct(float $x): string
     {
         return sprintf('%.1f%%', 100.0 * $x);
+    }
+
+    private static function mib(int|float $bytes): string
+    {
+        return sprintf('%.1f MiB', $bytes / 1048576);
     }
 
     private static function num(int|float $x): string

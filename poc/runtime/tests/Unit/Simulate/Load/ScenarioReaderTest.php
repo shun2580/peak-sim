@@ -45,6 +45,37 @@ final class ScenarioReaderTest extends TestCase
         $this->assertArrayNotHasKey('app_cpu_time_limit_s', ScenarioReader::parseStageOne(self::scenario(self::CAL))['resources'], 'no limit given, no default');
     }
 
+    public function test_the_app_memory_limit_is_read_in_bytes_and_is_absent_when_not_given(): void
+    {
+        $yaml = "schema_version: \"0.1\"\nresources:\n  db_cpu: { cores: 1 }\n  app_memory_limit: 512M\nscenarios:\n" . self::CAL;
+        $this->assertSame(536870912, ScenarioReader::parseStageOne($yaml)['resources']['app_memory_limit_bytes']);
+        $plain = ScenarioReader::parseStageOne(self::scenario(self::CAL))['resources'];
+        $this->assertArrayNotHasKey('app_memory_limit_bytes', $plain, 'no limit given, no default');
+        $withPhp = "schema_version: \"0.1\"\nresources:\n  db_cpu: { cores: 1 }\n  php_memory_limit: 128M\nscenarios:\n" . self::CAL;
+        $this->assertArrayNotHasKey('app_memory_limit_bytes', ScenarioReader::parseStageOne($withPhp)['resources'], 'php_memory_limit does not stand in for it');
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badMemoryLimits(): iterable
+    {
+        yield 'zero' => ['0'];
+        yield 'negative' => ['-5'];
+        yield 'text' => ['lots'];
+        yield 'empty' => ['null'];
+    }
+
+    #[DataProvider('badMemoryLimits')]
+    public function test_an_app_memory_limit_that_is_not_a_size_stops_the_run(string $given): void
+    {
+        $yaml = "schema_version: \"0.1\"\nresources:\n  db_cpu: { cores: 1 }\n  app_memory_limit: {$given}\nscenarios:\n" . self::CAL;
+        try {
+            ScenarioReader::parseStageOne($yaml);
+            $this->fail('the limit was accepted');
+        } catch (LoadFailure $e) {
+            $this->assertStringContainsString('resources.app_memory_limit', $e->getMessage());
+        }
+    }
+
     /** @return iterable<string, array{string}> */
     public static function badLimits(): iterable
     {

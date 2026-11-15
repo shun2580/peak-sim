@@ -183,6 +183,29 @@ final class LadderPredictionTest extends TestCase
         $this->assertSame($plain, $limited, 'the stages, the limit rps and the calibration are the same with and without the limit');
     }
 
+    public function testAGivenAppMemoryLimitAddsTheMemoryBlockToEveryScenarioAndNothingElseChanges(): void
+    {
+        $plain = self::ladderReport(self::yaml());
+        // the made-up estimate gives 'GET /a' a peak-memory formula of 1,000 + 2 x N bytes: 7,000 bytes at 3,000 rows (t-1), 21,000 at 10,000 (t-2)
+        $limited = self::ladderReport(str_replace("  php_memory_limit: 128M\n", "  php_memory_limit: 128M\n  app_memory_limit: 10000\n", self::yaml()));
+
+        $this->assertSame(10000, $limited['resources']['app_memory_limit_bytes']);
+        foreach ($limited['scenarios'] as $i => $s) {
+            $this->assertArrayNotHasKey('app_limit_risk', $s, 'only the memory limit was given');
+            $risk = $s['app_limit_risk_memory'];
+            $this->assertSame(10000, $risk['limit_bytes']);
+            $statuses = array_column($risk['routes'], 'status', 'route');
+            $this->assertSame(array_keys($plain['scenarios'][$i]['stages'][0]['rps']), array_keys($statuses), 'every route of the scenario is listed');
+            $this->assertSame('marked', $statuses['GET /a'], '1.51 x 7,000 and 1.51 x 21,000 are over 10,000');
+            $this->assertSame(['GET /a'], $risk['marked_routes']);
+            unset($limited['scenarios'][$i]['app_limit_risk_memory']);
+        }
+        unset($limited['resources']['app_memory_limit_bytes']);
+        $this->assertNotSame($plain['inputs']['scenario_sha256'], $limited['inputs']['scenario_sha256']);
+        unset($plain['inputs']['scenario_sha256'], $limited['inputs']['scenario_sha256']);
+        $this->assertSame($plain, $limited, 'the stages, the limit rps and the calibration are the same with and without the memory limit');
+    }
+
     public function testTheSameInputGivesTheSameBytes(): void
     {
         self::assertSame(self::ladder(self::yaml())[3]->files['/out/ladder-prediction.json'], self::ladder(self::yaml())[3]->files['/out/ladder-prediction.json']);
