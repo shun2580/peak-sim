@@ -72,7 +72,7 @@ The measurement of A (the entry `poc/lab/bin/measure-extrapolation`) has the sam
 | Step 6 started, verification app | `TBD` |
 | Step 6 started, BookStack | `TBD` |
 | Step 7 started | `TBD` |
-| Comparison | script `TBD`; output `TBD` |
+| Comparison | tools: `extrapolation-data-2/compare_test2.py` (the second run's script) compares the committed estimates with the cold values and gives rule B, rule A, the shares by group, the marked routes and the failed tries; `bin/compare-extrapolation` (`ExtrapolationJudge`) checks the recorded predictions against the cold values at the predicted size and gives the pass, fail or undecidable of the spec's section 7.4 (A). Neither counts a route without a complete estimate in a denominator (D205). Script file of the third run `TBD`; output `TBD` |
 
 The start times are read from the records the runner wrote. The files committed are checked with `cmp` against the files the comparison reads before the comparison is made; nothing in the estimates or the marked list changes after the commit.
 
