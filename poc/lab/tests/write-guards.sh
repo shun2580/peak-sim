@@ -27,6 +27,10 @@
 #    StartedAt and cgroup oom / oom_kill counters are saved at the start of a scenario and compared before and after every step; any change, or a reading that
 #    cannot be made, stops it (19) at that step with no record. A worker killed by the kernel (the container does not exit) is seen by the cgroup counter alone.
 #    Each of the two lines taken out of a copy no longer stops it; the markers are on one line each, in the right order
+# E  the memory record (bin/read-memory and its three lines in bin/measure-ladder; D210): the machine's MemAvailable, the app container's memory.current / peak /
+#    max and the oom counters of the app and database containers are written at a scenario's baseline, before every step and just after k6; a record only: a reading
+#    that cannot be made is written as `unreadable` and the ladder goes on, a database container's oom_kill that moves does not stop it but shows in the record; the
+#    memory limit in the lab's compose file is on the app container alone, the same for memory and swap, and can be set from the environment
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -128,6 +132,12 @@ if [ "\$1" = exec ]; then
       [ -f "\$s/events_fail" ] && exit 1
       [ -f "\$s/events_bad" ] && { printf 'low 0\nhigh 0\nmax 0\n'; exit 0; }
       printf 'low 0\nhigh 0\nmax 0\noom %s\noom_kill %s\noom_group_kill 0\n' "\$(val cg_oom 0)" "\$(val cg_oom_kill 0)"; exit 0 ;;
+    "peak-lab-app cat /sys/fs/cgroup/memory.current") [ -f "\$s/mem_fail" ] && exit 1; val mem_current 1073741824; exit 0 ;;
+    "peak-lab-app cat /sys/fs/cgroup/memory.peak") [ -f "\$s/mem_fail" ] && exit 1; [ -f "\$s/mem_nopeak" ] && exit 1; val mem_peak 2147483648; exit 0 ;;
+    "peak-lab-app cat /sys/fs/cgroup/memory.max") [ -f "\$s/mem_fail" ] && exit 1; val mem_max 6442450944; exit 0 ;;
+    "peak-lab-db cat /sys/fs/cgroup/memory.events")
+      [ -f "\$s/mem_fail" ] && exit 1
+      printf 'low 0\nhigh 0\nmax 0\noom %s\noom_kill %s\noom_group_kill 0\n' "\$(val db_oom 0)" "\$(val db_oom_kill 0)"; exit 0 ;;
     "peak-lab-app php-fpm -tt")
       printf '[11-Nov-2026 10:00:00] NOTICE: \trequest_terminate_timeout = %s\n' "\$(val pool 0s)"; exit 0 ;;
     "peak-lab-db mysql -uroot")
@@ -150,6 +160,7 @@ if [ "\$1" = exec ]; then
       [ -f "\$s/k6_open" ] && : >"\$s/io_pages0"                      # a table opened for the first time: a row of zeros
       [ -f "\$s/k6_open_write" ] && : >"\$s/io_pages1"                # ... and written to
       [ -f "\$s/k6_oom" ] && { printf '1' >"\$s/cg_oom_kill"; printf '1' >"\$s/cg_oom"; }   # the kernel kills a php-fpm worker for memory: the container neither exits nor restarts
+      [ -f "\$s/k6_dbkill" ] && { printf '1' >"\$s/db_oom"; printf '1' >"\$s/db_oom_kill"; }   # the kernel kills mysqld for memory: only the record shows it
       [ -f "\$s/k6_restart" ] && printf '1' >"\$s/restart"                                  # the container is restarted in place
       [ -f "\$s/k6_oomkilled" ] && printf 'true' >"\$s/oom_killed"
       exit 0
@@ -161,7 +172,7 @@ exit 99
 FAKE
 chmod +x "$work/fakebin/docker"
 
-for f in measure-calibration measure-ladder check-limits check-writes check-tables check-oom prediction-gate _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-calibration measure-ladder check-limits check-writes check-tables check-oom read-memory prediction-gate _lab.sh; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
 mkdir -p "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
 ln -s "$lab/scenarios" "$work/lab/scenarios"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/bin/preflight"; chmod +x "$work/lab/bin/preflight"
@@ -184,7 +195,7 @@ pred="$grepo/poc/lab/predictions/recheck.json"; pred_first="$grepo/poc/lab/predi
 
 reset_lab() { rm -f "$work"/s/*; : >"$work/docker.calls"; : >"$work/k6.calls"; rm -rf "$out/calibration" "$out/ladder" "$out/limits" "$out/trial"; }
 set_lab() { reset_lab; local kv; for kv in "$@"; do printf '%s' "${kv#*=}" >"$work/s/${kv%%=*}"; done; }
-env_run() { PATH="$work/fakebin:$PATH" PEAK_REPO_ROOT="$grepo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
+env_run() { PATH="$work/fakebin:$PATH" PEAK_LAB_MEMINFO="$work/meminfo" PEAK_REPO_ROOT="$grepo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$@"; }
 k6_calls() { wc -l <"$work/k6.calls" | tr -d ' '; }
 queries() { grep -c 'CHECKSUM\|COUNT(' "$work/docker.calls" | tr -d ' '; }
 B=(php=0 pool=0s nginx=600s mem=4G)
@@ -571,6 +582,77 @@ expect_code "D12 the app container's memory events cannot be read at the start: 
 set_lab php=30 pool=0s nginx=120s scale=10000 k6_ok=1 k6_oom=1
 ml "$(through "$lab/bin/measure-ladder")" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?
 expect_code "D13 a worker killed for memory during a t-4 step stops it too (19)" 19 $rc
+
+
+# ---- E: the memory record (D210): a record only, it stops nothing --------------------------------------------------------------------------------
+echo "# memory record"
+printf 'MemTotal:       16318544 kB\nMemFree:         1000000 kB\nMemAvailable:    9000000 kB\nBuffers:           10000 kB\n' >"$work/meminfo"
+rm=(env_run "$work/lab/bin/read-memory")
+mrec="$work/mem-rec.txt"; rm -f "$mrec"
+set_lab; "${rm[@]}" "$mrec" --label="trial one" >"$work/rm.out" 2>"$work/rm.err"; expect_code "E1 read-memory writes a record: 0" 0 $?
+has "$mrec" 'label=trial_one mem_available_kib=9000000 app_memory_current=1073741824 app_memory_peak=2147483648 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0' \
+  && pass "E1b it holds the label, MemAvailable, the app's memory.current / peak / max and the oom counters of both containers" || fail "E1b ($(cat "$mrec"))"
+has "$mrec" '^at=20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]T' && pass "E1c it holds the time" || fail "E1c"
+has "$work/rm.out" '^MEMORY ' && pass "E1d it prints the line too" || fail "E1d"
+set_lab db_oom_kill=3 db_oom=3 mem_max=max; "${rm[@]}" "$mrec" --label=two >/dev/null 2>&1
+[ "$(wc -l <"$mrec" | tr -d ' ')" = 2 ] && has "$mrec" 'app_memory_max=max app_oom=0 app_oom_kill=0 db_oom=3 db_oom_kill=3' && pass "E2 a second call appends, and the database container's oom_kill shows (3), the limit `max` as it is" || fail "E2 ($(cat "$mrec"))"
+set_lab mem_fail=1 events_fail=1; "${rm[@]}" "$mrec" --label=three >/dev/null 2>&1; rc=$?
+expect_code "E3 nothing about the containers can be read: still 0" 0 $rc
+tail -n 1 "$mrec" | grep -q 'app_memory_current=unreadable app_memory_peak=unreadable app_memory_max=unreadable app_oom=unreadable app_oom_kill=unreadable db_oom=unreadable db_oom_kill=unreadable' && has "$mrec" 'label=three mem_available_kib=9000000' \
+  && pass "E3b every reading of a container is written as unreadable (MemAvailable, read from the machine, is still there)" || fail "E3b ($(tail -n 1 "$mrec"))"
+set_lab mem_nopeak=1; "${rm[@]}" "$mrec" --label=four >/dev/null 2>&1
+tail -n 1 "$mrec" | grep -q 'app_memory_current=1073741824 app_memory_peak=unreadable' && pass "E3c a kernel with no memory.peak: only that reading is unreadable" || fail "E3c ($(tail -n 1 "$mrec"))"
+set_lab; env_run env PEAK_LAB_MEMINFO="$work/no-such-meminfo" "$work/lab/bin/read-memory" "$mrec" --label=five >/dev/null 2>&1; rc=$?
+[ "$rc" = 0 ] && tail -n 1 "$mrec" | grep -q 'mem_available_kib=unreadable' && pass "E3d no /proc/meminfo: unreadable, still 0" || fail "E3d (rc $rc, $(tail -n 1 "$mrec"))"
+set_lab; "${rm[@]}" "$work/no-such-dir/rec.txt" >/dev/null 2>&1; expect_code "E3e a file that cannot be written: still 0 (it stops nothing)" 0 $?
+"${rm[@]}"; expect_code "E4 no file: usage (2)" 2 $?
+"${rm[@]}" "$mrec" --nonsense; expect_code "E4b an unknown option: usage (2)" 2 $?
+
+# the wiring in measure-ladder: one line for each marker, in the right order
+for m in MEM-BASELINE MEM-BEFORE MEM-AFTER; do
+  n="$(grep -c "# $m\$" "$lab/bin/measure-ladder")"
+  [ "$n" = 1 ] && pass "E5 measure-ladder has one line marked $m" || fail "E5 measure-ladder has $n lines marked $m"
+done
+mb="$(line measure-ladder '# MEM-BASELINE$')"; mbf="$(line measure-ladder '# MEM-BEFORE$')"; maf="$(line measure-ladder '# MEM-AFTER$')"
+[ "$lob" -lt "$mb" ] && [ "$mb" -lt "$lsd" ] && [ "$lbf" -lt "$mbf" ] && [ "$mbf" -lt "$lsp" ] && [ "$lk" -lt "$maf" ] && [ "$maf" -lt "$laf" ] \
+  && pass "E5b the baseline reading is after the OOM baseline, the one before a step is after the OOM check and before the samplers, the one after is after the load tool and before the OOM check" || fail "E5b ($lob $mb $lsd $lbf $mbf $lsp $lk $maf $laf)"
+# a whole ladder with the stand-in: the records are kept
+set_lab "${B[@]}" scale=50000 k6_ok=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+sd="$out/ladder/r-1-50000"; r1="$(ls -d "$sd"/rung-01-* | head -1)"
+[ "$rc" = 0 ] && [ -s "$sd/mem-baseline.txt" ] && [ -s "$r1/mem-before.txt" ] && [ -s "$r1/mem-after.txt" ] && pass "E6 a whole ladder runs to its end and keeps mem-baseline.txt and each step's mem-before.txt and mem-after.txt" || fail "E6 (rc $rc)"
+n_steps="$(ls -d "$sd"/rung-* | wc -l | tr -d ' ')"; n_after="$(ls "$sd"/rung-*/mem-after.txt | wc -l | tr -d ' ')"; n_before="$(ls "$sd"/rung-*/mem-before.txt | wc -l | tr -d ' ')"
+[ "$n_steps" = "$n_after" ] && [ "$n_steps" = "$n_before" ] && [ "$(wc -l <"$r1/mem-before.txt" | tr -d ' ')" = 1 ] && has "$r1/mem-before.txt" 'label=r-1_rung_1_before_the_step' && has "$r1/mem-after.txt" 'label=r-1_rung_1_just_after_k6' \
+  && pass "E6b every one of the $n_steps steps has both, one line each, named by the step" || fail "E6b ($n_steps $n_before $n_after)"
+# a record only: unreadable readings, and a database container that was killed, do not stop it
+set_lab "${B[@]}" scale=50000 k6_ok=1 mem_fail=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+[ "$rc" = 0 ] && has "$sd/mem-baseline.txt" 'db_oom_kill=unreadable' && pass "E7 with no reading of a container possible the ladder still runs to its end (0), the record says unreadable" || fail "E7 (rc $rc)"
+set_lab "${B[@]}" scale=50000 k6_ok=1 k6_dbkill=1
+ml "$(through "$lab/bin/measure-ladder")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+r1="$(ls -d "$sd"/rung-01-* | head -1)"
+[ "$rc" = 0 ] && has "$r1/mem-before.txt" 'db_oom_kill=0' && has "$r1/mem-after.txt" 'db_oom_kill=1' && pass "E7b mysqld killed for memory during step 1: the ladder is not stopped by it (0), the step's records show db_oom_kill 0 then 1" || fail "E7b (rc $rc, $(cat "$r1/mem-after.txt"))"
+# WITHOUT the lines nothing is written
+for m in MEM-BASELINE MEM-BEFORE MEM-AFTER; do
+  set_lab "${B[@]}" scale=50000 k6_ok=1
+  ml "$(through "$(without measure-ladder $m)")" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
+  case $m in MEM-BASELINE) f="$sd/mem-baseline.txt" ;; MEM-BEFORE) f="$sd/rung-*/mem-before.txt" ;; MEM-AFTER) f="$sd/rung-*/mem-after.txt" ;; esac
+  [ "$rc" = 0 ] && [ -z "$(ls $f 2>/dev/null)" ] && pass "E8 WITHOUT the $m line its file is not written: the line is what writes it" || fail "E8 $m (rc $rc)"
+done
+# the names can be committed
+leaked="$(for nm in mem-baseline.txt mem-before.txt mem-after.txt; do git -C "$repo_real" check-ignore -q --no-index "docs/research/lab-data/ladder/t-4-10000/rung-01-1/$nm" && printf '%s ' "$nm"; done)"
+[ -z "$leaked" ] && pass "E9 none of the names the memory record is written under is ignored by git" || fail "E9 names ignored by git: $leaked"
+# the compose file: the limit is on the app container alone, the same for memory and swap, and the environment can change it
+compose_cfg() { env -u PEAK_LAB_APP_MEM_LIMIT "$@" PEAK_REPO_ROOT="$repo_real" PEAK_APP_ROOT="$work" PEAK_LAB_OUT_DIR="$out" PEAK_LAB_LOAD_DIR="$lab/load" PEAK_MEASURE_DB_ROOT_PASSWORD=x PEAK_MEASURE_DB_PASSWORD=x PEAK_MEASURE_RUN_ID=x PEAK_MEASURE_APP_KEY=x \
+  "$real_docker" compose -f "$lab/compose/lab.compose.yaml" config --format json 2>"$work/cfg.err"; }
+limits_of() { python3 -c '
+import json, sys
+c = json.load(sys.stdin)["services"]
+print(" ".join("%s=%s/%s" % (k, v.get("mem_limit", "-"), v.get("memswap_limit", "-")) for k, v in sorted(c.items())))'; }
+got="$(compose_cfg env | limits_of)"
+echo "$got" | grep -q 'lab-app=6442450944/6442450944' && ! echo "$got" | grep -E 'lab-(web|k6|tools)=[0-9]|measure-db=[0-9]' >/dev/null && pass "E10 the compose file gives lab-app 6 GiB for memory and for memory plus swap, and no other container a limit ($got)" || fail "E10 ($got $(head -2 "$work/cfg.err"))"
+got="$(compose_cfg env PEAK_LAB_APP_MEM_LIMIT=3g | limits_of)"
+echo "$got" | grep -q 'lab-app=3221225472/3221225472' && pass "E10b PEAK_LAB_APP_MEM_LIMIT=3g changes both" || fail "E10b ($got)"
 
 # a dry run needs no record and touches nothing
 set_lab

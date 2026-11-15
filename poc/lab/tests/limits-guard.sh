@@ -98,7 +98,7 @@ FAKE
 chmod +x "$work/fakebin/docker"
 
 # a copy of the lab's bin directory with the real scripts; preflight (the closed-network check) and the CPU sampler are stubs
-for f in measure-ladder check-limits check-writes check-tables _lab.sh prediction-gate check-oom; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
+for f in measure-ladder check-limits check-writes check-tables _lab.sh prediction-gate check-oom read-memory; do cp "$lab/bin/$f" "$work/lab/bin/$f"; done
 mkdir -p "$work/rec" "$work/lab/routes"; cp "$lab/routes/route-list.json" "$work/lab/routes/route-list.json"
 python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/ok.json" --variant=ok
 rec="$work/rec/ok.json"   # the made-up record of the statements the write check reads (every write in it is to views)

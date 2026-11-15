@@ -42,6 +42,10 @@
 #   stopped (OOM-AFTER; <step>/oom-after.txt). If anything changed the scenario stops with exit 19 at that step, the step is not judged and has no
 #   record, and <step>/oom-stop.txt says which step it was. A reading that cannot be made stops it too. A memory limit that PHP itself reports
 #   ("Allowed memory size exhausted") is not this: it shows in the step's HTTP status counts.
+# THE MEMORY RECORD (decisions.md D210; a record only, it stops nothing): the app container has a memory limit of its own (lab.compose.yaml), and bin/read-memory
+#   writes down the WSL machine's MemAvailable, the app container's memory.current / memory.peak / memory.max and the oom / oom_kill counters of the app and the
+#   database containers, once at the scenario's baseline (MEM-BASELINE; <scenario>/mem-baseline.txt), before every step (MEM-BEFORE; <step>/mem-before.txt) and
+#   just after k6 ends (MEM-AFTER; <step>/mem-after.txt). A reading that cannot be made is written as `unreadable`.
 # THE WRITE GUARDS (lab-only rule: the lab may write the view-count table `views` and nothing else; decisions.md D187, D189). A dry run needs none.
 #   (i)   bin/check-writes reads --statement-record (the capture's record of the statements of the eight routes) and stops with exit 15, before the
 #         closed-network check and before any container is touched, unless every write in it is to `views` alone (line marked WRITE-CHECK).
@@ -64,7 +68,7 @@
 # Nothing is compared with the prediction here.
 #
 # Records: <out>/<scenario>-<scale>/rung-NN-<rps>/{plan,summary,record,settings}.json, cpu.txt, app-cpu.txt, k6-output.txt, started_at.txt,
-# ended_at.txt, settings-*.txt, oom-before.txt, oom-after.txt (and oom-stop.txt when the memory guard stopped it; <scenario>/oom-baseline.txt) (no output is named *.log: the repository's .gitignore drops them, and a test checks every output name); and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
+# ended_at.txt, settings-*.txt, oom-before.txt, oom-after.txt, mem-before.txt, mem-after.txt (and oom-stop.txt when the memory guard stopped it; <scenario>/oom-baseline.txt and mem-baseline.txt) (no output is named *.log: the repository's .gitignore drops them, and a test checks every output name); and <out>/<scenario>-<scale>/ladder.json (all the steps of the scenario). A step with a record.json already is not
 # measured again (a restart goes on from the first step without one). Default <out>: $PEAK_LAB_OUT_DIR/ladder.
 #
 # --dry-run touches no container and sends no load: it makes the plan of every step (with make-plan), prints the table (the rate of
@@ -262,6 +266,8 @@ fi
 "$bindir/check-oom" save "$sdir/oom-baseline.txt"   # OOM-BASELINE
 oom_rc=$?
 if [ "$oom_rc" != 0 ]; then echo "measure-ladder: the memory guard could not read the app container; nothing was measured" >&2; exit 19; fi
+# THE MEMORY RECORD (a record only, D210): the machine's free memory and the app container's memory now, and the database container's oom counters. It stops nothing.
+"$bindir/read-memory" "$sdir/mem-baseline.txt" --label="$scenario baseline" >/dev/null 2>&1   # MEM-BASELINE
 
 # read_settings <dir>: the three limits right now, as the containers hold them, and (for r-1 .. r-5 and s-1 .. s-5) whether they are the ones B needs.
 # That is bin/check-limits: it only reads (nginx -T and php-fpm -tt print the configuration; ini-probe.php is one request through
@@ -297,6 +303,7 @@ for rps in "${rungs[@]}"; do
   oom_rc=$?
   if [ "$oom_rc" != 0 ]; then cat "$d/oom-stop.txt" >&2; echo "measure-ladder: the app container was stopped for memory (or could not be read) before rung $i; nothing was measured at it" >&2; exit 19; fi
   rm -f "$d/oom-stop.txt"
+  "$bindir/read-memory" "$d/mem-before.txt" --label="$scenario rung $i before the step" >/dev/null 2>&1   # MEM-BEFORE
   started_epoch="$(date +%s)"; started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
   echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s)"
 
@@ -312,6 +319,7 @@ for rps in "${rungs[@]}"; do
   docker exec "${k6_env[@]}" peak-lab-k6 k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
   k6_rc=$?
   echo "$k6_rc" >"$d/k6.exit"
+  "$bindir/read-memory" "$d/mem-after.txt" --label="$scenario rung $i just after k6" >/dev/null 2>&1   # MEM-AFTER
   wait "$db_pid"; db_rc=$?; wait "$app_pid"; app_rc=$?
   ended_at="$(date -Iseconds)"; echo "$ended_at" >"$d/ended_at.txt"
   echo "$db_rc $app_rc" >"$d/sampler.exit"

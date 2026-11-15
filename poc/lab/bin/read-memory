@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Writes down how much memory the machine and the lab's containers have right now: a record only. It judges nothing and never stops a
+# measurement (bin/check-oom is the guard that stops one); a reading that cannot be made is written as `unreadable`, and this still exits 0.
+# The app container has a memory limit of its own (poc/lab/compose/lab.compose.yaml, decisions.md D210); when WSL itself runs out of
+# memory the kernel can kill any process, mysqld included, and then the app container's own counters say nothing, so the database
+# container's counters are written down too.
+#
+#   poc/lab/bin/read-memory <file> [--label=<text>]
+#       appends one line of `key=value` to <file> (the file is made if it is not there)
+#
+# What is written: at (the time), label, mem_available_kib (MemAvailable of /proc/meminfo, the WSL machine's own; PEAK_LAB_MEMINFO names
+# another file, for tests), app_memory_current and app_memory_peak (bytes, from the app container's cgroup; memory.peak is not in every
+# kernel, then it is `unreadable`), app_memory_max (the container's limit, or `max`), and from the memory.events of the app container and of
+# the database container the counters oom and oom_kill (app_oom, app_oom_kill, db_oom, db_oom_kill).
+#
+# exit codes: 0 always (a record that could not be fully made is still a record) / 2 usage
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+usage() { sed -n '8,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+file="${1:-}"; [ -n "$file" ] || usage
+shift
+label=""
+for arg in "$@"; do
+  case "$arg" in
+    --label=*) label="${arg#--label=}" ;;
+    *) usage ;;
+  esac
+done
+
+app="${PEAK_LAB_APP_CONTAINER:-peak-lab-app}"
+db="${PEAK_LAB_DB_CONTAINER:-peak-lab-db}"
+meminfo="${PEAK_LAB_MEMINFO:-/proc/meminfo}"
+
+num_or_unreadable() { if [[ "${1:-}" =~ ^[0-9]+$ ]]; then printf '%s' "$1"; else printf 'unreadable'; fi; }
+cg() { docker exec "$1" cat "/sys/fs/cgroup/$2" 2>/dev/null | head -n 1; }
+counter() { printf '%s\n' "$1" | awk -v k="$2" '$1 == k {print $2}'; }
+
+avail="$(num_or_unreadable "$(awk '$1 == "MemAvailable:" {print $2}' "$meminfo" 2>/dev/null)")"
+cur="$(num_or_unreadable "$(cg "$app" memory.current)")"
+peak="$(num_or_unreadable "$(cg "$app" memory.peak)")"
+mx="$(cg "$app" memory.max)"; if [ "$mx" != max ]; then mx="$(num_or_unreadable "$mx")"; fi
+app_events="$(docker exec "$app" cat /sys/fs/cgroup/memory.events 2>/dev/null)"
+db_events="$(docker exec "$db" cat /sys/fs/cgroup/memory.events 2>/dev/null)"
+a_oom="$(num_or_unreadable "$(counter "$app_events" oom)")"
+a_kill="$(num_or_unreadable "$(counter "$app_events" oom_kill)")"
+d_oom="$(num_or_unreadable "$(counter "$db_events" oom)")"
+d_kill="$(num_or_unreadable "$(counter "$db_events" oom_kill)")"
+
+line="at=$(date -Iseconds) label=${label// /_} mem_available_kib=$avail app_memory_current=$cur app_memory_peak=$peak app_memory_max=$mx app_oom=$a_oom app_oom_kill=$a_kill db_oom=$d_oom db_oom_kill=$d_kill"
+printf '%s\n' "$line" >>"$file" 2>/dev/null || echo "read-memory: cannot write $file (nothing is stopped for this)" >&2
+echo "MEMORY $line"
+exit 0

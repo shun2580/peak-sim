@@ -70,6 +70,12 @@ services:
     networks: [lab-internal]
     cpus: 6
     cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
+    # The app container's memory limit (decisions.md D210), with no swap on top (the same value for both): a request that takes memory the machine
+    # does not have ends in this container's own out-of-memory stop, which bin/check-oom reads and stops a measurement for, and not in WSL as a
+    # whole running out (the database, the lab and the agents with it). The value is MemAvailable read just before it was set, minus 2 GiB for the
+    # agents, dockerd and k6, rounded down to whole GiB. The /scratch tmpfs below counts inside it.
+    mem_limit: ${PEAK_LAB_APP_MEM_LIMIT:-6g}
+    memswap_limit: ${PEAK_LAB_APP_MEM_LIMIT:-6g}
     # Safety condition 4: the app is not modified. Mounted read-only, the container's root is read-only, and only the
     # temporary directories below are writable (storage, compiled views, cache: all of it lives in /scratch, a tmpfs).
     read_only: true
