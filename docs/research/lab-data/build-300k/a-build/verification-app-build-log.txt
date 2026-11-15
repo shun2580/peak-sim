@@ -1,0 +1,29 @@
+2026-11-16 02:38:19 stack up
+ Network peak-measure-t1-fx_measure-internal Creating 
+ Network peak-measure-t1-fx_measure-internal Created 
+ Container peak-measure-t1-fx-measure-db-1 Creating 
+ Container peak-measure-t1-fx-measure-db-1 Created 
+ Container peak-measure-t1-fx-measure-php-1 Creating 
+ Container peak-measure-t1-fx-measure-php-1 Created 
+ Container peak-measure-t1-fx-measure-db-1 Starting 
+ Container peak-measure-t1-fx-measure-db-1 Started 
+ Container peak-measure-t1-fx-measure-db-1 Waiting 
+ Container peak-measure-t1-fx-measure-db-1 Healthy 
+ Container peak-measure-t1-fx-measure-php-1 Starting 
+ Container peak-measure-t1-fx-measure-php-1 Started 
+ Container peak-measure-t1-fx-measure-php-1 Waiting 
+ Container peak-measure-t1-fx-measure-db-1 Waiting 
+ Container peak-measure-t1-fx-measure-php-1 Healthy 
+ Container peak-measure-t1-fx-measure-db-1 Healthy 
+network peak-measure-t1-fx_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.25.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+2026-11-16 02:38:33 BUILD fxglob START
+2026-11-16 02:39:17 BUILD fxglob END exit=0 wall=44s

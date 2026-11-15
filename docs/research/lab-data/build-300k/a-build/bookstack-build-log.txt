@@ -1,0 +1,63 @@
+2026-11-16 01:08:41 stack up
+ Network peak-measure-t1-300k_measure-internal Creating 
+ Network peak-measure-t1-300k_measure-internal Created 
+ Container peak-measure-t1-300k-measure-db-1 Creating 
+ Container peak-measure-t1-300k-measure-db-1 Created 
+ Container peak-measure-t1-300k-measure-php-1 Creating 
+ Container peak-measure-t1-300k-measure-php-1 Created 
+ Container peak-measure-t1-300k-measure-db-1 Starting 
+ Container peak-measure-t1-300k-measure-db-1 Started 
+ Container peak-measure-t1-300k-measure-db-1 Waiting 
+ Container peak-measure-t1-300k-measure-db-1 Healthy 
+ Container peak-measure-t1-300k-measure-php-1 Starting 
+ Container peak-measure-t1-300k-measure-php-1 Started 
+ Container peak-measure-t1-300k-measure-db-1 Waiting 
+ Container peak-measure-t1-300k-measure-php-1 Waiting 
+ Container peak-measure-t1-300k-measure-php-1 Healthy 
+ Container peak-measure-t1-300k-measure-db-1 Healthy 
+network peak-measure-t1-300k_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.21.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+2026-11-16 01:08:55 BUILD t1ent START recipe={"mode":"targeted","n_tables":["entities"],"m_table":null,"m_per":null,"n":300000,"m":0,"base":5}
+2026-11-16 01:12:02 BUILD t1ent END exit=0 wall=187s
+2026-11-16 01:12:02 BUILD t1uni START recipe={"mode":"targeted","n_tables":["entities","images","references"],"m_table":null,"m_per":null,"n":300000,"m":0,"base":5}
+2026-11-16 01:15:31 BUILD t1uni END exit=0 wall=209s
+2026-11-16 01:15:31 BUILD t1glob START recipe={"mode":"global","n":300000,"base":5}
+2026-11-16 01:19:03 BUILD t1glob END exit=0 wall=212s
+2026-11-16 01:19:03 ALL BUILDS DONE (stack left up for counts)
+2026-11-16 01:20:21 [after D200 / 5fc6796] stack up (second time)
+ Network peak-measure-t1-300k_measure-internal Creating 
+ Network peak-measure-t1-300k_measure-internal Created 
+ Container peak-measure-t1-300k-measure-db-1 Creating 
+ Container peak-measure-t1-300k-measure-db-1 Created 
+ Container peak-measure-t1-300k-measure-php-1 Creating 
+ Container peak-measure-t1-300k-measure-php-1 Created 
+ Container peak-measure-t1-300k-measure-db-1 Starting 
+ Container peak-measure-t1-300k-measure-db-1 Started 
+ Container peak-measure-t1-300k-measure-db-1 Waiting 
+ Container peak-measure-t1-300k-measure-db-1 Healthy 
+ Container peak-measure-t1-300k-measure-php-1 Starting 
+ Container peak-measure-t1-300k-measure-php-1 Started 
+ Container peak-measure-t1-300k-measure-db-1 Waiting 
+ Container peak-measure-t1-300k-measure-php-1 Waiting 
+ Container peak-measure-t1-300k-measure-db-1 Healthy 
+ Container peak-measure-t1-300k-measure-php-1 Healthy 
+network peak-measure-t1-300k_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.21.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+2026-11-16 01:20:35 BUILD t1glob2 START (global, n=300000, base=5)
+2026-11-16 02:33:21 BUILD t1glob2 END exit=0 wall=4366s
