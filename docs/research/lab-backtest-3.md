@@ -64,7 +64,7 @@ The rules are those of section 7.4 of the spec (B) and are not moved. Over the v
 | 1. Mean absolute difference of utilization, smaller than the naive estimate's | required | required |
 | 2. Mean absolute difference of utilization | 15 points or less | 5 points or less |
 | 3. Share of valid steps where "threshold exceeded or not" agrees with the measurement | 80% or more | 80% or more |
-| 4. Share of scenarios whose predicted limit rps (point) is inside the measured one | ±20%, 80% or more | ±10%, 80% or more |
+| 4. Share of scenarios whose predicted limit rps (point) is within ±X% of the measured one | ±20%, 80% or more | ±10%, 80% or more |
 
 B is **undecidable**, and not a pass, when fewer than 10 steps can be used for the difference or when the limit rps could be measured for fewer than 4 scenarios. A ratio on the boundary of a tolerance passes. The limit rps of a measurement is found as in section 7.2: a straight line between the two valid steps that straddle 80%; if the step at or above 80% was invalid, a line carried on from the two highest valid steps, and the extension is recorded.
 
@@ -72,13 +72,13 @@ B is **undecidable**, and not a pass, when fewer than 10 steps can be used for t
 
 Measured after B, with the application's limits put back at their defaults (run-time limit 30 s; memory limit as the lab has it, 512M in the second round), at 300,000 rows: one cold request, with no load, for each of the eight routes. For each route the record holds the HTTP status, the application's CPU time, and **which limit stopped the request**, read from the application's log (the PHP fatal error and the php-fpm log). The log is copied out **before any container is rebuilt or the stack is taken down**: in the second round the log was gone when it was needed, and the cause of the book page's failure there is an inference (`lab-backtest-2.md`, section 5.3).
 
-Rules of section 7.4.1 of the spec, with the memory limit counted among the limits that stop a request:
+Rules of section 7.4.1 of the spec, with the memory limit counted among the limits (section 7.4.2). **Cut** means: the request answered HTTP 500, or was stopped by a limit (the run-time limit or, from this round, the memory limit), whatever the cause. An HTTP 500 counts as cut whatever its cause; the wording of the spec is not narrowed here.
 
-- **hit**: marked and stopped by a limit;
-- **miss**: not marked and stopped by a limit;
-- **false alarm**: marked and not stopped.
+- **hit**: marked and cut;
+- **miss**: not marked and cut;
+- **false alarm**: marked and not cut.
 
-The line for passing is **no miss**. The number of false alarms is always shown. For a route that is stopped, the log says whether the CPU-time limit or the memory limit did it, and the table says whether the mark came from the same limit.
+The line for passing is **no miss**. The number of false alarms is always shown. Which limit cut a request is **not part of the count**: it is written in a separate column, read from the application's log (the CPU-time limit, the memory limit, or neither when the cause is something else), together with whether the mark came from the same limit.
 
 ### 2.4 The multiple of the capture's largest size
 

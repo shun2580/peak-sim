@@ -62,7 +62,7 @@ The order is what makes the test valid: the estimates and the list of marked rou
 7. Measure the marked routes cold three more times on a 300,000-row database.
 8. Compare.
 
-The measurement of A has the same gate as that of B: it starts only when the prediction is in HEAD and the working tree has no difference.
+The measurement of A (the entry `poc/lab/bin/measure-extrapolation`) has the same gate as that of B: it starts only when the prediction is in HEAD and the working tree has no difference.
 
 | | |
 | --- | --- |
