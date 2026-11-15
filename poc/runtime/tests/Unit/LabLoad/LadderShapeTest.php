@@ -7,6 +7,7 @@ namespace PeakSim\Runtime\Tests\Unit\LabLoad;
 use PeakSim\Runtime\LabLoad\Ladder;
 use PeakSim\Runtime\LabLoad\LadderShape;
 use PeakSim\Runtime\LabLoad\RouteMix;
+use PeakSim\Runtime\LabLoad\RpsAchievement;
 use PeakSim\Runtime\LabLoad\ScenarioPlan;
 use PHPUnit\Framework\TestCase;
 
@@ -36,8 +37,9 @@ final class LadderShapeTest extends TestCase
 
     public function test_the_two_steps_added_for_the_third_backtest_get_their_windows_from_the_same_rule_and_the_same_rounding(): void
     {
-        // 0.025: 40 / 0.025 = 1600 s, already at least 300 s. 0.035: 40 / 0.035 = 1142.857 s, rounded to whole seconds as 0.07 (571.43 -> 571) is.
-        foreach ([[0.025, 1600], [0.035, 1143]] as [$rps, $window]) {
+        // 0.025: 40 / 0.025 = 1600 s, already at least 300 s. 0.035: 40 / 0.035 = 1142.857 s, a window of one unit, rounded down to
+        // whole seconds as 0.07 (571.43 -> 571) is, so that the plan is not above 40 requests.
+        foreach ([[0.025, 1600], [0.035, 1142]] as [$rps, $window]) {
             $this->assertSame($window, LadderShape::multipleWindow($rps), "rps $rps");
             $shape = LadderShape::shape(LadderShape::B, $rps);
             $this->assertSame($window + 60, $shape['duration_sec'], "rps $rps");
@@ -47,6 +49,19 @@ final class LadderShapeTest extends TestCase
         // every step of the 15 has a window of at least 300 s under B (the 13 old windows are pinned in the next test)
         foreach (Ladder::RUNGS_S as $rps) {
             $this->assertGreaterThanOrEqual(300, LadderShape::multipleWindow($rps), "rps $rps");
+        }
+    }
+
+    public function test_a_step_of_40_requests_is_valid_with_38_of_them_at_every_step_whose_window_is_one_unit(): void
+    {
+        // the window is one unit (40 / rps) for these five; the plan is window x rps, which must not come out above 40, so that the
+        // same shortfall of two requests is judged the same way at every one of them
+        foreach ([0.025, 0.035, 0.05, 0.07, 0.1] as $rps) {
+            $window = LadderShape::multipleWindow($rps);
+            $this->assertLessThanOrEqual(40.0 + 1e-9, $window * $rps, "rps $rps: the plan");
+            $this->assertSame('valid', RpsAchievement::judge($rps, 38, $window)['status'], "rps $rps: 38 of 40");
+            $this->assertSame('valid', RpsAchievement::judge($rps, 40, $window)['status'], "rps $rps: 40 of 40");
+            $this->assertSame('invalid', RpsAchievement::judge($rps, 37, $window)['status'], "rps $rps: 37 of 40");
         }
     }
 

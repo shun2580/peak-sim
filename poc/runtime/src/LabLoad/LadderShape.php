@@ -52,13 +52,20 @@ final class LadderShape
         return ['duration_sec' => Ladder::WARMUP_SEC + $window, 'warmup_sec' => Ladder::WARMUP_SEC];
     }
 
-    /** The smallest multiple of 40 / rps that is at least 300 s, in whole seconds. */
+    /**
+     * The smallest multiple of 40 / rps that is at least 300 s, in whole seconds. A window of one unit is rounded down, so that
+     * the plan (the window times the rps) never comes out above the 40 requests the step is meant to hold; a longer window is
+     * rounded to the nearest second, as it always was.
+     */
     public static function multipleWindow(float $rps): int
     {
         $unit = 40.0 / $rps;
         $times = (int) ceil(self::MIN_WINDOW_SEC / $unit - 1e-9);
+        if ($times <= 1) {
+            return (int) floor($unit + 1e-9);
+        }
 
-        return (int) round(max(1, $times) * $unit);
+        return (int) round($times * $unit);
     }
 
     /**
