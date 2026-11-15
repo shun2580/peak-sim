@@ -1,0 +1,936 @@
+{
+  "what": "factor of the memory side of the app_limit_risk mark: the largest (measured peak memory) / (committed prediction) over the routes of the second extrapolation test whose measured peak is at least the floor",
+  "floor_bytes": 100000000,
+  "gap_between_the_groups": {
+    "largest_measured_below_floor": 50388416.0,
+    "smallest_measured_at_or_above_floor": 258020264.0
+  },
+  "factor": 1.51,
+  "factor_with_no_floor": 2.8,
+  "factor_over_the_routes_within_30_percent_only": 1.04,
+  "records_at_or_above_the_floor": [
+    {
+      "app": "bookstack",
+      "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+      "predicted": 193638169.94514605,
+      "measured": 291803960.0,
+      "ratio": 1.5069547501025362
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+      "predicted": 193659369.79907766,
+      "measured": 291806536.0,
+      "ratio": 1.5068030857621317
+    },
+    {
+      "app": "bookstack",
+      "route": "POST /settings/recycle-bin/empty",
+      "predicted": 193648746.43671393,
+      "measured": 291787616.0,
+      "ratio": 1.5067880446897635
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+      "predicted": 193675768.61596927,
+      "measured": 291804672.0,
+      "ratio": 1.5066658781595235
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /books/{id}",
+      "predicted": 193717473.36383927,
+      "measured": 291815784.0,
+      "ratio": 1.5063988752935722
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /shelves/{slug}",
+      "predicted": 193711729.4445881,
+      "measured": 291800736.0,
+      "ratio": 1.5063658604290693
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /books/{slug}",
+      "predicted": 307576332.92260295,
+      "measured": 317488440.0,
+      "ratio": 1.0322264947475372
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted": 362234854.6260827,
+      "measured": 373140472.0,
+      "ratio": 1.0301064826717865
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/save-in-loop",
+      "predicted": 401973982.5123241,
+      "measured": 402553744.0,
+      "ratio": 1.0014422861003403
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+      "predicted": 733289817.242408,
+      "measured": 733943256.0,
+      "ratio": 1.0008911057295862
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}",
+      "predicted": 733709023.076125,
+      "measured": 734002208.0,
+      "ratio": 1.0003995929103418
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/nested",
+      "predicted": 2301122835.8266406,
+      "measured": 2299637408.0,
+      "ratio": 0.9993544769520716
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/appends",
+      "predicted": 901107543.1544822,
+      "measured": 899456824.0,
+      "ratio": 0.9981681219217147
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/n-plus-one",
+      "predicted": 719754199.6073992,
+      "measured": 718419040.0,
+      "ratio": 0.9981449783716059
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/service",
+      "predicted": 714830009.8025218,
+      "measured": 712458128.0,
+      "ratio": 0.9966818939188394
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/layered",
+      "predicted": 713230078.1650513,
+      "measured": 710858136.0,
+      "ratio": 0.9966743660458716
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/model-with",
+      "predicted": 573928576.2031858,
+      "measured": 571969496.0,
+      "ratio": 0.9965865435449371
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/cache",
+      "predicted": 723162084.4354862,
+      "measured": 719212848.0,
+      "ratio": 0.9945389332205254
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/conditional-binding",
+      "predicted": 723161148.4354862,
+      "measured": 719211912.0,
+      "ratio": 0.9945389261521721
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/count-in-loop",
+      "predicted": 333015018.4505217,
+      "measured": 329906768.0,
+      "ratio": 0.9906663355154851
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /settings/users/create",
+      "predicted": 683019452.3215605,
+      "measured": 670161840.0,
+      "ratio": 0.9811753350832719
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /settings/users/{id}",
+      "predicted": 683391592.3639835,
+      "measured": 670235712.0,
+      "ratio": 0.9807491334236718
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/blade",
+      "predicted": 710975356.4719776,
+      "measured": 690625616.0,
+      "ratio": 0.971377713324752
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/resource",
+      "predicted": 771764959.1820394,
+      "measured": 748021176.0,
+      "ratio": 0.9692344373768869
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/unbounded",
+      "predicted": 394346805.9427218,
+      "measured": 381216984.0,
+      "ratio": 0.9667048857887063
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/eager",
+      "predicted": 431299579.73959833,
+      "measured": 415840104.0,
+      "ratio": 0.9641560612024427
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/with-count",
+      "predicted": 356383157.8499752,
+      "measured": 343186912.0,
+      "ratio": 0.9629717466740378
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/collection-filter",
+      "predicted": 268778973.7304777,
+      "measured": 258020264.0,
+      "ratio": 0.9599719070984096
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/get-then-count",
+      "predicted": 268778973.7304777,
+      "measured": 258020264.0,
+      "ratio": 0.9599719070984096
+    }
+  ],
+  "records_under_the_floor": [
+    {
+      "app": "bookstack",
+      "route": "DELETE /settings/maintenance/cleanup-images",
+      "predicted": 6099059.471788132,
+      "measured": 17029008.0,
+      "ratio": 2.792071151096254
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/draft/{pageId}",
+      "predicted": 1260792.0,
+      "measured": 1260792.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "predicted": 4019104.0,
+      "measured": 4019104.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /oidc/callback",
+      "predicted": 25632.0,
+      "measured": 25632.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "bookstack",
+      "route": "POST /import/{id}",
+      "predicted": 91456.0,
+      "measured": 91456.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+      "predicted": 1266976.0,
+      "measured": 1266976.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /settings/users/{id}",
+      "predicted": 90624.0,
+      "measured": 90624.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /unknown/dynamic",
+      "predicted": 59032.0,
+      "measured": 59032.0,
+      "ratio": 1.0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/paginate",
+      "predicted": 68512.54511458098,
+      "measured": 68040.0,
+      "ratio": 0.9931027943307216
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+      "predicted": 133317.77225222118,
+      "measured": 132280.0,
+      "ratio": 0.9922157996290408
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+      "predicted": 133021.36278650892,
+      "measured": 131840.0,
+      "ratio": 0.9911189995218668
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /shelves/{slug}",
+      "predicted": 130388.82493666196,
+      "measured": 128960.0,
+      "ratio": 0.9890418144549119
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /settings/sorting/rules/{id}",
+      "predicted": 314088.0,
+      "measured": 310512.0,
+      "ratio": 0.9886146557652632
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/copy",
+      "predicted": 274344.0,
+      "measured": 270224.0,
+      "ratio": 0.9849823579156096
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /import/{id}",
+      "predicted": 94088.0,
+      "measured": 91456.0,
+      "ratio": 0.9720261882492985
+    },
+    {
+      "app": "bookstack",
+      "route": "DELETE /settings/sorting/rules/{id}",
+      "predicted": 94072.0,
+      "measured": 91440.0,
+      "ratio": 0.972021430393741
+    },
+    {
+      "app": "bookstack",
+      "route": "PUT /settings/sorting/rules/{id}",
+      "predicted": 94048.0,
+      "measured": 91416.0,
+      "ratio": 0.9720142905750255
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/cursor",
+      "predicted": 14663066.816089526,
+      "measured": 14239416.0,
+      "ratio": 0.9711076256145365
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/lazy",
+      "predicted": 160645.6175826059,
+      "measured": 155784.0,
+      "ratio": 0.9697370046207081
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/chunk",
+      "predicted": 159078.07260905902,
+      "measured": 153896.0,
+      "ratio": 0.9674243437573312
+    },
+    {
+      "app": "bookstack",
+      "route": "POST /books/{bookSlug}/draft/{pageId}",
+      "predicted": 565112.451327471,
+      "measured": 521608.0,
+      "ratio": 0.9230162930841865
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "predicted": 361992.4754485942,
+      "measured": 331200.0,
+      "ratio": 0.91493614498358
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted": 66263497.50924526,
+      "measured": 44543488.0,
+      "ratio": 0.6722175809356452
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted": 69081777.59367678,
+      "measured": 46386176.0,
+      "ratio": 0.6714676086193508
+    },
+    {
+      "app": "bookstack",
+      "route": "POST /settings/maintenance/regenerate-references",
+      "predicted": 339228.8482758338,
+      "measured": 219912.0,
+      "ratio": 0.64827033761346
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "predicted": 68390263.34833305,
+      "measured": 43613360.0,
+      "ratio": 0.6377129998441955
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}/references",
+      "predicted": 82718514.83557409,
+      "measured": 50388416.0,
+      "ratio": 0.6091552308471798
+    }
+  ],
+  "rule": "marked when factor x (the predicted peak memory of one request, section 6.2) >= the memory limit; a route with no peak-memory estimate is not judged",
+  "memory_limit_bytes_of_the_records": 536870912,
+  "judged_on_the_lab_records": [
+    {
+      "rows": 10000,
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted_peak_bytes": 2467232.442920299,
+      "bound_bytes": 3725520.988809651,
+      "share_of_limit": 0.006939323598164415,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted_peak_bytes": 18767795.167646006,
+      "bound_bytes": 28339370.70314547,
+      "share_of_limit": 0.05278619137247181,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted_peak_bytes": 2377528.22892956,
+      "bound_bytes": 3590067.625683636,
+      "share_of_limit": 0.006687022048390724,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /books/{slug}",
+      "predicted_peak_bytes": 38976757.706313424,
+      "bound_bytes": 58854904.13653327,
+      "share_of_limit": 0.10962580169836668,
+      "marked": false,
+      "estimate_accuracy": "not_checked",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /books/{slug}/references",
+      "predicted_peak_bytes": 2315840.779395006,
+      "bound_bytes": 3496919.5768864593,
+      "share_of_limit": 0.006513520287138334,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /images/edit/{id}",
+      "predicted_peak_bytes": 4019104.0,
+      "bound_bytes": 6068847.04,
+      "share_of_limit": 0.011304108500480652,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /oidc/callback",
+      "predicted_peak_bytes": 25632.0,
+      "bound_bytes": 38704.32,
+      "share_of_limit": 7.209241390228271e-05,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 302,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 10000,
+      "route": "GET /shelves/{slug}",
+      "predicted_peak_bytes": 352803.4831908919,
+      "bound_bytes": 532733.2596182468,
+      "share_of_limit": 0.0009922930218619235,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted_peak_bytes": 8037312.716690094,
+      "bound_bytes": 12136342.202202043,
+      "share_of_limit": 0.022605698932338585,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted_peak_bytes": 55469888.53531978,
+      "bound_bytes": 83759531.68833287,
+      "share_of_limit": 0.15601428540112985,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted_peak_bytes": 7719454.327105562,
+      "bound_bytes": 11656376.033929398,
+      "share_of_limit": 0.021711692277210575,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /books/{slug}",
+      "predicted_peak_bytes": 114828674.64210859,
+      "bound_bytes": 173391298.70958397,
+      "share_of_limit": 0.3229664614602625,
+      "marked": false,
+      "estimate_accuracy": "not_checked",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /books/{slug}/references",
+      "predicted_peak_bytes": 7670352.8474814035,
+      "bound_bytes": 11582232.799696919,
+      "share_of_limit": 0.021573589741619152,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /images/edit/{id}",
+      "predicted_peak_bytes": 4019104.0,
+      "bound_bytes": 6068847.04,
+      "share_of_limit": 0.011304108500480652,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /oidc/callback",
+      "predicted_peak_bytes": 25632.0,
+      "bound_bytes": 38704.32,
+      "share_of_limit": 7.209241390228271e-05,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 302,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 30000,
+      "route": "GET /shelves/{slug}",
+      "predicted_peak_bytes": 356141.40178437484,
+      "bound_bytes": 537773.516694406,
+      "share_of_limit": 0.0010016812322557085,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted_peak_bytes": 14244788.489824334,
+      "bound_bytes": 21509630.619634744,
+      "share_of_limit": 0.04006480913541232,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted_peak_bytes": 91905715.44484763,
+      "bound_bytes": 138777630.3217199,
+      "share_of_limit": 0.2584934799405186,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted_peak_bytes": 13672667.783014815,
+      "bound_bytes": 20645728.35235237,
+      "share_of_limit": 0.03845566576784918,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /books/{slug}",
+      "predicted_peak_bytes": 190130300.8611387,
+      "bound_bytes": 287096754.30031943,
+      "share_of_limit": 0.5347593767574419,
+      "marked": false,
+      "estimate_accuracy": "not_checked",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /books/{slug}/references",
+      "predicted_peak_bytes": 13723678.263316678,
+      "bound_bytes": 20722754.177608185,
+      "share_of_limit": 0.038599137547627435,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /images/edit/{id}",
+      "predicted_peak_bytes": 4019104.0,
+      "bound_bytes": 6068847.04,
+      "share_of_limit": 0.011304108500480652,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /oidc/callback",
+      "predicted_peak_bytes": 25632.0,
+      "bound_bytes": 38704.32,
+      "share_of_limit": 7.209241390228271e-05,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 302,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 50000,
+      "route": "GET /shelves/{slug}",
+      "predicted_peak_bytes": 357705.97935603705,
+      "bound_bytes": 540136.0288276159,
+      "share_of_limit": 0.0010060817540206311,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted_peak_bytes": 31279464.549318153,
+      "bound_bytes": 47231991.46947041,
+      "share_of_limit": 0.087976439799127,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted_peak_bytes": 182432303.71964446,
+      "bound_bytes": 275472778.61666316,
+      "share_of_limit": 0.5131080348355009,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 500,
+      "stopped_by": "cpu_time",
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted_peak_bytes": 30009592.233584195,
+      "bound_bytes": 45314484.272712134,
+      "share_of_limit": 0.08440480432046975,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /books/{slug}",
+      "predicted_peak_bytes": 377220862.30439276,
+      "bound_bytes": 569603502.0796331,
+      "share_of_limit": 1.060969200133594,
+      "marked": true,
+      "estimate_accuracy": "not_checked",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /books/{slug}/references",
+      "predicted_peak_bytes": 30543560.624499742,
+      "bound_bytes": 46120776.54299461,
+      "share_of_limit": 0.08590664070657382,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /images/edit/{id}",
+      "predicted_peak_bytes": 4019104.0,
+      "bound_bytes": 6068847.04,
+      "share_of_limit": 0.011304108500480652,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /oidc/callback",
+      "predicted_peak_bytes": 25632.0,
+      "bound_bytes": 38704.32,
+      "share_of_limit": 7.209241390228271e-05,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 302,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 100000,
+      "route": "GET /shelves/{slug}",
+      "predicted_peak_bytes": 359841.79950035264,
+      "bound_bytes": 543361.1172455325,
+      "share_of_limit": 0.0010120889493181043,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "predicted_peak_bytes": 69081777.59367678,
+      "bound_bytes": 104313484.16645193,
+      "share_of_limit": 0.19429900528202193,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /books/{bookSlug}/export/zip",
+      "predicted_peak_bytes": 362234854.6260827,
+      "bound_bytes": 546974630.485385,
+      "share_of_limit": 1.0188196422259974,
+      "marked": true,
+      "estimate_accuracy": "within",
+      "http_status": 500,
+      "stopped_by": "not_recorded",
+      "fell_by_memory": false,
+      "outcome": "false_alarm"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "predicted_peak_bytes": 66263497.50924526,
+      "bound_bytes": 100057881.23896034,
+      "share_of_limit": 0.18637232713207666,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /books/{slug}",
+      "predicted_peak_bytes": 748817327.3771874,
+      "bound_bytes": 1130714164.3395529,
+      "share_of_limit": 2.1061192533738033,
+      "marked": true,
+      "estimate_accuracy": "not_checked",
+      "http_status": 500,
+      "stopped_by": "memory",
+      "fell_by_memory": true,
+      "outcome": "hit"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /books/{slug}/references",
+      "predicted_peak_bytes": 68390263.34833305,
+      "bound_bytes": 103269297.6559829,
+      "share_of_limit": 0.19235405634340438,
+      "marked": false,
+      "estimate_accuracy": "outside",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /images/edit/{id}",
+      "predicted_peak_bytes": 4019104.0,
+      "bound_bytes": 6068847.04,
+      "share_of_limit": 0.011304108500480652,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /oidc/callback",
+      "predicted_peak_bytes": 25632.0,
+      "bound_bytes": 38704.32,
+      "share_of_limit": 7.209241390228271e-05,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 302,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    },
+    {
+      "rows": 200000,
+      "route": "GET /shelves/{slug}",
+      "predicted_peak_bytes": 361992.4754485942,
+      "bound_bytes": 546608.6379273772,
+      "share_of_limit": 0.0010181379279631698,
+      "marked": false,
+      "estimate_accuracy": "within",
+      "http_status": 200,
+      "stopped_by": null,
+      "fell_by_memory": false,
+      "outcome": "true_negative"
+    }
+  ],
+  "tally_on_the_lab_records": {
+    "true_negative": 37,
+    "false_alarm": 2,
+    "hit": 1
+  }
+}
