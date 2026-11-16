@@ -267,7 +267,7 @@ Cannot be said:
 
 - **The measuring tool.** The window of a step should not lose the database work of a request still running at its end. The project owner ruled on 2026-11-17 that the tool count a step by the requests it sent and wait for a running request as long as the request time limit; the check afterwards is whether the `Δ` of steps 4 to 9 returns to the level of steps 1 to 3 (within ±1 point). If it does, the main part of this gap was in the measuring tool; if not, the ZIP conversion or the estimate.
 - **A complete ZIP request at 300,000 rows**, cold and alone, with the limits lifted, measured once (statements, rows, database CPU), so that parts (a) and (c1) of the ZIP route can be told apart. It takes about 200 seconds; it needs the lab's safety conditions and a decided order.
-- **The mark of the placeholder limit** (already ruled), with the note on the limit rps that a route stopped by that limit is counted as complete.
+- **The mark of the placeholder limit** (already ruled), with the note on the limit rps that a request stopped by that limit is not counted as complete (the estimate counted the book page as complete, section 8.2).
 - The rules of the estimate for statements and rows are not shown to need a change by this split. Whether to change them waits for the complete ZIP request.
 
 Proposals of test B are checked at a size not yet used (150,000 rows, then 120,000 if the first does not run to the end), and not at 100,000, 200,000 or 300,000.
