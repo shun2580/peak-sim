@@ -197,7 +197,7 @@ final class EstimateFormulas
                 'marks' => ['plan_changes_at_scale' => ($marks['plan_changes_at_scale'] ?? false) === true, 'plan_unstable' => ($marks['plan_unstable'] ?? false) === true],
                 'rows' => $perExec * $count,
                 'rows_upper' => ($perUpper ?? $perExec) * $count,
-            ];
+            ] + (isset($t['placeholders']) && is_array($t['placeholders']) ? ['placeholders' => $t['placeholders'] + ['at' => $n]] : []);
         }
         usort($types, static fn (array $a, array $b): int => [$b['rows'], $a['id']] <=> [$a['rows'], $b['id']]);
 

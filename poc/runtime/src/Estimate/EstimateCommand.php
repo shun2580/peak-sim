@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Estimate;
 
 /**
- * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas]
+ * bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas] [--with-placeholders]
  * prints the estimate of every route on standard output. Exit codes: 0 done; 2 wrong usage or an unreadable input.
  */
 final class EstimateCommand
 {
-    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas] > estimate.json';
+    private const USAGE = 'usage: bin/estimate --capture=<capture.json> --explain=<explain.json> --candidate=H1|H2|H3|H1_RANGE [--at=<N>] [--predictions=<predictions.json>] [--axes-only] [--with-formulas] [--with-placeholders] > estimate.json';
 
     /**
      * @param resource $out
@@ -26,6 +26,7 @@ final class EstimateCommand
         $opts = ['capture' => null, 'explain' => null, 'candidate' => null, 'at' => null, 'predictions' => null];
         $withFormulas = false;
         $axesOnly = false;
+        $withPlaceholders = false;
         foreach ($args as $arg) {
             if ($arg === '--axes-only') {
                 $axesOnly = true;
@@ -33,6 +34,10 @@ final class EstimateCommand
             }
             if ($arg === '--with-formulas') {
                 $withFormulas = true;
+                continue;
+            }
+            if ($arg === '--with-placeholders') {
+                $withPlaceholders = true;
                 continue;
             }
             $matched = false;
@@ -82,7 +87,7 @@ final class EstimateCommand
             $decoded[$name] = $value;
         }
         try {
-            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions'], $withFormulas, $axesOnly);
+            $result = RowEstimator::estimate($decoded['capture'] ?? [], $decoded['explain'] ?? [], (string) $opts['candidate'], $opts['at'] === null ? null : (int) $opts['at'], $decoded['predictions'], $withFormulas, $axesOnly, $withPlaceholders);
         } catch (\InvalidArgumentException $e) {
             return $this->usage($e->getMessage());
         }

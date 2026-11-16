@@ -1,0 +1,1185 @@
+{
+  "what": "The placeholder side of the app_limit_risk mark: the rule worked out from captures that already existed, and what it says on the counts already seen. Made by poc/lab/diagnosis/app_placeholder_rule.py.",
+  "rule": "a statement carries fixed + ceil((values - fixed) x n / scale) values at table size n; a route is marked when its largest statement carries more than limit_values_of_the_database",
+  "limit_values_of_the_database": 65535,
+  "limit_is_an_input": "the tool reads it from resources.db_placeholder_limit and has no default; 65,535 is MySQL's limit as the records name it",
+  "captures": {
+    "bookstack": {
+      "sha256": "69f08fcad32bdd31367747d8231dab69df32596a837876253169eda88807d839",
+      "scales": [
+        100,
+        1000,
+        10000,
+        30000
+      ],
+      "representative_scale": 30000,
+      "kept": "outside the repository"
+    },
+    "bookstack_small": {
+      "sha256": "8bf76bbed94393410ec1d695d97478f7cf85011718ae7c0c9b90fed1420e9ce5",
+      "scales": [
+        100,
+        1000,
+        10000
+      ],
+      "representative_scale": 10000,
+      "kept": "outside the repository",
+      "used_for": "checking the rule only"
+    },
+    "fixtures": {
+      "sha256": "37a8dcd9383a157308d3e5651a6594cbe1d588f0321c9960be13b6d75af753b8",
+      "scales": [
+        100,
+        1000,
+        10000,
+        30000
+      ],
+      "representative_scale": 30000,
+      "kept": "outside the repository"
+    }
+  },
+  "statements": [
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "s316fb175b6",
+      "scale": 30000,
+      "values": 7,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "s39a3005d70",
+      "scale": 30000,
+      "values": 9,
+      "fixed": 8
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "sa8fffb0b26",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "sc40f193985",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "sc763335766",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+      "id": "sd7799eeccf",
+      "scale": 30000,
+      "values": 18,
+      "fixed": 17
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "s0fc8c91c7d",
+      "scale": 30000,
+      "values": 8,
+      "fixed": 7
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "s289285f857",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "s7ff3e12408",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "s933461e5b8",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "sc5ca2ddd8d",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/export/zip",
+      "id": "sdc4373c2e4",
+      "scale": 30000,
+      "values": 8,
+      "fixed": 7
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "s2abffb28d9",
+      "scale": 30000,
+      "values": 11,
+      "fixed": 10
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sa8fffb0b26",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sb2ba4c221b",
+      "scale": 30000,
+      "values": 9,
+      "fixed": 7
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sc40f193985",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sc763335766",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+      "id": "sd7799eeccf",
+      "scale": 30000,
+      "values": 18,
+      "fixed": 17
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s0ccad842b9",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s24834a57a6",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s400220f42f",
+      "scale": 30000,
+      "values": 8,
+      "fixed": 7
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s46011fc7f8",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s4e56365a26",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s58efd897dc",
+      "scale": 30000,
+      "values": 9,
+      "fixed": 8
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s6a6174c841",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s7ff3e12408",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s933461e5b8",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "s948c431efe",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sa8fffb0b26",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sae79dbbc2c",
+      "scale": 30000,
+      "values": 18,
+      "fixed": 17
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sae9ec494b7",
+      "scale": 100,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sb13d9a7ef7",
+      "scale": 30000,
+      "values": 18004,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sc40f193985",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sc5ca2ddd8d",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sc763335766",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sccbf54893f",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sde990ad951",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "se916fbea31",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sf034e6d815",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}",
+      "id": "sf8743ebbf9",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "s63e7a29533",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 4
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "s933461e5b8",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "sc40f193985",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "sc763335766",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /books/{slug}/references",
+      "id": "sd7799eeccf",
+      "scale": 30000,
+      "values": 18,
+      "fixed": 17
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "id": "s0ccad842b9",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "id": "s6d2a3b7373",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "id": "s7bdac90bf5",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /images/edit/{id}",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s0ccad842b9",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s31fd7e9161",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s4157c0499d",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s67def0f140",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s6a6174c841",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "s933461e5b8",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 5
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sa87c97e043",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sa8fffb0b26",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sae79dbbc2c",
+      "scale": 30000,
+      "values": 18,
+      "fixed": 17
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sbb24824f75",
+      "scale": 30000,
+      "values": 6,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sc40f193985",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sc5ca2ddd8d",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sc763335766",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 2
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sde990ad951",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sf034e6d815",
+      "scale": 30000,
+      "values": 3,
+      "fixed": 3
+    },
+    {
+      "app": "bookstack",
+      "route": "GET /shelves/{slug}",
+      "id": "sf8743ebbf9",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/appends",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/appends",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/blade",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/blade",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/cache",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/cache",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/conditional-binding",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/conditional-binding",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/cursor",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/model-with",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/model-with",
+      "id": "sc008e7c9bc",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/resource",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /hidden/resource",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/collection-filter",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/count-in-loop",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/count-in-loop",
+      "id": "sb3e0a49b10",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/first-or-create-in-loop",
+      "id": "s16ba29811d",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/first-or-create-in-loop",
+      "id": "s5d75fc9d10",
+      "scale": 30000,
+      "values": 4,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/first-or-create-in-loop",
+      "id": "sc167e31001",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/get-then-count",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/layered",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/layered",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/n-plus-one",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/n-plus-one",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/nested",
+      "id": "s3e14ec6b69",
+      "scale": 10000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/nested",
+      "id": "s98b77cc77f",
+      "scale": 10000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/nested",
+      "id": "sebeb488fb8",
+      "scale": 10000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/save-in-loop",
+      "id": "s4cb878eb40",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/save-in-loop",
+      "id": "s83d9d31d99",
+      "scale": 30000,
+      "values": 2,
+      "fixed": 2
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/service",
+      "id": "s3c94139087",
+      "scale": 30000,
+      "values": 1,
+      "fixed": 1
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/service",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ng/unbounded",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/chunk",
+      "id": "s4b4f12830f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/eager",
+      "id": "s98b77cc77f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/eager",
+      "id": "sc008e7c9bc",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/lazy",
+      "id": "s4b4f12830f",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/paginate",
+      "id": "s21deb72115",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/paginate",
+      "id": "sfea1ee4cad",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /ok/with-count",
+      "id": "s8bf474d007",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "GET /unknown/dynamic",
+      "id": "sfea1ee4cad",
+      "scale": 30000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "POST /ok/bulk",
+      "id": "s1bdeb8f2b3",
+      "scale": 10000,
+      "values": 50000,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "POST /ok/bulk",
+      "id": "s9983585965",
+      "scale": 10000,
+      "values": 0,
+      "fixed": 0
+    },
+    {
+      "app": "fixtures",
+      "route": "POST /ok/bulk",
+      "id": "seef5320cd5",
+      "scale": 1000,
+      "values": 5000,
+      "fixed": 0
+    }
+  ],
+  "book_page_statement": {
+    "route": "GET /books/{slug}",
+    "id": "sb13d9a7ef7",
+    "pattern_start": "select * from `activities` where ((`loggable_type` = ? and `loggable_id` in (?)) or ...",
+    "values_at_10000_rows": 6004,
+    "values_at_30000_rows": 18004,
+    "line_through_the_two": {
+      "per_row": 0.6,
+      "constant": 4.0
+    },
+    "rule_from_30000_gives_at_10000": 6004,
+    "layout_it_agrees_with": "poc/runtime/profiles/bookstack.php sets type by MOD(id, 5): 1 book, 2 chapter, 0 shelf, 3 and 4 page; chapters and pages all sit in book 1. The statement lists the book (1), every chapter of the book (N/5 ids) and every page (2N/5 ids) and has 3 more values for the types: 4 + 0.6 N.",
+    "the_log_agrees": "the application's log at 300,000 rows (lab-data/ladder-300k/logs/) lists the chapters as 2, 7, 12, ... in steps of 5"
+  },
+  "bulk_insert_statement": {
+    "route": "POST /ok/bulk",
+    "values_at_1000_rows": 5000,
+    "values_at_10000_rows": 50000,
+    "rule_from_10000_gives_at_30000": 150000
+  },
+  "judged_on_the_lab_records": [
+    {
+      "app": "bookstack",
+      "rows": 10000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 6004,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "ok",
+        "source": "docs/research/lab-data/diagnosis/per-request/README.md (HTTP 200)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "bookstack",
+      "rows": 30000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 18004,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "ok",
+        "source": "docs/research/lab-data/diagnosis/per-request/README.md (HTTP 200)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "bookstack",
+      "rows": 50000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 30005,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "ok",
+        "source": "docs/research/lab-backtest-3.md section 7 (no HTTP 500 in r-1 and r-2 at 50,000 rows, the second round of lab-backtest-2.md)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "bookstack",
+      "rows": 100000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 60007,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "ok",
+        "source": "docs/research/lab-data/diagnosis/per-request/README.md (HTTP 200)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "bookstack",
+      "rows": 200000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 120010,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [
+        "GET /books/{slug}"
+      ],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "failed_1390",
+        "source": "docs/research/extrapolation-test-2.md (all four tries HTTP 500, SQLSTATE 1390)"
+      },
+      "verdict": "hit",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "bookstack",
+      "rows": 300000,
+      "largest_by_route": {
+        "GET /books/{slug}": {
+          "values": 180013,
+          "statement": "sb13d9a7ef7"
+        }
+      },
+      "marked_routes": [
+        "GET /books/{slug}"
+      ],
+      "observed": {
+        "route": "GET /books/{slug}",
+        "outcome": "failed_1390",
+        "source": "docs/research/lab-backtest-3.md section 4.4 and docs/research/extrapolation-test-3.md (SQLSTATE 1390)"
+      },
+      "verdict": "hit",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "fixtures",
+      "rows": 1000,
+      "largest_by_route": {
+        "POST /ok/bulk": {
+          "values": 5000,
+          "statement": "s1bdeb8f2b3"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "POST /ok/bulk",
+        "outcome": "ok",
+        "source": "docs/research/extrapolation-test-3.md (the capture at 1,000 rows ran)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "fixtures",
+      "rows": 10000,
+      "largest_by_route": {
+        "POST /ok/bulk": {
+          "values": 50000,
+          "statement": "s1bdeb8f2b3"
+        }
+      },
+      "marked_routes": [],
+      "observed": {
+        "route": "POST /ok/bulk",
+        "outcome": "ok",
+        "source": "docs/research/extrapolation-test-3.md (the capture at 10,000 rows ran)"
+      },
+      "verdict": "correct_no_mark",
+      "marked_routes_with_no_failure_on_record": []
+    },
+    {
+      "app": "fixtures",
+      "rows": 30000,
+      "largest_by_route": {
+        "POST /ok/bulk": {
+          "values": 150000,
+          "statement": "s1bdeb8f2b3"
+        }
+      },
+      "marked_routes": [
+        "POST /ok/bulk"
+      ],
+      "observed": {
+        "route": "POST /ok/bulk",
+        "outcome": "failed_1390",
+        "source": "docs/research/extrapolation-test-3.md (HTTP 500, SQLSTATE 1390 at 30,000 rows)"
+      },
+      "verdict": "hit",
+      "marked_routes_with_no_failure_on_record": []
+    }
+  ]
+}

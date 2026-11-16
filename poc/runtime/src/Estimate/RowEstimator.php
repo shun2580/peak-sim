@@ -61,10 +61,13 @@ final class RowEstimator
      * @param bool                      $axesOnly    read only `route`, `axis` and `table` of the predictions (the part the static analysis decides) and none of their
      *                                  `quantities`: the route-level peak memory and query fit stay `not_given` and there is no `peak_memory_formula`. For an estimate whose
      *                                  fits were not made in the way the capture was (no figure of an old measurement gets in). Without it nothing changes.
+     * @param bool                      $withPlaceholders add `placeholders` to each type that has a representative statement in the capture: the number of values that
+     *                                  statement was sent with, the part of them that does not depend on a list, and the scale it was taken at (the input of the
+     *                                  placeholder side of the `app_limit_risk` mark). It only adds that key; every other figure is the same with and without it.
      *
      * @return array<string, mixed>
      */
-    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null, bool $withFormulas = false, bool $axesOnly = false): array
+    public static function estimate(array $capture, array $explain, string $candidate, ?int $n = null, ?array $predictions = null, bool $withFormulas = false, bool $axesOnly = false, bool $withPlaceholders = false): array
     {
         if (!in_array($candidate, self::CANDIDATES, true)) {
             throw new \InvalidArgumentException('the candidate must be one of ' . implode(', ', self::CANDIDATES));
@@ -99,7 +102,7 @@ final class RowEstimator
             if (!is_array($cr) || !isset($cr['route'])) {
                 continue;
             }
-            $route = self::route($cr, $explainRoutes[(string) $cr['route']] ?? null, $candidate, $n, $representative, $withFormulas);
+            $route = self::route($cr, $explainRoutes[(string) $cr['route']] ?? null, $candidate, $n, $representative, $withFormulas, $withPlaceholders);
             $seen = [];
             foreach ($route['fallbacks'] as $reason => $count) {
                 $fallbacks[$reason] = ($fallbacks[$reason] ?? 0) + $count;
@@ -161,6 +164,39 @@ final class RowEstimator
         ];
     }
 
+    /**
+     * What the capture holds about the number of values one statement of this type is sent with (the representative statement: the text of the largest scale
+     * that read the most rows, with its bindings). `values` is how many values that statement carried and `scale` the scale it was taken at. `fixed` is the part of
+     * them that no list holds: the `?` of the statement's text outside `in (?, ?, ...)` lists, and none for an `insert ... values` (the number of its rows is the
+     * list). The rest, `values - fixed`, is what a list holds. The text is the representative's own, not the type's pattern: a literal the app wrote into the
+     * statement (a `limit 20`) is a `?` in the pattern and no value in the statement. Nothing here is fitted: one figure at one scale is all the capture keeps.
+     *
+     * @param array<string, mixed> $ty a statement type of the capture
+     *
+     * @return array{scale: int, values: int, fixed: int}|null null when the capture has no representative with its text and bindings, or no scale for it
+     */
+    private static function placeholders(array $ty): ?array
+    {
+        $rep = $ty['representative'] ?? null;
+        if (!is_array($rep) || !isset($rep['bindings']) || !is_array($rep['bindings']) || !is_string($rep['sql'] ?? null) || !isset($rep['scale']) || (int) $rep['scale'] < 1) {
+            return null;
+        }
+        $values = count($rep['bindings']);
+        if (preg_match('/\bvalues\b/i', $rep['sql']) === 1) {
+            $fixed = 0;
+        } else {
+            $listed = 0;
+            if (preg_match_all('/\bin\s*\(\s*\?(?:\s*,\s*\?)*\s*\)/i', $rep['sql'], $lists) > 0) {
+                foreach ($lists[0] as $list) {
+                    $listed += substr_count($list, '?');
+                }
+            }
+            $fixed = max(0, $values - $listed);
+        }
+
+        return ['scale' => (int) $rep['scale'], 'values' => $values, 'fixed' => min($fixed, $values)];
+    }
+
     /** The item of section 9.3 a fallback reason belongs to (1: E(small) = 0; 2: E(small) not taken; 3: E(N) not taken; 4: no measured value). */
     private static function item(string $reason): int
     {
@@ -178,7 +214,7 @@ final class RowEstimator
      *
      * @return array<string, mixed>
      */
-    private static function route(array $cr, ?array $er, string $candidate, int $n, int $representative, bool $withFormulas = false): array
+    private static function route(array $cr, ?array $er, string $candidate, int $n, int $representative, bool $withFormulas = false, bool $withPlaceholders = false): array
     {
         $status = (string) ($cr['status'] ?? 'captured');
         $out = [
@@ -205,6 +241,12 @@ final class RowEstimator
                 $type['formula'] = self::formula((array) $ty, $type);
             }
             unset($type['e_by_state']); // only the formula carries it; the figures of the type are the same with and without the flag
+            if ($withPlaceholders) {
+                $placeholders = self::placeholders((array) $ty);
+                if ($placeholders !== null) {
+                    $type['placeholders'] = $placeholders;
+                }
+            }
             if (isset($type['unavailable'])) {
                 $out['complete'] = false;
                 $out['unavailable'][] = ['id' => $type['id'], 'pattern' => $type['pattern'], 'reason' => $type['unavailable']];

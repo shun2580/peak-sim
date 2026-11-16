@@ -41,6 +41,32 @@ final class EstimateFormulasTest extends TestCase
         $this->assertFalse($a['marked']);
     }
 
+    public function test_the_placeholder_figure_of_a_type_goes_through_with_the_size_it_is_read_at_and_only_when_the_estimate_has_it(): void
+    {
+        $plain = self::formulas()->evaluate('GET /a', 1000);
+        $this->assertArrayNotHasKey('placeholders', $plain['types'][0]);
+
+        $doc = Fixtures::estimateDocument();
+        foreach ($doc['routes'] as &$route) {
+            if ($route['route'] === 'GET /a') {
+                $route['types'][0]['placeholders'] = ['scale' => 30000, 'values' => 18004, 'fixed' => 4];
+            }
+        }
+        unset($route);
+        $with = EstimateFormulas::fromDocument($doc)->evaluate('GET /a', 5000);
+        $by = array_column($with['types'], null, 'id');
+        $this->assertSame(['scale' => 30000, 'values' => 18004, 'fixed' => 4, 'at' => 5000], $by['t1']['placeholders']);
+        $this->assertArrayNotHasKey('placeholders', $by['t2']);
+
+        // nothing else of the route changes
+        $other = EstimateFormulas::fromDocument($doc)->evaluate('GET /a', 1000);
+        foreach ($other['types'] as &$type) {
+            unset($type['placeholders']);
+        }
+        unset($type);
+        $this->assertSame($plain, $other);
+    }
+
     public function test_the_upper_side_keeps_the_ratio_of_the_estimate_and_holds_a_value_when_the_ratio_is_undefined(): void
     {
         // N = 300: u1 rows 300 x count 1; upper 5 x 300 = 1,500. u2 rows 0 x count 3 = 0; upper held 40 x 3 = 120. u3 7 x 1, both sides.

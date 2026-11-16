@@ -8,6 +8,7 @@ use PeakSim\Runtime\Backtest\NaiveEstimate;
 use PeakSim\Runtime\Simulate\Calibrate\CalibrationResult;
 use PeakSim\Runtime\Simulate\Predict\AppLimitRisk;
 use PeakSim\Runtime\Simulate\Predict\AppMemoryRisk;
+use PeakSim\Runtime\Simulate\Predict\AppPlaceholderRisk;
 use PeakSim\Runtime\Simulate\Predict\CalibrationWidth;
 use PeakSim\Runtime\Simulate\Predict\Coefficients;
 use PeakSim\Runtime\Simulate\Predict\LimitSearch;
@@ -110,6 +111,8 @@ final class LadderPrediction
         $coefficients = $appLimit === null ? null : Coefficients::pointOf($calibration);
         // the memory side of the mark, likewise: an input with no default, and with none given the output has no trace of it
         $appMemoryLimit = isset($resources['app_memory_limit_bytes']) ? (int) $resources['app_memory_limit_bytes'] : null;
+        // the placeholder side of the mark, likewise: an input with no default, and with none given the output has no trace of it
+        $placeholderLimit = isset($resources['db_placeholder_limit']) ? (int) $resources['db_placeholder_limit'] : null;
         $scenarios = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'target') {
@@ -119,6 +122,9 @@ final class LadderPrediction
                 }
                 if ($appMemoryLimit !== null) {
                     $made['app_limit_risk_memory'] = AppMemoryRisk::evaluate(array_values((array) $s['routes']), $appMemoryLimit);
+                }
+                if ($placeholderLimit !== null) {
+                    $made['app_limit_risk_placeholders'] = AppPlaceholderRisk::evaluate(array_values((array) $s['routes']), $placeholderLimit);
                 }
                 $scenarios[] = $made;
             }
@@ -135,7 +141,7 @@ final class LadderPrediction
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
             'estimate_basis_note' => PredictionReport::ESTIMATE_BASIS_NOTE,
-            'resources' => ['cores' => $cores, 'threshold' => $threshold] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]) + ($appMemoryLimit === null ? [] : ['app_memory_limit_bytes' => $appMemoryLimit]),
+            'resources' => ['cores' => $cores, 'threshold' => $threshold] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]) + ($appMemoryLimit === null ? [] : ['app_memory_limit_bytes' => $appMemoryLimit]) + ($placeholderLimit === null ? [] : ['db_placeholder_limit' => $placeholderLimit]),
             'stages_rps_total' => array_values($stages),
             'inputs' => $inputs,
             'calibration' => [

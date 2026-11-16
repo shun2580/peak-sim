@@ -36,6 +36,8 @@ final class PredictionReport
         $coefficients = $appLimit === null ? null : Coefficients::pointOf($calibration);
         // the memory side of the mark, likewise: an input with no default, and with none given the output has no trace of it
         $appMemoryLimit = isset($resources['app_memory_limit_bytes']) ? (int) $resources['app_memory_limit_bytes'] : null;
+        // the placeholder side of the mark, likewise: an input with no default, and with none given the output has no trace of it
+        $placeholderLimit = isset($resources['db_placeholder_limit']) ? (int) $resources['db_placeholder_limit'] : null;
 
         $width = CalibrationWidth::of(PredictStage::points($loaded), $calibration);
         $scenarios = [];
@@ -48,6 +50,9 @@ final class PredictionReport
                 if ($appMemoryLimit !== null) {
                     $predicted['app_limit_risk_memory'] = AppMemoryRisk::evaluate(array_values((array) ($s['routes'] ?? [])), $appMemoryLimit);
                 }
+                if ($placeholderLimit !== null) {
+                    $predicted['app_limit_risk_placeholders'] = AppPlaceholderRisk::evaluate(array_values((array) ($s['routes'] ?? [])), $placeholderLimit);
+                }
                 $scenarios[] = $predicted;
             }
         }
@@ -57,7 +62,7 @@ final class PredictionReport
             'schema_version' => self::SCHEMA_VERSION,
             'app' => $loaded['app'] ?? null,
             'estimate_at' => $loaded['estimate_at'] ?? null,
-            'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]) + ($appMemoryLimit === null ? [] : ['app_memory_limit_bytes' => $appMemoryLimit]),
+            'resources' => ['cores' => $cores, 'threshold' => $threshold, 'php_memory_limit_bytes' => $limitBytes] + ($appLimit === null ? [] : ['app_cpu_time_limit_s' => $appLimit]) + ($appMemoryLimit === null ? [] : ['app_memory_limit_bytes' => $appMemoryLimit]) + ($placeholderLimit === null ? [] : ['db_placeholder_limit' => $placeholderLimit]),
             'estimate_basis_note' => self::ESTIMATE_BASIS_NOTE,
             'low_coverage_scenarios' => $lowCoverage,
             'calibration' => $calibration->toArray() + ['width' => $width->toArray()],

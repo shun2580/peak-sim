@@ -18,6 +18,8 @@ use PeakSim\Runtime\Simulate\Yaml\YamlError;
  * `resources.app_memory_limit` (optional: php's `memory_limit` of the app as the mark takes it, bytes or a number with K/M/G; there is no default, and with
  * none given the memory side of the mark is not made, see {@see \PeakSim\Runtime\Simulate\Predict\AppMemoryRisk}; it is not `php_memory_limit`, which
  * only sets the line of section 6.2 and may be given with no mark wanted);
+ * `resources.db_placeholder_limit` (optional: the most values the database accepts in one prepared statement, a whole number above 0; there is no default, and
+ * with none given the placeholder side of the mark is not made, see {@see \PeakSim\Runtime\Simulate\Predict\AppPlaceholderRisk});
  * per scenario `id` `kind` (`calibration`|`target`) `tables` (table => count, a whole number from 0) `rps` (route => number from 0) `observed`.
  *
  * The first stage uses {@see parseStageOne}: the text it parses has the `observed` of the target scenarios already cut out.
@@ -107,7 +109,7 @@ final class ScenarioReader
     }
 
     /**
-     * @return array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null, app_cpu_time_limit_s?: float, app_memory_limit_bytes?: int}
+     * @return array{cores: int|float, threshold: float, php_memory_limit_bytes: int|null, app_cpu_time_limit_s?: float, app_memory_limit_bytes?: int, db_placeholder_limit?: int}
      *
      * @throws LoadFailure
      */
@@ -117,7 +119,7 @@ final class ScenarioReader
             throw self::invalid('resources must be a mapping');
         }
         $r ??= [];
-        self::onlyKeys($r, ['db_cpu', 'php_memory_limit', 'app_cpu_time_limit', 'app_memory_limit'], 'resources');
+        self::onlyKeys($r, ['db_cpu', 'php_memory_limit', 'app_cpu_time_limit', 'app_memory_limit', 'db_placeholder_limit'], 'resources');
         $cpu = $r['db_cpu'] ?? null;
         if ($cpu !== null && (!is_array($cpu) || ($cpu !== [] && array_is_list($cpu)))) {
             throw self::invalid('resources.db_cpu must be a mapping');
@@ -154,6 +156,13 @@ final class ScenarioReader
                 throw self::invalid('resources.app_memory_limit must be a size such as 512M (leave it out when there is no limit to give)');
             }
             $out['app_memory_limit_bytes'] = $bytes;
+        }
+        if (array_key_exists('db_placeholder_limit', $r)) {
+            $values = $r['db_placeholder_limit'];
+            if (!is_int($values) || $values < 1) {
+                throw self::invalid('resources.db_placeholder_limit must be a whole number of values above 0 (leave it out when there is no limit to give)');
+            }
+            $out['db_placeholder_limit'] = $values;
         }
 
         return $out;

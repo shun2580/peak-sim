@@ -79,6 +79,11 @@ final class PredictionText
                     $out[] = $line;
                 }
             }
+            if (isset($s['app_limit_risk_placeholders'])) {
+                foreach (self::appLimitRiskPlaceholders($s['app_limit_risk_placeholders'], !isset($s['app_limit_risk']) && !isset($s['app_limit_risk_memory'])) as $line) {
+                    $out[] = $line;
+                }
+            }
             $out[] = sprintf(
                 '  coverage     %d route(s): %d marked (%s of rps), %d unmarked, %d with no cost (%s of rps); extrapolated %d, interpolated %d, measured %d',
                 $s['coverage']['routes'],
@@ -229,6 +234,41 @@ final class PredictionText
         $notEvaluated = array_column(array_filter($risk['routes'], static fn (array $r): bool => $r['status'] === AppMemoryRisk::NOT_EVALUATED), 'route');
         if ($notEvaluated !== []) {
             $lines[] = '    not judged (no peak-memory estimate): ' . implode(', ', $notEvaluated);
+        }
+
+        return $lines;
+    }
+
+    /**
+     * The lines of the placeholder side of the `app_limit_risk` mark: which limit it is (the values one statement carries, apart from the execution time and the
+     * memory), how many routes are marked and which. The note on the limit rps is printed once, by the first of the three sides that is there.
+     *
+     * @param array<string, mixed> $risk AppPlaceholderRisk::evaluate()
+     *
+     * @return list<string>
+     */
+    private static function appLimitRiskPlaceholders(array $risk, bool $withNote): array
+    {
+        $lines = [sprintf(
+            '  app limit    %s values in one statement: %d route(s) marked app_limit_risk (values of the largest statement = fixed + list part x table size / capture scale)',
+            number_format($risk['limit_values']),
+            count($risk['marked_routes']),
+        )];
+        foreach ($risk['routes'] as $r) {
+            if ($r['status'] === AppPlaceholderRisk::MARKED) {
+                $lines[] = sprintf('    marked  %s  (%s values in statement %s, %s of the limit)', $r['route'], number_format((float) $r['values']), $r['statement'], self::pct($r['share_of_limit']));
+            }
+        }
+        if ($withNote && $risk['limit_rps_note'] !== null) {
+            $lines[] = '    NOTE ' . $risk['limit_rps_note'];
+        }
+        $notEvaluated = array_filter($risk['routes'], static fn (array $r): bool => $r['status'] === AppPlaceholderRisk::NOT_EVALUATED);
+        if ($notEvaluated !== []) {
+            $lines[] = '    not judged (no cost or no placeholder figure in the estimate): ' . implode(', ', array_column($notEvaluated, 'route'));
+        }
+        $partial = array_filter($risk['routes'], static fn (array $r): bool => $r['status'] !== AppPlaceholderRisk::NOT_EVALUATED && $r['types_without_figure'] > 0);
+        if ($partial !== []) {
+            $lines[] = '    judged on the statements that have a figure; statements without one: ' . implode(', ', array_map(static fn (array $r): string => sprintf('%s (%d)', $r['route'], $r['types_without_figure']), $partial));
         }
 
         return $lines;

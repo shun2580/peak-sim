@@ -98,6 +98,36 @@ final class ScenarioReaderTest extends TestCase
         }
     }
 
+    public function test_the_placeholder_limit_is_read_as_a_whole_number_and_is_absent_when_not_given(): void
+    {
+        $yaml = "schema_version: \"0.1\"\nresources:\n  db_cpu: { cores: 1 }\n  db_placeholder_limit: 65535\nscenarios:\n" . self::CAL;
+        $this->assertSame(65535, ScenarioReader::parseStageOne($yaml)['resources']['db_placeholder_limit']);
+        $this->assertArrayNotHasKey('db_placeholder_limit', ScenarioReader::parseStageOne(self::scenario(self::CAL))['resources'], 'no limit given, no default');
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badPlaceholderLimits(): iterable
+    {
+        yield 'zero' => ['0'];
+        yield 'negative' => ['-5'];
+        yield 'text' => ['lots'];
+        yield 'a fraction' => ['65535.5'];
+        yield 'with a unit' => ['64K'];
+        yield 'empty' => ['null'];
+    }
+
+    #[DataProvider('badPlaceholderLimits')]
+    public function test_a_placeholder_limit_that_is_not_a_whole_number_above_zero_stops_the_run(string $given): void
+    {
+        $yaml = "schema_version: \"0.1\"\nresources:\n  db_cpu: { cores: 1 }\n  db_placeholder_limit: {$given}\nscenarios:\n" . self::CAL;
+        try {
+            ScenarioReader::parseStageOne($yaml);
+            $this->fail('the limit was accepted');
+        } catch (LoadFailure $e) {
+            $this->assertStringContainsString('resources.db_placeholder_limit', $e->getMessage());
+        }
+    }
+
     /** @return iterable<string, array{string, int}> */
     public static function memory(): iterable
     {
