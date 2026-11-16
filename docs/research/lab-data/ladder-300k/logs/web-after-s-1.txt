@@ -1,0 +1,2 @@
+2026/11/16 00:25:35 [warn] 8#8: *60 an upstream response is buffered to a temporary file /tmp/nginx-fastcgi/0000000001 while reading upstream, client: 172.20.0.5, server: , request: "GET /books/1/export/zip HTTP/1.1", upstream: "fastcgi://172.20.0.3:9000", host: "lab-web:8080"
+2026/11/16 00:58:03 [warn] 8#8: *166 an upstream response is buffered to a temporary file /tmp/nginx-fastcgi/0000000002 while reading upstream, client: 172.20.0.5, server: , request: "GET /books/1/export/zip HTTP/1.1", upstream: "fastcgi://172.20.0.3:9000", host: "lab-web:8080"

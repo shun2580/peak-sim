@@ -27,3 +27,5 @@ Host clock, 2026-11-16. No pass or fail is written here.
 `app-log-after-mark.txt` is the app container's log from the start of the container to the end of the mark. It holds four lines `PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted` (the 512M `memory_limit`), at 08:26:14, 08:26:58, 08:27:08 and 08:27:15 UTC. These are the same four moments as the four 500 answers: the two requests of `GET /books/{bookSlug}/export/zip` (17:26:16 and 17:27:01 on the host clock, 9 hours ahead of UTC) and the two of `GET /books/{slug}` (17:27:10 and 17:27:17). No line of the log shows the 30-second `max_execution_time` or the nginx 120 s limit ending a request.
 
 sha256 of the three files of `mark-300000/` when they were committed: `context.json` d6f0b0ce0248f1dfd35af502307d7d0d4de80a1f8fbacb7ba7b7b3c0dd79b129, `http.jsonl` f3541134fa560a38891f32ae8f7cf089699447a20f21e8f6fe18c2287c53c75d, `table-counts.json` ac00ece26df217339cc1a16d10dd2558060e68782472b3a8e50e2d2c4af231aa.
+
+The original `context.json` (before its `label` was shortened) had sha256 a94cb8cc3119505f642e700135cfd298660c9c01db17adcc5bf1004f314327f6.

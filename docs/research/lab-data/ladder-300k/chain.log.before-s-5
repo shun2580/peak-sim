@@ -1,0 +1,21 @@
+2026-11-16T08:58:58+09:00 B settings written (before use-db)
+2026-11-16T08:59:56+09:00 CHAIN-B START
+2026-11-16T08:59:57+09:00 START s-1 scale=300000
+2026-11-16T09:00:11+09:00 END s-1 exit=2
+2026-11-16T09:00:12+09:00 CHAIN-B STOP at s-1 exit=2
+2026-11-16T09:01:52+09:00 s-1 attempt at 08:59:57 ended exit=2 before any load: targets-300000.json missing; made it with bin/targets (8 of 8 routes); chain restarted
+2026-11-16T09:01:52+09:00 CHAIN-B START
+2026-11-16T09:01:52+09:00 START s-1 scale=300000
+2026-11-16T10:27:44+09:00 END s-1 exit=0
+2026-11-16T10:27:47+09:00 START s-2 scale=300000
+2026-11-16T11:44:59+09:00 END s-2 exit=0
+2026-11-16T11:45:04+09:00 START s-3 scale=300000
+2026-11-16T13:47:33+09:00 END s-3 exit=0
+2026-11-16T13:47:40+09:00 HOLD before s-4 (waiting for release-before-s-4)
+2026-11-16T13:52:34+09:00 RECREATE app/web before s-4 (use-db 300000)
+2026-11-16T13:53:03+09:00 release-before-s-4 touched after recreate checks all OK (use-db 300000; check-limits unlimited OK; HostConfig.Memory 6442450944; after-recreate mem.current 25243648; compose diff unchanged)
+2026-11-16T13:53:10+09:00 RELEASE before s-4
+2026-11-16T13:53:11+09:00 START s-4 scale=300000
+2026-11-16T15:10:21+09:00 END s-4 exit=0
+2026-11-16T15:10:23+09:00 CHAIN-B DONE (s-1 s-2 s-3 s-4)
+2026-11-16T15:16:22+09:00 RECREATE app/web before s-5 (use-db 300000)

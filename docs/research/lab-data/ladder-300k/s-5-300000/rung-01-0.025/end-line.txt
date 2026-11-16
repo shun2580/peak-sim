@@ -1,0 +1,1 @@
+RUNG END s-5 rung 1 rps decided 0.025 achieved 0.0250 (valid) db 8.0% app 6.3% dropped 0 | 200x30 302x2 500x8 | continue

@@ -1,0 +1,7 @@
+file	bytes	lines	sha256	kept_file	kept_bytes	kept_lines
+app-after-s-1.txt	149677290	25956	ee816a04fd86934ddecf73b18639d3bcef6bd2bcbb23af7e7c6d6925d1c53a77	app-after-s-1.dated-lines.txt	222111	36
+app-after-s-2.txt	338158636	58630	c1e606c01322a66dc638d6bdb6283d09b75827c37dfc01bea0dfcdca7068c852	app-after-s-2.dated-lines.txt	500639	70
+app-after-s-3.txt	532183551	92265	6e91d6b9fcd33ebb1876cd77dcb2d4798166e0861e72ffd754e66286884d841a	app-after-s-3.dated-lines.txt	787359	105
+app-after-s-4.txt	44349601	7698	95680b79659e224daa07e1a2e10ee465579bcf558cd87c8d2f23f85177a43e3e	app-after-s-4.dated-lines.txt	66585	18
+app-after-s-5.txt	593183693	103069	c952ed12356dd832c6b8610ebd3412128e8f2b355e6fef858d8838f9c1387ac6	app-after-s-5.dated-lines.txt	898354	349
+app-after-s-5-tail-before-restore.txt	5543748	963	af0f715d2b289af547b559edf56825618483350cb278635da28508f0b7185875	app-after-s-5-tail-before-restore.dated-lines.txt	8371	3

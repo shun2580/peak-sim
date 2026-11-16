@@ -1,0 +1,38 @@
+entities	300000	3337948901
+images	300000	3570979659
+references	300000	2002746891
+write	peak_sim_measure_d60189cad0bc_lab_300000	activities	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	api_tokens	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	attachments	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	bookshelves_books	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	comments	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	deletions	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	email_confirmations	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	entities	300000	480000	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	entity_container_data	180005	0	5
+write	peak_sim_measure_d60189cad0bc_lab_300000	entity_page_data	120005	0	5
+write	peak_sim_measure_d60189cad0bc_lab_300000	entity_permissions	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	favourites	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	images	300000	300000	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	imports	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	joint_permissions	3000000	0	300000
+write	peak_sim_measure_d60189cad0bc_lab_300000	mention_history	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	mfa_values	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	migrations	104	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	page_revisions	5	4	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	permission_role	152	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	references	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	role_permissions	32	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	role_user	7	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	roles	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	search_terms	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	settings	6	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	slug_history	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	social_accounts	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	sort_rules	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	tags	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	user_invites	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	users	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	watches	300000	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	webhook_tracked_events	5	0	0
+write	peak_sim_measure_d60189cad0bc_lab_300000	webhooks	5	0	0

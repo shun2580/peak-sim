@@ -1,0 +1,54 @@
+{
+  "scenario_start_ms": 1794802264529.221,
+  "measure_requests": 79,
+  "measure_failed": 20,
+  "measure_ok": 59,
+  "dropped_iterations": 0,
+  "http_status": {
+    "200": 59,
+    "302": 16,
+    "500": 4
+  },
+  "http_status_by_route": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+      "200": 4
+    },
+    "GET /books/{bookSlug}/export/zip": {
+      "200": 3
+    },
+    "GET /books/{bookSlug}/page/{pageSlug}/references": {
+      "200": 4
+    },
+    "GET /books/{slug}": {
+      "500": 4
+    },
+    "GET /books/{slug}/references": {
+      "200": 16
+    },
+    "GET /images/edit/{id}": {
+      "200": 16
+    },
+    "GET /oidc/callback": {
+      "302": 16
+    },
+    "GET /shelves/{slug}": {
+      "200": 16
+    }
+  },
+  "request_timeout": "600s",
+  "duration_ms": {
+    "avg": 10881.436583354429,
+    "p95": 44719.3262358,
+    "max": 228980.264745
+  },
+  "per_route": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 4,
+    "GET /books/{bookSlug}/export/zip": 3,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 4,
+    "GET /books/{slug}": 4,
+    "GET /books/{slug}/references": 16,
+    "GET /images/edit/{id}": 16,
+    "GET /oidc/callback": 16,
+    "GET /shelves/{slug}": 16
+  }
+}

@@ -1,0 +1,135 @@
+{
+    "scenario": "s-1",
+    "scale": 300000,
+    "mix": "even",
+    "scheme": "B",
+    "rung": 2,
+    "decided_rps": 0.035,
+    "achieved_rps": 0.03415061295971979,
+    "rps_ratio": 0.9757317988491366,
+    "rps_valid": true,
+    "rps_status": "valid",
+    "db_utilization": 0.21775110138027629,
+    "db_utilization_percent": 21.775110138027628,
+    "app_cpu_utilization": 0.1149937027561564,
+    "app_cpu_percent": 11.499370275615641,
+    "k6_dropped_iterations": 0,
+    "requests_in_window": 39,
+    "requests_not_2xx": 10,
+    "http_status": {
+        "200": 29,
+        "302": 5,
+        "500": 5
+    },
+    "http_status_by_route": {
+        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+            "200": 5
+        },
+        "GET /books/{bookSlug}/export/zip": {
+            "200": 4
+        },
+        "GET /books/{bookSlug}/page/{pageSlug}/references": {
+            "200": 5
+        },
+        "GET /books/{slug}": {
+            "500": 5
+        },
+        "GET /books/{slug}/references": {
+            "200": 5
+        },
+        "GET /images/edit/{id}": {
+            "200": 5
+        },
+        "GET /oidc/callback": {
+            "302": 5
+        },
+        "GET /shelves/{slug}": {
+            "200": 5
+        }
+    },
+    "window_sec": 1142,
+    "window_epoch": {
+        "from": 1794789116.8583913,
+        "to": 1794790258.8583913
+    },
+    "started_at": "2026-11-16T09:30:51+09:00",
+    "ended_at": "2026-11-16T09:51:53+09:00",
+    "decision": {
+        "stop": false,
+        "reasons": [],
+        "note": null
+    },
+    "trial": false,
+    "prediction": {
+        "file": "poc/lab/predictions/ladder-prediction-3.json",
+        "commit": "206d1148fce29a8643b50a2bb21d0732b7b2cc03",
+        "commit_time": "2026-11-16T08:53:18+09:00"
+    },
+    "settings": {
+        "php_max_execution_time": "0",
+        "php_memory_limit": "4G",
+        "php_fpm_request_terminate_timeout": "0s",
+        "nginx_fastcgi_read_timeout": "600s",
+        "k6_request_timeout": "600s",
+        "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+        "k6_request_timeout_seen_by_k6": "600s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0035026269702276708,
+            "requests": 4,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.004375,
+            "achieved_rps": 0.0043782837127845885,
+            "requests": 5,
+            "planned_requests": 5
+        }
+    ]
+}
