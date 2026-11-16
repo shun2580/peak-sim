@@ -1,0 +1,25 @@
+Test A (300,000 rows) stopped at a break, 2026-11-16 (the maintainer closed the session).
+Nothing here is a verdict. The interrupted runs are kept apart in stopped-20261116/ and are NOT counted in any comparison. compare_a3.sh was not run.
+The stopped runs are to be done again from their FIRST route on resume (plan section 6, a3-run/README.md).
+
+How it was stopped (decided 2026-11-16T19:59:59): not 'bin/stack down' (it is 'compose down -v --remove-orphans' and deletes the volumes), but
+  docker compose -p <project> -f <copy>/poc/runtime/compose/measure.compose.yaml stop     (containers only; no kill, no -v)
+  peak-meas-a3-bs                  stopped 2026-11-16T20:00:52+09:00
+  peak-meas-var-a3var300k-db1      stopped 2026-11-16T20:00:55+09:00
+(the compose file needs five variables to be interpolated; dummy values were given for that, nothing was started or recreated)
+
+What followed (not done by this command):
+  measure_bookstack.sh  ended by itself  exit=137  at 20:00:56 (the measure tool failed on its request when the container stopped)
+  repeat_bookstack.sh   ended by itself  exit=15   at 20:01:00 (variance-run: 'db1: finished with exit 15'; the script's last lines run 'bin/stack down' for its own project)
+  No process restarted a stack and none went on to empty-run the remaining routes (ps at 20:01:23: no measure/variance process left; only memlog.sh and memguard.sh).
+  BOTH DATABASE VOLUMES ARE GONE: the volumes of both measurement databases no longer exist (docker volume inspect: GONE), and no peak-meas container is left (docker ps -a: 0).
+  The volume of the repeat is removed by the script's own 'stack down' (read in the script); the same for peak-meas-a3-bs is inferred (the tool's own teardown after the failure), not read.
+  So the 300,000-row databases must be built again on resume (BookStack global rebuild: 4,366 s measured once in D195, limit 7,200 s).
+
+What was measured before the stop:
+  verification app, every route cold once: 24 of 24 routes tried, exit 0, 2026-11-16T17:31:13 -> 19:05:22 (summary seconds 5625.9). classes: ok 21, exception 1, runner_failed 1, timeout 1. (fixtures/ , committed)
+  BookStack, every route cold once (31 items): started 19:06:43; at the stop it was still in its build phase (the group rebuild): 0 routes measured (the out dir holds only static.json). Kept in stopped-20261116/bookstack_measure_dir and bookstack.*.
+  BookStack repeat (22 routes x 3 laps, one database, group g1 built): lap 1: routes 1-6 done; lap 2: routes 7-11 done (2 of 2 attempts ok each, ~630-660 s each);
+    route 12 of lap 2 (DELETE /shelves/{slug}) was started 19:55:59 and cut at 20:00:56 (exit 137, 0 attempts). Laps 3 and the groups g2-g5 (plan files only) not started. Kept in stopped-20261116/variance.
+
+Memory records: memlog.sh and memguard.sh stopped by their own stop file (a3-measure/memlog.stop, placed 2026-11-16T20:01:52+09:00); memavail.tsv kept.
