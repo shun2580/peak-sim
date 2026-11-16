@@ -13,3 +13,18 @@ b18f2f06a39a7430fa28b97bb06903aaa6ca2e3862a0433ac52cc2e522980275  host_before_me
 1cbbe66bbd172db0354a3a1943fc3fd49002fdc736fc92c521e438c89638bea1  run_times.txt
 6010b6792a949f2257aaec29b68948f50b853e986f1c49dedcfbc055eb38224b  memavail.tsv
 (fixtures.wall.txt, STOPPED_20261116.txt and README.md differ from the originals on purpose (paths and internal words); not listed)
+
+# BookStack cold once, resumed run (2026-11-16T23:29:36 to 2026-11-17T04:13:17); the originals' SHA-256
+6a9c99970edd4b89e095841d6e4e6a270f6ab6017527e4428bd331414e29dd2a  bookstack/attempts.jsonl
+015a41de59b652eea73b84b3effb39e43fd98783fc024400793ac847aeb77ded  bookstack/report.md
+d57b3619d3d66585d74a873812aed4e1850d738bbf715ae062c2f1ae0640e451  bookstack/routes.jsonl
+4274936ecc97c8aa14a586194f63305cc8f89ee1542495aabfcca499bfb11c30  bookstack/summary.json
+ee329bfb0a8a518acaf60b1a06b1323fe176731d12c289e70330d1fd72d98dfa  bookstack/tasks.json
+c3cb3da81e736eca4991e4dc636a04019bbe1ff5921360eff8a6643970f81046  bookstack/static.json
+4d24e44fd967a11d8f2e49af31bc5b0a73dcc72ea9304d72479b6b5cdd610900  bookstack.stdout.log
+073257505465e8250587bf18d0b0d44bdadde8cd09bbdca9a24b634970cc8089  bookstack.stderr.log
+2dbecbefa8da8aa203b7fe6add34c3bad27f67b8cccb9e3d4e060efb18178e31  bookstack.create_options.tsv
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  bookstack.done
+0569884f4f5bff9f4a5c005ad6934a97e96ecc22081fe4363e02d9f7876f9495  host_before_measure_bookstack.txt
+eb79bd488d644b1556b9de0dd902be956b85889551f512f0d4b3c0e72653c5e8  host_before_repeat_bookstack.txt
+(bookstack.wall.txt differs from the original on purpose (home path replaced). bookstack/static.json (45.5 MB) is a byte copy of the static-analysis input and is not in the repository; its SHA-256 above is the same as the input's. The two .log files are ignored by the repository's rules.)

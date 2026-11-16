@@ -8,3 +8,13 @@ Only what was **finished** before the stop on 2026-11-16 is here. The prediction
 - `fixtures.wall.txt` has the machine's home path replaced (`~`, `<trials>`); every other file is byte-identical to the original (`sha256.txt`).
 
 No comparison script was run on these records.
+
+## Added 2026-11-17: BookStack, every route cold once (resumed run)
+
+- `bookstack/` (+ `bookstack.*`, `host_before_measure_bookstack.txt`, `host_before_repeat_bookstack.txt`): BookStack, the 31 items cold once, at 300,000 rows, started again from the first route on databases built again after the stop. 2026-11-16T23:29:36 to 2026-11-17T04:13:17 (17,001 s), exit 0. 63 routes, 63 tried. Classes: ok 20, unauthenticated 21, not_found 8, exception 7, validation_422 6, timeout 1. These are raw records; the verdict column reads `not_measured` for every route because the run has one scale. Pass or fail is decided by the comparison, which has not been run.
+- The run builds a whole 300,000-row database twice: one for the inspection (dropped after the routes are counted) and one to measure on. `bookstack.create_options.tsv` is the table options read from the inspection database.
+- **The repeat of the marked routes (22 routes x 3 laps) was still running when these records were added.** Its records and the end times are not here yet; `order_record.txt`, `run_times.txt` and `memavail.tsv` here are still the ones of the stopped runs and will be replaced when the repeat has ended.
+- After the stop on 2026-11-16 the Windows host was restarted by hand once (20:18 to 20:19), with nothing running; no measurement was cut by it.
+- `bookstack/static.json` (45.5 MB) is a byte copy of the static-analysis input and is not in the repository; its SHA-256 is in `sha256.txt`. `bookstack.wall.txt` has the home path replaced; every other file is byte-identical to the original (`sha256.txt`).
+
+No comparison script was run on these records.
