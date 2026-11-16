@@ -1,6 +1,6 @@
 # Extrapolation test (A), third run: do the estimates predict 300,000 rows?
 
-Status: **The result is written** (sections 2 to 5 and 7), with the count of what is left of conditions 1 to 3 of section 0 of the spec in section 7 (the scope of the count for condition 1a is not decided). Sections 0, 1 and 6 were written before the measurement and are not changed by the result; the places in section 1 that a time or a file had to fill are filled, and each says where its figure comes from. Nothing in the rules was changed when the figures were added.
+Status: **The result is written** (sections 2 to 5 and 7), with the count of what is left of conditions 1 to 3 of section 0 of the spec in section 7 (the scope of the count for condition 1a is not decided). Sections 0, 1 and 6 were written before the measurement and are not rewritten by the result (one wrong figure in section 0 is corrected by a visible note); the places in section 1 that a time or a file had to fill are filled, and each says where its figure comes from. Nothing in the rules was changed when the figures were added.
 
 Result in one line (rule B, R1, which gives the verdict; the multiple of the capture's largest size is 10): the verdict of A is given for each application, as in the first and second runs. The verification app **passes** (queries 21 of 21, rows examined 21 of 21 inside the lowest standard). BookStack **fails** (queries 32 of 33, rows examined 24 of 33 = 72.73%; 27 needed, 3 short). The two applications together (queries 53 of 54 = 98.15%, rows examined 45 of 54 = 83.33%; 44 needed) are shown beside them and are not used for the verdict (D71); it is not a pass of A. Rule A, shown beside it, gives the same except that the pooled rows examined are 42 of 54 (77.78%). R2 (the two heavy verification-app routes inside the denominator) gives the same verdicts and shares. The pass line, the tolerances and the denominator are those of the earlier runs.
 
@@ -36,6 +36,8 @@ Relative error is `|estimate − measured| / measured`; when the measured value 
 **The targets and the way the data is built** are those of section 7.1 of the spec and of the earlier runs: the verification app and BookStack, the routes whose cost could be estimated, the 12 routes whose empty-system request was `not_found` in the denominator (D105), and for each route the table that sets its N grown **for that route alone** (not the way the lab grows eight tables together).
 
 **Capture and estimate.** The statements are captured at **100, 1,000, 10,000 and 30,000 rows**, on databases that are analyzed (`ANALYZE TABLE`) after they are built and before the capture (the same rule as the lab, D179). At 300,000 rows the database is built and analyzed and `EXPLAIN` is run on it, to make the marks; no request is sent to it before the estimates are committed. **The capture's largest size is 30,000 rows and the test size is 300,000 rows: 10 times.** (The second run was 6.667 times.)
+
+**Correction after the result:** the second run of test A was **20 times** (200,000 rows against a capture whose largest size was 10,000 rows), not 6.667 as the last sentence of the paragraph above says. 6.667 is the multiple of the second round of the lab backtest (200,000 against 30,000). The sentence above was written before the measurement and is not rewritten; the third run, 10 times (300,000 against 30,000), is as written.
 
 **Marked route** (D122): a route with at least one statement marked `plan_changes_at_scale` or `plan_unstable` in the EXPLAIN of the 300,000-row database. The list is made mechanically from the EXPLAIN output and is committed with the estimates; no measured value goes into it.
 
@@ -274,7 +276,7 @@ The second run (200,000 rows, `extrapolation-test-2.md`, rule B) beside this run
 | Together, marked routes | Rows examined, inside the lowest standard | 10 of 19 (52.63%) | 11 of 20 (55.00%) |
 | BookStack, unmarked routes | Rows examined, inside the lowest standard | 12 of 15 (80.00%) | 13 of 13 (100.00%) |
 | BookStack, marked routes | Rows examined, inside the lowest standard | 10 of 19 (52.63%) | 11 of 20 (55.00%) |
-| Multiple of the capture's largest size | | 6.667 | 10 |
+| Multiple of the capture's largest size | | 20 (200,000 against 10,000; see the correction in section 0) | 10 |
 
 The second run's figures are copied from section 7 of `extrapolation-test-2.md`. The capture's largest size was 10,000 rows in the second run and is 30,000 rows in this one.
 
