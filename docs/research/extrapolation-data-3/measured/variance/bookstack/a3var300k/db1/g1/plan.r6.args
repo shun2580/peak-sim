@@ -1,0 +1,9 @@
+--scale=300000
+--uri=/shelves/1
+--method=DELETE
+--route=/shelves/{slug}
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

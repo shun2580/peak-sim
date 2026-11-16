@@ -1,0 +1,9 @@
+--scale=300000
+--uri=/settings/recycle-bin/empty
+--method=POST
+--route=/settings/recycle-bin/empty
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

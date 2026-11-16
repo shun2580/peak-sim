@@ -1,0 +1,6 @@
+1	DELETE	/books/{bookSlug}/chapter/{chapterSlug}	/books/1/chapter/2	DELETE__books__bookSlug__chapter__chapterSlug_
+2	DELETE	/books/{bookSlug}/draft/{pageId}	/books/1/draft/4	DELETE__books__bookSlug__draft__pageId_
+3	DELETE	/books/{bookSlug}/page/{pageSlug}	/books/1/page/3	DELETE__books__bookSlug__page__pageSlug_
+4	DELETE	/books/{id}	/books/1	DELETE__books__id_
+5	POST	/settings/recycle-bin/empty	/settings/recycle-bin/empty	POST__settings_recycle_bin_empty
+6	DELETE	/shelves/{slug}	/shelves/1	DELETE__shelves__slug_

@@ -1,0 +1,7 @@
+label=a3var300k
+started=2026-11-16T23:29:56+0900
+source_commit=206d1148fce29a8643b50a2bb21d0732b7b2cc03
+scale=300000 dbs=1 laps=3 parallel=0 tap=off analyze=none data=generator profile=bookstack request_timeout=600
+routes=DELETE /books/{bookSlug}/chapter/{chapterSlug},DELETE /books/{bookSlug}/draft/{pageId},DELETE /books/{bookSlug}/page/{pageSlug},DELETE /books/{id},DELETE /shelves/{slug},GET /books/{bookSlug}/chapter/{chapterSlug},GET /books/{bookSlug}/chapter/{chapterSlug}/references,GET /books/{bookSlug}/draft/{pageId},GET /books/{bookSlug}/export/zip,GET /books/{bookSlug}/page/{pageSlug},GET /books/{bookSlug}/page/{pageSlug}/references,GET /books/{slug},GET /books/{slug}/references,GET /shelves/{slug},GET /shelves/{slug}/references,POST /books/{bookSlug}/copy,POST /settings/maintenance/regenerate-references,POST /settings/recycle-bin/empty,PUT /books/{bookSlug}/chapter/{chapterSlug},PUT /books/{bookSlug}/page/{pageSlug},PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore,PUT /shelves/{slug}
+php_image=peak-measure-php-bookstack:8.3
+finished=2026-11-17T05:01:26+0900 exit=0

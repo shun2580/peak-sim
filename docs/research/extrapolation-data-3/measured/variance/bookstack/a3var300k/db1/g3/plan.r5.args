@@ -1,0 +1,9 @@
+--scale=300000
+--uri=/books/1/page/3/revisions/1/restore
+--method=PUT
+--route=/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

@@ -28,3 +28,23 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  bookstack.done
 0569884f4f5bff9f4a5c005ad6934a97e96ecc22081fe4363e02d9f7876f9495  host_before_measure_bookstack.txt
 eb79bd488d644b1556b9de0dd902be956b85889551f512f0d4b3c0e72653c5e8  host_before_repeat_bookstack.txt
 (bookstack.wall.txt differs from the original on purpose (home path replaced). bookstack/static.json (45.5 MB) is a byte copy of the static-analysis input and is not in the repository; its SHA-256 above is the same as the input's. The two .log files are ignored by the repository's rules.)
+
+# BookStack repeat, resumed run (2026-11-16T23:29:56 to 2026-11-17T05:01:30); the originals' SHA-256 (paths relative to the output directory)
+57a3662db0e7c68ee4c41ceb07dce0ffe5c50daefbbae426eca56ff3803d3cf3  variance/bookstack/a3var300k/db1/index.tsv
+12a3c29eed0a2ff2a913950a1bee5c2f59c450a9165af60dbdb7f6ac1f450fa9  repeat.wall.txt
+91493e4cd26d5b5a57688a048f0995a814ab932d51079054c0f3a7f374206306  order_record.txt
+7fec83c913dc74aaa3486477e08febb4e46928a161ac20848d036f0de54f5bec  run_times.txt
+f7ab817aa3e96b591297bb8228e6e74626ba21f995fc6a90a5072df085f41fe9  memavail.tsv
+# the three stderr.log files left out of the repository
+aa3d6b6a0571351239284368752e7cf12975517f3be03045887cf4ef8cff4c29  variance/bookstack/a3var300k/db1/g2/plain_lap1/22_GET__books__slug_/stderr.log
+51e453ef23fbfa986d79abaef8020dae9db5f9da35601fe34070b78e3e180ec5  variance/bookstack/a3var300k/db1/g2/plain_lap2/28_GET__books__slug_/stderr.log
+cfc9df07c22a912116d7aef1ef001ca62d35eb6ee9e97cbd69144b3b02dd0668  variance/bookstack/a3var300k/db1/g2/plain_lap3/34_GET__books__slug_/stderr.log
+# every other file under variance/ is listed in compare/input_sha256.txt (the .jsonl) or is a byte copy
+# compare output (the originals)
+99cd3f471d7944f8998381587f29bba296ed3ea56053621efb518652c2dd1077  compare/R1/compare.json
+7f13a8116cec7c2e47c7bf8ef21be0df647c318a72e4812be26364fd8e5d3f61  compare/R1/compare.md
+f568edec2d3a529330e49d814d3558c83d96aa61a7a6db411621f548b4c55620  compare/R2/compare.json
+f9b39377cd999d026f9668ee1277536e7a884e33d7d3592810f274fc8078aaf1  compare/R2/compare.md
+84b8819a94d6f53c577060fca9ab7de032d5f876e7ac683fb0b321580c49442a  compare/R2_patch.diff
+cf3fb3592c48280fd67f219272c827c3db96bad3e3641a2a5fa50e8e27e7923d  compare/R2_script_sha256.txt
+# note: repeat.wall.txt in this directory has the home path replaced; the line above is the original's hash

@@ -1,0 +1,191 @@
+# at 2026-11-17T04:24:21+0900
+innodb_table_stats	activities	5	1	5	2026-11-16 19:24:15
+innodb_table_stats	api_tokens	5	1	3	2026-11-16 19:24:15
+innodb_table_stats	attachments	5	1	1	2026-11-16 19:24:15
+innodb_table_stats	bookshelves_books	5	1	1	2026-11-16 19:24:15
+innodb_table_stats	cache	0	1	0	2026-11-16 19:24:15
+innodb_table_stats	comments	5	1	3	2026-11-16 19:24:19
+innodb_table_stats	deletions	5	1	3	2026-11-16 19:24:15
+innodb_table_stats	email_confirmations	5	1	2	2026-11-16 19:24:15
+innodb_table_stats	entities	5	1	7	2026-11-16 19:24:15
+innodb_table_stats	entity_container_data	5	1	0	2026-11-16 19:24:15
+innodb_table_stats	entity_page_data	5	1	2	2026-11-16 19:24:15
+innodb_table_stats	entity_permissions	5	1	2	2026-11-16 19:24:15
+innodb_table_stats	failed_jobs	0	1	1	2026-11-16 19:24:15
+innodb_table_stats	favourites	5	1	2	2026-11-16 19:24:15
+innodb_table_stats	images	5	1	2	2026-11-16 19:24:19
+innodb_table_stats	imports	5	1	1	2026-11-16 19:24:19
+innodb_table_stats	jobs	0	1	1	2026-11-16 19:24:14
+innodb_table_stats	joint_permissions	5	1	4	2026-11-16 19:24:19
+innodb_table_stats	mention_history	5	1	2	2026-11-16 19:24:19
+innodb_table_stats	mfa_values	5	1	2	2026-11-16 19:24:19
+innodb_table_stats	migrations	94	1	0	2026-11-16 19:24:04
+innodb_table_stats	page_revisions	5	1	5	2026-11-16 19:24:19
+innodb_table_stats	password_resets	0	1	0	2026-11-16 19:23:45
+innodb_table_stats	permission_role	122	1	1	2026-11-16 19:24:13
+innodb_table_stats	references	299088	1123	1924	2026-11-16 19:24:19
+innodb_table_stats	role_permissions	61	1	1	2026-11-16 19:24:00
+innodb_table_stats	role_user	7	1	1	2026-11-16 19:24:19
+innodb_table_stats	roles	9	1	2	2026-11-16 19:24:19
+innodb_table_stats	search_terms	5	1	4	2026-11-16 19:24:19
+innodb_table_stats	sessions	0	1	0	2026-11-16 19:23:49
+innodb_table_stats	settings	6	1	0	2026-11-16 19:24:19
+innodb_table_stats	slug_history	5	1	4	2026-11-16 19:24:19
+innodb_table_stats	social_accounts	5	1	2	2026-11-16 19:24:19
+innodb_table_stats	sort_rules	5	1	0	2026-11-16 19:24:19
+innodb_table_stats	tags	5	1	4	2026-11-16 19:24:19
+innodb_table_stats	user_invites	5	1	2	2026-11-16 19:24:19
+innodb_table_stats	users	2	1	4	2026-11-16 19:24:13
+innodb_table_stats	views	0	1	3	2026-11-16 19:24:11
+innodb_table_stats	watches	0	1	3	2026-11-16 19:24:04
+innodb_table_stats	webhook_tracked_events	0	1	0	2026-11-16 19:23:54
+innodb_table_stats	webhooks	0	1	2	2026-11-16 19:23:55
+cardinality	activities	activities_created_at_index	1	created_at	1
+cardinality	activities	activities_entity_id_index	1	loggable_id	2
+cardinality	activities	activities_ip_index	1	ip	5
+cardinality	activities	activities_key_index	1	type	5
+cardinality	activities	activities_user_id_index	1	user_id	5
+cardinality	activities	PRIMARY	1	id	5
+cardinality	api_tokens	api_tokens_expires_at_index	1	expires_at	5
+cardinality	api_tokens	api_tokens_token_id_unique	1	token_id	5
+cardinality	api_tokens	api_tokens_user_id_index	1	user_id	5
+cardinality	api_tokens	PRIMARY	1	id	5
+cardinality	attachments	attachments_uploaded_to_index	1	uploaded_to	5
+cardinality	attachments	PRIMARY	1	id	5
+cardinality	bookshelves_books	bookshelves_books_book_id_foreign	1	book_id	5
+cardinality	bookshelves_books	PRIMARY	1	bookshelf_id	5
+cardinality	bookshelves_books	PRIMARY	2	book_id	5
+cardinality	cache	cache_expiration_index	1	expiration	0
+cardinality	cache	cache_key_unique	1	key	0
+cardinality	comments	comments_archived_index	1	archived	1
+cardinality	comments	comments_entity_id_entity_type_index	1	commentable_id	5
+cardinality	comments	comments_entity_id_entity_type_index	2	commentable_type	5
+cardinality	comments	comments_local_id_index	1	local_id	5
+cardinality	comments	PRIMARY	1	id	5
+cardinality	deletions	deletions_deletable_id_index	1	deletable_id	2
+cardinality	deletions	deletions_deletable_type_index	1	deletable_type	4
+cardinality	deletions	deletions_deleted_by_index	1	deleted_by	5
+cardinality	deletions	PRIMARY	1	id	5
+cardinality	email_confirmations	email_confirmations_token_index	1	token	5
+cardinality	email_confirmations	email_confirmations_user_id_index	1	user_id	5
+cardinality	email_confirmations	PRIMARY	1	id	5
+cardinality	entities	entities_book_id_index	1	book_id	5
+cardinality	entities	entities_chapter_id_index	1	chapter_id	5
+cardinality	entities	entities_deleted_at_index	1	deleted_at	1
+cardinality	entities	entities_owned_by_index	1	owned_by	5
+cardinality	entities	entities_slug_index	1	slug	5
+cardinality	entities	entities_type_index	1	type	5
+cardinality	entities	entities_updated_at_index	1	updated_at	1
+cardinality	entities	PRIMARY	1	id	5
+cardinality	entities	PRIMARY	2	type	5
+cardinality	entity_container_data	PRIMARY	1	entity_id	3
+cardinality	entity_container_data	PRIMARY	2	entity_type	3
+cardinality	entity_page_data	entity_page_data_draft_index	1	draft	2
+cardinality	entity_page_data	entity_page_data_template_index	1	template	2
+cardinality	entity_page_data	PRIMARY	1	page_id	2
+cardinality	entity_permissions	new_entity_permissions_entity_id_entity_type_index	1	entity_id	2
+cardinality	entity_permissions	new_entity_permissions_entity_id_entity_type_index	2	entity_type	5
+cardinality	entity_permissions	new_entity_permissions_role_id_index	1	role_id	5
+cardinality	entity_permissions	PRIMARY	1	id	5
+cardinality	failed_jobs	fail_queue_time_index	1	connection	0
+cardinality	failed_jobs	fail_queue_time_index	2	queue	0
+cardinality	failed_jobs	fail_queue_time_index	3	failed_at	0
+cardinality	failed_jobs	failed_jobs_uuid_unique	1	uuid	0
+cardinality	failed_jobs	PRIMARY	1	id	0
+cardinality	favourites	favouritable_index	1	favouritable_id	2
+cardinality	favourites	favouritable_index	2	favouritable_type	5
+cardinality	favourites	favourites_user_id_index	1	user_id	5
+cardinality	favourites	PRIMARY	1	id	5
+cardinality	images	images_type_index	1	type	5
+cardinality	images	images_uploaded_to_index	1	uploaded_to	5
+cardinality	images	PRIMARY	1	id	5
+cardinality	imports	imports_created_by_index	1	created_by	5
+cardinality	imports	PRIMARY	1	id	5
+cardinality	jobs	jobs_queue_index	1	queue	0
+cardinality	jobs	PRIMARY	1	id	0
+cardinality	joint_permissions	joint_permissions_entity_id_entity_type_index	1	entity_id	2
+cardinality	joint_permissions	joint_permissions_entity_id_entity_type_index	2	entity_type	5
+cardinality	joint_permissions	joint_permissions_owner_id_index	1	owner_id	5
+cardinality	joint_permissions	joint_permissions_role_id_index	1	role_id	5
+cardinality	joint_permissions	joint_permissions_status_index	1	status	5
+cardinality	joint_permissions	PRIMARY	1	role_id	5
+cardinality	joint_permissions	PRIMARY	2	entity_type	5
+cardinality	joint_permissions	PRIMARY	3	entity_id	5
+cardinality	mention_history	mention_history_mentionable_id_index	1	mentionable_id	5
+cardinality	mention_history	mention_history_mentionable_type_index	1	mentionable_type	5
+cardinality	mention_history	PRIMARY	1	id	5
+cardinality	mfa_values	mfa_values_method_index	1	method	5
+cardinality	mfa_values	mfa_values_user_id_index	1	user_id	5
+cardinality	mfa_values	PRIMARY	1	id	5
+cardinality	migrations	PRIMARY	1	id	94
+cardinality	page_revisions	page_revisions_book_slug_index	1	book_slug	5
+cardinality	page_revisions	page_revisions_page_id_index	1	page_id	5
+cardinality	page_revisions	page_revisions_revision_number_index	1	revision_number	5
+cardinality	page_revisions	page_revisions_slug_index	1	slug	5
+cardinality	page_revisions	page_revisions_type_index	1	type	1
+cardinality	page_revisions	PRIMARY	1	id	5
+cardinality	password_resets	password_resets_email_index	1	email	0
+cardinality	password_resets	password_resets_token_index	1	token	0
+cardinality	permission_role	permission_role_role_id_foreign	1	role_id	4
+cardinality	permission_role	PRIMARY	1	permission_id	62
+cardinality	permission_role	PRIMARY	2	role_id	122
+cardinality	references	PRIMARY	1	id	299088
+cardinality	references	references_from_id_index	1	from_id	4
+cardinality	references	references_from_type_index	1	from_type	3
+cardinality	references	references_to_id_index	1	to_id	4
+cardinality	references	references_to_type_index	1	to_type	3
+cardinality	role_permissions	permissions_name_unique	1	name	61
+cardinality	role_permissions	PRIMARY	1	id	61
+cardinality	role_user	PRIMARY	1	user_id	7
+cardinality	role_user	PRIMARY	2	role_id	7
+cardinality	role_user	role_user_role_id_foreign	1	role_id	7
+cardinality	roles	PRIMARY	1	id	9
+cardinality	roles	roles_external_auth_id_index	1	external_auth_id	1
+cardinality	roles	roles_system_name_index	1	system_name	8
+cardinality	search_terms	PRIMARY	1	id	5
+cardinality	search_terms	search_terms_entity_type_entity_id_index	1	entity_type	4
+cardinality	search_terms	search_terms_entity_type_entity_id_index	2	entity_id	5
+cardinality	search_terms	search_terms_entity_type_index	1	entity_type	4
+cardinality	search_terms	search_terms_score_index	1	score	5
+cardinality	search_terms	search_terms_term_index	1	term	5
+cardinality	sessions	sessions_id_unique	1	id	0
+cardinality	settings	PRIMARY	1	setting_key	6
+cardinality	slug_history	PRIMARY	1	id	5
+cardinality	slug_history	slug_history_parent_slug_index	1	parent_slug	5
+cardinality	slug_history	slug_history_slug_index	1	slug	5
+cardinality	slug_history	slug_history_sluggable_id_index	1	sluggable_id	2
+cardinality	slug_history	slug_history_sluggable_type_index	1	sluggable_type	4
+cardinality	social_accounts	PRIMARY	1	id	5
+cardinality	social_accounts	social_accounts_driver_index	1	driver	5
+cardinality	social_accounts	social_accounts_user_id_index	1	user_id	5
+cardinality	sort_rules	PRIMARY	1	id	5
+cardinality	tags	PRIMARY	1	id	5
+cardinality	tags	tags_entity_id_entity_type_index	1	entity_id	2
+cardinality	tags	tags_entity_id_entity_type_index	2	entity_type	5
+cardinality	tags	tags_name_index	1	name	5
+cardinality	tags	tags_order_index	1	order	5
+cardinality	tags	tags_value_index	1	value	5
+cardinality	user_invites	PRIMARY	1	id	5
+cardinality	user_invites	user_invites_token_index	1	token	5
+cardinality	user_invites	user_invites_user_id_index	1	user_id	5
+cardinality	users	PRIMARY	1	id	2
+cardinality	users	users_email_unique	1	email	2
+cardinality	users	users_external_auth_id_index	1	external_auth_id	1
+cardinality	users	users_slug_unique	1	slug	2
+cardinality	users	users_system_name_index	1	system_name	2
+cardinality	views	PRIMARY	1	id	1
+cardinality	views	views_updated_at_index	1	updated_at	1
+cardinality	views	views_user_id_index	1	user_id	1
+cardinality	views	views_viewable_id_index	1	viewable_id	1
+cardinality	views	views_viewable_type_index	1	viewable_type	1
+cardinality	watches	PRIMARY	1	id	1
+cardinality	watches	watchable_index	1	watchable_id	1
+cardinality	watches	watchable_index	2	watchable_type	1
+cardinality	watches	watches_level_index	1	level	1
+cardinality	watches	watches_user_id_index	1	user_id	1
+cardinality	webhook_tracked_events	PRIMARY	1	id	1
+cardinality	webhook_tracked_events	webhook_tracked_events_event_index	1	event	1
+cardinality	webhook_tracked_events	webhook_tracked_events_webhook_id_index	1	webhook_id	1
+cardinality	webhooks	PRIMARY	1	id	1
+cardinality	webhooks	webhooks_active_index	1	active	1
+cardinality	webhooks	webhooks_name_index	1	name	1

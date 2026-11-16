@@ -1,0 +1,7 @@
+--scale=300000
+--uri=/books/1/export/zip
+--method=GET
+--route=/books/{bookSlug}/export/zip
+--axis=N
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

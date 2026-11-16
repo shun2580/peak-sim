@@ -1,0 +1,4 @@
+--scale=300000
+--mode=generator
+--recipe-json={"mode":"targeted","n_tables":["entities"],"m_table":"tags","m_per":"entities","n":300000,"m":3,"base":5}
+--profile=bookstack

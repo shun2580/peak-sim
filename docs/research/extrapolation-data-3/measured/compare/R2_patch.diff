@@ -1,0 +1,6 @@
+40a41
+> R2_INCLUDE = ('GET /ng/nested', 'POST /ok/bulk')   # R2 (D212): estimated routes with values that are not complete
+168c169
+<     if not r.get('complete'):
+---
+>     if not r.get('complete') and r.get('route') not in R2_INCLUDE:

@@ -1,0 +1,6 @@
+1	GET	/books/{bookSlug}/chapter/{chapterSlug}	/books/1/chapter/2	GET__books__bookSlug__chapter__chapterSlug_
+2	GET	/books/{bookSlug}/export/zip	/books/1/export/zip	GET__books__bookSlug__export_zip
+3	GET	/books/{bookSlug}/page/{pageSlug}	/books/1/page/3	GET__books__bookSlug__page__pageSlug_
+4	GET	/books/{slug}	/books/1	GET__books__slug_
+5	POST	/settings/maintenance/regenerate-references	/settings/maintenance/regenerate-references	POST__settings_maintenance_regenerate_references
+6	GET	/shelves/{slug}	/shelves/1	GET__shelves__slug_

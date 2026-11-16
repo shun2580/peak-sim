@@ -1,0 +1,4 @@
+start_bookstack=2026-11-16T23:29:36+09:00
+start_bookstack_repeat=2026-11-16T23:29:56+09:00
+end_bookstack=2026-11-17T04:13:17+09:00 exit_bookstack=0
+end_bookstack_repeat=2026-11-17T05:01:30+09:00 exit_bookstack_repeat=0
