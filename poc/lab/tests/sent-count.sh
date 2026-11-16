@@ -7,8 +7,10 @@
 #   poc/lab/tests/sent-count.sh
 #
 # The stand-in answers /fast at once and /slow after 42 seconds. One plan: two routes, 1 rps in all (0.5 each), a 24 s step whose first
-# 4 s are discarded (a window of 20 s, 20 requests decided, 10 of them to the slow route). A request of the slow route sent after the 12th
-# second of the step is still running 30 s after the step's end. That is the shape of the third run's s-1 step (a request of over 40 s
+# 4 s are discarded (a window of 20 s, 20 requests decided, 10 of them to the slow route). Each route's stream starts 1 s into the
+# step (start_offset_sec, as the staggered plans of the real ladder do), so every send is 1 s or more from the edges of the window
+# (the 4th and the 24th second): a plan that sent on an edge would count 19 to 22 requests from one run to the next, by milliseconds.
+# A request of the slow route sent after the 12th second of the step is still running 30 s after the step's end. That is the shape of the third run's s-1 step (a request of over 40 s
 # running at the end of the step), made small. Five runs, at once:
 #   old   the load script of the commit before this change (k6's own 30 s wait at the end; only the requests that finished are counted)
 #   new   this script with REQUEST_TIMEOUT=100s (it waits 100 s at the end; the requests sent are counted)
@@ -16,8 +18,9 @@
 #   plain this script with no REQUEST_TIMEOUT (k6's own wait; used to show the wait is changed only when a timeout is given)
 #   none  this script with REQUEST_TIMEOUT=100s on a plan whose routes all answer at once (nothing is running at the end)
 # What it shows: old -> the finished count is below 95% of the decided and the step is invalid; new -> the sent count is the decided
-# 20 (21 at most), the step is valid, every request finished, and some finished after the window (the record says so); drop -> invalid by the
+# 20, the step is valid, every request finished, and some finished after the window (the record says so); drop -> invalid by the
 # dropped arrivals; plain -> the wait stays k6's own (requests are still cut); none -> the sent count equals the finished count.
+# A last run (phase.js, no server) checks, on fixed times, that a request sent at or after the window's end is not in the window.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lab="$(cd "$here/.." && pwd)"
@@ -63,7 +66,9 @@ cat >"$work/targets-fast.json" <<'JSON'
 JSON
 
 php_run() { docker run --rm --pull=never --network none --cpuset-cpus="$cpuset" -u "$(id -u):$(id -g)" -v "$repo:/peak-sim:ro" -v "$work:/w" "$php_image" php "$@"; }
-php_run /peak-sim/poc/lab/load/make-plan.php --routes=/w/list.json --mix=even --rps=1 --duration=24 --warmup=4 >"$work/plan.json" || { echo "sent-count: make-plan failed" >&2; exit 2; }
+php_run /peak-sim/poc/lab/load/make-plan.php --routes=/w/list.json --mix=even --rps=1 --duration=24 --warmup=4 >"$work/plan-flat.json" || { echo "sent-count: make-plan failed" >&2; exit 2; }
+# start every route's stream 1 s into the step: sends at 1, 3, ... 23 s (warm-up: 2 each, window: 10 each)
+python3 -I -c 'import json,sys; p=json.load(open(sys.argv[1])); [r.update(start_offset_sec=1) for r in p["routes"]]; print(json.dumps(p))' "$work/plan-flat.json" >"$work/plan.json" || { echo "sent-count: cannot stagger the plan" >&2; exit 2; }
 
 docker run -d --rm --pull=never --network none --cpuset-cpus="$cpuset" --name "$srv" -e PHP_CLI_SERVER_WORKERS=64 -u "$(id -u):$(id -g)" \
   -v "$work:/w:ro" "$php_image" php -S 127.0.0.1:8080 /w/router.php >/dev/null || { echo "sent-count: the stand-in server did not start" >&2; exit 2; }
@@ -104,7 +109,7 @@ check "1b old: some requests of the slow route were cut at the end (finished < 2
 check "1c old: the finished count is outside 5% of the decided, so the step is invalid" test "$(judge old finished | cut -d'"' -f2)" = invalid
 
 # after the change: valid
-check "2a new: the sent count is the decided 20 (the spec's plain layout may send one more at the window's edge)" eq new '20 <= d["measure_sent"] <= 21' true
+check "2a new: the sent count is the decided 20" eq new 'd["measure_sent"]' 20
 check "2b new: every request that was sent finished (the wait was long enough)" eq new 'd["measure_requests"] == d["measure_sent"]' true
 check "2c new: no arrival was dropped" eq new 'd["dropped_iterations"]' 0
 check "2d new: the step is valid, counted on the sent requests" test "$(judge new sent | cut -d'"' -f2)" = valid
@@ -126,9 +131,36 @@ check "5a plain: the summary says no timeout and no wait" eq plain '[d["request_
 check "5b plain: the old 30 s wait still cuts the slow requests at the end (finished < sent)" eq plain 'd["measure_requests"] < d["measure_sent"]' true
 
 # nothing running at the end: the two counts are the same
-check "6a none: nothing was running at the end, the sent count equals the finished count" eq none 'd["measure_sent"] == d["measure_requests"] and 20 <= d["measure_sent"] <= 21' true
+check "6a none: nothing was running at the end, the sent count equals the finished count (20)" eq none '[d["measure_sent"], d["measure_requests"]]' '[20, 20]'
 check "6b none: the step is valid" test "$(judge none sent | cut -d'"' -f2)" = valid
 check "6c none: nothing finished after the window" eq none 'd["finished_after_window"]' 0
+
+# a request sent at or after the window's end is not counted in the window (phase.js, run by k6 on fixed times, so no clock is involved)
+cat >"$work/phase-test.js" <<'JS'
+import { phaseAt } from '/load/phase.js';
+export const options = { vus: 1, iterations: 1 };
+export function setup() {
+  return {
+    first: phaseAt(0, 4, 24),
+    before_edge: phaseAt(3999, 4, 24),
+    at_start: phaseAt(4000, 4, 24),
+    middle: phaseAt(13000, 4, 24),
+    last_in: phaseAt(23999, 4, 24),
+    at_end: phaseAt(24000, 4, 24),
+    past_end: phaseAt(24001, 4, 24),
+    long_after: phaseAt(60000, 4, 24),
+  };
+}
+export default function () {}
+export function handleSummary(data) {
+  return { '/w/phase.json': JSON.stringify(data.setup_data) };
+}
+JS
+docker run --rm --pull=never --network none --cpuset-cpus="$cpuset" -u "$(id -u):$(id -g)" -v "$work:/w" -v "$lab/load:/load:ro" "$k6_image" run /w/phase-test.js >"$work/phase.log" 2>&1
+check "7a phase: k6 ran phase.js to the end (exit 0)" test "$?" = 0
+check "7b phase: before the window's start is warmup, from the start up to the last millisecond of the window is measure" eq phase '[d["first"], d["before_edge"], d["at_start"], d["middle"], d["last_in"]]' '["warmup", "warmup", "measure", "measure", "measure"]'
+check "7c phase: a request sent at the window's end or later is after, not measure" eq phase '[d["at_end"], d["past_end"], d["long_after"]]' '["after", "after", "after"]'
+check "7d scenario.js decides the phase of a request with phaseAt of phase.js" grep -q "phaseAt(Date.now() - started, plan.warmup_sec, plan.duration_sec)" "$lab/load/scenario.js"
 
 echo
 echo "sent-count tests: $passed passed, $failed failed, $skipped skipped"

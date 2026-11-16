@@ -17,11 +17,13 @@
 //
 // What is counted for "did the decided rps come out" is the requests SENT inside the kept window (lab_sent{phase:measure}), not the
 // ones that had finished by then, and the arrivals the load tool dropped (dropped_iterations, which must be 0). Section 7.4.3.
+// A request sent at or after the window's end is tagged phase=after and counted nowhere in the check (phase.js).
 //
 // It sends no write: a route that is not a GET is refused before any request is made.
 import http from 'k6/http';
 import exec from 'k6/execution';
 import { Counter, Gauge } from 'k6/metrics';
+import { phaseAt } from './phase.js';
 
 const plan = JSON.parse(open(__ENV.PLAN));
 const targets = JSON.parse(open(__ENV.TARGETS));
@@ -63,6 +65,7 @@ const thresholds = {
   'http_req_failed{phase:measure}': ['rate>=0'],
   'http_req_duration{phase:measure}': ['max>=0'],
   'lab_sent{phase:measure}': ['count>=0'],
+  'lab_sent{phase:after}': ['count>=0'],
   'lab_finished_after_window{phase:measure}': ['count>=0'],
 };
 for (const status of STATUSES) {
@@ -108,7 +111,7 @@ export function hit() {
   // The start of the whole scenario (not of this route's stream, which may start later): for a stream that starts at 0 it is the
   // stream's own start; for a later one, the time since the test began gives it.
   const started = r.start_offset_sec ? Date.now() - exec.instance.currentTestRunDuration : exec.scenario.startTime;
-  const phase = Date.now() - started < plan.warmup_sec * 1000 ? 'warmup' : 'measure';
+  const phase = phaseAt(Date.now() - started, plan.warmup_sec, plan.duration_sec);
   scenarioStart.add(started);
   const params = {
     headers: Object.assign({}, targets.headers || {}, t.headers || {}),
@@ -143,6 +146,7 @@ export function handleSummary(data) {
     per_route_sent[r.route] = sv ? sv.count : 0;
   }
   const sentMeasure = metric(data, 'lab_sent{phase:measure}');
+  const sentAfter = metric(data, 'lab_sent{phase:after}');
   const afterWindow = metric(data, 'lab_finished_after_window{phase:measure}');
   const afterMs = metric(data, 'lab_after_window_ms');
   const reqs = metric(data, 'http_reqs{phase:measure}');
@@ -185,6 +189,7 @@ export function handleSummary(data) {
     scenario_start_ms: start ? start.min : null,
     measure_requests: reqs ? reqs.count : 0,
     measure_sent: sentMeasure ? sentMeasure.count : 0,
+    sent_after_window: sentAfter ? sentAfter.count : 0,
     finished_after_window: afterWindow ? afterWindow.count : 0,
     longest_after_window_ms: afterMs ? afterMs.max : 0,
     graceful_stop: requestTimeout === undefined ? null : requestTimeout,
