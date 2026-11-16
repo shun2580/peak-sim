@@ -1,8 +1,8 @@
 # Extrapolation test (A), third run: do the estimates predict 300,000 rows?
 
-Status: **No result is in this file.** What is written here does not depend on a result: the purpose, what is tested, the rules, the order of work, the limits, and the facts fixed before the measurement (the way the data was built, the capture, the estimates and the lists of marked routes that were committed, with where each figure comes from). Every place that a result, a time of the measurement or a value chosen later has to fill is marked `TBD`. When a `TBD` is filled, the section says where the figure comes from. Nothing in the rules below is changed when the figures are added.
+Status: **The result is written** (sections 2 to 5 and 7), except one line: what is left of conditions 1 to 3 of section 0 of the spec, counted as D153 counts them, is `TBD` (section 7). Sections 0, 1 and 6 were written before the measurement and are not changed by the result; the places in section 1 that a time or a file had to fill are filled, and each says where its figure comes from. Nothing in the rules was changed when the figures were added.
 
-Result in one line: `TBD` (written after section 2: rule B for the verification app, for BookStack and for the two together, and the multiple of the capture's largest size, which is 10).
+Result in one line (rule B, R1, which gives the verdict; the multiple of the capture's largest size is 10): the verification app **passes** (queries 21 of 21, rows examined 21 of 21 inside the lowest standard); BookStack **fails** (queries 32 of 33, rows examined 24 of 33 = 72.73%, 27 needed); the two applications together **pass** (queries 53 of 54 = 98.15%, rows examined 45 of 54 = 83.33%, 44 needed). Rule A, shown beside it, gives the same except that the two applications together fail (rows examined 42 of 54 = 77.78%). R2 (the two heavy verification-app routes inside the denominator) gives the same verdicts. The pass line, the tolerances and the denominator are those of the earlier runs.
 
 This file is the record of the third run of test A of `docs/simulator-spec.md` (version 0.2, sections 7.1, 7.4 and 7.4.2). It says what is done in which order, what is measured, and what the numbers can and cannot support. The pass line, the tolerances and the denominator are those of the earlier runs (D71, D95, D105) and are not moved by this file. It follows `docs/research/extrapolation-test.md` (the first run, 100,000 rows, version 0.1; not rescored, D103) and `docs/research/extrapolation-test-2.md` (the second run, 200,000 rows). The third run of test B and of the mark, at the same row count, is in `docs/research/lab-backtest-3.md`.
 
@@ -69,10 +69,10 @@ The measurement of A (the entry `poc/lab/bin/measure-extrapolation`) has the sam
 | Commit that fixed the estimates and the list of marked routes (step 5) | `206d1148fce29a8643b50a2bb21d0732b7b2cc03` |
 | Commit time | 2026-11-16 08:53:18 +09:00 (after the capture, the `EXPLAIN` and the estimates, which ran 01:23 to 02:41 the same day, and before any request was sent to a 300,000-row database for this test) |
 | Files in it | Six files under `poc/lab/predictions/`. For test A, four: `extrapolation-3-fixtures-estimate.json`, `extrapolation-3-fixtures-marked.json`, `extrapolation-3-bookstack-estimate.json`, `extrapolation-3-bookstack-marked.json`. For test B and the mark, two: `ladder-prediction-3.json` and `ladder-prediction-3-input.yaml` (the one prediction of the spec's section 7.4.2) |
-| Step 6 started, verification app | `TBD` |
-| Step 6 started, BookStack | `TBD` |
-| Step 7 started | `TBD` |
-| Comparison | tools: `extrapolation-data-2/compare_test2.py` (the second run's script) compares the committed estimates with the cold values and gives rule B, rule A, the shares by group, the marked routes and the failed tries. The pass, fail or undecidable of the spec's section 7.4 (A) is given by rule B of this script (or a verbatim copy of it), with rule A shown beside it, as in the second run (D212). `bin/compare-extrapolation` (`ExtrapolationJudge`) is not used for the verdict: it reads the recorded predictions (`predictions.json`, committed in `05fdea9` under `extrapolation-data-3/`), not the estimates of the row counts that were committed in the commit above. Its output may be shown for reference and is not counted. The BookStack route `POST /books/{bookSlug}/copy` is outside the denominator and outside the count of undecidable routes (D205). The two verification-app routes whose estimate is not `complete` are outside the denominator under R1, which gives the verdict, and R2 (the two inside) is shown beside it (D212, the ruling item; next section). Script file of the third run `TBD`; output `TBD` |
+| Step 6 started, verification app | 2026-11-16 17:31:13 +09:00 (8 h 38 min after the commit); ended 19:05:22, exit 0 |
+| Step 6 started, BookStack | 2026-11-16 19:06:43 +09:00 (first launch, stopped at 20:00:56 before any route was measured; nothing from it is used); started again from the first route 2026-11-16 23:29:36 +09:00 (the run whose records are used); ended 2026-11-17 04:13:17, exit 0 |
+| Step 7 started | 2026-11-16 17:57:23 +09:00 (first launch, stopped at 20:00:56 after 11 of 66 trials; nothing from it is used); started again from the first trial 2026-11-16 23:29:56 +09:00 (the run whose records are used); ended 2026-11-17 05:01:30, exit 0 |
+| Comparison | tools: `extrapolation-data-2/compare_test2.py` (the second run's script) compares the committed estimates with the cold values and gives rule B, rule A, the shares by group, the marked routes and the failed tries. The pass, fail or undecidable of the spec's section 7.4 (A) is given by rule B of this script (or a verbatim copy of it), with rule A shown beside it, as in the second run (D212). `bin/compare-extrapolation` (`ExtrapolationJudge`) is not used for the verdict: it reads the recorded predictions (`predictions.json`, committed in `05fdea9` under `extrapolation-data-3/`), not the estimates of the row counts that were committed in the commit above. Its output may be shown for reference and is not counted. The BookStack route `POST /books/{bookSlug}/copy` is outside the denominator and outside the count of undecidable routes (D205). The two verification-app routes whose estimate is not `complete` are outside the denominator under R1, which gives the verdict, and R2 (the two inside) is shown beside it (D212, the ruling item; next section). Script file of the third run: `extrapolation-data-2/compare_test2.py` itself (SHA-256 `95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b`, checked before the run by the wrapper that calls it), run on the four committed estimate and marked files and the records of the measurement, as R1. R2 is a copy with one changed place (a line that lets the two routes through the `complete` test; the difference is in `R2_patch.diff`, the SHA-256 of the copy in `R2_script_sha256.txt`). Output: `extrapolation-data-3/measured/compare/R1/` and `R2/` (`compare.json` and `compare.md` in each), with `input_sha256.txt` listing the record files that were read |
 
 The start times are read from the records the runner wrote. The files committed are checked with `cmp` against the files the comparison reads before the comparison is made; nothing in the estimates or the marked list changes after the commit.
 
@@ -103,9 +103,17 @@ All of this was fixed and recorded (D195 to D205) before the commit of the estim
 
 ### Runs of the measurement
 
-`TBD` (a table as in the second run: step, target, tool commit, time of the run, end; and what differs between tool commits and why it does not change a measured value). A run that stops before it makes a record is listed and nothing from it is used.
+| Step | Target | Tool commit | Time of the run | End |
+| --- | --- | --- | --- | --- |
+| 6 | Verification app, every route cold once | `206d114` | 2026-11-16T17:31:13+09:00 to 19:05:22+09:00 (5,625.9 s) | exit 0; 24 of 24 routes tried |
+| 6 | BookStack, first launch | `206d114` | 2026-11-16T19:06:43+09:00 to 20:00:56+09:00 | stopped in the build phase, 0 routes measured; kept apart, nothing from it is used |
+| 7 | BookStack, repeat of the marked routes, first launch | `206d114` | 2026-11-16T17:57:23+09:00 to 20:00:56+09:00 | stopped after 11 of 66 trials; kept apart, nothing from it is used |
+| 6 | BookStack, every route cold once, from the first route | `206d114` | 2026-11-16T23:29:36+09:00 to 2026-11-17T04:13:17+09:00 (17,001 s) | exit 0; 63 routes tried |
+| 7 | BookStack, 22 marked routes, 3 laps, from the first trial | `206d114` | 2026-11-16T23:29:56+09:00 to 2026-11-17T05:01:30+09:00 (19,894 s) | exit 0; 66 trials |
 
-Where the numbers come from (kept outside the repository): the records of step 6 for each target (`attempts.jsonl`), the records of step 7 (`attempt.jsonl`, one per route and lap) and the time records. A file lists the SHA-256 of every record file the comparison read. `TBD`.
+What differs between tool commits: nothing. Every run of step 6 and step 7 used a copy of the repository at the commit that fixed the estimates (`206d114`, the commit of the table above), so the measuring code, the estimates and the marked lists are the same in all of them. The runs after the stop differ from the first launches only in the databases being built again and in the directory the output was written to (a variable of the wrapper script outside the repository; the measuring tool was not changed). The stop at 2026-11-16 20:00 (the session was closed) was made with `compose stop` on the two measurement projects, which ended the interrupted runs; their records are kept outside the repository and enter no count. The host was restarted by hand once afterwards (20:18 to 20:19) with nothing running. The two resumed runs were started 20 seconds apart and ran at the same time (see the paragraph below).
+
+Where the numbers come from (kept outside the repository): the records of step 6 for each target (`attempts.jsonl`), the records of step 7 (`attempt.jsonl`, one per route and lap) and the time records. `extrapolation-data-3/measured/compare/input_sha256.txt` lists the SHA-256 of every record file the comparison read (70 files, paths made relative); the records themselves are in `extrapolation-data-3/measured/` (the verification app's in `fixtures/`, BookStack's in `bookstack/` and `variance/`), and `sha256.txt` there lists each file with its original hash. Three files are not in the repository (the `stderr.log` of the three `GET /books/{slug}` trials of the repeat, 5.5 MB each); their SHA-256 are in `sha256.txt`.
 
 Resumed run (from 2026-11-16T23:29): BookStack, every route cold once, and BookStack, the repeat of the marked routes, ran at the same time on separate databases (the cold-once run ended at 2026-11-17T04:13:17). The two did not overlap at 200,000 rows. The quantities compared are counts and sizes, not times, so the overlap is not expected to change them. The exception is `PUT /books/{slug}`, which was cut at the 600 s request limit at 300,000 rows (it ended with 302 at 200,000 rows); whether it would have ended inside 600 s if run alone cannot be observed. The reading stays as fixed in D126, and no run is repeated in order to change it. The measuring database of the cold-once run took 4,056.73 s to build, as recorded. The preflight check of the statistics, the CHECKSUM and the real limits after the rebuild was not reached: the tool builds and drops its own database, runs no `ANALYZE`, and takes no CHECKSUM, and the limits are the defined values.
 
@@ -113,41 +121,276 @@ If a measurement is interrupted (a stop of the host or anything else), the stati
 
 ## 2. Result: share within tolerance
 
-`TBD`. Taken from the output of the comparison; the figures are copied and not rounded again by hand.
+Source: `extrapolation-data-3/measured/compare/R1/compare.json` and `compare.md` (R1, which gives the verdict) and `R2/compare.json` and `compare.md` (R2, shown beside it), at N = 300,000. The estimates compared are the ones committed at `206d1148fce29a8643b50a2bb21d0732b7b2cc03`. The tables below are copied from `compare.md`; no figure was rounded again by hand.
 
 ### 2.1 Verdict
 
-`TBD`: rule B for the verification app, for BookStack and for both together; queries and rows examined; pass, fail or undecidable. Rule A beside it.
+R1 gives the verdict (D212, the ruling item). R2 is shown beside it and does not decide.
 
-R1 gives the verdict (D212, the ruling item). R2, the count with the two verification-app routes (`GET /ng/nested`, `POST /ok/bulk`) inside the denominator, is shown in the same table or section. R1 leaves out these two heavy routes, which already failed at 30,000 rows in the capture (`GET /ng/nested` was cut at the 60 s limit; `POST /ok/bulk` answered HTTP 500); they are named here so that R1 is not read as a count with the hard cases quietly removed, and R2 counts them.
+| Scope | Rule B (decides), R1 | Rule A (shown), R1 | Rule B, R2 | Rule A, R2 |
+| --- | --- | --- | --- | --- |
+| Verification app | **pass** | pass | pass | pass |
+| BookStack | **fail** | fail | fail | fail |
+| Both applications together | **pass** | fail | pass | fail |
+
+Rule B, R1, with the counts that decide:
+
+- Verification app: queries: 21 of 21 inside ±5% (enough), needs 80%; rows_examined: 21 of 21 inside ±20% (enough), needs 80%
+- BookStack: queries: 32 of 33 inside ±5% (enough), needs 80%; rows_examined: 24 of 33 inside ±20% (not enough), needs 80%
+- Both applications together: queries: 53 of 54 inside ±5% (enough), needs 80%; rows_examined: 45 of 54 inside ±20% (enough), needs 80%
+
+R2 has the same pass or fail, with the same counts of routes inside the lines, for every scope and both rules: the two verification-app routes that R2 adds (`GET /ng/nested`, `POST /ok/bulk`) have no cold value at 300,000 rows (each ran longer than 600 seconds), so they enter no denominator under either reading and change only the columns "estimated but not measured" and "no estimate" (the table below).
+
+R1 leaves out two heavy routes of the verification app, `GET /ng/nested` and `POST /ok/bulk`, whose estimate is not `complete` because they already failed at 30,000 rows in the capture (`GET /ng/nested` was cut at the 60 s limit; `POST /ok/bulk` answered HTTP 500). They are named here so that R1 is not read as a count with the hard cases quietly removed. R2 counts them as routes with an estimate that could not be measured. At 300,000 rows both ran past the 600-second limit (section 5), so the verdicts do not depend on which reading is used.
+
+**The two rules give different verdicts for the two applications together:** rule B passes (rows examined 45 of 54, 83.33%; 44 needed) and rule A fails (42 of 54, 77.78%). The difference is three BookStack routes that rule B moves inside the lowest standard (section 2.4). For the verification app alone, and for BookStack alone, the two rules give the same verdict.
+
+How the verdict is read: pass needs both quantities at 80% or more and no undecidable condition. No undecidable condition was hit in any scope: every denominator has more than 5 routes (the smallest is 21), and the routes with an estimate that could not be measured, for the number of queries and the rows examined, are
+
+- R1: 1 of 22 (verification app), 2 of 35 (BookStack), 3 of 57 (together);
+- R2: 3 of 24 (verification app), 2 of 35 (BookStack), 5 of 59 (together);
+
+all below 20% (the largest is 3 of 24, 12.50%, the verification app under R2). The two applications are scored separately as in the earlier runs; the pooled figure is shown beside them. A failing verdict is not repaired here: the pass line, the tolerances, the denominator, the estimates and the list of marked routes are not touched (D71).
 
 ### 2.2 Rule B: share within tolerance, by group
 
-`TBD`: all routes, unmarked routes and marked routes, against the lowest standard and against the goal, for queries and for rows examined.
+R1. "Estimated but not measured" and "No estimate" are the columns of the comparison; under R1 the two routes of section 2.1 are counted in "No estimate" for the number of queries and the rows examined.
+
+| Scope | Group | Quantity | Denominator | Within lowest standard | Share | Within goal | Share | Estimated but not measured | No estimate |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Verification app | all routes | Number of queries | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | all routes | Rows examined | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | all routes | Peak memory (reported only) | 21 | 21 | 100.00% | 21 | 100.00% | 3 | 0 |
+| Verification app | unmarked | Number of queries | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | unmarked | Rows examined | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | unmarked | Peak memory (reported only) | 21 | 21 | 100.00% | 21 | 100.00% | 3 | 0 |
+| Verification app | marked | Number of queries | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| Verification app | marked | Rows examined | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| Verification app | marked | Peak memory (reported only) | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| BookStack | all routes | Number of queries | 33 | 32 | 96.97% | 32 | 96.97% | 2 | 1 |
+| BookStack | all routes | Rows examined | 33 | 24 | 72.73% | 15 | 45.45% | 2 | 1 |
+| BookStack | all routes | Peak memory (reported only) | 33 | 22 | 66.67% | 22 | 66.67% | 2 | 1 |
+| BookStack | unmarked | Number of queries | 13 | 13 | 100.00% | 13 | 100.00% | 1 | 0 |
+| BookStack | unmarked | Rows examined | 13 | 13 | 100.00% | 11 | 84.62% | 1 | 0 |
+| BookStack | unmarked | Peak memory (reported only) | 13 | 12 | 92.31% | 12 | 92.31% | 1 | 0 |
+| BookStack | marked | Number of queries | 20 | 19 | 95.00% | 19 | 95.00% | 1 | 1 |
+| BookStack | marked | Rows examined | 20 | 11 | 55.00% | 4 | 20.00% | 1 | 1 |
+| BookStack | marked | Peak memory (reported only) | 20 | 10 | 50.00% | 10 | 50.00% | 1 | 1 |
+| Both applications together | all routes | Number of queries | 54 | 53 | 98.15% | 53 | 98.15% | 3 | 3 |
+| Both applications together | all routes | Rows examined | 54 | 45 | 83.33% | 36 | 66.67% | 3 | 3 |
+| Both applications together | all routes | Peak memory (reported only) | 54 | 43 | 79.63% | 43 | 79.63% | 5 | 1 |
+| Both applications together | unmarked | Number of queries | 34 | 34 | 100.00% | 34 | 100.00% | 2 | 2 |
+| Both applications together | unmarked | Rows examined | 34 | 34 | 100.00% | 32 | 94.12% | 2 | 2 |
+| Both applications together | unmarked | Peak memory (reported only) | 34 | 33 | 97.06% | 33 | 97.06% | 4 | 0 |
+| Both applications together | marked | Number of queries | 20 | 19 | 95.00% | 19 | 95.00% | 1 | 1 |
+| Both applications together | marked | Rows examined | 20 | 11 | 55.00% | 4 | 20.00% | 1 | 1 |
+| Both applications together | marked | Peak memory (reported only) | 20 | 10 | 50.00% | 10 | 50.00% | 1 | 1 |
+
+R2 differs from R1 only in two columns, for the number of queries and the rows examined (the verification app and the two applications together; every other cell, and the whole BookStack block, is the same):
+
+| Scope | Group | Estimated but not measured, R1 | No estimate, R1 | Estimated but not measured, R2 | No estimate, R2 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Verification app | all routes | 1 | 2 | 3 | 0 |
+| Verification app | unmarked | 1 | 2 | 3 | 0 |
+| Both applications together | all routes | 3 | 3 | 5 | 1 |
+| Both applications together | unmarked | 2 | 2 | 4 | 0 |
 
 ### 2.3 Rule A: share within tolerance, by group
 
-`TBD`.
+Rule A (shown, does not decide), R1:
+
+- Verification app: queries: 21 of 21 inside ±5% (enough), needs 80%; rows_examined: 21 of 21 inside ±20% (enough), needs 80%
+- BookStack: queries: 32 of 33 inside ±5% (enough), needs 80%; rows_examined: 21 of 33 inside ±20% (not enough), needs 80%
+- Both applications together: queries: 53 of 54 inside ±5% (enough), needs 80%; rows_examined: 42 of 54 inside ±20% (not enough), needs 80%
+
+| Scope | Group | Quantity | Denominator | Within lowest standard | Share | Within goal | Share | Estimated but not measured | No estimate |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Verification app | all routes | Number of queries | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | all routes | Rows examined | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | all routes | Peak memory (reported only) | 21 | 21 | 100.00% | 21 | 100.00% | 3 | 0 |
+| Verification app | unmarked | Number of queries | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | unmarked | Rows examined | 21 | 21 | 100.00% | 21 | 100.00% | 1 | 2 |
+| Verification app | unmarked | Peak memory (reported only) | 21 | 21 | 100.00% | 21 | 100.00% | 3 | 0 |
+| Verification app | marked | Number of queries | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| Verification app | marked | Rows examined | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| Verification app | marked | Peak memory (reported only) | 0 | 0 | n/a | 0 | n/a | 0 | 0 |
+| BookStack | all routes | Number of queries | 33 | 32 | 96.97% | 31 | 93.94% | 2 | 1 |
+| BookStack | all routes | Rows examined | 33 | 21 | 63.64% | 17 | 51.52% | 2 | 1 |
+| BookStack | all routes | Peak memory (reported only) | 33 | 21 | 63.64% | 21 | 63.64% | 2 | 1 |
+| BookStack | unmarked | Number of queries | 13 | 13 | 100.00% | 13 | 100.00% | 1 | 0 |
+| BookStack | unmarked | Rows examined | 13 | 13 | 100.00% | 11 | 84.62% | 1 | 0 |
+| BookStack | unmarked | Peak memory (reported only) | 13 | 12 | 92.31% | 12 | 92.31% | 1 | 0 |
+| BookStack | marked | Number of queries | 20 | 19 | 95.00% | 18 | 90.00% | 1 | 1 |
+| BookStack | marked | Rows examined | 20 | 8 | 40.00% | 6 | 30.00% | 1 | 1 |
+| BookStack | marked | Peak memory (reported only) | 20 | 9 | 45.00% | 9 | 45.00% | 1 | 1 |
+| Both applications together | all routes | Number of queries | 54 | 53 | 98.15% | 52 | 96.30% | 3 | 3 |
+| Both applications together | all routes | Rows examined | 54 | 42 | 77.78% | 38 | 70.37% | 3 | 3 |
+| Both applications together | all routes | Peak memory (reported only) | 54 | 42 | 77.78% | 42 | 77.78% | 5 | 1 |
+| Both applications together | unmarked | Number of queries | 34 | 34 | 100.00% | 34 | 100.00% | 2 | 2 |
+| Both applications together | unmarked | Rows examined | 34 | 34 | 100.00% | 32 | 94.12% | 2 | 2 |
+| Both applications together | unmarked | Peak memory (reported only) | 34 | 33 | 97.06% | 33 | 97.06% | 4 | 0 |
+| Both applications together | marked | Number of queries | 20 | 19 | 95.00% | 18 | 90.00% | 1 | 1 |
+| Both applications together | marked | Rows examined | 20 | 8 | 40.00% | 6 | 30.00% | 1 | 1 |
+| Both applications together | marked | Peak memory (reported only) | 20 | 9 | 45.00% | 9 | 45.00% | 1 | 1 |
 
 ### 2.4 Rule A and rule B side by side
 
-`TBD`.
+Only marked routes can differ between the two rules, and only where the largest of the four cold values is not the single cold value. For rows examined, and for the number of queries, these are the marked BookStack routes (in the denominator) whose largest cold value differs from the single one. Their errors under each rule:
+
+| Route | Quantity | Estimate | Single cold value | Largest cold value | Error against single | Error against largest | Inside lowest standard, rule A | Rule B | Inside goal, rule A | Rule B |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| `DELETE /books/{bookSlug}/chapter/{chapterSlug}` | rows examined | 2,121,131.8 | 2,550,453 | 2,550,461 | 16.83% | 16.83% | yes | yes | no | no |
+| `DELETE /books/{bookSlug}/draft/{pageId}` | rows examined | 2,121,117.1 | 1,560,454 | 2,550,455 | 35.93% | 16.83% | no | yes | no | no |
+| `DELETE /books/{bookSlug}/page/{pageSlug}` | rows examined | 2,121,113.4 | 1,560,459 | 2,550,460 | 35.93% | 16.83% | no | yes | no | no |
+| `DELETE /books/{id}` | rows examined | 2,121,154.5 | 1,560,500 | 2,550,475 | 35.93% | 16.83% | no | yes | no | no |
+| `GET /books/{bookSlug}/chapter/{chapterSlug}` | rows examined | 2,011,475.8 | 1,980,240 | 2,355,230 | 1.58% | 14.60% | yes | yes | yes | no |
+| `GET /books/{bookSlug}/page/{pageSlug}` | rows examined | 2,011,437.3 | 1,260,237 | 1,635,227 | 59.61% | 23.01% | no | no | no | no |
+| `POST /settings/maintenance/regenerate-references` | rows examined | 494,672,778.3 | 544,458,853 | 571,035,404 | 9.14% | 13.37% | yes | yes | yes | no |
+| `POST /settings/maintenance/regenerate-references` | number of queries | 6,068.8 | 5,839 | 5,972 | 3.94% | 1.62% | yes | yes | no | yes |
+| `PUT /books/{bookSlug}/chapter/{chapterSlug}` | rows examined | 75,763.8 | 345,232 | 345,240 | 78.05% | 78.05% | no | no | no | no |
+| `PUT /books/{bookSlug}/page/{pageSlug}` | rows examined | 75,790.2 | 345,257 | 345,265 | 78.05% | 78.05% | no | no | no | no |
+| `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore` | rows examined | 75,787.2 | 345,246 | 345,262 | 78.05% | 78.05% | no | no | no | no |
+| `PUT /shelves/{slug}` | rows examined | 315,797.3 | 345,232 | 345,240 | 8.53% | 8.53% | yes | yes | yes | yes |
+
+For rows examined, 11 of the 20 marked BookStack routes in the denominator have a largest cold value that differs from the single one; for the number of queries, 1. Against the lowest standard, 3 routes move from outside to inside under rule B (`DELETE /books/{bookSlug}/draft/{pageId}`, `DELETE /books/{bookSlug}/page/{pageSlug}`, `DELETE /books/{id}`) and 0 move from inside to outside. Against the goal, 0 move from outside to inside and 2 from inside to outside under rule B (`GET /books/{bookSlug}/chapter/{chapterSlug}`, `POST /settings/maintenance/regenerate-references`). For the number of queries, the one route that differs (`POST /settings/maintenance/regenerate-references`, 3.94% against the single value and 1.62% against the largest) is inside the lowest standard under both rules and moves from outside to inside the goal under rule B. The rows examined inside the lowest standard are 24 of 33 under rule B against 21 of 33 under rule A for BookStack, and 45 of 54 against 42 of 54 for the two applications together. The effect of rule B on the verdict is the pass of the two applications together (section 2.1); it does not change the verdict of either application alone.
 
 ### 2.5 Against the second run
 
-`TBD`. The second run's figures (verification app 21 of 22, BookStack 22 of 34, together 43 of 56, rule B, rows examined) beside the third run's, with the note that the two runs are on different sizes and the estimate's rules differ (the tangent rule and the analyzed capture), so the comparison is a comparison of two results and not of one change.
+The second run (200,000 rows, `extrapolation-test-2.md`, rule B) beside this run (300,000 rows, R1, rule B). The two runs are on different sizes and the estimate's rules differ (the tangent rule and the analyzed capture), so this is a comparison of two results and not of one change; the routes in the denominators are not the same set (the second run counted 22, 34 and 56 routes, this run 21, 33 and 54).
+
+| Scope | Quantity | Second run, 200,000 rows | Third run, 300,000 rows |
+| --- | --- | --- | --- |
+| Verification app | Number of queries, inside the lowest standard | 22 of 22 (100.00%) | 21 of 21 (100.00%) |
+| Verification app | Rows examined, inside the lowest standard | 21 of 22 (95.45%) | 21 of 21 (100.00%) |
+| BookStack | Number of queries, inside the lowest standard | 32 of 34 (94.12%) | 32 of 33 (96.97%) |
+| BookStack | Rows examined, inside the lowest standard | 22 of 34 (64.71%) | 24 of 33 (72.73%) |
+| Both applications together | Number of queries, inside the lowest standard | 54 of 56 (96.43%) | 53 of 54 (98.15%) |
+| Both applications together | Rows examined, inside the lowest standard | 43 of 56 (76.79%) | 45 of 54 (83.33%) |
+| Verification app / BookStack / together | Rule B verdict | pass / fail / fail | pass / fail / pass |
+| Verification app / BookStack / together | Rule A verdict | pass / fail / fail | pass / fail / fail |
+| Together, unmarked routes | Rows examined, inside the goal | 31 of 37 (83.78%) | 32 of 34 (94.12%) |
+| Together, marked routes | Rows examined, inside the lowest standard | 10 of 19 (52.63%) | 11 of 20 (55.00%) |
+| BookStack, unmarked routes | Rows examined, inside the lowest standard | 12 of 15 (80.00%) | 13 of 13 (100.00%) |
+| BookStack, marked routes | Rows examined, inside the lowest standard | 10 of 19 (52.63%) | 11 of 20 (55.00%) |
+| Multiple of the capture's largest size | | 6.667 | 10 |
+
+The second run's figures are copied from section 7 of `extrapolation-test-2.md`. The capture's largest size was 10,000 rows in the second run and is 30,000 rows in this one.
 
 ## 3. Routes with the largest error (top 10 per target, rule B)
 
-`TBD`. For each route: the estimate, the measured value, the relative error, whether the route is marked, and the statement that carries most of the rows when it is known.
+Ranked by relative error over the entries (route and quantity) in the denominators of the two quantities that decide the test (queries and rows examined). "Estimate" is the committed point estimate (H1 for rows examined); for a marked route "measured" is the largest of its cold values (rule B). The table is copied from `compare.md`. The measurements record no rows examined per statement, so the statement that carries most of the rows is known only on the estimate's side: the last column gives the statement with the largest share of the estimated rows, from the committed estimate file (it says nothing about which statement carries the measured rows).
+
+**Verification app** (42 entries: 21 routes for each of the two quantities)
+
+| # | Route | Quantity | Marked | Estimate | Measured | Relative error | Inside lowest standard | Inside goal | Largest statement of the estimate (share of the estimated rows) |
+| ---: | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |
+| 1 | `GET /ok/chunk` | rows examined | no | 441,256,683.7 | 450,453,002 | 2.04% | yes | yes | select, 100.0%: `select * from orders order by orders.id asc limit ? offset ?` |
+| 2 | `GET /ok/lazy` | rows examined | no | 441,256,683.7 | 450,453,002 | 2.04% | yes | yes | select, 100.0%: `select * from orders order by orders.id asc limit ? offset ?` |
+| 3 | `GET /hidden/appends` | queries | no | 300,001 | 300,001 | 0.00% | yes | yes |  |
+| 4 | `GET /hidden/appends` | rows examined | no | 600,003 | 600,003 | 0.00% | yes | yes | select, 50.0%: `select * from orders` |
+| 5 | `GET /hidden/blade` | queries | no | 300,001 | 300,001 | 0.00% | yes | yes |  |
+| 6 | `GET /hidden/blade` | rows examined | no | 600,003 | 600,003 | 0.00% | yes | yes | select, 50.0%: `select * from orders` |
+| 7 | `GET /hidden/cache` | queries | no | 300,001 | 300,001 | 0.00% | yes | yes |  |
+| 8 | `GET /hidden/cache` | rows examined | no | 600,003 | 600,003 | 0.00% | yes | yes | select, 50.0%: `select * from orders` |
+| 9 | `GET /hidden/conditional-binding` | queries | no | 300,001 | 300,001 | 0.00% | yes | yes |  |
+| 10 | `GET /hidden/conditional-binding` | rows examined | no | 600,003 | 600,003 | 0.00% | yes | yes | select, 50.0%: `select * from orders` |
+
+2 entries have a non-zero error (`GET /ok/chunk` rows examined, `GET /ok/lazy` rows examined, 2.04%), and the other 40 have an error of exactly 0, so ranks 3 to 10 are in route order and their order carries no meaning. No entry is outside the lowest standard; both non-zero entries are inside the lowest standard and inside the goal.
+
+**BookStack** (66 entries: 33 routes for each of the two quantities)
+
+| # | Route | Quantity | Marked | Estimate | Measured | Relative error | Inside lowest standard | Inside goal | Largest statement of the estimate (share of the estimated rows) |
+| ---: | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |
+| 1 | `GET /shelves/{slug}` | rows examined | yes | 289.0 | 375,226 | 99.92% | no | no | select, 65.7%: `select distinct role_permissions.name as name from role_user as ru left ...` |
+| 2 | `PUT /books/{bookSlug}/chapter/{chapterSlug}` | rows examined | yes | 75,763.8 | 345,240 | 78.05% | no | no | delete, 79.2%: `delete from references where from_type = ? and from_id in (?)` |
+| 3 | `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore` | rows examined | yes | 75,787.2 | 345,262 | 78.05% | no | no | delete, 79.2%: `delete from references where from_type = ? and from_id in (?)` |
+| 4 | `PUT /books/{bookSlug}/page/{pageSlug}` | rows examined | yes | 75,790.2 | 345,265 | 78.05% | no | no | delete, 79.2%: `delete from references where from_type = ? and from_id in (?)` |
+| 5 | `GET /books/{slug}/references` | rows examined | yes | 40,810.7 | 105,210 | 61.21% | no | no | select, 99.5%: `select * from references where to_type = ? and to_id = ? and ((reference...` |
+| 6 | `GET /shelves/{slug}/references` | rows examined | yes | 40,813.7 | 105,210 | 61.21% | no | no | select, 99.5%: `select * from references where to_type = ? and to_id = ? and ((reference...` |
+| 7 | `GET /books/{bookSlug}/chapter/{chapterSlug}/references` | rows examined | yes | 40,817.2 | 105,215 | 61.21% | no | no | select, 99.5%: `select * from references where to_type = ? and to_id = ? and ((reference...` |
+| 8 | `GET /books/{bookSlug}/page/{pageSlug}/references` | rows examined | yes | 49,560.5 | 120,219 | 58.77% | no | no | select, 99.6%: `select * from references where to_type = ? and to_id = ? and ((reference...` |
+| 9 | `GET /books/{bookSlug}/page/{pageSlug}` | rows examined | yes | 2,011,437.3 | 1,635,227 | 23.01% | no | no | select, 60.8%: `select name, id, slug, book_id, chapter_id, draft, template, text, creat...` |
+| 10 | `DELETE /books/{bookSlug}/page/{pageSlug}` | rows examined | yes | 2,121,113.4 | 2,550,460 | 16.83% | yes | no | delete, 43.4%: `delete from deletions where deletions.deletable_type = ? and deletions.d...` |
+
+10 entries are outside the lowest standard under rule B: 9 of rows examined (`GET /shelves/{slug}`, `PUT /books/{bookSlug}/chapter/{chapterSlug}`, `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore`, `PUT /books/{bookSlug}/page/{pageSlug}`, `GET /books/{slug}/references`, `GET /shelves/{slug}/references`, `GET /books/{bookSlug}/chapter/{chapterSlug}/references`, `GET /books/{bookSlug}/page/{pageSlug}/references`, `GET /books/{bookSlug}/page/{pageSlug}`) and 1 of the number of queries (`GET /shelves/{slug}` 5.27%, rank 21). 9 of the 9 misses of rows examined are marked routes. The largest, `GET /shelves/{slug}` (estimate 289.0 against 375,226 measured), is under-estimated by 99.92%; `DELETE /books/{bookSlug}/page/{pageSlug}` (rank 10) is inside the lowest standard and outside the goal.
 
 ## 4. Marked routes: the point and the upper side against the cold values
 
-`TBD`. For each marked route: the point, the upper side, the lowest and highest cold value, the number of values used (n of 4), and whether the range [point, upper side] encloses the range of cold values. The tries that failed and the class of each.
+For each marked BookStack route (22 routes; the verification app has none), the H1 point and the upper side (the H2 value of the marked statements) against the smallest and the largest of the cold values measured at 300,000 rows, and whether the point and the upper side are below, inside or above that range. "Cold values used" is the number of values that exist among the four (one in step 6 and three in step 7). The table is copied from `compare.md`; the cold values are given in the order the tries were made (the first is the single value of step 6).
+
+| Route | Point (H1) | Upper side (H2) | Cold min | Cold max | Cold values | Cold values used | Point against the cold range | Upper side against the cold range | Range enclosed by point and upper side |
+| --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
+| `DELETE /books/{bookSlug}/chapter/{chapterSlug}` | 2,121,131.8 | 18,933,014.7 | 1,560,450 | 2,550,461 | 2,550,453, 1,560,450, 1,560,458, 2,550,461 | 4 of 4 | inside | above | no |
+| `DELETE /books/{bookSlug}/draft/{pageId}` | 2,121,117.1 | 18,932,860.0 | 1,560,454 | 2,550,455 | 1,560,454, 1,560,454, 2,550,455, 1,560,454 | 4 of 4 | inside | above | no |
+| `DELETE /books/{bookSlug}/page/{pageSlug}` | 2,121,113.4 | 18,932,716.4 | 1,560,459 | 2,550,460 | 1,560,459, 1,560,459, 2,550,460, 1,725,512 | 4 of 4 | inside | above | no |
+| `DELETE /books/{id}` | 2,121,154.5 | 18,933,177.3 | 1,560,500 | 2,550,475 | 1,560,500, 1,785,503, 1,560,500, 2,550,475 | 4 of 4 | inside | above | no |
+| `DELETE /shelves/{slug}` | 2,121,144.3 | 18,933,306.9 | 2,100,450 | 2,550,456 | 2,550,456, 2,100,450, 2,550,456, 2,550,456 | 4 of 4 | inside | above | no |
+| `GET /books/{bookSlug}/chapter/{chapterSlug}` | 2,011,475.8 | 2,059,603.2 | 1,980,240 | 2,355,230 | 1,980,240, 1,980,240, 2,355,230, 2,355,230 | 4 of 4 | inside | inside | no |
+| `GET /books/{bookSlug}/chapter/{chapterSlug}/references` | 40,817.2 | 2,121,369.4 | 105,215 | 105,215 | 105,215, 105,215, 105,215, 105,215 | 4 of 4 | below | above | yes |
+| `GET /books/{bookSlug}/draft/{pageId}` | 211 | 211 | 211 | 211 | 211, 211, 211, 211 | 4 of 4 | inside | inside | yes |
+| `GET /books/{bookSlug}/export/zip` | 2,536,922.4 | 5,371,397.7 | 2,505,196 | 2,505,196 | 2,505,196, 2,505,196, 2,505,196, 2,505,196 | 4 of 4 | above | above | no |
+| `GET /books/{bookSlug}/page/{pageSlug}` | 2,011,437.3 | 2,057,605.1 | 1,260,237 | 1,635,227 | 1,260,237, 1,260,237, 1,635,227, 1,635,227 | 4 of 4 | above | above | no |
+| `GET /books/{bookSlug}/page/{pageSlug}/references` | 49,560.5 | 2,424,365.7 | 120,219 | 120,219 | 120,219, 120,219, 120,219, 120,219 | 4 of 4 | below | above | yes |
+| `GET /books/{slug}` | 3,840,199.8 | 3,935,034.4 | n/a | n/a |  | 0 of 4 | n/a | n/a | n/a |
+| `GET /books/{slug}/references` | 40,810.7 | 2,550,721.6 | 105,210 | 105,210 | 105,210, 105,210, 105,210, 105,210 | 4 of 4 | below | above | yes |
+| `GET /shelves/{slug}` | 289.0 | 1,268.9 | 375,226 | 375,226 | 375,226, 375,226, 375,226, 375,226 | 4 of 4 | below | below | no |
+| `GET /shelves/{slug}/references` | 40,813.7 | 2,316,459.7 | 105,210 | 105,210 | 105,210, 105,210, 105,210, 105,210 | 4 of 4 | below | above | yes |
+| `POST /books/{bookSlug}/copy` | n/a | 0 | n/a | n/a |  | 0 of 4 | n/a | n/a | n/a |
+| `POST /settings/maintenance/regenerate-references` | 494,672,778.3 | 1,494,011,475.6 | 544,067,903 | 571,035,404 | 544,458,853, 550,761,653, 544,067,903, 571,035,404 | 4 of 4 | below | above | yes |
+| `POST /settings/recycle-bin/empty` | 2,121,083.7 | 18,932,546.8 | 1,560,467 | 2,325,466 | 2,325,466, 1,560,467, 1,785,469, 1,785,469 | 4 of 4 | inside | above | no |
+| `PUT /books/{bookSlug}/chapter/{chapterSlug}` | 75,763.8 | 1,806,389.1 | 345,232 | 345,240 | 345,232, 345,232, 345,240, 345,240 | 4 of 4 | below | above | yes |
+| `PUT /books/{bookSlug}/page/{pageSlug}` | 75,790.2 | 1,806,414.1 | 345,257 | 345,265 | 345,257, 345,265, 345,265, 345,265 | 4 of 4 | below | above | yes |
+| `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore` | 75,787.2 | 1,806,411.1 | 345,246 | 345,262 | 345,246, 345,262, 345,262, 345,262 | 4 of 4 | below | above | yes |
+| `PUT /shelves/{slug}` | 315,797.3 | 5,477,597.3 | 345,232 | 345,240 | 345,232, 345,240, 345,240, 345,240 | 4 of 4 | below | above | yes |
+
+Of the 20 marked routes with at least one cold value: the point is inside the cold range for 8, below it for 10, above it for 2. The upper side is inside the range for 2, below it for 1, above it for 17. The range [point, upper side] encloses the whole measured cold range for 10 of 20. Two marked routes have no cold value: `GET /books/{slug}` (HTTP 500 in all four tries) and `POST /books/{bookSlug}/copy` (all four tries ran past 600 seconds); the second has no estimate and is outside every denominator (D205).
+
+The four cold values of a route are identical for 7 of the 20 routes (for example the four `references` routes) and differ between laps for the other 13 (for example `DELETE /books/{bookSlug}/chapter/{chapterSlug}`: 1,560,450 to 2,550,461). Three laps were made on one database.
+
+The repeat ran 66 trials (22 routes, 3 laps, in 5 groups of one database each; the groups were built in 17, 250, 35, 227 and 22 seconds). 60 trials ended with 2 of 2 attempts ok; 6 had 0 ok (the three laps of `GET /books/{slug}` and of `POST /books/{bookSlug}/copy`; the copy trials ran about 610 seconds each, against the 600-second request limit). Every try of a marked route that is listed in `compare.md` is "used"; none was superseded by a run again.
+
+### Failed cold tries by class
+
+Counted by what the record says (section 0):
+
+| Target | Tries | timeout (600 seconds or more) | 422 | 500 | exception | other |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Verification app | failed, rule B reads them as without a value | 2 | 0 | 0 | 0 | 1 |
+| Verification app | failed, replaced by a run again (not used) | 0 | 0 | 0 | 0 | 0 |
+| BookStack | failed, rule B reads them as without a value | 4 | 1 | 4 | 0 | 0 |
+| BookStack | failed, replaced by a run again (not used) | 0 | 0 | 0 | 0 | 0 |
+
+On the verification app the two timeouts are `GET /ng/nested` and `POST /ok/bulk`, and the one try of class "other" is `GET /ng/first-or-create-in-loop` (the runner failed, exit code 139). On BookStack the 4 tries of class 500 are all four tries of `GET /books/{slug}` (MySQL's limit of 65,535 placeholders in one prepared statement, SQLSTATE 1390); the 4 timeouts are all four tries of the marked route `POST /books/{bookSlug}/copy`; and the one 422 is the first try of the unmarked route `PUT /books/{slug}` (section 5 says what else the record holds for it). A marked route that has a timeout is "not measured, 600 seconds or more": `POST /books/{bookSlug}/copy`, which has no estimate and so is outside every denominator.
 
 ## 5. Routes outside the denominator
 
-Nothing is dropped silently. The reason each of the two verification-app routes could not be captured at 30,000 rows is recorded as a result of this run: `GET /ng/nested` was cut at the 60 s limit after 105,472 queries; `POST /ok/bulk` answered HTTP 500 with SQLSTATE 1390 (MySQL's limit on the number of placeholders). `TBD`: every route that has an estimate and is not in a denominator, with the reason (the request ran longer than 600 seconds; HTTP 500 in all four tries; no estimate), and every case where a failed try's class name and its detail differ. The way the denominator of the number of queries is read (the sum over the statement types of the route, for every route, as in the second run) is the stricter of two readings; the other reading is shown beside it in the same way as in the second run.
+Nothing is dropped silently. The reason each of the two verification-app routes could not be captured at 30,000 rows is recorded as a result of this run: `GET /ng/nested` was cut at the 60 s limit after 105,472 queries; `POST /ok/bulk` answered HTTP 500 with SQLSTATE 1390 (MySQL's limit on the number of placeholders).
+
+Every route that has an estimate and is not in a denominator, or has no estimate, with the reason:
+
+- **Verification app (24 routes in the estimate; 21 in the denominator).**
+  - `GET /ng/nested`: estimate partial. At 300,000 rows the request ran longer than 600 seconds, so there is no cold value. Outside the denominator under R1 (no estimate) and under R2 (not measured).
+  - `POST /ok/bulk`: estimate partial. At 300,000 rows the request ran longer than 600 seconds (class timeout), so there is no cold value. Outside the denominator under R1 and R2 alike.
+  - `GET /ng/first-or-create-in-loop`: estimate complete. The runner failed with exit code 139 and recorded no value (class `other:runner_failed`); at 200,000 rows this route had ended at the 600-second limit. Not measured under R1 and R2; it is the one route of the verification app that is "estimated but not measured" under R1.
+- **BookStack (36 routes in the estimate; 33 in the denominator).**
+  - `GET /books/{slug}` (marked): HTTP 500 in all four tries (SQLSTATE 1390, the placeholder limit), so there is no cold value for any quantity. Not measured.
+  - `PUT /books/{slug}` (unmarked): the record of this route at 300,000 rows holds two tries, both numbered attempt 1. The first is HTTP 422 ("The name field is required", 5 queries, 198 rows examined); the second is a request that ran longer than 600 seconds (class timeout; 632,374 queries and 4,392,850 rows examined had been counted when it was cut, which are not values of a finished request). The comparison read the first, so `compare.md` lists this route as a 422; by either record the route has no cold value and is not measured. At 200,000 rows the route ended with HTTP 302.
+  - `POST /books/{bookSlug}/copy` (marked): no estimate (D205; the estimate is 0.0 and has no peak-memory prediction); all four tries ran past 600 seconds. Outside the denominator and the undecidable count.
+- **No estimate row:** BookStack's measurement has 63 routes; the 27 routes without an estimate row (authentication, validation errors and similar, listed in `compare.md`) are outside the test, as in the earlier runs. `GET /oidc/callback` has an estimate row and is in the denominator (queries and rows examined: the estimate and the measured value are both 0).
+
+**Class name against detail.** The tool records a request that ran past the 600-second limit as class `timeout` on some routes and as class `exception` (status 500) on others, whose detail reads "the request ran longer than 600 seconds". The comparison counts them as timeouts by their detail. Cases in this run: `GET /ng/nested` (verification app, 1 try) and `POST /books/{bookSlug}/copy` (BookStack, 4 tries). Neither is inside a denominator. The list of timeouts in the comparison output recorded under another class name holds only these two routes, and neither is inside a denominator. The one record the comparison did not read is the second try of `PUT /books/{slug}` above (class timeout), which is outside every denominator whichever record is read.
+
+### The other reading of the denominator of the number of queries
+
+The way the denominator of the number of queries is read (the sum over the statement types of the route, for every route, as in the second run) is the stricter of two readings. D95 says that a route whose route-level formula is `contradicts_static` is left out of the denominator of that quantity. The other reading leaves those routes out. The route-level status is read from `extrapolation-data-3/{fixtures,bookstack}/predictions.json` (the routes' fits of the second run, copied as they are; D196, D202). Both readings, rule B, R1:
+
+| Scope | Queries inside ±5%, as counted in this file | Queries inside ±5%, routes with a `contradicts_static` formula left out | Pass line (80%) under each reading |
+| --- | --- | --- | --- |
+| Verification app | 21 of 21 (100.00%) | 21 of 21 (100.00%) | met under both |
+| BookStack | 32 of 33 (96.97%) | 20 of 20 (100.00%) | met under both |
+| Both applications together | 53 of 54 (98.15%) | 41 of 41 (100.00%) | met under both |
+
+13 BookStack routes have a `contradicts_static` formula for the number of queries and are in the denominator as counted in this file; 12 of them are inside the lowest standard and 1 is not (`GET /shelves/{slug}`, 5.27%). The verification app has none. The rows examined are not affected, because a route left out of one quantity stays in the other (D95). The verdicts are the same under both readings. Which reading is the correct one is left to the project owner's decision. This file keeps the stricter reading.
 
 ## 6. What can be said, and what cannot
 
@@ -177,6 +420,16 @@ This file does not claim any precision on a real deployment.
 
 ## 7. Conclusion
 
-`TBD`. Facts only, as in the second run: rule B and rule A for each scope, the shares by group, the routes with the largest errors, the marked routes, the routes not measured, the multiple of the capture's largest size (10), and what is left of conditions 1 to 3 of section 0 of the spec, counted as D153 counts them (with the change of D167).
+Facts for the third run of test A, with the estimates committed at `206d1148fce29a8643b50a2bb21d0732b7b2cc03` before the measurement and the pass line unchanged. R1 gives the verdict (D212, the ruling item); R2 gives the same verdicts and counts.
+
+- **Rule B (decides):** verification app **pass** (queries 21 of 21 (100.00%), rows examined 21 of 21 (100.00%) inside the lowest standard); BookStack **fail** (queries 32 of 33 (96.97%), rows examined 24 of 33 (72.73%); 27 needed); both applications together **pass** (queries 53 of 54 (98.15%), rows examined 45 of 54 (83.33%); 44 needed).
+- **Rule A (shown):** verification app pass, BookStack fail (rows examined 21 of 33 (63.64%)), both applications together **fail** (rows examined 42 of 54 (77.78%)). The two rules differ in the verdict of the two applications together only.
+- **By group, rows examined, rule B, both applications together:** inside the lowest standard, all routes 45 of 54 (83.33%), unmarked 34 of 34 (100.00%), marked 11 of 20 (55.00%); inside the goal, all 36 of 54 (66.67%), unmarked 32 of 34 (94.12%), marked 4 of 20 (20.00%). Queries: all 53 of 54 (98.15%) inside the lowest standard and 53 of 54 (98.15%) inside the goal.
+- **What version 1.0 asks of A (spec, section 0, condition 1), in these figures:** unmarked routes inside the goal, together: queries 34 of 34 (100.00%), rows examined 32 of 34 (94.12%); all routes inside the lowest standard, together: queries 53 of 54 (98.15%), rows examined 45 of 54 (83.33%). For BookStack alone: unmarked inside the goal, queries 13 of 13 (100.00%), rows examined 11 of 13 (84.62%); all inside the lowest standard, queries 32 of 33 (96.97%), rows examined 24 of 33 (72.73%).
+- **Largest errors:** all on BookStack except two entries of the verification app (`GET /ok/chunk` and `GET /ok/lazy`, rows examined, 2.04%, inside both lines). The largest is `GET /shelves/{slug}` (rows examined, estimate 289.0 against 375,226 measured, a marked route, 99.92%); the three PUT routes (`PUT /books/{bookSlug}/chapter/{chapterSlug}`, `PUT /books/{bookSlug}/page/{pageSlug}`, `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore`) are under-estimated by 78.05% (estimate about 75,800 against about 345,200 to 345,300 measured); the four `references` routes are under-estimated by 58.77% to 61.21%.
+- **Marked routes:** the point lies above the measured cold range for 2 routes, below it for 10 and inside it for 8 of 20; the upper side lies above the range for 17 of 20; the range [point, upper side] encloses the cold range for 10 of 20. Marked routes are where the misses concentrate: 9 of the 9 BookStack misses of rows examined are marked routes (11 of 20 marked routes are inside the lowest standard, 13 of 13 unmarked ones).
+- **Not measured:** with an estimate, 3 routes under R1 (1 on the verification app, 2 on BookStack) and 5 under R2 (3 and 2); the marked route `GET /books/{slug}` (HTTP 500 in all four tries) and the unmarked `PUT /books/{slug}` are two of them; no marked route that has an estimate was lost to a 600-second cut. `POST /books/{bookSlug}/copy`, which was cut at 600 seconds in all four tries, has no estimate and is outside every denominator.
+- **Multiple of the capture's largest size:** 10 (30,000 rows captured, 300,000 rows measured).
+- **What is left of conditions 1 to 3 of section 0 of the spec, counted as D153 counts them (with the change of D167):** `TBD` (the scope of the count for condition 1a, the verification app, BookStack or both together, is not fixed in D153, and condition 3 needs the cause and the mark of each remaining miss; asked, not guessed).
 
 What these results do not show is in the list of limits above.

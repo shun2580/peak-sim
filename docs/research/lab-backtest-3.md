@@ -1,6 +1,6 @@
 # Lab backtest (B) and the mark, third round: 300,000 rows
 
-Status: **the verdict of B and of the mark is written; test A and what depends on it are `TBD`.** This file holds the purpose, the rules, the order of work, the way of measuring, the prediction as committed and the limits, the records of the measurement (sections 1.1, 3 and 4), and the verdict of B and of the mark with what was checked before it (sections 5 to 7). **B is undecidable; the mark passes.** The extrapolation test A was being measured when this was written: what depends on its result is marked `TBD`. When a figure is filled, the section says where it comes from. Nothing in the rules below was changed when the figures were added.
+Status: **the verdict of B and of the mark is written, and the result of test A is summarized (it is written in full in `docs/research/extrapolation-test-3.md`); one line, what is left of conditions 1 to 3, is `TBD`.** This file holds the purpose, the rules, the order of work, the way of measuring, the prediction as committed and the limits, the records of the measurement (sections 1.1, 3 and 4), and the verdict of B and of the mark with what was checked before it (sections 5 to 7). **B is undecidable; the mark passes.** The extrapolation test A was measured after B and the mark; its result is in the brief below and in section 5.6, and the count of what is left of conditions 1 to 3 is `TBD`. When a figure is filled, the section says where it comes from. Nothing in the rules below was changed when the figures were added.
 
 This file is the record of the third round of test B and of the mark `app_limit_risk` (`docs/simulator-spec.md`, version 0.2, sections 6.2, 6.4, 7.2, 7.4, 7.4.1 and 7.4.2). It follows `docs/research/lab-backtest.md` (the first round, which did not pass) and `docs/research/lab-backtest-2.md` (the second round: B passed at the lowest standard and missed the goal on item 4 by one scenario; the mark failed with one miss). It says what was changed, what is done in which order, what is measured, and what the numbers can and cannot support. The pass lines, the tolerances and the rule for "undecidable" are those of the spec and are not moved by this file.
 
@@ -8,7 +8,7 @@ What is checked is a **check against a busy period reproduced in the lab**: a pr
 
 The third run of test A (the extrapolation test at the same row count) is in `docs/research/extrapolation-test-3.md`.
 
-**Result in brief** (B and the mark; the line for test A is `TBD`):
+**Result in brief** (B, the mark and test A):
 
 - **B: undecidable** (spec 7.2; not a pass and not a fail). 25 steps could be used for the difference (10 are needed: met), but the limit rps could be measured for **1 scenario** (s-3; 4 are needed: not met). The cause is the measuring tool and not the database: k6 cut off long requests that were still running at the end of a step, at its default of 30 seconds, and counted only the requests that had ended (sections 4.3 and 5.4). This test is not repaired and not measured again; s-5 was stopped in its step 9 by the memory of the application container and is not measured again (section 4.3).
 - **Item 1** (the mean difference is smaller than the naive estimate's): 4.594 points against 31.389 (the safe side 4.839).
@@ -17,7 +17,7 @@ The third run of test A (the extrapolation test at the same row count) is in `do
 - **Item 4** (limit rps within ±X%): measured for s-3 only; the point (0.2952) is 0.751 of the measured 0.3932, outside ±20%. With 1 scenario measured, item 4 cannot be decided.
 - **The mark: pass** (spec 7.4.1; no miss). Hits 2 (the ZIP export and the book page), misses 0, false alarms 0. Both cut requests were ended by the 512M memory limit and both routes were marked on the memory side and on the CPU-time side (the CPU time of neither reached 30 s).
 - **The multiple of the capture's largest size: 10** (300,000 rows against 30,000).
-- **Test A: `TBD`** (`docs/research/extrapolation-test-3.md`).
+- **Test A** (`docs/research/extrapolation-test-3.md`; rule B, R1, which gives the verdict, at 300,000 rows against a capture whose largest size is 30,000): the verification app **passes** (queries 21 of 21, rows examined 21 of 21 inside the lowest standard); BookStack **fails** (queries 32 of 33, rows examined 24 of 33 = 72.73%, 27 needed); the two applications together **pass** (queries 53 of 54 = 98.15%, rows examined 45 of 54 = 83.33%, 44 needed). Rule A, shown beside it, gives the same except that the two applications together fail (rows examined 42 of 54 = 77.78%). R2 gives the same verdicts.
 
 What else the measurement showed, as facts: in B the book page answered HTTP 500 in every request of every recorded window, from SQLSTATE 1390 (the limit on the number of placeholders of a prepared statement) and not from the memory limit (section 4.4); the point is above the measurement in 23 of the 25 steps used, the largest difference being +35.87 points at s-3 step 9 (section 5.2).
 
@@ -403,7 +403,7 @@ PHP CPU time is that of the application's process for the request (`php_cpu_usec
 
 ## 5. Verdict
 
-Written after section 4, from the records' raw data. **B is undecidable. The mark passes.** The verdict on test A is `TBD` (it is written in `docs/research/extrapolation-test-3.md`). Two readers recomputed B and the mark from the raw records, each alone and without the other's figures, and the two were compared (section 5.1). It was ruled on 2026-11-16 at 18:11 (written in D213) that B is closed as undecidable by the rule that was set before the prediction, that this test does not repair the tool and does not measure again, and that repairing and measuring again are decided separately.
+Written after section 4, from the records' raw data. **B is undecidable. The mark passes.** The verdict on test A is in the brief above and is written in `docs/research/extrapolation-test-3.md`. Two readers recomputed B and the mark from the raw records, each alone and without the other's figures, and the two were compared (section 5.1). It was ruled on 2026-11-16 at 18:11 (written in D213) that B is closed as undecidable by the rule that was set before the prediction, that this test does not repair the tool and does not measure again, and that repairing and measuring again are decided separately.
 
 ### 5.1 What was checked before the verdict
 
@@ -572,7 +572,7 @@ Conditions 1 to 3 of section 0 of the spec, counted as D153 counts them (with th
 
 - **Condition 1, the lab backtest (B at the goal): undecidable.** D153 gives no count of what is short for an undecidable condition, so none is given. For the four terms, for reference: (1) the mean difference is smaller than the naive estimate's: yes (4.594 against 31.389 points); (2) the mean against the goal of 5 points: 4.594, 0 points over; (3) agreement on the threshold: 25 of 27, and ⌈0.8 × 27⌉ = 22 are needed, 0 short; (4) the limit rps: not countable, since 1 scenario was measured and the rule needs 4. B has to be made decidable (a new count of rows, spec 7.4.1) before this condition can be counted.
 - **The mark (spec 7.4.1):** pass, 0 misses. It is not a numbered term of D153.
-- **Condition 1, the extrapolation test (A):** `TBD`.
+- **Condition 1, the extrapolation test (A):** rule B (R1), counted from `docs/research/extrapolation-test-3.md`: unmarked routes inside the goal, the two applications together, queries 34 of 34 and rows examined 32 of 34; all routes inside the lowest standard, together, queries 53 of 54 and rows examined 45 of 54 (BookStack alone: unmarked inside the goal, queries 13 of 13 and rows examined 11 of 13; all inside the lowest standard, queries 32 of 33 and rows examined 24 of 33, 27 needed). The count of what is short by D153 (`max(0, ⌈0.8 × denominator⌉ − inside the line)` per quantity) is `TBD`: D153 does not say whether condition 1a is counted for each application or for the two together.
 - **Condition 2, a third application (Bagisto):** not measured ("未測"); it is not 0.
 - **Condition 3, the remaining misses:** `TBD` (it is counted after conditions 1 and 2 are met and is a provisional number until then).
 
@@ -625,6 +625,6 @@ Items found by the measurement, each with the section it comes from:
 - **The mark's memory side was not checked against a measured peak** (section 5.3): neither of the two cut requests had its real peak memory measured, so the factor 1.51 is neither confirmed nor shown wrong by this check beyond the two requests having been cut and marked.
 - **The ZIP export is a long request at this size** (41.7 s with no load; up to 258 s in a window): it is what the tool's window count loses (section 5.4), and it is about 97% of the predicted database time (section 3).
 
-Items that come from test A are `TBD`.
+Items that come from test A are in `docs/research/extrapolation-test-3.md`, section 7. One bears on B: in test A the book page (`GET /books/{slug}`) answered HTTP 500 in all four cold tries at 300,000 rows from SQLSTATE 1390, the same limit as in B (section 4.4); it has no cold value there and is outside the denominator.
 
 This file does not claim any precision on a real deployment.
