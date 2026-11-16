@@ -2202,6 +2202,7 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
   - 後(13:52:55・after-recreate-s-4):`app_memory_current` 25,243,648・`app_memory_peak` 39,956,480・`app_memory_max` 6,442,450,944・`mem_available_kib` 9,099,276・oom/oom_kill は 0。s-1 の前(25,198,592・39,514,112)とほぼ同じに戻った。
 - **作り直しの後の確かめ**(すべて合った):`check-limits --require=unlimited --request-timeout=600s` が LIMITS OK(max_execution_time 0・memory_limit 4G・request_terminate_timeout 0s・nginx 600s・k6 600s)/ `docker inspect` の `HostConfig.Memory` = 6442450944 のまま / `git diff -- poc/lab/compose` は B の 2 ファイルの差分のみで、作り直しの前後で変わらず(`compose-B.diff` と一致)。
 - **進め方**:13:53:03 に札を出し、13:53:11 に s-4 が始まった。`check-oom` は s-4 の初めに基準を取り直す(D208)。作り直しの前の読み(`oom-before-recreate-s-4.txt`)は oom_killed=false・restart_count=0・cgroup oom=0・oom_kill=0。
+- **s-4 の後・s-5 の前の作り直し**:s-4 は 15:10:21 に終了コード 0(`CHAIN-B DONE`)。s-4 の前後は `app_memory_current` 25,665,536 → 3,407,953,920・`app_memory_peak` 4,192,706,560(始動からの累積)で、s-1(4,054,712,320)と同じ桁。15:16:22〜15:16:38 に同じ手(`use-db 300000`)でもう一度作り直した。前:`app_memory_current` 2,806,005,760。後:25,190,400・`app_memory_peak` 39,817,216。`check-limits --require=unlimited` は LIMITS OK・`HostConfig.Memory` は 6442450944 のまま・`git diff -- poc/lab/compose` は不変・oom と oom_kill は 0。s-5 はまだ始めていない。
 - **連鎖の終わりの知らせ**:連鎖の `note` は自分宛てで弾かれる(self-send)ため、`chain.done` を見張って知らせを送る台本(`watch_done.sh`)を s-4 の前に足した。
 - 変わらないもの:予測(`ladder-prediction-3.json`)・規則・閾値・止める条件・段・窓・分母・DB・D181〜D210 の決め。
 
