@@ -117,7 +117,7 @@ If a measurement is interrupted (a stop of the host or anything else), the stati
 
 `TBD`: rule B for the verification app, for BookStack and for both together; queries and rows examined; pass, fail or undecidable. Rule A beside it.
 
-R1 gives the verdict (D212, the ruling item). R2, the count with the two verification-app routes (`GET /ng/nested`, `POST /ok/bulk`) inside the denominator, is shown in the same table or section. The two routes that R1 leaves out are heavy routes that already failed at 30,000 rows in the capture (`GET /ng/nested` was cut at the 60 s limit; `POST /ok/bulk` answered HTTP 500), so R1 is not a count that leaves out an easy case.
+R1 gives the verdict (D212, the ruling item). R2, the count with the two verification-app routes (`GET /ng/nested`, `POST /ok/bulk`) inside the denominator, is shown in the same table or section. R1 leaves out these two heavy routes, which already failed at 30,000 rows in the capture (`GET /ng/nested` was cut at the 60 s limit; `POST /ok/bulk` answered HTTP 500); they are named here so that R1 is not read as a count with the hard cases quietly removed, and R2 counts them.
 
 ### 2.2 Rule B: share within tolerance, by group
 
