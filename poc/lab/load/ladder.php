@@ -28,6 +28,8 @@ declare(strict_types=1);
  *                                                 the record of one step (JSON on stdout, the end line on stderr)
  *   php ladder.php decision <record.json>         the stopping decision of a record that was written
  *   php ladder.php collect --dir=<scenario dir>   the records of the steps in the directory, in one file (JSON on stdout)
+ *   php ladder.php reread --dir=<scenario dir>    each recorded step read again with the rule of section 7.4.3 (the requests sent in the window, no
+ *                                                 dropped arrival), beside the verdict the record has (JSON on stdout). It only reads; nothing is written
  *
  * exit codes: 0 done (for `record` and `decision`: go on to the next step) / 6 `record` and `decision`: the scenario stops after
  * this step (not an error) / 2 wrong usage or an unreadable input / 3 `settings`: a limit could not be read from what was collected /
@@ -39,6 +41,7 @@ require __DIR__ . '/../../runtime/bootstrap.php';
 use PeakSim\Runtime\LabLoad\LabSettings;
 use PeakSim\Runtime\LabLoad\Ladder;
 use PeakSim\Runtime\LabLoad\LadderShape;
+use PeakSim\Runtime\LabLoad\StepReread;
 
 const JSON_FLAGS = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION;
 
@@ -263,6 +266,21 @@ switch ($command) {
         ], JSON_FLAGS), "\n";
         exit(0);
 
+    case 'reread':
+        $dir = $opts['dir'] ?? '';
+        if (!is_dir($dir)) {
+            fail('reread needs --dir=<scenario dir>');
+        }
+        $rows = StepReread::scenarioDir($dir);
+        echo json_encode([
+            'dir' => $dir,
+            'steps_read' => count($rows),
+            'steps_with_a_different_verdict' => count(array_filter($rows, static fn (array $r): bool => !$r['same_verdict'])),
+            'steps_with_a_different_count' => count(array_filter($rows, static fn (array $r): bool => !$r['same_count'])),
+            'steps' => $rows,
+        ], JSON_FLAGS), "\n";
+        exit(0);
+
     default:
-        fail('usage: ladder.php rungs [--trial|--scenario=<id>] | scenario <id> [--trial] [--line] | order [--set=t|r|s] | settings --nginx=<f> --fpm=<f> --ini=<f> [--require=<unlimited|limited>] | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir>');
+        fail('usage: ladder.php rungs [--trial|--scenario=<id>] | scenario <id> [--trial] [--line] | order [--set=t|r|s] | settings --nginx=<f> --fpm=<f> --ini=<f> [--require=<unlimited|limited>] | preview <plan.json> | shape | stagger | table --dir=<dir> | record ... | decision <record.json> | collect --dir=<dir> | reread --dir=<dir>');
 }

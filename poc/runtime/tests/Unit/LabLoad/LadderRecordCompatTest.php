@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The records of the first backtest (docs/research/lab-data/ladder/, 47 steps of t-1 .. t-5) are made again from the same inputs with
- * today's code. Adding the limits and the status of each route must not change anything a record already held: only the two new
- * fields are added, and they are null when nothing was given for them.
+ * today's code. Adding the limits, the status of each route and the count of section 7.4.3 must not change anything a record already held: only the
+ * new fields are added, and they are null when nothing was given for them.
  */
 final class LadderRecordCompatTest extends TestCase
 {
-    private const NEW_FIELDS = ['settings', 'http_status_by_route'];
+    private const NEW_FIELDS = ['settings', 'http_status_by_route', 'rps_counted', 'rps_invalid_reasons', 'requests_sent_in_window', 'end_of_step'];
 
     /** @return list<string> */
     private static function recordFiles(): array

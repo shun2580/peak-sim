@@ -62,7 +62,14 @@
 # and `bin/targets --static=<analysis.json> --scale=N` (once per scale) are done before this; this tool only switches the app to the
 # scale when `--switch-scale` is given (it runs `bin/use-db <N>`), and otherwise stops (exit 2) if the app reads another scale.
 #
-# Stopping (ruling 2): a step at 80% DB utilization or more, or whose rps did not come out (outside 5%), is measured and recorded
+# THE COUNT AND THE END OF A STEP (section 7.4.3): "did the decided rps come out" is counted on the requests SENT inside the kept window
+# (load/scenario.js, lab_sent{phase:measure}), not on those that had finished by the window's end, and a step in which the load tool dropped
+# any arrival (k6's dropped_iterations is not 0) is invalid. At the end of a step the load tool waits for the requests still running for as
+# long as the request timeout (600 s; --request-timeout is also k6's graceful stop). The database work of a request that is still running at
+# the window's end happens after the window and is outside the step's database utilization: the record says so (`end_of_step`, with the
+# number of requests that finished after the window and the longest wait). The samplers stop on their own (below) and do not wait for it.
+#
+# Stopping (ruling 2): a step at 80% DB utilization or more, or whose rps did not come out (outside 5%) or with a dropped arrival, is measured and recorded
 # and the scenario stops there. A step whose rps did not come out while the DB was under 80% is recorded as an app-side stall
 # with the app's CPU utilization. Each step prints one line when it starts and one when it ends (RUNG START / RUNG END).
 # Nothing is compared with the prediction here.
@@ -343,7 +350,7 @@ for rps in "${rungs[@]}"; do
   tables_rc=$?
   if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the write guard stopped $scenario after rung $i (exit $tables_rc); the step is not judged and has no record" >&2; exit "$tables_rc"; fi
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
-    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 >"$d/run.json" 2>"$d/summarize.err" || {
+    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 --require-sent=1 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
   if [ -n "$trial" ]; then record_args=(--trial="$trial"); else record_args=(--scenario="$scenario" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time"); fi
   php_tool poc/lab/load/ladder.php record "${record_args[@]}" --rung="$i" --summary="$(in_container "$d/run.json")" --settings="$(in_container "$d/settings.json")" \

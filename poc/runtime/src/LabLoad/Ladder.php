@@ -183,20 +183,31 @@ final class Ladder
      * A step whose rps did not come out while the DB was under 80% is "the app was the bottleneck": the note says so and the
      * record carries the app's CPU utilization next to it. The step that stops the scenario is itself recorded and kept.
      *
+     * @param list<string> $invalidReasons why the rps check failed (`RpsAchievement::judgeStep`); empty for a record made before section 7.4.3
+     *
      * @return array{stop: bool, reasons: list<string>, note: string|null}
      */
-    public static function decide(float $dbUtilization, bool $rpsValid): array
+    public static function decide(float $dbUtilization, bool $rpsValid, array $invalidReasons = []): array
     {
         $reasons = [];
         if ($dbUtilization >= self::STOP_UTILIZATION - 1e-12) {
             $reasons[] = 'db_utilization_at_or_above_80_percent';
         }
-        if (!$rpsValid) {
+        // A record made before section 7.4.3 gives no reasons: an invalid step there is "rps_not_reached" as it always was.
+        $dropped = in_array(RpsAchievement::REASON_DROPPED, $invalidReasons, true);
+        $outside = !$rpsValid && (!$dropped || in_array(RpsAchievement::REASON_OUTSIDE_TOLERANCE, $invalidReasons, true));
+        if ($outside) {
             $reasons[] = 'rps_not_reached';
         }
+        if ($dropped) {
+            $reasons[] = RpsAchievement::REASON_DROPPED;
+        }
         $note = null;
-        if (!$rpsValid && $dbUtilization < self::STOP_UTILIZATION - 1e-12) {
+        if ($outside && $dbUtilization < self::STOP_UTILIZATION - 1e-12) {
             $note = 'app_side_stall: the rps did not come out while the DB was under 80%';
+        }
+        if ($dropped) {
+            $note = trim(($note === null ? '' : $note . '; ') . 'the load tool dropped arrivals, so the step is invalid (section 7.4.3)');
         }
 
         return ['stop' => $reasons !== [], 'reasons' => $reasons, 'note' => $note];
@@ -252,7 +263,7 @@ final class Ladder
         $rps = $summary['rps'];
         $db = $summary['db_utilization'];
         $app = $summary['app_cpu_utilization'] ?? null;
-        $decision = self::decide((float) $db['utilization'], (bool) $rps['valid']);
+        $decision = self::decide((float) $db['utilization'], (bool) $rps['valid'], $rps['invalid_reasons'] ?? []);
         if ($decision['note'] !== null && $app === null) {
             $decision['note'] .= ' (the app CPU utilization was not sampled)';
         }
@@ -268,6 +279,11 @@ final class Ladder
             'rps_ratio' => $rps['ratio'],
             'rps_valid' => $rps['valid'],
             'rps_status' => $rps['status'],
+            // section 7.4.3: what the rps check counted (`sent`: requests sent inside the window), why it failed, and the end of the step; null in a record made before it
+            'rps_counted' => $rps['counted'] ?? null,
+            'rps_invalid_reasons' => $rps['invalid_reasons'] ?? null,
+            'requests_sent_in_window' => $summary['requests']['sent_in_window'] ?? null,
+            'end_of_step' => self::endOfStep($summary['requests'] ?? []),
             'db_utilization' => $db['utilization'],
             'db_utilization_percent' => $db['percent'],
             'app_cpu_utilization' => $app === null ? null : $app['utilization'],
@@ -288,6 +304,29 @@ final class Ladder
             // the three limits at the time of the step (section 7.4.1); null for a step recorded without them (the first backtest)
             'settings' => self::settings($meta['settings'] ?? null, $summary['requests']['request_timeout'] ?? null),
             'per_route' => $summary['per_route'],
+        ];
+    }
+
+    /**
+     * What happens at the end of a step (section 7.4.3). The load tool waits for the requests still running at the window's end for as
+     * long as the request timeout, so a slow request that was sent inside the window is counted; the database work it does while
+     * waiting happens after the kept window and is not in the step's database utilization. Null for a record made before it.
+     *
+     * @param array<string, mixed> $requests
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function endOfStep(array $requests): ?array
+    {
+        if (!array_key_exists('sent_in_window', $requests)) {
+            return null;
+        }
+
+        return [
+            'wait_for_running_requests' => $requests['graceful_stop'] ?? null,
+            'requests_finished_after_window' => $requests['finished_after_window'] ?? 0,
+            'longest_after_window_ms' => $requests['longest_after_window_ms'] ?? 0,
+            'note' => 'The load tool waits at the end of the step for requests still running (as long as the request timeout). The database work of those requests happens after the kept window and is outside the step\'s database utilization.',
         ];
     }
 

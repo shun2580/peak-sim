@@ -11,11 +11,17 @@
 //   REQUEST_TIMEOUT  how long k6 waits for one response before it gives up (a k6 duration such as 600s). Without it the requests are
 //                    sent exactly as before and k6's own default applies; with it the value is passed on every request, so a run that
 //                    must not be cut by k6 before the server's own limits says its value instead of relying on the default.
+//                    With it, k6 also waits this long at the end of the scenario for the requests that are still running (k6's
+//                    own graceful stop is 30 s): a slow request that was sent inside the window is not cut off and forgotten.
+//                    The database work of such a request happens after the kept window and is outside it (section 7.4.3).
+//
+// What is counted for "did the decided rps come out" is the requests SENT inside the kept window (lab_sent{phase:measure}), not the
+// ones that had finished by then, and the arrivals the load tool dropped (dropped_iterations, which must be 0). Section 7.4.3.
 //
 // It sends no write: a route that is not a GET is refused before any request is made.
 import http from 'k6/http';
 import exec from 'k6/execution';
-import { Gauge } from 'k6/metrics';
+import { Counter, Gauge } from 'k6/metrics';
 
 const plan = JSON.parse(open(__ENV.PLAN));
 const targets = JSON.parse(open(__ENV.TARGETS));
@@ -40,6 +46,11 @@ for (const r of plan.routes) {
 }
 
 const scenarioStart = new Gauge('lab_scenario_start_ms');
+// Counted when a request is sent (before the answer), tagged with the phase and the route it was sent in.
+const sentCount = new Counter('lab_sent');
+// A request of the kept window that finished after the window's end, and how long after (the Gauge keeps the largest).
+const afterWindowCount = new Counter('lab_finished_after_window');
+const afterWindowMs = new Gauge('lab_after_window_ms');
 
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 299 }));
 
@@ -51,6 +62,8 @@ const thresholds = {
   'http_reqs{phase:measure}': ['count>=0'],
   'http_req_failed{phase:measure}': ['rate>=0'],
   'http_req_duration{phase:measure}': ['max>=0'],
+  'lab_sent{phase:measure}': ['count>=0'],
+  'lab_finished_after_window{phase:measure}': ['count>=0'],
 };
 for (const status of STATUSES) {
   thresholds['http_reqs{phase:measure,status:' + status + '}'] = ['count>=0'];
@@ -74,7 +87,12 @@ plan.routes.forEach((r, i) => {
     exec: 'hit',
     env: { ROUTE_INDEX: String(i) },
   };
+  // The wait at the end for the requests still running is the request timeout (section 7.4.3); without a timeout k6's default stays.
+  if (requestTimeout !== undefined) {
+    scenarios[name].gracefulStop = requestTimeout;
+  }
   thresholds['http_reqs{phase:measure,route:' + r.route + '}'] = ['count>=0'];
+  thresholds['lab_sent{phase:measure,route:' + r.route + '}'] = ['count>=0'];
 });
 
 export const options = {
@@ -100,7 +118,14 @@ export function hit() {
   if (requestTimeout !== undefined) {
     params.timeout = requestTimeout;
   }
+  sentCount.add(1, { phase: phase, route: r.route });
   http.get(targets.base_url + t.path, params);
+  const windowEnd = started + plan.duration_sec * 1000;
+  const now = Date.now();
+  if (phase === 'measure' && now > windowEnd) {
+    afterWindowCount.add(1, { phase: phase });
+    afterWindowMs.add(now - windowEnd);
+  }
 }
 
 function metric(data, key) {
@@ -110,10 +135,16 @@ function metric(data, key) {
 
 export function handleSummary(data) {
   const per_route = {};
+  const per_route_sent = {};
   for (const r of plan.routes) {
     const v = metric(data, 'http_reqs{phase:measure,route:' + r.route + '}');
     per_route[r.route] = v ? v.count : 0;
+    const sv = metric(data, 'lab_sent{phase:measure,route:' + r.route + '}');
+    per_route_sent[r.route] = sv ? sv.count : 0;
   }
+  const sentMeasure = metric(data, 'lab_sent{phase:measure}');
+  const afterWindow = metric(data, 'lab_finished_after_window{phase:measure}');
+  const afterMs = metric(data, 'lab_after_window_ms');
   const reqs = metric(data, 'http_reqs{phase:measure}');
   const failed = metric(data, 'http_req_failed{phase:measure}');
   const dropped = metric(data, 'dropped_iterations');
@@ -153,6 +184,10 @@ export function handleSummary(data) {
   const out = {
     scenario_start_ms: start ? start.min : null,
     measure_requests: reqs ? reqs.count : 0,
+    measure_sent: sentMeasure ? sentMeasure.count : 0,
+    finished_after_window: afterWindow ? afterWindow.count : 0,
+    longest_after_window_ms: afterMs ? afterMs.max : 0,
+    graceful_stop: requestTimeout === undefined ? null : requestTimeout,
     measure_failed: failed ? failed.passes : 0,
     measure_ok: failed ? failed.fails : 0,
     dropped_iterations: dropped ? dropped.count : 0,
@@ -161,6 +196,7 @@ export function handleSummary(data) {
     request_timeout: requestTimeout === undefined ? null : requestTimeout,
     duration_ms: dur ? { avg: dur.avg, p95: dur['p(95)'], max: dur.max } : null,
     per_route: per_route,
+    per_route_sent: per_route_sent,
   };
   const files = {};
   files[summaryPath] = JSON.stringify(out, null, 2) + '\n';

@@ -122,4 +122,64 @@ final class LoadToolsCliTest extends TestCase
         $this->assertSame('', $out);
         $this->assertStringContainsString('cannot be worked out', $err);
     }
+
+    /** Adds the counts the load tool writes since section 7.4.3 to the k6 summary the other tests wrote. */
+    private function addSent(int $sent, int $dropped = 0): void
+    {
+        $k6 = json_decode((string) file_get_contents($this->dir . '/k6.json'), true);
+        $perRoute = [];
+        foreach (array_keys($k6['per_route']) as $route) {
+            $perRoute[$route] = intdiv($sent, 8);
+        }
+        $k6 += ['measure_sent' => $sent, 'per_route_sent' => $perRoute, 'finished_after_window' => 4, 'longest_after_window_ms' => 12_345.0, 'graceful_stop' => '600s'];
+        $k6['dropped_iterations'] = $dropped;
+        file_put_contents($this->dir . '/k6.json', json_encode($k6));
+    }
+
+    public function test_summarize_run_counts_the_sent_requests_when_the_load_tool_gives_them(): void
+    {
+        [$plan, $samples] = $this->scenarioFiles(70 * 480); // 70 of 80 rps had finished by the window's end
+        $this->addSent(80 * 480);
+        [$code, $out] = self::tool('summarize-run.php', ['--plan=' . $plan, '--k6-summary=' . $this->dir . '/k6.json', '--samples=' . $samples, '--require-sent=1']);
+
+        $this->assertSame(0, $code);
+        $r = json_decode($out, true);
+        $this->assertSame('valid', $r['rps']['status'], 'counted on the sent, not the finished');
+        $this->assertSame('sent', $r['rps']['counted']);
+        $this->assertSame(80 * 480, $r['requests']['sent_in_window']);
+        $this->assertSame(70 * 480, $r['requests']['in_window']);
+        $this->assertSame(4, $r['requests']['finished_after_window']);
+        $this->assertSame('600s', $r['requests']['graceful_stop']);
+        $this->assertSame(intdiv(80 * 480, 8), $r['per_route'][0]['requests_sent']);
+    }
+
+    public function test_summarize_run_marks_a_step_with_a_dropped_arrival_invalid_even_when_the_count_is_right(): void
+    {
+        [$plan, $samples] = $this->scenarioFiles(80 * 480);
+        $this->addSent(80 * 480, 3);
+        [$code, $out] = self::tool('summarize-run.php', ['--plan=' . $plan, '--k6-summary=' . $this->dir . '/k6.json', '--samples=' . $samples, '--require-sent=1']);
+
+        $this->assertSame(0, $code);
+        $r = json_decode($out, true);
+        $this->assertSame('invalid', $r['rps']['status']);
+        $this->assertSame(['load_tool_dropped_arrivals'], $r['rps']['invalid_reasons']);
+        $this->assertSame(3, $r['requests']['dropped_iterations']);
+    }
+
+    public function test_summarize_run_refuses_a_summary_without_the_sent_count_when_it_is_required_and_reads_it_otherwise(): void
+    {
+        [$plan, $samples] = $this->scenarioFiles(80 * 480);
+        $args = ['--plan=' . $plan, '--k6-summary=' . $this->dir . '/k6.json', '--samples=' . $samples];
+
+        [$code, $out, $err] = self::tool('summarize-run.php', array_merge($args, ['--require-sent=1']));
+        $this->assertSame(2, $code);
+        $this->assertSame('', $out);
+        $this->assertStringContainsString('measure_sent', $err);
+
+        [$code, $out] = self::tool('summarize-run.php', $args);
+        $this->assertSame(0, $code);
+        $r = json_decode($out, true);
+        $this->assertSame('completed', $r['rps']['counted']);
+        $this->assertArrayNotHasKey('sent_in_window', $r['requests']);
+    }
 }

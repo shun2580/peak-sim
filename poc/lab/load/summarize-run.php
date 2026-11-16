@@ -7,7 +7,13 @@ declare(strict_types=1);
  * utilization over the kept window. It judges nothing else.
  *
  *   php poc/lab/load/summarize-run.php --plan=<plan.json> --k6-summary=<summary.json> --samples=<cpu samples file>
- *       [--app-samples=<app cpu samples file> [--app-cpus=6]]
+ *       [--app-samples=<app cpu samples file> [--app-cpus=6]] [--require-sent=1]
+ *
+ * "Did the decided rps come out" is counted on the requests SENT inside the kept window (the load tool's `measure_sent`), and a step
+ * in which the load tool dropped any arrival is invalid (section 7.4.3). A summary written before the load tool counted the sent
+ * requests has no `measure_sent`: its finished requests are counted instead and the record says `counted: completed`. With
+ * `--require-sent=1` (the measuring tool gives it) such a summary is refused with exit 2, so that an old load script cannot be
+ * used by mistake.
  *
  * The kept window is [scenario start + discarded start, scenario start + length], taken from the scenario's own start time.
  * If the samples cannot give the utilization (cpu.stat unreadable, window not covered) it exits 3 and prints no figure.
@@ -47,11 +53,22 @@ if (!is_array($plan) || !is_array($k6) || !isset($k6['scenario_start_ms'])) {
 }
 
 $window = $plan['duration_sec'] - $plan['warmup_sec'];
-$rps = RpsAchievement::judge((float) $plan['rps'], (int) $k6['measure_requests'], $window);
+$hasSent = isset($k6['measure_sent']) && isset($k6['per_route_sent']);
+if (!$hasSent && ($opts['require-sent'] ?? '') === '1') {
+    fwrite(STDERR, "summarize-run: the k6 summary has no count of the requests sent in the window (measure_sent); the load script is not the one section 7.4.3 needs\n");
+    exit(2);
+}
+$rps = $hasSent
+    ? RpsAchievement::judgeStep((float) $plan['rps'], (int) $k6['measure_sent'], $window, (int) ($k6['dropped_iterations'] ?? 0))
+    : RpsAchievement::judgeStep((float) $plan['rps'], (int) $k6['measure_requests'], $window, (int) ($k6['dropped_iterations'] ?? 0), RpsAchievement::COUNTED_COMPLETED);
 $perRoute = [];
 foreach ($plan['routes'] as $r) {
     $count = (int) ($k6['per_route'][$r['route']] ?? 0);
-    $row = ['route' => $r['route'], 'target_rps' => $r['rps'], 'achieved_rps' => $count / $window, 'requests' => $count];
+    $sentCount = $hasSent ? (int) ($k6['per_route_sent'][$r['route']] ?? 0) : null;
+    $row = ['route' => $r['route'], 'target_rps' => $r['rps'], 'achieved_rps' => ($sentCount ?? $count) / $window, 'requests' => $count];
+    if ($sentCount !== null) {
+        $row['requests_sent'] = $sentCount;
+    }
     if (isset($r['planned_window_requests'])) {
         $row['planned_requests'] = $r['planned_window_requests'];
     }
@@ -100,6 +117,13 @@ if (isset($k6['http_status_by_route']) && is_array($k6['http_status_by_route']))
 }
 if (array_key_exists('request_timeout', $k6)) {
     $record['requests']['request_timeout'] = $k6['request_timeout'];
+}
+if ($hasSent) {
+    // the count the rps check used, and what happened at the step's end (section 7.4.3)
+    $record['requests']['sent_in_window'] = (int) $k6['measure_sent'];
+    $record['requests']['finished_after_window'] = (int) ($k6['finished_after_window'] ?? 0);
+    $record['requests']['longest_after_window_ms'] = (float) ($k6['longest_after_window_ms'] ?? 0);
+    $record['requests']['graceful_stop'] = $k6['graceful_stop'] ?? null;
 }
 if ($app !== null) {
     $record['app_cpu_utilization'] = $app;
