@@ -1,0 +1,24 @@
+[16-Nov-2026 08:24:46] NOTICE: [pool www] 'user' directive is ignored when FPM is not running as root
+[16-Nov-2026 08:24:46] NOTICE: [pool www] 'group' directive is ignored when FPM is not running as root
+[16-Nov-2026 08:24:46] NOTICE: fpm is running, pid 1
+[16-Nov-2026 08:24:46] NOTICE: ready to handle connections
+[16-Nov-2026 08:26:14 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) in /app/vendor/laravel/framework/src/Illuminate/Database/Connection.php on line 440
+[2026-11-16 08:26:14] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) at /app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:440)
+[stacktrace]
+#0 {main}
+"} 
+[16-Nov-2026 08:26:58 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) in /app/vendor/laravel/framework/src/Illuminate/Database/Connection.php on line 440
+[2026-11-16 08:26:58] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) at /app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:440)
+[stacktrace]
+#0 {main}
+"} 
+[16-Nov-2026 08:27:08 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) in /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php on line 1127
+[2026-11-16 08:27:08] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) at /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php:1127)
+[stacktrace]
+#0 {main}
+"} 
+[16-Nov-2026 08:27:15 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) in /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php on line 1127
+[2026-11-16 08:27:15] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) at /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php:1127)
+[stacktrace]
+#0 {main}
+"} 

@@ -1,0 +1,9 @@
+{
+ "database": "peak_sim_measure_d60189cad0bc_lab_300000",
+ "counts": {
+  "entities": 300000,
+  "images": 300000,
+  "references": 300000
+ },
+ "taken": "2026-11-16T17:25:12+09:00"
+}
