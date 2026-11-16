@@ -2193,6 +2193,18 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - D206(B で時間とメモリの上限を外す)・D208(`memory_limit` 4G とメモリ不足で止まる口)の続き。
 - 変わらないもの:予測・見積もり・較正・式・印の閾値・合否の規則・段・窓・分母・合格線・件数 300,000 の DB(触れていない)・D181〜D208 の決め。
 
+### D211. 件数 300,000 の B で、s-3 の後にアプリと web を作り直してから s-4 へ進めた(2026-11-16 13:52〜13:53 記帳。D72 の委任の内。規則も値も変えていない)
+- **なぜ**:アプリのコンテナのメモリが段を跨いで積もっていた。`mem-sequence.txt` の `app_memory_current` は s-1 の前 25,198,592 → s-2 の後 4,595,646,464 → s-3 の後 4,342,079,488、`app_memory_peak` は s-3 の後 5,517,594,624(上限 6,442,450,944)。5 本とも件数 300,000 で作り直しが入らず、前の worker のメモリを持ち越すのは測りの作り物で、s-4・s-5 は上限に当たる見込みが高かった。s-1 は新しいコンテナで始めていたので、他の段も同じ形にそろえた。
+- **どの手で**:連鎖 `chain-B.sh` は変えず、境ごとに呼び直される `stats.sh` の頭に、label が `before-s-4` のときだけ札 `release-before-s-4` を待つ処理を足した(控えは `stats.sh.orig-T6B2`)。s-3 の後のログの写し(`snap after-s-3`)まで済んだ所で連鎖が止まり(13:47:40 HOLD)、その間に作り直した。s-3 の測りには触れていない。
+- **作り直し**:13:52:34 に `poc/lab/bin/use-db 300000`(アプリと web のみ。DB には触れていない)。終了 0・閉じたネットワークの確かめは PREFLIGHT OK。
+- **前後の値**(`mem-sequence.txt`):
+  - 前(13:52:30・before-recreate-s-4):`app_memory_current` 2,755,756,032・`app_memory_peak` 5,517,594,624・`app_memory_max` 6,442,450,944・`mem_available_kib` 6,471,180・oom/oom_kill は 0。
+  - 後(13:52:55・after-recreate-s-4):`app_memory_current` 25,243,648・`app_memory_peak` 39,956,480・`app_memory_max` 6,442,450,944・`mem_available_kib` 9,099,276・oom/oom_kill は 0。s-1 の前(25,198,592・39,514,112)とほぼ同じに戻った。
+- **作り直しの後の確かめ**(すべて合った):`check-limits --require=unlimited --request-timeout=600s` が LIMITS OK(max_execution_time 0・memory_limit 4G・request_terminate_timeout 0s・nginx 600s・k6 600s)/ `docker inspect` の `HostConfig.Memory` = 6442450944 のまま / `git diff -- poc/lab/compose` は B の 2 ファイルの差分のみで、作り直しの前後で変わらず(`compose-B.diff` と一致)。
+- **進め方**:13:53:03 に札を出し、13:53:11 に s-4 が始まった。`check-oom` は s-4 の初めに基準を取り直す(D208)。作り直しの前の読み(`oom-before-recreate-s-4.txt`)は oom_killed=false・restart_count=0・cgroup oom=0・oom_kill=0。
+- **連鎖の終わりの知らせ**:連鎖の `note` は自分宛てで弾かれる(self-send)ため、`chain.done` を見張って知らせを送る台本(`watch_done.sh`)を s-4 の前に足した。
+- 変わらないもの:予測(`ladder-prediction-3.json`)・規則・閾値・止める条件・段・窓・分母・DB・D181〜D210 の決め。
+
 ### D212. A の合否は `compare_test2.py` の規則 B で出す。complete でない 3 本のルートは量の見積もりなしとして分母の外に置く(2026-11-16 09:15 記帳。A の測りの前に決めた。A の結果は見ていない。件数 300,000 のリクエストは A のものを 1 本も出していない)
 - 決め 1(合否の道具):A(外挿試験)の合否は、第 2 試験と同じ `docs/research/extrapolation-data-2/compare_test2.py`(またはその逐語の写し)の**規則 B** で出し、**規則 A** を並べる。`bin/compare-extrapolation`(`ExtrapolationJudge`)は**合否に使わない**。わけ:`ExtrapolationJudge` が読むのは予測のファイル(`predictions.json`・当てはめ `fits.json` から作る)と cold の記録で、行数の H1 の点(見積もり `estimate.json`)を比べない。予測の commit(206d114)に入っているのは見積もりの 4 ファイルと B の予測 2 ファイルで、`predictions.json` は入っていない(D202 に sha256 がある)。この入力で合否を出せば、関門を通っていない入力で判じることになる。参考に並べるのは差し支えない(並べても合否には数えず、食い違えば食い違いのまま書く)。
 - 決め 2(分母の外):次の 3 本は、`complete` でないルートとして**量の見積もりなし**に分け、合格線の分母に入れず、判定不能の線(各量の『見積もりがあり、その件数で測れたルート』の数 = `with_estimate`)にも**数えない**。
