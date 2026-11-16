@@ -2192,3 +2192,15 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - **試験の結果**:`tests/write-guards.sh` 264 件(D208 の時点の 238 件から E 節の分が増えた)・`tests/limits-guard.sh` 69 件・`tests/ladder-gate.sh` 75 件・`tests/calibration-gate.sh` 30 件・`tests/memory-limit.sh` 8 件、いずれも SKIP 0・失敗 0。既存の試験の入力と期待は変えていない(代用品に読みの分岐を足し、コピーする道具の一覧に `read-memory` を足しただけ)。PHP のコードは変えていないので、PHP の試験は回していない。
 - D206(B で時間とメモリの上限を外す)・D208(`memory_limit` 4G とメモリ不足で止まる口)の続き。
 - 変わらないもの:予測・見積もり・較正・式・印の閾値・合否の規則・段・窓・分母・合格線・件数 300,000 の DB(触れていない)・D181〜D208 の決め。
+
+### D212. A の合否は `compare_test2.py` の規則 B で出す。complete でない 3 本のルートは量の見積もりなしとして分母の外に置く(2026-11-16 09:15 記帳。A の測りの前に決めた。A の結果は見ていない。件数 300,000 のリクエストは A のものを 1 本も出していない)
+- 決め 1(合否の道具):A(外挿試験)の合否は、第 2 試験と同じ `docs/research/extrapolation-data-2/compare_test2.py`(またはその逐語の写し)の**規則 B** で出し、**規則 A** を並べる。`bin/compare-extrapolation`(`ExtrapolationJudge`)は**合否に使わない**。わけ:`ExtrapolationJudge` が読むのは予測のファイル(`predictions.json`・当てはめ `fits.json` から作る)と cold の記録で、行数の H1 の点(見積もり `estimate.json`)を比べない。予測の commit(206d114)に入っているのは見積もりの 4 ファイルと B の予測 2 ファイルで、`predictions.json` は入っていない(D202 に sha256 がある)。この入力で合否を出せば、関門を通っていない入力で判じることになる。参考に並べるのは差し支えない(並べても合否には数えず、食い違えば食い違いのまま書く)。
+- 決め 2(分母の外):次の 3 本は、`complete` でないルートとして**量の見積もりなし**に分け、合格線の分母に入れず、判定不能の線(各量の『見積もりがあり、その件数で測れたルート』の数 = `with_estimate`)にも**数えない**。
+  1. 検証用アプリ `GET /ng/nested`:件数 30,000 の捕捉が 60 秒の上限で打ち切られた(105,472 クエリの時点)。見積もりは `complete: false`・`status: partial`。
+  2. 検証用アプリ `POST /ok/bulk`:件数 30,000 の捕捉が HTTP 500(MySQL のプレースホルダ数の上限・SQLSTATE 1390)。見積もりは `complete: false`・`status: partial`。
+  3. BookStack `POST /books/{bookSlug}/copy`:D205 のとおり(`complete` が false・全型が `insufficient_scales`)。D205 の決めのまま変えない。
+- 今の版で確かめた場所(`docs/research/extrapolation-data-2/compare_test2.py`、第 2 試験の commit bdcc18b の版のまま):`estimate_of` の `if not r.get('complete')` が 168〜169 行で、queries と rows_examined の見積もりを `None`(理由 `estimate incomplete (...)`)にする。その行は 209 行で `category='no_estimate'` に分けられ、`with_estimate = denominator + unmeasured`(259 行)に入らない。**ピークメモリだけは別**:165〜167 行は `peak_memory.status == 'predicted'` だけを見て `complete` を読まない。今回の見積もりでは `GET /ng/nested` と `POST /ok/bulk` のピークメモリは `predicted` なので、この 2 本は**ピークメモリの数には入りうる**(ピークメモリは報告のみで、合否を決める量は queries と rows_examined)。`POST /books/{bookSlug}/copy` のピークメモリは `not_predicted`(`scale 10000: not measured`)で入らない。
+- 第 2 試験との違い(事実のみ):第 2 試験(件数 200,000)では `GET /ng/nested` は分母の内、`POST /ok/bulk` は HTTP 500 で `unmeasured` だった(どちらも見積もりは `complete`)。今回は捕捉が 30,000 件まで伸びた結果、2 本とも見積もりが `complete` でなく、分母にも判定不能の数えにも入らない。検証用アプリの分母は第 2 試験より 1 本以上減りうる。
+- 規則の変更ではないこと:仕様の分母の定義(量ごとに『見積もりがあり、その件数で測れたルート』)と、D205 が `POST /books/{bookSlug}/copy` に当てた扱いと同じ。許す誤差・合格線・判定の規則・見積もり・予測・印の閾値は一つも変えていない。測りの前に決めるので、D95(結果を見てから分母を増減しない)にも触れない。
+- D205 との関係:D205 の「道具」の書きぶりは `ExtrapolationJudge::judge` を A の比べの道具として書き、`compare_test2.py` を『もう一つの比べの道具』と書いている。合否を出す道具は決め 1 のとおり `compare_test2.py` であり、D205 の書きぶりはそれと食い違う。**D205 は書き換えず、D212 で正す**。D205 の確かめ自体(`POST /books/{bookSlug}/copy` がどちらの道具でも分母にも判定不能の線にも数えられない)は、`compare_test2.py` 側の確かめ(上)で成り立っている。
+- 変わらないもの:予測・見積もり・較正・式・印の閾値・合否の規則・段・窓・分母の定義・合格線・#15〜#17 の記録と合否・D181〜D210 の決め。
