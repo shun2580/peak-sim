@@ -2231,3 +2231,22 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
   - **外した 2 本は、件数 30,000 の捕捉で既に落ちた重いルートである**。この旨を R1 と R2 を並べた節に一言添え、R1 が難所を除いた数に見えぬようにする。
   - **仕様 §7.1** は殿が次の版で書き足す予定。文言は『捕捉の全規模が取れなかったルートは分母の外とし、入れた数えを並べる』。仕様は殿が書くので、ここでは触れない。
   - **直しの項への効き**:これで直しの項の『確定ではない』と『殿の裁定待ち』は解ける。決め 2 の 2 本(`GET /ng/nested`・`POST /ok/bulk`)の扱いは、上の本文のとおり分母の外で確定する。R1・R2 の定義は直しの項のままである。新しい D 番号は作らない。
+
+### D213. B の段を無効にした打ち切りの記録(事実のみ・扱いは定めておらぬ)(2026-11-16 18:07 記帳。件数 300,000 の B の測りの後。記録から写したのみで、判定・解釈は書かない)
+
+- 位置づけ:件数 300,000 の B で、道具が「無効」(窓の中で出た rps が計画の ±5% の外。仕様 §7.2 の規則)とした段のうち、データベースの使用率が 80% に届かぬまま止まった 3 段(s-1 の段 5・s-2 の段 4・s-4 の段 4)について、k6 の記録が示す事実を並べる。規則・道具・判定・予測・較正は変えていない。扱い(この 3 段をどう数えるか)は定めておらず、別に決める。D211・D212 の本文は触れていない。
+- 3 段の k6 の記録(`docs/research/lab-data/ladder-300k/<シナリオ>-300000/rung-NN-<rps>/` の `k6-output.txt`、`record.json`、`plan.json`、`summary.json`。「最後の `running (` の行」は、そのファイルの最後の `running (` で始まる行。ファイルの末尾 8 行は、その後に出る 8 本のルートの進みの行):
+
+  | 段 | 計画の rps | 窓の長さ(`plan.json`) | 窓の中の本数 / 計画 | 足りぬルート(`record.json` の `per_route`) | dropped | `k6-output.txt` の最後の `running (` の行 | `k6.exit` |
+  |---|---|---|---|---|---|---|---|
+  | s-1 段 5(`rung-05-0.1`) | 0.1 | 400 秒(計画の全長 460 秒) | 37 / 40 | `GET /books/{bookSlug}/export/zip` のみ(2 / 5) | 0 | 4924 行目:`running (8m10.0s), 0000/0160 VUs, 45 complete and 3 interrupted iterations` | 0 |
+  | s-2 段 4(`rung-04-0.07`) | 0.07 | 571 秒(計画の全長 631 秒) | 37 / 40 | `GET /books/{bookSlug}/export/zip` のみ(5 / 8) | 0 | 6634 行目:`running (11m01.0s), 0000/0160 VUs, 41 complete and 3 interrupted iterations` | 0 |
+  | s-4 段 4(`rung-04-0.07`) | 0.07 | 571 秒(計画の全長 631 秒) | 37 / 40 | `GET /books/{bookSlug}/export/zip` のみ(5 / 8) | 0 | 6634 行目:`running (11m01.0s), 0000/0160 VUs, 41 complete and 3 interrupted iterations` | 0 |
+
+  3 段とも、足りぬのは ZIP の 3 本だけで、その数が interrupted の数(3)と等しい。ほかの 7 ルートは計画どおりの本数。dropped は 0(k6 が始められなかった反復は無い)。3 段とも `record.json` は `rps_status: invalid`、段の判断は `rps_not_reached`、注記は `app_side_stall: the rps did not come out while the DB was under 80%`。`record.json` の `rps_ratio` は s-1 段 5 が 0.925(= 37 ÷ (0.1 × 400))、s-2 段 4 と s-4 段 4 が 0.926(= 37 ÷ (0.07 × 571) = 37 ÷ 39.97)。データベースの使用率は s-1 段 5 が 62.09%、s-2 段 4 が 69.49%、s-4 段 4 が 67.80%。
+- ZIP の 1 本の時間(記録の値):
+  - 件数 300,000 の印の測り(`docs/research/lab-data/mark-300k/mark-300000/http.jsonl`、アプリの `memory_limit` 512M・負荷なし・1 本ずつ)の ZIP の rep 1:k6 の所要 41,737 ms(41.7 秒)、応答が終わるまで 42.01 秒、HTTP 500、アプリのログの原因はメモリの上限(`Allowed memory size of 536870912 bytes exhausted`)。完了した ZIP の時間ではなく、落ちるまでの時間である。rep 0 は 42,460 ms(`mark-300k/README.md`)。
+  - 上の 3 段の窓の中で完了した要求の最長(`summary.json` の `duration_ms.max`):s-1 段 5 は 247,581 ms、s-2 段 4 は 258,479 ms、s-4 段 4 は 249,191 ms。k6 の 1 本ごとの時間の上限(`REQUEST_TIMEOUT` 600 秒)より短い。
+- gracefulStop:`poc/lab/load/scenario.js` を読んで、`gracefulStop` の指定が**ファイルのどこにも無い**ことを確かめた(`poc/lab/load`・`poc/lab/bin` を `gracefulStop` で検索しても、一致は 0 件)。executor は `constant-arrival-rate` で、`rate`・`timeUnit`・`startTime`・`duration`・`preAllocatedVUs`・`maxVUs`・`exec`・`env` だけを与えている。したがって、k6 の既定(executor の `gracefulStop` の既定は 30 秒)が掛かる。記録と矛盾しない:3 段とも、最後の `running (` の行の経過時間は、`plan.json` の計画の全長に 30 秒を足した値に等しい(460 秒 → 8m10.0s、631 秒 → 11m01.0s)。同じことは、s-1 段 1(1,660 秒 → 28m09.9s)にもある。既定の 30 秒そのものは k6 の取り決めとして書いたもので、このリポジトリで k6 を動かして確かめたものではない。
+- 2 回目(`lab-backtest-2.md`)の r-4 段 3 にも同じ形がある:`docs/research/lab-data/recheck-ladder-b/r-4-200000/rung-03-0.1/k6-output.txt` の 4924 行目に `running (8m10.0s), 0000/0160 VUs, 41 complete and 3 interrupted iterations`、`record.json` の `per_route` で足りぬのは `GET /books/{bookSlug}/export/zip` のみ(5 / 8)、窓の中の本数 37 / 40、dropped 0、`plan.json` の計画の全長 460 秒・窓 400 秒、完了した要求の最長 182,014 ms(`summary.json`)。2 回目の記録は、この段を `rps_not_reached`・使用率 65.95%・`app_side_stall` として残し、原因は定めていない(`lab-backtest-2.md` §4.3・§7)。2 回目のほかの無効の段(r-1 段 9・r-2 段 8・r-5 段 8)は使用率が 80% 以上で、その k6 の記録の interrupted の数は、この記帳では調べていない。
+- 規則(§7.2 の ±5%)・道具・判定は変えていない。この 3 段を B の数え方でどう扱うかは、この記録では決めておらず、別に決める。
