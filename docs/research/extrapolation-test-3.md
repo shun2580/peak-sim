@@ -107,6 +107,8 @@ All of this was fixed and recorded (D195 to D205) before the commit of the estim
 
 Where the numbers come from (kept outside the repository): the records of step 6 for each target (`attempts.jsonl`), the records of step 7 (`attempt.jsonl`, one per route and lap) and the time records. A file lists the SHA-256 of every record file the comparison read. `TBD`.
 
+Resumed run (from 2026-11-16T23:29): BookStack, every route cold once, and BookStack, the repeat of the marked routes, ran at the same time on separate databases (the cold-once run ended at 2026-11-17T04:13:17). The two did not overlap at 200,000 rows. The quantities compared are counts and sizes, not times, so the overlap is not expected to change them. The exception is `PUT /books/{slug}`, which was cut at the 600 s request limit at 300,000 rows (it ended with 302 at 200,000 rows); whether it would have ended inside 600 s if run alone cannot be observed. The reading stays as fixed in D126, and no run is repeated in order to change it. The measuring database of the cold-once run took 4,056.73 s to build, as recorded. The preflight check of the statistics, the CHECKSUM and the real limits after the rebuild was not reached: the tool builds and drops its own database, runs no `ANALYZE`, and takes no CHECKSUM, and the limits are the defined values.
+
 If a measurement is interrupted (a stop of the host or anything else), the statistics tables, the counts of the N tables and the real values of the limits are read before and after the restart, and the scenario that stopped is measured again from its first route. The interrupted record is kept apart and enters no count.
 
 ## 2. Result: share within tolerance
