@@ -1,0 +1,38 @@
+{
+    "schema_version": "1",
+    "rule": "a route with at least one statement marked plan_changes_at_scale or plan_unstable in the EXPLAIN at the target size (simulator-spec.md section 7.1)",
+    "app": "bookstack",
+    "at": 150000,
+    "routes_in_explain": 7,
+    "marked_count": 2,
+    "routes": [
+        {
+            "route": "GET /books/{slug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                },
+                {
+                    "id": "se916fbea31",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "statements": [
+                {
+                    "id": "sf034e6d815",
+                    "marks": [
+                        "plan_unstable"
+                    ]
+                }
+            ]
+        }
+    ]
+}
