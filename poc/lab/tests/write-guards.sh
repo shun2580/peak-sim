@@ -435,11 +435,12 @@ ml "$mlr" --scenario=r-1 --predictions="$pred" --scheme=B --request-timeout=600s
 # a count not seen, and the prediction does not hold it: refused before any query
 set_lab "${B[@]}" scale=50000
 ml "$mlr" --scenario=r-1 --predictions="$pred_first" --scheme=B --request-timeout=600s --statement-record="$good"; rc=$?
-expect_code "C10 r-1 (50,000 rows) with a committed prediction that does not hold that scale: 17" 17 $rc
+expect_code "C10 r-1 (50,000 rows) with a committed prediction that holds no scenario r-1: 2 (the count is read from the prediction, which has none)" 2 $rc
 [ "$(queries)" = 0 ] && [ "$(k6_calls)" = 0 ] && pass "C10b no query was sent, no load" || fail "C10b ($(grep 'CHECKSUM\|COUNT(' "$work/docker.calls" | head -2))"
+grep -q 'holds no scenario r-1' "$work/ml.err" && pass "C10c it says the prediction holds no such scenario" || fail "C10c ($(head -3 "$work/ml.err" | tr '\n' ' '))"
+# the guard of check-tables is still there as the second layer: asked directly (as build-db and the other callers do), it refuses the same count with 17
 set_lab "${B[@]}" scale=50000
-ml "$(without measure-ladder TABLES-BEFORE)" --scenario=r-1 --predictions="$pred_first" --scheme=B --request-timeout=600s --statement-record="$good"
-[ "$(k6_calls)" -ge 1 ] && pass "C10c WITHOUT the tables-before line the same call reaches the load tool: the guard is what refused" || fail "C10c ($(head -3 "$work/ml.err" | tr '\n' ' '))"
+ct allowed --scale=50000 --prediction="$pred_first"; expect_code "C10d check-tables itself still refuses 50,000 rows when the prediction holds no scenario of that scale: 17" 17 $?
 # a seen scale needs no prediction scenario of its own (t-4 at 10,000 rows)
 set_lab php=30 pool=0s nginx=120s scale=10000
 ml "$mlr" --scenario=t-4 --predictions="$pred_first" --scheme=B --statement-record="$good"; rc=$?

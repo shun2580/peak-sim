@@ -45,6 +45,15 @@ measured step by step from the bottom up and stops after the first step that was
 come out (outside 5%); that step is recorded too. A step whose rps did not come out while the DB was under 80% is recorded as an
 app-side stall, with the app's CPU utilization.
 
+- **The count of the tables of a scenario (`--predictions`, `--scale`).** The count is the one the prediction file holds for that scenario
+  (its `tables`, all of one count), so a prediction made at another count than the table of `load/ladder.php` (the table says 300,000 for
+  `s-1` .. `s-5`; B was predicted at 90,000) is measured at its own count, and the record of each step carries that count. `--scale=<N>`
+  only states what the caller expects: it must be the prediction's count, or the tool refuses (exit 2) before any container is touched.
+  A prediction file with no such scenario, or with tables of different counts, is refused the same way. The mix, the 15 steps, the window,
+  the rule for a valid step and the stopping rule do not depend on the count, and the gate in front of the measurement
+  (`bin/prediction-gate`) and the refusal for counts not seen yet (`bin/check-tables`) are as they were. A dry run with no `--predictions`
+  takes `--scale` as given, or the table's count.
+
 - **The layout of a step (`--scheme`).** `spec` (the default) is the spec as written. `A` keeps the 5-minute window and starts each
   route's stream at its own time, so each route has a chosen whole number of requests in the window and the total is exactly the
   decided rps times the window. `B` also lengthens the window to the smallest multiple of 40 / rps that is at least 300 s (a step is

@@ -8,7 +8,9 @@ declare(strict_types=1);
  *
  *   php ladder.php rungs [--trial|--scenario=<id>]  the rps of each step, one per line (--trial: the one step of a trial, R_0; --scenario=s-1..s-5:
  *                                                 the 15 steps of section 7.4.2; no option, or any other id: the 13 of section 7.2)
- *   php ladder.php scenario <id> [--line]         scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>")
+ *   php ladder.php scenario <id> [--scale=<N>] [--line]   scale, multiple of N_0 and mix of a prediction scenario (--line: "<scale> <mix>").
+ *                                                 --scale: the count the prediction file holds for it (a whole multiple of N_0; not with --trial);
+ *                                                 the mix is the table's either way
  *   php ladder.php scenario <cal-2|cal-3> --trial [--line]   the same for a trial (N_0; a prediction scenario id is refused)
  *   php ladder.php order [--set=<t|r|s>]          the order of the measurement by scale (JSON; t = t-1..t-5, the default; r = r-1..r-5; s = s-1..s-5)
  *   php ladder.php settings --nginx=<file> --fpm=<file> --ini=<file> [--k6-timeout=<duration>] [--require=<unlimited|limited>]
@@ -23,6 +25,7 @@ declare(strict_types=1);
  *   php ladder.php table --dir=<dir of rung-NN-<rps>/plan.json>
  *                                                 the dry-run table: per step the rate of the routes and what the plan would count
  *   php ladder.php record --scenario=<id>|--trial=<cal-2|cal-3> --rung=<n> --summary=<summarize-run output> --started=<iso> --ended=<iso>
+ *                         [--scale=<N> (not with --trial): the count the prediction file holds for the scenario]
  *                         [--prediction-file (not with --trial)=<path> --prediction-commit=<hash> --prediction-time=<iso>]
  *                         [--settings=<output of `settings`>]
  *                                                 the record of one step (JSON on stdout, the end line on stderr)
@@ -62,6 +65,22 @@ function readJson(string $path): array
     return $data;
 }
 
+/** The --scale option: a whole number of rows, or null when it was not given. A trial is always at N_0, so it takes none. */
+function scaleOption(array $opts): ?int
+{
+    if (!isset($opts['scale'])) {
+        return null;
+    }
+    if (isset($opts['trial'])) {
+        fail('a trial is always at N_0: --scale is refused with --trial');
+    }
+    if (preg_match('/^[1-9][0-9]{0,8}$/', $opts['scale']) !== 1) {
+        fail('--scale must be a whole number of rows (got "' . $opts['scale'] . '")');
+    }
+
+    return (int) $opts['scale'];
+}
+
 $args = array_slice($argv, 1);
 $command = array_shift($args) ?? '';
 $positional = [];
@@ -92,7 +111,8 @@ switch ($command) {
 
     case 'scenario':
         try {
-            $s = isset($opts['trial']) ? Ladder::trial($positional[0] ?? '') : Ladder::scenario($positional[0] ?? '');
+            $scale = scaleOption($opts); // read first, so that a trial with a count is refused too
+            $s = isset($opts['trial']) ? Ladder::trial($positional[0] ?? '') : Ladder::scenario($positional[0] ?? '', $scale);
         } catch (InvalidArgumentException $e) {
             fail($e->getMessage());
         }
@@ -205,7 +225,8 @@ switch ($command) {
             fail('a trial has no prediction: --prediction-file is refused with --trial');
         }
         try {
-            $scenario = isset($opts['trial']) ? Ladder::trial($opts['trial']) : Ladder::scenario($opts['scenario']);
+            $scale = scaleOption($opts); // read first, so that a trial with a count is refused too
+            $scenario = isset($opts['trial']) ? Ladder::trial($opts['trial']) : Ladder::scenario($opts['scenario'], $scale);
         } catch (InvalidArgumentException $e) {
             fail($e->getMessage());
         }

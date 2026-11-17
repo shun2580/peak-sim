@@ -109,8 +109,8 @@ printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/observe/sample-cpu"; chmod +x
 # a git repository with one committed prediction file, so that the gate in front of measure-ladder is open
 grepo="$work/repo"; mkdir -p "$grepo/poc/lab/predictions"
 git -C "$grepo" init -q . && git -C "$grepo" config user.email t@example.invalid && git -C "$grepo" config user.name t
-# the prediction holds the scenarios of the re-check (their tables are of 50,000 and 200,000 rows), so that the refusal for counts not seen yet is open for them
-python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; json.dump({"scenarios":[{"id":"r-1","tables":n(50000)},{"id":"r-2","tables":n(50000)},{"id":"r-3","tables":n(200000)},{"id":"r-4","tables":n(200000)},{"id":"r-5","tables":n(200000)}]}, open(sys.argv[1],"w"))' "$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
+# the prediction holds the scenarios of the re-check (their tables are of 50,000 and 200,000 rows) and t-4 (10,000 rows): the count of a scenario is read from it, and the refusal for counts not seen yet is open for them
+python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; json.dump({"scenarios":[{"id":"r-1","tables":n(50000)},{"id":"r-2","tables":n(50000)},{"id":"r-3","tables":n(200000)},{"id":"r-4","tables":n(200000)},{"id":"r-5","tables":n(200000)},{"id":"t-4","tables":n(10000)}]}, open(sys.argv[1],"w"))' "$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
 pred="$grepo/poc/lab/predictions/p.json"
 for scale in 10000 50000 200000; do echo '{}' >"$out/targets-$scale.json"; done
 

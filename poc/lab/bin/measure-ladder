@@ -2,8 +2,8 @@
 # Measures one prediction scenario (t-1 .. t-5, r-1 .. r-5 of the re-check, or s-1 .. s-5 of the third backtest) on the lab, step by step up the rps ladder
 # (docs/simulator-spec.md sections 7.2, 7.4.1 and 7.4.2).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --dry-run [--predictions=<file>] [--scheme=<spec|A|B>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--scale=<N>] [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --dry-run [--predictions=<file>] [--scale=<N>] [--scheme=<spec|A|B>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> --statement-record=<capture.json> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
 # One step = 6 minutes of constant arrival at one total rps, the first minute discarded (the kept window is 5 minutes). That is the
@@ -56,6 +56,11 @@
 #         of writes with the baseline (TABLES-STEP; <step>/writes-after.tsv): nothing is read from a table, and a write to a table other than `views`
 #         stops the scenario at that step with exit 16 before the step is summarized, so the step has no record. A scale that has not been seen (not <= 30,000, 70,000 or 100,000) is refused with exit 17 before any
 #         query unless --predictions is a committed prediction that holds a scenario of that scale.
+# The count of the tables (the scale) of a scenario is the one the prediction file holds for that scenario (its `tables`, all of one value): with
+# --predictions the tool reads it there, so a prediction made at another count than the table of load/ladder.php (for example B at 90,000) is
+# measured at its own count. --scale=<N> is only a statement of what the caller expects: it must be the prediction's count, or the tool refuses
+# (exit 2, before any container) and nothing is measured. A prediction file that holds no scenario of this name, or one whose tables are not of
+# one count, is refused the same way. Only a dry run with no --predictions takes --scale (or, without it, the table's count) as it is.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -98,7 +103,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record=
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record= ; scale_arg= ; scale_given=
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -110,6 +115,7 @@ for arg in "$@"; do
     --trial=*) trial="${arg#--trial=}" ;;
     --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
     --statement-record=*) statement_record="${arg#--statement-record=}" ;;
+    --scale=*) scale_arg="${arg#--scale=}" ; scale_given=1 ;;
     *) usage ;;
   esac
 done
@@ -119,6 +125,10 @@ if [ -n "$request_timeout" ] && ! [[ "$request_timeout" =~ ^[0-9]+(\.[0-9]+)?(ms
   echo "measure-ladder: --request-timeout must be a k6 duration with a unit, such as 600s (got '$request_timeout')" >&2
   exit 2
 fi
+if [ -n "$scale_given" ] && ! [[ "$scale_arg" =~ ^[1-9][0-9]{0,8}$ ]]; then
+  echo "measure-ladder: --scale must be a whole number of rows (got '$scale_arg')" >&2
+  exit 2
+fi
 if [ -n "$trial" ]; then
   # A trial is exclusive with a prediction scenario and with a prediction file; only the calibration mixes are accepted.
   if [ -n "$scenario" ] || [ -n "$predictions" ]; then
@@ -126,6 +136,7 @@ if [ -n "$trial" ]; then
     exit 2
   fi
   [[ "$trial" =~ ^cal-[23]$ ]] || { echo "measure-ladder: --trial takes cal-2 or cal-3 only (got '$trial')" >&2; exit 2; }
+  [ -z "$scale_given" ] || { echo "measure-ladder: --trial is always at N_0; --scale is refused with it" >&2; exit 2; }
   scenario="trial-$trial"
   [ -n "$out" ] || out="$PEAK_LAB_OUT_DIR/trial"
 else
@@ -158,6 +169,41 @@ pred_file="" ; pred_commit="" ; pred_time=""
 if [ "$dry" = 0 ] && [ -z "$trial" ]; then
   read -r _ _ pred_file pred_commit pred_time <<<"$gate_line"
 fi
+
+# 1a. THE COUNT OF THE SCENARIO. It is the prediction's: the `tables` of the scenario in the prediction file, all of one count. A --scale that
+# differs from it is refused, and so is a file with no such scenario or with tables of different counts (the gate above is not loosened: this
+# is a second check, on the count). Reads the file only; no container. A dry run with no prediction file has nothing to read it from.
+scale_use=""
+if [ -z "$trial" ] && [ -n "$predictions" ]; then
+  scale_use="$(python3 - "$predictions" "$scenario" <<'PY'
+import json, sys
+path, sid = sys.argv[1], sys.argv[2]
+def refuse(why):
+    sys.stderr.write("measure-ladder: " + why + "\n")
+    sys.exit(2)
+try:
+    with open(path) as fh:
+        scenarios = json.load(fh).get("scenarios")
+except Exception:
+    refuse("cannot read %s as a prediction file (JSON)" % path)
+rows = [s for s in scenarios if isinstance(s, dict) and s.get("id") == sid] if isinstance(scenarios, list) else []
+if len(rows) != 1:
+    refuse("the prediction file holds no scenario %s (or holds it more than once): the count it is measured at cannot be read from it" % sid)
+tables = rows[0].get("tables")
+counts = set(tables.values()) if isinstance(tables, dict) and tables else set()
+if len(counts) != 1 or not all(isinstance(c, int) and not isinstance(c, bool) and c > 0 for c in counts):
+    refuse("the tables of %s in the prediction file are not of one count (%s)" % (sid, json.dumps(tables)))
+print(counts.pop())
+PY
+)" || exit 2
+  if [ -n "$scale_arg" ] && [ "$scale_arg" != "$scale_use" ]; then
+    echo "measure-ladder: --scale=$scale_arg disagrees with the prediction file, which holds $scenario at $scale_use rows; a prediction is measured at its own count, so nothing was measured" >&2
+    exit 2
+  fi
+elif [ -z "$trial" ] && [ -n "$scale_arg" ]; then
+  scale_use="$scale_arg"   # a dry run with no prediction file: the caller's count, as given
+fi
+[ -z "$scale_use" ] || echo "SCALE $scenario $scale_use rows$([ -z "$predictions" ] || echo " (the count of the prediction file)")"
 
 # 1b. THE WRITE GUARD (i). Not in a dry run (nothing is measured). Nothing below touches a container until it has passed. ------------------------
 if [ "$dry" = 0 ]; then
@@ -202,8 +248,10 @@ routes_path() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "
 
 tflag=() ; tname="$scenario"
 if [ -n "$trial" ]; then tflag=(--trial) ; tname="$trial"; fi
-read -r scale mix < <(php_tool poc/lab/load/ladder.php scenario "$tname" "${tflag[@]}" --line) || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
+scale_flag=(); [ -z "$scale_use" ] || scale_flag=(--scale="$scale_use")
+read -r scale mix < <(php_tool poc/lab/load/ladder.php scenario "$tname" "${tflag[@]}" "${scale_flag[@]}" --line) || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
 [ -n "${scale:-}" ] && [ -n "${mix:-}" ] || { echo "measure-ladder: cannot read the scenario table" >&2; exit 13; }
+[ -z "$scale_use" ] || [ "$scale" = "$scale_use" ] || { echo "measure-ladder: the scenario table gave $scale rows, the prediction holds $scale_use; refusing" >&2; exit 13; }
 # the steps of the scenario: the 15 of section 7.4.2 for s-1 .. s-5, the 13 of section 7.2 for t-* and r-* (a trial has its one step)
 rungs_args=("${tflag[@]}"); [ -n "$trial" ] || rungs_args=(--scenario="$scenario")
 mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${rungs_args[@]}")
@@ -352,7 +400,7 @@ for rps in "${rungs[@]}"; do
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
     --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 --require-sent=1 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
-  if [ -n "$trial" ]; then record_args=(--trial="$trial"); else record_args=(--scenario="$scenario" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time"); fi
+  if [ -n "$trial" ]; then record_args=(--trial="$trial"); else record_args=(--scenario="$scenario" --scale="$scale" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time"); fi
   php_tool poc/lab/load/ladder.php record "${record_args[@]}" --rung="$i" --summary="$(in_container "$d/run.json")" --settings="$(in_container "$d/settings.json")" \
     --started="$started_at" --ended="$ended_at" \
     >"$d/record.json" 2>"$d/end-line.txt"; rc=$?

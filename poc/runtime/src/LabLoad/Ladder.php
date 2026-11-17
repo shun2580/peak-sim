@@ -132,17 +132,29 @@ final class Ladder
     }
 
     /**
+     * The scenario: its mix and the count of the tables. The count is the table's (multiple x N_0) unless the caller gives the count the
+     * prediction file holds for it ($scale): then that count is used, whole multiples of N_0 only, and the mix is still the table's.
+     * Nothing else about the scenario can be changed from outside.
+     *
+     * @param int|null $scale the count the committed prediction holds for this scenario (null: the table's count)
+     *
      * @return array{id: string, scale: int, multiple: int, mix: string}
      *
-     * @throws \InvalidArgumentException the id is not one of the prediction scenarios
+     * @throws \InvalidArgumentException the id is not one of the prediction scenarios, or the count is not a whole multiple of N_0
      */
-    public static function scenario(string $id): array
+    public static function scenario(string $id, ?int $scale = null): array
     {
         $all = self::SCENARIOS + self::RECHECK_SCENARIOS + self::THIRD_SCENARIOS;
         if (!isset($all[$id])) {
             throw new \InvalidArgumentException(sprintf('unknown scenario "%s" (one of %s)', $id, implode(', ', array_keys($all))));
         }
         [$multiple, $mix] = $all[$id];
+        if ($scale !== null) {
+            if ($scale < self::BASE_SCALE || $scale % self::BASE_SCALE !== 0) {
+                throw new \InvalidArgumentException(sprintf('the count %d of scenario "%s" is not a whole multiple of N_0 = %d', $scale, $id, self::BASE_SCALE));
+            }
+            $multiple = intdiv($scale, self::BASE_SCALE);
+        }
 
         return ['id' => $id, 'scale' => $multiple * self::BASE_SCALE, 'multiple' => $multiple, 'mix' => $mix];
     }
