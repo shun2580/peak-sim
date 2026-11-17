@@ -1,0 +1,1312 @@
+{
+    "schema_version": "0.1",
+    "kind": "lab-ladder-prediction",
+    "app": "bookstack",
+    "estimate_at": 150000,
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ",
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8,
+        "app_cpu_time_limit_s": 30.0,
+        "app_memory_limit_bytes": 536870912,
+        "db_placeholder_limit": 65535
+    },
+    "stages_rps_total": [
+        0.025,
+        0.035,
+        0.05,
+        0.07,
+        0.1,
+        0.15,
+        0.2,
+        0.3,
+        0.45,
+        0.7,
+        1.0,
+        1.5,
+        2.2,
+        3.3,
+        5.0
+    ],
+    "inputs": {
+        "estimate_commit": "a2598dbbf22a61762cbbaacc53c028067d3f0334",
+        "estimate_commit_source": "git",
+        "estimate_commit_expected": "a2598db",
+        "estimate_commit_is_expected": true,
+        "estimate_sha256": "c8f364b9e2775ef93133c063a519537c8e197ce03e5c7b0f853e24b327fadff7",
+        "estimates_for_marks": [
+            {
+                "role": "main",
+                "at": 150000,
+                "commit": "a2598dbbf22a61762cbbaacc53c028067d3f0334",
+                "commit_source": "git",
+                "sha256": "c8f364b9e2775ef93133c063a519537c8e197ce03e5c7b0f853e24b327fadff7"
+            }
+        ],
+        "scenario_sha256": "d0506b34feb2efbeae24d4b6af69b36bfb094a6311a315629957c3460c8f4eee"
+    },
+    "calibration": {
+        "coefficients": {
+            "name": "two_coefficient",
+            "c_q": 0.00028440658505161454,
+            "c_row": 9.379629856717754e-7
+        },
+        "method": "two_coefficient",
+        "calibration_scenarios": 7,
+        "cut_coefficients": false,
+        "warnings": [],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.00028440658505161454,
+                "c_row": 9.379629856717754e-7,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.0002057099123697856,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.4545098562474829,
+                        "residual_load": -0.003430915751542918,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.22725492812374146,
+                        "residual_utilization": -0.001715457875771459
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.7257977091166505,
+                        "residual_load": 0.002664373004337861,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.36289885455832527,
+                        "residual_utilization": 0.0013321865021689305
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.1828794121915955,
+                        "residual_load": 0.009277749625812348,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.09143970609579775,
+                        "residual_utilization": 0.004638874812906174
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.5550984294221925,
+                        "residual_load": -0.002194159715640742,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.2775492147110962,
+                        "residual_utilization": -0.001097079857820371
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.4071789306530429,
+                        "residual_load": -0.0020938090211901073,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.20358946532652145,
+                        "residual_utilization": -0.0010469045105950536
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.44302320952156826,
+                        "residual_load": 0.006765603903880257,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.22151160476078413,
+                        "residual_utilization": 0.0033828019519401287
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.44302320952156826,
+                        "residual_load": -0.006766937164695508,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.22151160476078413,
+                        "residual_utilization": -0.003383468582347754
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.00030413217649097714,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.3623943003648531,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.4598819684510363,
+                        "residual_load": -0.008803027955096299,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.22994098422551815,
+                        "residual_utilization": -0.004401513977548149
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.7343969349009749,
+                        "residual_load": -0.00593485277998651,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.36719846745048745,
+                        "residual_utilization": -0.002967426389993255
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.18500204338930837,
+                        "residual_load": 0.007155118428099488,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.09250102169465418,
+                        "residual_utilization": 0.003577559214049744
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.5620748145341155,
+                        "residual_load": -0.009170544827563742,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.2810374072670577,
+                        "residual_utilization": -0.004585272413781871
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.41168433280786787,
+                        "residual_load": -0.006599211176015085,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.20584216640393393,
+                        "residual_utilization": -0.0032996055880075426
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.017575028177554488,
+                        "residual_load": 0.43221378524789406,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.008787514088777244,
+                        "residual_utilization": 0.21610689262394703
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.017575028177554488,
+                        "residual_load": 0.4186812441793183,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.008787514088777244,
+                        "residual_utilization": 0.20934062208965915
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 1.134709088347989e-6,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 1.0955857349364821,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.45107894049594,
+                        "fitted_load": 0.029584890132534198,
+                        "residual_load": 0.4214940503634058,
+                        "observed_utilization": 0.22553947024797,
+                        "fitted_utilization": 0.014792445066267099,
+                        "residual_utilization": 0.2107470251817029
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.7284620821209884,
+                        "fitted_load": 0.047220207238966264,
+                        "residual_load": 0.6812418748820221,
+                        "observed_utilization": 0.3642310410604942,
+                        "fitted_utilization": 0.023610103619483132,
+                        "residual_utilization": 0.3406209374410111
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.19215716181740786,
+                        "fitted_load": 0.011947996365862515,
+                        "residual_load": 0.18020916545154533,
+                        "observed_utilization": 0.09607858090870393,
+                        "fitted_utilization": 0.005973998182931257,
+                        "residual_utilization": 0.09010458272577267
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.5529042697065517,
+                        "fitted_load": 0.03566249326390938,
+                        "residual_load": 0.5172417764426424,
+                        "observed_utilization": 0.27645213485327585,
+                        "fitted_utilization": 0.01783124663195469,
+                        "residual_utilization": 0.2586208882213212
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.4050851216318528,
+                        "fitted_load": 0.026851655435865388,
+                        "residual_load": 0.3782334661959874,
+                        "observed_utilization": 0.2025425608159264,
+                        "fitted_utilization": 0.013425827717932694,
+                        "residual_utilization": 0.1891167330979937
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4497888134254485,
+                        "fitted_load": 0.5160687267653365,
+                        "residual_load": -0.06627991333988803,
+                        "observed_utilization": 0.22489440671272426,
+                        "fitted_utilization": 0.2580343633826683,
+                        "residual_utilization": -0.033139956669944015
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.43625627235687275,
+                        "fitted_load": 0.5160687267653365,
+                        "residual_load": -0.0798124544084638,
+                        "observed_utilization": 0.21812813617843638,
+                        "fitted_utilization": 0.2580343633826683,
+                        "residual_utilization": -0.0399062272042319
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.00028440658505161454,
+                    "c_row": 9.379629856717754e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.0002848607084338744,
+                    "c_row": 9.379057215249272e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.00028359087222870773,
+                    "c_row": 9.380660891435625e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.000283983430295132,
+                    "c_row": 9.380153973401728e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-4",
+                    "c_query": 0.00028480045468952755,
+                    "c_row": 9.379102229655295e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-5",
+                    "c_query": 0.00028464517254593244,
+                    "c_row": 9.379347953605149e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-6",
+                    "c_query": 0.00028466321341872686,
+                    "c_row": 9.230544884763174e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-7",
+                    "c_query": 0.00028414990611214374,
+                    "c_row": 9.528744208038037e-7,
+                    "cut_coefficient": false
+                }
+            ]
+        }
+    },
+    "naive": {
+        "basis_scenario": "cal-2",
+        "basis_utilization": 0.3642310410604942,
+        "basis_rps_total": 1.0000000000000002,
+        "basis_count": 10000,
+        "candidates": [
+            "cal-1",
+            "cal-2",
+            "cal-3"
+        ],
+        "not_candidates": [
+            {
+                "id": "cal-4",
+                "count": 3000
+            },
+            {
+                "id": "cal-5",
+                "count": 30000
+            },
+            {
+                "id": "cal-6",
+                "count": 30000
+            },
+            {
+                "id": "cal-7",
+                "count": 30000
+            }
+        ]
+    },
+    "scenarios": [
+        {
+            "id": "s-1",
+            "tables": {
+                "entities": 150000,
+                "images": 150000,
+                "references": 150000
+            },
+            "rps_total_in_file": 1.0,
+            "safe_side": [
+                {
+                    "count": 150000,
+                    "source": "estimate_at_count",
+                    "estimate_at": 150000,
+                    "marked_routes": [
+                        "GET /books/{slug}",
+                        "GET /shelves/{slug}"
+                    ]
+                }
+            ],
+            "marked_routes": [
+                "GET /books/{slug}",
+                "GET /shelves/{slug}"
+            ],
+            "low_coverage": false,
+            "unknown_tables": [],
+            "warnings": [],
+            "stages": [
+                {
+                    "rps_total": 0.025,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.003125,
+                        "GET /books/{bookSlug}/export/zip": 0.003125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.003125,
+                        "GET /books/{slug}": 0.003125,
+                        "GET /books/{slug}/references": 0.003125,
+                        "GET /images/edit/{id}": 0.003125,
+                        "GET /oidc/callback": 0.003125,
+                        "GET /shelves/{slug}": 0.003125
+                    },
+                    "utilization": {
+                        "point": 0.08469218447638106,
+                        "upper": 0.084758427155054
+                    },
+                    "naive": 0.009105776026512353,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.035,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.004375,
+                        "GET /books/{bookSlug}/export/zip": 0.004375,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.004375,
+                        "GET /books/{slug}": 0.004375,
+                        "GET /books/{slug}/references": 0.004375,
+                        "GET /images/edit/{id}": 0.004375,
+                        "GET /oidc/callback": 0.004375,
+                        "GET /shelves/{slug}": 0.004375
+                    },
+                    "utilization": {
+                        "point": 0.11856905826693351,
+                        "upper": 0.1186617980170756
+                    },
+                    "naive": 0.012748086437117296,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.05,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00625,
+                        "GET /books/{bookSlug}/export/zip": 0.00625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00625,
+                        "GET /books/{slug}": 0.00625,
+                        "GET /books/{slug}/references": 0.00625,
+                        "GET /images/edit/{id}": 0.00625,
+                        "GET /oidc/callback": 0.00625,
+                        "GET /shelves/{slug}": 0.00625
+                    },
+                    "utilization": {
+                        "point": 0.16938436895276213,
+                        "upper": 0.169516854310108
+                    },
+                    "naive": 0.018211552053024705,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.07,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.00875,
+                        "GET /books/{bookSlug}/export/zip": 0.00875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.00875,
+                        "GET /books/{slug}": 0.00875,
+                        "GET /books/{slug}/references": 0.00875,
+                        "GET /images/edit/{id}": 0.00875,
+                        "GET /oidc/callback": 0.00875,
+                        "GET /shelves/{slug}": 0.00875
+                    },
+                    "utilization": {
+                        "point": 0.23713811653386702,
+                        "upper": 0.2373235960341512
+                    },
+                    "naive": 0.025496172874234592,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.1,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0125,
+                        "GET /books/{bookSlug}/export/zip": 0.0125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0125,
+                        "GET /books/{slug}": 0.0125,
+                        "GET /books/{slug}/references": 0.0125,
+                        "GET /images/edit/{id}": 0.0125,
+                        "GET /oidc/callback": 0.0125,
+                        "GET /shelves/{slug}": 0.0125
+                    },
+                    "utilization": {
+                        "point": 0.33876873790552425,
+                        "upper": 0.339033708620216
+                    },
+                    "naive": 0.03642310410604941,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.15,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.01875,
+                        "GET /books/{bookSlug}/export/zip": 0.01875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.01875,
+                        "GET /books/{slug}": 0.01875,
+                        "GET /books/{slug}/references": 0.01875,
+                        "GET /images/edit/{id}": 0.01875,
+                        "GET /oidc/callback": 0.01875,
+                        "GET /shelves/{slug}": 0.01875
+                    },
+                    "utilization": {
+                        "point": 0.5081531068582865,
+                        "upper": 0.5085505629303241
+                    },
+                    "naive": 0.05463465615907412,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.025,
+                        "GET /books/{bookSlug}/export/zip": 0.025,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.025,
+                        "GET /books/{slug}": 0.025,
+                        "GET /books/{slug}/references": 0.025,
+                        "GET /images/edit/{id}": 0.025,
+                        "GET /oidc/callback": 0.025,
+                        "GET /shelves/{slug}": 0.025
+                    },
+                    "utilization": {
+                        "point": 0.6775374758110485,
+                        "upper": 0.678067417240432
+                    },
+                    "naive": 0.07284620821209882,
+                    "over_threshold": {
+                        "point": false,
+                        "upper": false,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0375,
+                        "GET /books/{bookSlug}/export/zip": 0.0375,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0375,
+                        "GET /books/{slug}": 0.0375,
+                        "GET /books/{slug}/references": 0.0375,
+                        "GET /images/edit/{id}": 0.0375,
+                        "GET /oidc/callback": 0.0375,
+                        "GET /shelves/{slug}": 0.0375
+                    },
+                    "utilization": {
+                        "point": 1.016306213716573,
+                        "upper": 1.0171011258606482
+                    },
+                    "naive": 0.10926931231814824,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.45,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.05625,
+                        "GET /books/{bookSlug}/export/zip": 0.05625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.05625,
+                        "GET /books/{slug}": 0.05625,
+                        "GET /books/{slug}/references": 0.05625,
+                        "GET /images/edit/{id}": 0.05625,
+                        "GET /oidc/callback": 0.05625,
+                        "GET /shelves/{slug}": 0.05625
+                    },
+                    "utilization": {
+                        "point": 1.5244593205748596,
+                        "upper": 1.5256516887909723
+                    },
+                    "naive": 0.16390396847722236,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 0.7,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.0875,
+                        "GET /books/{bookSlug}/export/zip": 0.0875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.0875,
+                        "GET /books/{slug}": 0.0875,
+                        "GET /books/{slug}/references": 0.0875,
+                        "GET /images/edit/{id}": 0.0875,
+                        "GET /oidc/callback": 0.0875,
+                        "GET /shelves/{slug}": 0.0875
+                    },
+                    "utilization": {
+                        "point": 2.37138116533867,
+                        "upper": 2.373235960341512
+                    },
+                    "naive": 0.2549617287423459,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.125,
+                        "GET /books/{bookSlug}/export/zip": 0.125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.125,
+                        "GET /books/{slug}": 0.125,
+                        "GET /books/{slug}/references": 0.125,
+                        "GET /images/edit/{id}": 0.125,
+                        "GET /oidc/callback": 0.125,
+                        "GET /shelves/{slug}": 0.125
+                    },
+                    "utilization": {
+                        "point": 3.387687379055243,
+                        "upper": 3.39033708620216
+                    },
+                    "naive": 0.36423104106049414,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 1.5,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.1875,
+                        "GET /books/{bookSlug}/export/zip": 0.1875,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.1875,
+                        "GET /books/{slug}": 0.1875,
+                        "GET /books/{slug}/references": 0.1875,
+                        "GET /images/edit/{id}": 0.1875,
+                        "GET /oidc/callback": 0.1875,
+                        "GET /shelves/{slug}": 0.1875
+                    },
+                    "utilization": {
+                        "point": 5.081531068582864,
+                        "upper": 5.08550562930324
+                    },
+                    "naive": 0.5463465615907412,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": false
+                    }
+                },
+                {
+                    "rps_total": 2.2,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.275,
+                        "GET /books/{bookSlug}/export/zip": 0.275,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.275,
+                        "GET /books/{slug}": 0.275,
+                        "GET /books/{slug}/references": 0.275,
+                        "GET /images/edit/{id}": 0.275,
+                        "GET /oidc/callback": 0.275,
+                        "GET /shelves/{slug}": 0.275
+                    },
+                    "utilization": {
+                        "point": 7.452912233921534,
+                        "upper": 7.458741589644752
+                    },
+                    "naive": 0.8013082903330871,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 3.3,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.4125,
+                        "GET /books/{bookSlug}/export/zip": 0.4125,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.4125,
+                        "GET /books/{slug}": 0.4125,
+                        "GET /books/{slug}/references": 0.4125,
+                        "GET /images/edit/{id}": 0.4125,
+                        "GET /oidc/callback": 0.4125,
+                        "GET /shelves/{slug}": 0.4125
+                    },
+                    "utilization": {
+                        "point": 11.179368350882301,
+                        "upper": 11.188112384467129
+                    },
+                    "naive": 1.2019624354996306,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                },
+                {
+                    "rps_total": 5.0,
+                    "rps": {
+                        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.625,
+                        "GET /books/{bookSlug}/export/zip": 0.625,
+                        "GET /books/{bookSlug}/page/{pageSlug}/references": 0.625,
+                        "GET /books/{slug}": 0.625,
+                        "GET /books/{slug}/references": 0.625,
+                        "GET /images/edit/{id}": 0.625,
+                        "GET /oidc/callback": 0.625,
+                        "GET /shelves/{slug}": 0.625
+                    },
+                    "utilization": {
+                        "point": 16.938436895276215,
+                        "upper": 16.951685431010798
+                    },
+                    "naive": 1.8211552053024707,
+                    "over_threshold": {
+                        "point": true,
+                        "upper": true,
+                        "naive": true
+                    }
+                }
+            ],
+            "limit_rps": {
+                "point": {
+                    "status": "found",
+                    "rps": 0.2361492990605006
+                },
+                "safe": {
+                    "status": "found",
+                    "rps": 0.23596473732827447
+                },
+                "naive": {
+                    "status": "found",
+                    "rps": 2.1964080756838356
+                }
+            },
+            "calibration_range": {
+                "for_the_decision": false,
+                "status": "leave_one_out",
+                "reason": "the range of the two-coefficient fits made by leaving each of the 7 calibration scenarios out",
+                "notes": [],
+                "fits": [
+                    {
+                        "label": "all",
+                        "c_query": 0.00028440658505161454,
+                        "c_row": 9.379629856717754e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08469218447638106,
+                            0.11856905826693351,
+                            0.16938436895276213,
+                            0.23713811653386702,
+                            0.33876873790552425,
+                            0.5081531068582865,
+                            0.6775374758110485,
+                            1.016306213716573,
+                            1.5244593205748596,
+                            2.37138116533867,
+                            3.387687379055243,
+                            5.081531068582864,
+                            7.452912233921534,
+                            11.179368350882301,
+                            16.938436895276215
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.2361492990605006
+                        }
+                    },
+                    {
+                        "label": "without:cal-1",
+                        "c_query": 0.0002848607084338744,
+                        "c_row": 9.379057215249272e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08481968838113772,
+                            0.11874756373359284,
+                            0.16963937676227545,
+                            0.23749512746718568,
+                            0.3392787535245509,
+                            0.5089181302868264,
+                            0.6785575070491018,
+                            1.0178362605736528,
+                            1.5267543908604793,
+                            2.374951274671856,
+                            3.3927875352455095,
+                            5.089181302868263,
+                            7.464132577540121,
+                            11.19619886631018,
+                            16.963937676227548
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23579431122323735
+                        }
+                    },
+                    {
+                        "label": "without:cal-2",
+                        "c_query": 0.00028359087222870773,
+                        "c_row": 9.380660891435625e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08446315856731909,
+                            0.11824842199424675,
+                            0.16892631713463818,
+                            0.2364968439884935,
+                            0.33785263426927636,
+                            0.5067789514039146,
+                            0.6757052685385527,
+                            1.0135579028078292,
+                            1.520336854211744,
+                            2.3649684398849344,
+                            3.3785263426927643,
+                            5.067789514039146,
+                            7.432757953924081,
+                            11.14913693088612,
+                            16.89263171346382
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23678962922111815
+                        }
+                    },
+                    {
+                        "label": "without:cal-3",
+                        "c_query": 0.000283983430295132,
+                        "c_row": 9.380153973401728e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08457337090287806,
+                            0.1184027192640293,
+                            0.16914674180575612,
+                            0.2368054385280586,
+                            0.33829348361151224,
+                            0.5074402254172685,
+                            0.6765869672230245,
+                            1.014880450834537,
+                            1.5223206762518053,
+                            2.3680543852805855,
+                            3.3829348361151226,
+                            5.074402254172684,
+                            7.44245663945327,
+                            11.163684959179905,
+                            16.914674180575613
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23648105528355373
+                        }
+                    },
+                    {
+                        "label": "without:cal-4",
+                        "c_query": 0.00028480045468952755,
+                        "c_row": 9.379102229655295e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08480275559125919,
+                            0.1187238578277629,
+                            0.16960551118251838,
+                            0.2374477156555258,
+                            0.33921102236503675,
+                            0.5088165335475553,
+                            0.6784220447300735,
+                            1.0176330670951106,
+                            1.526449600642666,
+                            2.374477156555258,
+                            3.392110223650368,
+                            5.088165335475552,
+                            7.4626424920308105,
+                            11.193963738046216,
+                            16.960551118251843
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23584139289527334
+                        }
+                    },
+                    {
+                        "label": "without:cal-5",
+                        "c_query": 0.00028464517254593244,
+                        "c_row": 9.379347953605149e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08475918193862078,
+                            0.11866285471406912,
+                            0.16951836387724156,
+                            0.23732570942813824,
+                            0.3390367277544831,
+                            0.5085550916317247,
+                            0.6780734555089662,
+                            1.0171101832634495,
+                            1.5256652748951745,
+                            2.3732570942813815,
+                            3.390367277544832,
+                            5.0855509163172465,
+                            7.45880801059863,
+                            11.188212015897944,
+                            16.951836387724157
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23596263605379297
+                        }
+                    },
+                    {
+                        "label": "without:cal-6",
+                        "c_query": 0.00028466321341872686,
+                        "c_row": 9.230544884763174e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.08469030909061512,
+                            0.1185664327268612,
+                            0.16938061818123024,
+                            0.2371328654537224,
+                            0.33876123636246047,
+                            0.5081418545436908,
+                            0.6775224727249209,
+                            1.0162837090873815,
+                            1.5244255636310724,
+                            2.371328654537223,
+                            3.3876123636246054,
+                            5.081418545436907,
+                            7.452747199974131,
+                            11.179120799961197,
+                            16.93806181812303
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23615452836050965
+                        }
+                    },
+                    {
+                        "label": "without:cal-7",
+                        "c_query": 0.00028414990611214374,
+                        "c_row": 9.528744208038037e-7,
+                        "cut_coefficient": false,
+                        "utilization": [
+                            0.0846940602317191,
+                            0.11857168432440676,
+                            0.1693881204634382,
+                            0.23714336864881352,
+                            0.3387762409268764,
+                            0.5081643613903147,
+                            0.6775524818537528,
+                            1.0163287227806295,
+                            1.524493084170944,
+                            2.371433686488135,
+                            3.387762409268764,
+                            5.081643613903146,
+                            7.453077300391282,
+                            11.179615950586923,
+                            16.938812046343823
+                        ],
+                        "limit_rps": {
+                            "status": "found",
+                            "rps": 0.23614406896163567
+                        }
+                    }
+                ],
+                "stages": [
+                    {
+                        "rps_total": 0.025,
+                        "min": 0.08446315856731909,
+                        "max": 0.08481968838113772
+                    },
+                    {
+                        "rps_total": 0.035,
+                        "min": 0.11824842199424675,
+                        "max": 0.11874756373359284
+                    },
+                    {
+                        "rps_total": 0.05,
+                        "min": 0.16892631713463818,
+                        "max": 0.16963937676227545
+                    },
+                    {
+                        "rps_total": 0.07,
+                        "min": 0.2364968439884935,
+                        "max": 0.23749512746718568
+                    },
+                    {
+                        "rps_total": 0.1,
+                        "min": 0.33785263426927636,
+                        "max": 0.3392787535245509
+                    },
+                    {
+                        "rps_total": 0.15,
+                        "min": 0.5067789514039146,
+                        "max": 0.5089181302868264
+                    },
+                    {
+                        "rps_total": 0.2,
+                        "min": 0.6757052685385527,
+                        "max": 0.6785575070491018
+                    },
+                    {
+                        "rps_total": 0.3,
+                        "min": 1.0135579028078292,
+                        "max": 1.0178362605736528
+                    },
+                    {
+                        "rps_total": 0.45,
+                        "min": 1.520336854211744,
+                        "max": 1.5267543908604793
+                    },
+                    {
+                        "rps_total": 0.7,
+                        "min": 2.3649684398849344,
+                        "max": 2.374951274671856
+                    },
+                    {
+                        "rps_total": 1.0,
+                        "min": 3.3785263426927643,
+                        "max": 3.3927875352455095
+                    },
+                    {
+                        "rps_total": 1.5,
+                        "min": 5.067789514039146,
+                        "max": 5.089181302868263
+                    },
+                    {
+                        "rps_total": 2.2,
+                        "min": 7.432757953924081,
+                        "max": 7.464132577540121
+                    },
+                    {
+                        "rps_total": 3.3,
+                        "min": 11.14913693088612,
+                        "max": 11.19619886631018
+                    },
+                    {
+                        "rps_total": 5.0,
+                        "min": 16.89263171346382,
+                        "max": 16.963937676227548
+                    }
+                ],
+                "limit_rps": {
+                    "min": 0.23579431122323735,
+                    "max": 0.23678962922111815
+                }
+            },
+            "app_limit_risk": {
+                "limit_s": 30.0,
+                "php_cpu_over_db": 9.11,
+                "rule": "marked when php_cpu_over_db x the database time the model gives for one request (larger of point and upper side) >= limit_s",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.00248465291696414,
+                            "upper": 0.00248465291696414
+                        },
+                        "php_cpu_bound_s": 0.022635188073543314,
+                        "share_of_limit": 0.0007545062691181104
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "marked",
+                        "db_time_s": {
+                            "point": 52.37668129478744,
+                            "upper": 52.3845564259903
+                        },
+                        "php_cpu_bound_s": 477.2233090407716,
+                        "share_of_limit": 15.907443634692386
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0024958946000604677,
+                            "upper": 0.0024958946000604677
+                        },
+                        "php_cpu_bound_s": 0.022737599806550858,
+                        "share_of_limit": 0.0007579199935516953
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 1.811870187820184,
+                            "upper": 1.8453828742990044
+                        },
+                        "php_cpu_bound_s": 16.81143798486393,
+                        "share_of_limit": 0.5603812661621309
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.002195322026237749,
+                            "upper": 0.002195322026237749
+                        },
+                        "php_cpu_bound_s": 0.019999383659025892,
+                        "share_of_limit": 0.0006666461219675297
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0018930941444583705,
+                            "upper": 0.0018930941444583705
+                        },
+                        "php_cpu_bound_s": 0.017246087656015756,
+                        "share_of_limit": 0.0005748695885338586
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.0,
+                            "upper": 0.0
+                        },
+                        "php_cpu_bound_s": 0.0,
+                        "share_of_limit": 0.0
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "db_time_s": {
+                            "point": 0.005377618588541436,
+                            "upper": 0.006385115257532176
+                        },
+                        "php_cpu_bound_s": 0.05816839999611812,
+                        "share_of_limit": 0.0019389466665372707
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{bookSlug}/export/zip"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            },
+            "app_limit_risk_memory": {
+                "limit_bytes": 536870912,
+                "measured_over_predicted": 1.51,
+                "rule": "marked when measured_over_predicted x the predicted peak memory of one request (section 6.2) >= limit_bytes; whether the formula held within +-30% in the extrapolation tests does not switch the mark off",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 49699745.1704518,
+                        "bound_bytes": 75046615.20738222,
+                        "share_of_limit": 0.13978521378223266,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 272486335.5315102,
+                        "bound_bytes": 411454366.6525804,
+                        "share_of_limit": 0.7663934801753245,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 47675365.96563189,
+                        "bound_bytes": 71989802.60810415,
+                        "share_of_limit": 0.1340914566220793,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "marked",
+                        "peak_memory_bytes": 563334795.1609708,
+                        "bound_bytes": 850635540.6930659,
+                        "share_of_limit": 1.5844321636353915,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 48921420.52400069,
+                        "bound_bytes": 73871344.99124104,
+                        "share_of_limit": 0.13759610241510167,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 4019104.0,
+                        "bound_bytes": 6068847.04,
+                        "share_of_limit": 0.011304108500480652,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 25632.0,
+                        "bound_bytes": 38704.32,
+                        "share_of_limit": 7.209241390228271e-5,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "peak_memory_bytes": 361098.0543143829,
+                        "bound_bytes": 545258.0620147182,
+                        "share_of_limit": 0.0010156222842907872,
+                        "reason": null
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{slug}"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            },
+            "app_limit_risk_placeholders": {
+                "limit_kind": "placeholders",
+                "limit_values": 65535,
+                "rule": "marked when the largest number of values one statement of the route carries at the scenario's table size (fixed + what a list holds x table size / the scale of the capture) > limit_values",
+                "routes": [
+                    {
+                        "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+                        "status": "not_marked",
+                        "values": 22.0,
+                        "statement": "sd7799eeccf",
+                        "share_of_limit": 0.0003356984817273213,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/export/zip",
+                        "status": "not_marked",
+                        "values": 12.0,
+                        "statement": "s0fc8c91c7d",
+                        "share_of_limit": 0.00018310826276035706,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+                        "status": "not_marked",
+                        "values": 22.0,
+                        "statement": "sd7799eeccf",
+                        "share_of_limit": 0.0003356984817273213,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{slug}",
+                        "status": "marked",
+                        "values": 90008.0,
+                        "statement": "sb13d9a7ef7",
+                        "share_of_limit": 1.3734340428778515,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /books/{slug}/references",
+                        "status": "not_marked",
+                        "values": 22.0,
+                        "statement": "sd7799eeccf",
+                        "share_of_limit": 0.0003356984817273213,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /images/edit/{id}",
+                        "status": "not_marked",
+                        "values": 2.0,
+                        "statement": "s6d2a3b7373",
+                        "share_of_limit": 3.0518043793392844e-5,
+                        "types_without_figure": 0,
+                        "reason": null
+                    },
+                    {
+                        "route": "GET /oidc/callback",
+                        "status": "not_evaluated",
+                        "values": null,
+                        "statement": null,
+                        "share_of_limit": null,
+                        "types_without_figure": 0,
+                        "reason": "no_placeholder_figure"
+                    },
+                    {
+                        "route": "GET /shelves/{slug}",
+                        "status": "not_marked",
+                        "values": 30.0,
+                        "statement": "sbb24824f75",
+                        "share_of_limit": 0.00045777065690089265,
+                        "types_without_figure": 0,
+                        "reason": null
+                    }
+                ],
+                "marked_routes": [
+                    "GET /books/{slug}"
+                ],
+                "limit_rps_note": "the limit rps counts the marked routes as requests that run to the end; a marked route may be cut by the app's limit first"
+            }
+        }
+    ]
+}
