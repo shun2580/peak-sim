@@ -1,0 +1,21 @@
+09:17:23 limits check (limited): LIMITS OK (require limited): { "php_max_execution_time": "30", "php_memory_limit": "512M", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "120s", "k6_request_timeout": null, "k6_request_timeout_note": "not given: the load tool used its own default (60 s for k6 2.3.0)" }
+09:17:23 scale 150000, 8 routes, part http
+09:17:23 rows in the N tables: entities 150000, images 150000, references 150000
+09:17:38 null cpu median 21171 usec, idle rate 12895 usec/s, one poll of the app's cpu.stat 18858 usec
+09:17:40 GET /books/{bookSlug}/chapter/{chapterSlug}/references rep 0: status 200, 681 ms, php finished 0.0 s after the answer, db cpu raw 35932 usec, php cpu 295928 usec, other requests seen: 0
+09:17:41 GET /books/{bookSlug}/chapter/{chapterSlug}/references rep 1: status 200, 36 ms, php finished 0.0 s after the answer, db cpu raw 28766 usec, php cpu 35751 usec, other requests seen: 0
+09:18:37 GET /books/{bookSlug}/export/zip rep 0: status 500, 53388 ms, php finished 1.8 s after the answer, db cpu raw 25889061 usec, php cpu 30731676 usec, other requests seen: 0
+09:19:32 GET /books/{bookSlug}/export/zip rep 1: status 500, 52850 ms, php finished 1.8 s after the answer, db cpu raw 25696925 usec, php cpu 30457760 usec, other requests seen: 0
+09:19:33 GET /books/{bookSlug}/page/{pageSlug}/references rep 0: status 200, 50 ms, php finished 0.0 s after the answer, db cpu raw 32186 usec, php cpu 37148 usec, other requests seen: 0
+09:19:34 GET /books/{bookSlug}/page/{pageSlug}/references rep 1: status 200, 41 ms, php finished 0.0 s after the answer, db cpu raw 48097 usec, php cpu 41710 usec, other requests seen: 0
+09:19:59 GET /books/{slug} rep 0: status 500, 21929 ms, php finished 1.8 s after the answer, db cpu raw 1894511 usec, php cpu 20326725 usec, other requests seen: 0
+09:20:21 GET /books/{slug} rep 1: status 500, 18984 ms, php finished 1.9 s after the answer, db cpu raw 1918141 usec, php cpu 17471891 usec, other requests seen: 0
+09:20:22 GET /books/{slug}/references rep 0: status 200, 25 ms, php finished 0.0 s after the answer, db cpu raw 34255 usec, php cpu 28461 usec, other requests seen: 0
+09:20:22 GET /books/{slug}/references rep 1: status 200, 26 ms, php finished 0.0 s after the answer, db cpu raw 27936 usec, php cpu 25754 usec, other requests seen: 0
+09:20:23 GET /images/edit/{id} rep 0: status 200, 85 ms, php finished 0.0 s after the answer, db cpu raw 26328 usec, php cpu 24408 usec, other requests seen: 0
+09:20:24 GET /images/edit/{id} rep 1: status 200, 21 ms, php finished 0.0 s after the answer, db cpu raw 25477 usec, php cpu 21695 usec, other requests seen: 0
+09:20:25 GET /oidc/callback rep 0: status 302, 37 ms, php finished 0.0 s after the answer, db cpu raw 58872 usec, php cpu 17099 usec, other requests seen: 0
+09:20:26 GET /oidc/callback rep 1: status 302, 12 ms, php finished 0.0 s after the answer, db cpu raw 23080 usec, php cpu 10880 usec, other requests seen: 0
+09:20:27 GET /shelves/{slug} rep 0: status 200, 125 ms, php finished 0.0 s after the answer, db cpu raw 40384 usec, php cpu 53586 usec, other requests seen: 0
+09:20:28 GET /shelves/{slug} rep 1: status 200, 48 ms, php finished 0.0 s after the answer, db cpu raw 37404 usec, php cpu 36735 usec, other requests seen: 0
+09:20:28 done
