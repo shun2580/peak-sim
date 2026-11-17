@@ -260,14 +260,20 @@ The order, as in the third round (`lab-backtest-3.md`, section 3.4):
 
 `9f96913` (the measuring entry takes its row count from the prediction file; section 1.1) was committed at 09:59:49, after the prediction and after the mark's measurement. Between `e5f406f` and `9f96913` no file changed in `poc/lab/predictions`, in the prediction gate, in the table checker, in `poc/runtime/src/Estimate`, in `poc/runtime/src/Simulate` or in the spec (checked with `git diff --stat`); the changes are to the measuring entry, the load tool's ladder code, their tests and the records of the mark.
 
-### 4.5 A reading that is not yet decided: the CPU time of a route that does not run to its end at 90,000 rows
+### 4.5 The CPU time of a route that does not run to its end at 90,000 rows: how it is read, and what B tests
 
-Spec section 7.4.3 and D217 (item 4) say that if a route that does not run to its end shows at 90,000 rows under the marks "(placeholders, CPU time, and memory at B's setting of 4G)", nothing is measured and the work stops. The parenthesis names the memory limit at B's setting, 4G, and says nothing about which run-time limit the CPU-time side is read against. Two readings exist:
+Spec section 7.4.3 and D217 (item 4) say that if a route that does not run to its end shows at 90,000 rows under the marks "(placeholders, CPU time, and memory at B's setting of 4G)", nothing is measured and the work stops. The parenthesis named the memory limit at B's setting and did not name the run-time limit against which the CPU-time side is read. Two readings existed:
 
 - **Read against B's own settings** (the run-time limit lifted): the CPU-time side has no limit to be marked against. This is how the prediction of B was made (section 4.1: no run-time limit in the input). Under it no route is marked at 90,000 rows.
-- **Read against the default 30 s**, as the mark of the third round was: the committed estimate at 90,000 rows gives bounds of about 10.0 times the limit for the ZIP export and about 1.1 times for the book page (recomputed here from the committed estimate and the committed coefficients with the factor 9.11, as the larger of the point's and the upper side's database time; these figures are **not** in the prediction file, which has no CPU-time side). Under it both would be marked.
+- **Read against the default 30 s**, as the mark of the third round was: the committed estimate at 90,000 rows gives bounds of about 10.0 times the limit for the ZIP export and about 1.1 times for the book page (recomputed from the committed estimate and the committed coefficients with the factor 9.11, as the larger of the point's and the upper side's database time; these figures are **not** in the prediction file, which has no CPU-time side). Under it both would be marked.
 
-**The reading is not yet decided.** The prediction is committed and cannot be changed. This file records the two readings and takes neither; the section is rewritten only by adding the decision when it is made, and **B is not measured by this file's author before it is made**. What follows for the measurement of B is written under section 6 when it happens.
+**The maintainer's ruling (2026-11-17, before the first step of B; D221) takes the first reading.** Whether a route runs to its end at 90,000 rows is read against B's settings for both CPU time and memory: no run-time limit and a memory limit of 4G. The parenthesis in the spec named only the memory because of a slip in how it was written; the intent was "does it run to its end at B's settings". Spec section 7.4.3 now says so in one added sentence. Under this reading no route is marked at 90,000 rows, and B is measured at 90,000 rows with the prediction `e5f406f`, which is not changed.
+
+What this means for how B is read:
+
+- At 90,000 rows, with the **default** limit of 30 s, the committed estimate gives the ZIP export about 10.0 times the limit and the book page about 1.1 times. Under the default limit those two routes would be cut off. B is **not** measured at the default limit: it is a test of the database prediction at a setting where no route is cut off by the run-time limit.
+- B is therefore a test of the prediction of the database's work with the run-time limit lifted. It says nothing about whether the routes finish under the default 30 s limit.
+- The marks at the default limit (30 s and 512M) are checked by the mark at 150,000 rows (sections 4.2 and 5), and are not used in choosing B's row count.
 
 ## 5. The mark at 150,000 rows: measurement and verdict
 
