@@ -63,12 +63,17 @@ final class LadderPrediction
      * @param int                                                                                                                 $naiveCount  N_0, the count of rows the naive estimate is chosen at: only the calibration scenarios at exactly this
      *                                                                                                                                 count are candidates (no default: the caller says it)
      * @param list<float>|null                                                                                                    $stages      the totals of the ladder; null: {@see stagesFor} (15 for s-1 .. s-5, else the 13 of section 7.2)
+     * @param float|null                                                                                                          $requestTimeoutS null: the mix is used as the file gives it (the output is what it always was). A number: the request timeout of B in
+     *                                                                                                                                 seconds; the routes the placeholder side or the memory side marks are taken out of every target's mix and their
+     *                                                                                                                                 share is given to the rest of their group ({@see RouteAllocation}), and the run stops if a group is left empty or a
+     *                                                                                                                                 request is predicted to take more than half of that timeout
      *
      * @return array<string, mixed>
      *
      * @throws \InvalidArgumentException when there is no target scenario, no calibration scenario at `$naiveCount`, or the calibration cannot be made from the loaded input
+     * @throws AllocationStop             with `$requestTimeoutS`: a limit it needs is not given, a group is left with no route, or a request is too long
      */
-    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, ?array $stages = null): array
+    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, ?array $stages = null, ?float $requestTimeoutS = null): array
     {
         $stages ??= self::stagesFor($loaded);
         $resources = (array) $loaded['resources'];
@@ -113,21 +118,55 @@ final class LadderPrediction
         $appMemoryLimit = isset($resources['app_memory_limit_bytes']) ? (int) $resources['app_memory_limit_bytes'] : null;
         // the placeholder side of the mark, likewise: an input with no default, and with none given the output has no trace of it
         $placeholderLimit = isset($resources['db_placeholder_limit']) ? (int) $resources['db_placeholder_limit'] : null;
+        $allocating = $requestTimeoutS !== null;
+        if ($allocating && ($placeholderLimit === null || $appMemoryLimit === null)) {
+            throw new AllocationStop('the routes that cannot run under the settings of B are taken out of the mix by the placeholder limit and the memory limit, and the scenario file gives ' . ($placeholderLimit === null ? ($appMemoryLimit === null ? 'neither of them' : 'no db_placeholder_limit') : 'no app_memory_limit'), RouteAllocation::EXIT_NO_LIMITS);
+        }
+        $half = $allocating ? $requestTimeoutS / 2.0 : 0.0;
+        $pointCoefficients = $allocating ? Coefficients::pointOf($calibration) : null;
         $scenarios = [];
+        $slowFound = [];
+        $emptyFound = [];
         foreach ((array) $loaded['scenarios'] as $s) {
             if (($s['kind'] ?? null) === 'target') {
-                $made = self::scenario($s, $calibration, $width, $naiveBasis, $cores, $threshold, $stages);
+                $placeholderRisk = $placeholderLimit === null ? null : AppPlaceholderRisk::evaluate(array_values((array) $s['routes']), $placeholderLimit);
+                $memoryRisk = $appMemoryLimit === null ? null : AppMemoryRisk::evaluate(array_values((array) $s['routes']), $appMemoryLimit);
+                $allocation = null;
+                $used = $s;
+                if ($allocating && $placeholderRisk !== null && $memoryRisk !== null && $pointCoefficients !== null) {
+                    foreach (RouteAllocation::slowRoutes(array_values((array) $s['routes']), $pointCoefficients, $half) as $slow) {
+                        $slowFound[] = sprintf('%s: %s, %.1f s of php CPU time for one request', (string) $s['id'], $slow['route'], $slow['php_cpu_bound_s']);
+                    }
+                    $made = RouteAllocation::apply($s, $placeholderRisk, $memoryRisk);
+                    foreach ($made['emptied'] as $group) {
+                        $emptyFound[] = sprintf('%s: every route of the group (%s) is taken out', (string) $s['id'], implode(', ', $group));
+                    }
+                    $used = $made['scenario'];
+                    $allocation = $made['record'] + ['longest_request' => RouteAllocation::longestRequest(array_values((array) $s['routes']), $pointCoefficients, $half)];
+                }
+                $made = self::scenario($used, $calibration, $width, $naiveBasis, $cores, $threshold, $stages);
                 if ($coefficients !== null && $appLimit !== null) {
                     $made['app_limit_risk'] = AppLimitRisk::evaluate(array_values((array) $s['routes']), $coefficients, $appLimit);
                 }
-                if ($appMemoryLimit !== null) {
-                    $made['app_limit_risk_memory'] = AppMemoryRisk::evaluate(array_values((array) $s['routes']), $appMemoryLimit);
+                if ($memoryRisk !== null) {
+                    $made['app_limit_risk_memory'] = $memoryRisk;
                 }
-                if ($placeholderLimit !== null) {
-                    $made['app_limit_risk_placeholders'] = AppPlaceholderRisk::evaluate(array_values((array) $s['routes']), $placeholderLimit);
+                if ($placeholderRisk !== null) {
+                    $made['app_limit_risk_placeholders'] = $placeholderRisk;
+                }
+                if ($allocation !== null) {
+                    $made['allocation'] = $allocation;
                 }
                 $scenarios[] = $made;
             }
+        }
+        if ($slowFound !== [] || $emptyFound !== []) {
+            throw new AllocationStop(
+                ($slowFound === [] ? '' : sprintf("a request is predicted to take more than half of the request timeout (%s s, so over %s s of php CPU time):\n  ", self::seconds($requestTimeoutS ?? 0.0), self::seconds($half)) . implode("\n  ", $slowFound))
+                . ($slowFound !== [] && $emptyFound !== [] ? "\n" : '')
+                . ($emptyFound === [] ? '' : "a group is left with no route, so the load of its share has nowhere to go:\n  " . implode("\n  ", $emptyFound)),
+                $slowFound !== [] ? RouteAllocation::EXIT_SLOW_REQUEST : RouteAllocation::EXIT_EMPTY_GROUP,
+            );
         }
         if ($scenarios === []) {
             throw new \InvalidArgumentException('the scenario file has no target scenario to predict');
@@ -156,7 +195,18 @@ final class LadderPrediction
                 'not_candidates' => $naiveExcluded,
             ],
             'scenarios' => $scenarios,
-        ];
+        ] + ($allocating ? ['allocation' => [
+            'enabled' => true,
+            'request_timeout_s' => $requestTimeoutS,
+            'half_request_timeout_s' => $half,
+            'drop_rule' => RouteAllocation::DROP_RULE,
+            'stop_rule' => RouteAllocation::STOP_RULE,
+        ]] : []);
+    }
+
+    private static function seconds(float $s): string
+    {
+        return rtrim(rtrim(number_format($s, 3, '.', ''), '0'), '.');
     }
 
     /**

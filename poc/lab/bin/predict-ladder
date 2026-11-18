@@ -5,6 +5,7 @@
 #
 #   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows>
 #       [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]
+#       [--drop-marked-routes [--request-timeout-s=<seconds>]]
 #
 # --naive-count=<rows> is N_0, the count of rows the naive estimate (section 7.3) is chosen at, e.g. --naive-count=10000: only the calibration
 # scenarios at exactly that count are candidates (cal-4, cal-5 and any other count are not). It is required and has no default: without it, or with
@@ -19,20 +20,28 @@
 # stops (exit 3). --estimate-commit=<hash> says the main one's instead (recorded as coming from the argument): for a trial run on a scratch estimate.
 # --expect-estimate-commit=<hash> (default 7c40774, the estimate the lab predicts from) is the commit --estimate must come from by git; the output
 # and the summary say whether it does (a mismatch is recorded, it does not stop).
+# --drop-marked-routes (off by default; without it the output is byte for byte what it always was) is the allocation of test B (simulator-spec.md
+# section 7.4.4): the routes that the placeholder side or the memory side of the mark flags at the scenario's count (the scenario file must give
+# `db_placeholder_limit` and `app_memory_limit`) are taken out of every target scenario's mix, and their share goes to the other routes of the same group
+# (the routes that carry the same rps in the file) in proportion to their rps; the sum of rps, so the naive estimate, stays. Each scenario's `allocation` block
+# in the output says which routes were taken out, why, and the rps before and after. It stops with no prediction (exit 38) when a group is left with no
+# route, (39) when the php CPU time the model gives for one request of any route is above half of --request-timeout-s (default 1800, so over 900 s;
+# exactly 900 passes), or (40) when a limit it needs is not in the scenario file.
 # Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built PHP image, no network, the inputs
 # mounted read-only and only the output directory writable. The image is never pulled.
 # exit codes: 0 done / 2 wrong usage / 3 an estimate is not committed and unchanged (and no --estimate-commit for the main one) / 11 no PHP and
 # no image / 20..25, 1 as bin/simulate / 30 the calibration cannot be made / 32 no target scenario / 33 a calibration coefficient was cut /
 # 34 a record-only scenario is a calibration scenario / 35 a target scenario has no estimate at its count / 36 the estimates disagree /
-# 37 no calibration scenario is at N_0 (--naive-count)
+# 37 no calibration scenario is at N_0 (--naive-count) / 38 a group is left with no route / 39 a request is over half of the request timeout /
+# 40 --drop-marked-routes without a placeholder limit or a memory limit in the scenario file
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/../../runtime" && pwd)"
-usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]"
+usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>] [--drop-marked-routes [--request-timeout-s=<seconds>]]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,27p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,36p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -42,6 +51,8 @@ out=""
 commit=""
 expected="7c40774"
 naive_count=""
+drop=0
+timeout_s=""
 safe=()
 for arg in "$@"; do
   case "$arg" in
@@ -51,6 +62,8 @@ for arg in "$@"; do
     --scenario=*) scenario="${arg#--scenario=}" ;;
     --out=*) out="${arg#--out=}" ;;
     --naive-count=*) naive_count="${arg#--naive-count=}" ;;
+    --drop-marked-routes) drop=1 ;;
+    --request-timeout-s=*) timeout_s="${arg#--request-timeout-s=}" ;;
     --estimate-commit=*) commit="${arg#--estimate-commit=}" ;;
     *) echo "predict-ladder: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
   esac
@@ -59,6 +72,9 @@ if [ ! -d "$estimate" ]; then echo "predict-ladder: --estimate is not a director
 if [ ! -f "$scenario" ]; then echo "predict-ladder: --scenario is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
 if [ -z "$out" ]; then echo "predict-ladder: --out is required" >&2; echo "$usage" >&2; exit 2; fi
 if ! [[ "$naive_count" =~ ^[1-9][0-9]*$ ]]; then echo "predict-ladder: --naive-count=<rows> (N_0) is required, a positive whole number" >&2; echo "$usage" >&2; exit 2; fi
+if [ -n "$timeout_s" ] && [ "$drop" != 1 ]; then echo "predict-ladder: --request-timeout-s is for --drop-marked-routes only" >&2; echo "$usage" >&2; exit 2; fi
+drop_opts=()
+if [ "$drop" = 1 ]; then drop_opts+=(--drop-marked-routes); [ -z "$timeout_s" ] || drop_opts+=("--request-timeout-s=$timeout_s"); fi
 mkdir -p "$out"
 estimate="$(cd "$estimate" && pwd)"
 scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"
@@ -100,7 +116,7 @@ if command -v php >/dev/null 2>&1; then
   for i in "${!safe_dirs[@]}"; do safe_opts+=("--safe-estimate=${safe_dirs[$i]}::${safe_args[$i]}::git"); done
   exec php "$runtime/bin/inner/predict-ladder.php" --estimate="$estimate" --scenario="$scenario" --out="$out" \
     --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
-    --naive-count="$naive_count" --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
+    --naive-count="$naive_count" --expect-estimate-commit="$expected" "${drop_opts[@]+"${drop_opts[@]}"}" "${safe_opts[@]+"${safe_opts[@]}"}"
 fi
 
 image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
@@ -119,4 +135,4 @@ exec docker run --rm --pull=never --network none --read-only --user "$(id -u):$(
   "${mounts[@]+"${mounts[@]}"}" \
   "$image" php /runtime/bin/inner/predict-ladder.php --estimate=/input/estimate --scenario=/input/scenario.yaml --out=/output \
   --estimate-commit="$commit" --estimate-commit-source="$source" --require-marks-at-count \
-  --naive-count="$naive_count" --expect-estimate-commit="$expected" "${safe_opts[@]+"${safe_opts[@]}"}"
+  --naive-count="$naive_count" --expect-estimate-commit="$expected" "${drop_opts[@]+"${drop_opts[@]}"}" "${safe_opts[@]+"${safe_opts[@]}"}"

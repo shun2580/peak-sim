@@ -36,6 +36,12 @@ use PeakSim\Runtime\Simulate\Predict\PredictStage;
  * 33 a calibration coefficient was cut; 34 a record-only scenario is a calibration scenario; 35 a target scenario has no marks at its count;
  * 36 the estimates disagree on a point or cannot be used together; 37 N_0 is not given or no calibration scenario is at it. An output that
  * cannot be written is the usual 1 of the command.
+ *
+ * With `requestTimeoutS` (the flag `--drop-marked-routes`, off by default) the routes that the placeholder side or the memory side marks are
+ * taken out of every target's mix and their share goes to the rest of their group (simulator-spec.md section 7.4.4, {@see RouteAllocation}). Without
+ * it nothing of that is done and the output is byte for byte what it was. It adds three stops, each with no prediction written:
+ * 38 a group is left with no route; 39 a request is predicted to take more than half of `requestTimeoutS` of php CPU time (checked on every
+ * route, taken out or not; exactly half passes); 40 the scenario file gives no placeholder limit or no memory limit to take routes out by.
  */
 final class LadderStage
 {
@@ -71,6 +77,7 @@ final class LadderStage
      * @param bool        $requireMarksAtCount stop (35) when a target scenario's count has no estimate made at it
      * @param string|null $expectedEstimateCommit the commit (or its start) the main estimate should come from; the output says whether it does
      * @param int|null    $naiveCount N_0: the count of rows the naive estimate is chosen at (calibration scenarios at exactly this count only); null stops with 37
+     * @param float|null  $requestTimeoutS null: the mix is used as the file gives it. A number of seconds (B's request timeout, 1,800): take the marked routes out of the mixes (see above)
      */
     public function __construct(
         private readonly string $estimateDir,
@@ -84,6 +91,7 @@ final class LadderStage
         private readonly bool $requireMarksAtCount = false,
         private readonly ?string $expectedEstimateCommit = null,
         private readonly ?int $naiveCount = null,
+        private readonly ?float $requestTimeoutS = null,
     ) {
     }
 
@@ -171,7 +179,11 @@ final class LadderStage
             'scenario_sha256' => hash('sha256', $io->read($this->scenarioPath)),
         ];
         try {
-            $report = LadderPrediction::build($loaded, $calibration, $inputs, $this->naiveCount);
+            $report = LadderPrediction::build($loaded, $calibration, $inputs, $this->naiveCount, null, $this->requestTimeoutS);
+        } catch (AllocationStop $e) {
+            fwrite($this->stderr, "predict-ladder: stop and report (no prediction is written):\n" . $e->getMessage() . "\n");
+
+            return $e->exitCode;
         } catch (\InvalidArgumentException $e) {
             fwrite($this->stderr, 'predict-ladder: ' . $e->getMessage() . "\n");
 
@@ -237,6 +249,11 @@ final class LadderStage
         foreach ($report['scenarios'] as $s) {
             foreach ((array) ($s['safe_side'] ?? []) as $side) {
                 $out .= sprintf("  %s safe side: marks of the estimate made at %s rows (%s) for %s rows\n", $s['id'], number_format($side['estimate_at']), $side['source'], number_format($side['count']));
+            }
+        }
+        foreach ($report['scenarios'] as $s) {
+            foreach ((array) ($s['allocation']['dropped_routes'] ?? []) as $d) {
+                $out .= sprintf("  %s: %s taken out of the mix (%s); its share goes to the rest of its group\n", $s['id'], $d['route'], implode(' and ', $d['reasons']));
             }
         }
         foreach ($report['scenarios'] as $s) {
