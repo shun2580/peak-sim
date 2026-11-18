@@ -1,0 +1,140 @@
+{
+    "mix": "last80",
+    "scheme": "B",
+    "rps": {
+        "target_rps": 0.7,
+        "achieved_rps": 0.6997084548104956,
+        "ratio": 0.9995835068721366,
+        "deviation": -0.0004164931278634043,
+        "valid": true,
+        "status": "valid",
+        "counted": "sent",
+        "dropped_iterations": 0,
+        "invalid_reasons": []
+    },
+    "window_sec": 343,
+    "window_epoch": {
+        "from": 1794905748.8394628,
+        "to": 1794906091.8394628
+    },
+    "db_utilization": {
+        "utilization": 0.5792807501810313,
+        "percent": 57.92807501810313,
+        "delta_usage_usec": 397386594.62418747,
+        "delta_sec": 343.0,
+        "cpus": 2
+    },
+    "requests": {
+        "in_window": 240,
+        "failed": 48,
+        "dropped_iterations": 0,
+        "http_status": {
+            "200": 192,
+            "302": 48
+        },
+        "http_status_by_route": {
+            "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+                "200": 12
+            },
+            "GET /books/{bookSlug}/export/zip": {
+                "200": 12
+            },
+            "GET /books/{bookSlug}/page/{pageSlug}/references": {
+                "200": 12
+            },
+            "GET /books/{slug}": {
+                "200": 12
+            },
+            "GET /books/{slug}/references": {
+                "200": 48
+            },
+            "GET /images/edit/{id}": {
+                "200": 48
+            },
+            "GET /oidc/callback": {
+                "302": 48
+            },
+            "GET /shelves/{slug}": {
+                "200": 48
+            }
+        },
+        "request_timeout": "600s",
+        "sent_in_window": 240,
+        "finished_after_window": 3,
+        "longest_after_window_ms": 54070.832275390625,
+        "graceful_stop": "600s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.034999999999999996,
+            "achieved_rps": 0.03498542274052478,
+            "requests": 12,
+            "requests_sent": 12,
+            "planned_requests": 12
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.034999999999999996,
+            "achieved_rps": 0.03498542274052478,
+            "requests": 12,
+            "requests_sent": 12,
+            "planned_requests": 12
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.034999999999999996,
+            "achieved_rps": 0.03498542274052478,
+            "requests": 12,
+            "requests_sent": 12,
+            "planned_requests": 12
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.034999999999999996,
+            "achieved_rps": 0.03498542274052478,
+            "requests": 12,
+            "requests_sent": 12,
+            "planned_requests": 12
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.13999999999999999,
+            "achieved_rps": 0.13994169096209913,
+            "requests": 48,
+            "requests_sent": 48,
+            "planned_requests": 48
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.13999999999999999,
+            "achieved_rps": 0.13994169096209913,
+            "requests": 48,
+            "requests_sent": 48,
+            "planned_requests": 48
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.13999999999999999,
+            "achieved_rps": 0.13994169096209913,
+            "requests": 48,
+            "requests_sent": 48,
+            "planned_requests": 48
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.13999999999999999,
+            "achieved_rps": 0.13994169096209913,
+            "requests": 48,
+            "requests_sent": 48,
+            "planned_requests": 48
+        }
+    ],
+    "app_cpu_utilization": {
+        "utilization": 0.2756840747008906,
+        "percent": 27.568407470089063,
+        "delta_usage_usec": 567357825.7344329,
+        "delta_sec": 343.0,
+        "cpus": 6
+    }
+}

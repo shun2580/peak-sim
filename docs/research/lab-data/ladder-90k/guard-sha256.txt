@@ -1,0 +1,3 @@
+a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
+a6267ad8486c2a85032b3420f89cec8737f6ac93587d142236bb5d037f3ae70c  scripts/stats.sh.orig
+2026-11-17T18:39:25+09:00 check: RESUME-s-5 exists? NO

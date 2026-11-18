@@ -1,0 +1,82 @@
+{
+    "mix": "places1345",
+    "rps": 0.2,
+    "duration_sec": 460,
+    "warmup_sec": 60,
+    "routes": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "share": 0.2,
+            "rps": 0.04000000000000001,
+            "rate": 40,
+            "time_unit": "1000s",
+            "start_offset_sec": 22.5,
+            "planned_window_requests": 16
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "share": 0.05,
+            "rps": 0.010000000000000002,
+            "rate": 10,
+            "time_unit": "1000s",
+            "start_offset_sec": 10.0,
+            "planned_window_requests": 4
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "share": 0.2,
+            "rps": 0.04000000000000001,
+            "rate": 40,
+            "time_unit": "1000s",
+            "start_offset_sec": 22.5,
+            "planned_window_requests": 16
+        },
+        {
+            "route": "GET /books/{slug}",
+            "share": 0.2,
+            "rps": 0.04000000000000001,
+            "rate": 40,
+            "time_unit": "1000s",
+            "start_offset_sec": 22.5,
+            "planned_window_requests": 16
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "share": 0.2,
+            "rps": 0.04000000000000001,
+            "rate": 40,
+            "time_unit": "1000s",
+            "start_offset_sec": 22.5,
+            "planned_window_requests": 16
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "share": 0.05,
+            "rps": 0.010000000000000002,
+            "rate": 10,
+            "time_unit": "1000s",
+            "start_offset_sec": 10.0,
+            "planned_window_requests": 4
+        },
+        {
+            "route": "GET /oidc/callback",
+            "share": 0.05,
+            "rps": 0.010000000000000002,
+            "rate": 10,
+            "time_unit": "1000s",
+            "start_offset_sec": 10.0,
+            "planned_window_requests": 4
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "share": 0.05,
+            "rps": 0.010000000000000002,
+            "rate": 10,
+            "time_unit": "1000s",
+            "start_offset_sec": 10.0,
+            "planned_window_requests": 4
+        }
+    ],
+    "scheme": "B",
+    "window_sec": 400
+}

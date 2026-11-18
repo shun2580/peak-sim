@@ -1,0 +1,40 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-4-b90k.json e5f406f8341803fe287fdf04f4636706e722fbd5 2026-11-17T09:08:30+09:00
+SCALE s-4 90000 rows (the count of the prediction file)
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+TABLES BASELINE scale 90000: entities 90000 2679012099;images 90000 1203256604;references 90000 2734763272; (21 write counters)
+OOM BASELINE peak-lab-app: oom_killed=false restart_count=0 started_at=2026-11-17T09:19:37.128760382Z cgroup_oom=0 cgroup_oom_kill=0
+RUNG SETTINGS s-4 rung 1: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 1 of 15 rps 0.025 scale 90000 mix places1235 scheme B at 2026-11-17T18:20:07+09:00 (27 min 40 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 1 rps decided 0.025 achieved 0.0250 (valid) db 8.6% app 3.4% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS s-4 rung 2: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 2 of 15 rps 0.035 scale 90000 mix places1235 scheme B at 2026-11-17T18:48:54+09:00 (20 min 2 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 2 rps decided 0.035 achieved 0.0350 (valid) db 11.6% app 4.7% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS s-4 rung 3: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 3 of 15 rps 0.05 scale 90000 mix places1235 scheme B at 2026-11-17T19:09:58+09:00 (14 min 20 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 3 rps decided 0.05 achieved 0.0500 (valid) db 16.3% app 6.7% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS s-4 rung 4: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 4 of 15 rps 0.07 scale 90000 mix places1235 scheme B at 2026-11-17T19:25:25+09:00 (10 min 31 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 4 rps decided 0.07 achieved 0.0701 (valid) db 22.4% app 9.3% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS s-4 rung 5: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 5 of 15 rps 0.1 scale 90000 mix places1235 scheme B at 2026-11-17T19:37:00+09:00 (7 min 40 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 5 rps decided 0.1 achieved 0.1000 (valid) db 32.2% app 13.5% dropped 0 | 200x38 302x2 | continue
+RUNG SETTINGS s-4 rung 6: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 6 of 15 rps 0.15 scale 90000 mix places1235 scheme B at 2026-11-17T19:45:46+09:00 (9 min 53 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 6 rps decided 0.15 achieved 0.1501 (valid) db 49.3% app 20.7% dropped 0 | 200x76 302x4 | continue
+RUNG SETTINGS s-4 rung 7: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 7 of 15 rps 0.2 scale 90000 mix places1235 scheme B at 2026-11-17T19:56:46+09:00 (7 min 40 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 7 rps decided 0.2 achieved 0.2000 (valid) db 63.3% app 26.7% dropped 0 | 200x76 302x4 | continue
+RUNG SETTINGS s-4 rung 8: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 8 of 15 rps 0.3 scale 90000 mix places1235 scheme B at 2026-11-17T20:05:32+09:00 (7 min 40 s)
+WRITES SAME after a step scale 90000: 21 write counters
+RUNG END s-4 rung 8 rps decided 0.3 achieved 0.3000 (valid) db 90.0% app 38.0% dropped 0 | 200x114 302x6 | STOP (db_utilization_at_or_above_80_percent)
+the scenario s-4 stops after rung 8
+TABLES SAME after the load scale 90000: entities 90000 2679012099;images 90000 1203256604;references 90000 2734763272; (21 write counters)
+ladder record: /home/nishikawa/.cache/peak-lab/out/ladder/s-4-90000/ladder.json

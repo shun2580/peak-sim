@@ -1,0 +1,140 @@
+{
+    "mix": "last80",
+    "scheme": "B",
+    "rps": {
+        "target_rps": 1.5,
+        "achieved_rps": 1.5,
+        "ratio": 1.0,
+        "deviation": 0.0,
+        "valid": true,
+        "status": "valid",
+        "counted": "sent",
+        "dropped_iterations": 0,
+        "invalid_reasons": []
+    },
+    "window_sec": 320,
+    "window_epoch": {
+        "from": 1794906668.378192,
+        "to": 1794906988.378192
+    },
+    "db_utilization": {
+        "utilization": 0.9807568245630444,
+        "percent": 98.07568245630443,
+        "delta_usage_usec": 627684367.7203484,
+        "delta_sec": 320.0,
+        "cpus": 2
+    },
+    "requests": {
+        "in_window": 480,
+        "failed": 96,
+        "dropped_iterations": 0,
+        "http_status": {
+            "200": 384,
+            "302": 96
+        },
+        "http_status_by_route": {
+            "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+                "200": 24
+            },
+            "GET /books/{bookSlug}/export/zip": {
+                "200": 24
+            },
+            "GET /books/{bookSlug}/page/{pageSlug}/references": {
+                "200": 24
+            },
+            "GET /books/{slug}": {
+                "200": 24
+            },
+            "GET /books/{slug}/references": {
+                "200": 96
+            },
+            "GET /images/edit/{id}": {
+                "200": 96
+            },
+            "GET /oidc/callback": {
+                "302": 96
+            },
+            "GET /shelves/{slug}": {
+                "200": 96
+            }
+        },
+        "request_timeout": "600s",
+        "sent_in_window": 480,
+        "finished_after_window": 26,
+        "longest_after_window_ms": 183220.0,
+        "graceful_stop": "600s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.07500000000000001,
+            "achieved_rps": 0.075,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.07500000000000001,
+            "achieved_rps": 0.075,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.07500000000000001,
+            "achieved_rps": 0.075,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /books/{slug}",
+            "target_rps": 0.07500000000000001,
+            "achieved_rps": 0.075,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.30000000000000004,
+            "achieved_rps": 0.3,
+            "requests": 96,
+            "requests_sent": 96,
+            "planned_requests": 96
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.30000000000000004,
+            "achieved_rps": 0.3,
+            "requests": 96,
+            "requests_sent": 96,
+            "planned_requests": 96
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.30000000000000004,
+            "achieved_rps": 0.3,
+            "requests": 96,
+            "requests_sent": 96,
+            "planned_requests": 96
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.30000000000000004,
+            "achieved_rps": 0.3,
+            "requests": 96,
+            "requests_sent": 96,
+            "planned_requests": 96
+        }
+    ],
+    "app_cpu_utilization": {
+        "utilization": 0.49283386353568137,
+        "percent": 49.28338635356814,
+        "delta_usage_usec": 946241017.9885082,
+        "delta_sec": 320.0,
+        "cpus": 6
+    }
+}

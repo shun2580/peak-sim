@@ -1,0 +1,55 @@
+ Container peak-lab-app Recreate 
+ Container peak-lab-app Recreated 
+ Container peak-lab-web Recreate 
+ Container peak-lab-web Recreated 
+ Container peak-lab-app Starting 
+ Container peak-lab-app Started 
+ Container peak-lab-web Starting 
+ Container peak-lab-web Started 
+PASS container: peak-lab-db is running
+PASS container: peak-lab-app is running
+PASS container: peak-lab-web is running
+PASS container: peak-lab-k6 is running
+PASS container: peak-lab-tools is running
+PASS network: peak-lab_lab-internal internal=true
+PASS peak-lab-db: network mode peak-lab_lab-internal
+PASS peak-lab-db: no published port
+PASS peak-lab-app: network mode peak-lab_lab-internal
+PASS peak-lab-app: no published port
+PASS peak-lab-web: network mode peak-lab_lab-internal
+PASS peak-lab-web: no published port
+PASS peak-lab-k6: network mode peak-lab_lab-internal
+PASS peak-lab-k6: no published port
+PASS peak-lab-tools: network mode peak-lab_lab-internal
+PASS peak-lab-tools: no published port
+peak-lab-app: PASS negative dns:example.com              did not resolve
+peak-lab-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-app: PASS negative http:example.com             no response
+peak-lab-app: PASS negative default-route                no default route
+peak-lab-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-app: PASS positive dns:measure-db               resolved to 172.20.0.2
+peak-lab-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-app: PREFLIGHT OK
+peak-lab-tools: PASS negative dns:example.com              did not resolve
+peak-lab-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-tools: PASS negative http:example.com             no response
+peak-lab-tools: PASS negative default-route                no default route
+peak-lab-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-tools: PASS positive dns:measure-db               resolved to 172.20.0.2
+peak-lab-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-tools: PREFLIGHT OK
+PASS peak-lab-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-web: http://example.com is unreachable
+PASS peak-lab-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-k6: http://example.com is unreachable
+PASS peak-lab-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-db: the name example.com is unreachable
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK

@@ -1,0 +1,47 @@
+== after s-5: read before restore 2026-11-19T03:00:02+09:00 ==
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+rc=0
+MEMORY at=2026-11-19T03:00:03+09:00 label=after-s-5-final mem_available_kib=9855052 app_memory_current=1178202112 app_memory_peak=2007523328 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+check-oom rc=0
+08e29d4756e3c1b59ffc7c3cb67bed1ca70759f71212f199d90f78611d956375  -
+== restore: git apply -R compose-B.diff 2026-11-19T03:00:03+09:00 ==
+apply -R rc=0
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+== recreate app/web with defaults 2026-11-19T03:00:09+09:00 ==
+use-db rc=0
+PREFLIGHT OK
+LIMITS OK (require limited): { "php_max_execution_time": "30", "php_memory_limit": "512M", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "120s", "k6_request_timeout": null, "k6_request_timeout_note": "not given: the load tool used its own default (60 s for k6 2.3.0)" } 
+check-limits limited rc=0
+{
+    "php_max_execution_time": "30",
+    "php_memory_limit": "512M",
+    "php_fpm_request_terminate_timeout": "0s",
+    "nginx_fastcgi_read_timeout": "120s",
+    "k6_request_timeout": null,
+    "k6_request_timeout_note": "not given: the load tool used its own default (60 s for k6 2.3.0)"
+}
+(empty above = compose files at default)
+== stop stack (volume kept) 2026-11-19T03:00:25+09:00 ==
+open /home/nishikawa/projects/peak-sim/poc/lab/compose/compose.yaml: no such file or directory
+peak-lab-web Up 13 seconds
+peak-lab-app Up 13 seconds
+peak-lab-tools Up 2 hours
+peak-lab-k6 Up 2 hours
+peak-lab-db Up 2 hours (healthy)
+local     peak-lab-dbdata
+== stop stack via compose stop (volume kept) 2026-11-19T03:00:29+09:00 ==
+ Container peak-lab-tools Stopped 
+ Container peak-lab-web Stopped 
+ Container peak-lab-app Stopping 
+ Container peak-lab-app Stopped 
+ Container peak-lab-db Stopping 
+ Container peak-lab-db Stopped 
+peak-lab-web Exited (0) 1 second ago
+peak-lab-app Exited (0) 1 second ago
+peak-lab-tools Exited (137) 2 seconds ago
+peak-lab-k6 Exited (137) 2 seconds ago
+peak-lab-db Exited (137) Less than a second ago
+local     peak-lab-dbdata

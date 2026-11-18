@@ -1,0 +1,81 @@
+== resume checks 2026-11-19T00:40:18+09:00 ==
+-- 1 docker volume ls
+DRIVER    VOLUME NAME
+local     peak-lab-dbdata
+-- 2 compose diff sha256 / git status
+08e29d4756e3c1b59ffc7c3cb67bed1ca70759f71212f199d90f78611d956375  -
+ M poc/lab/compose/nginx/lab.conf
+ M poc/lab/compose/php/zz-lab.ini
+-- 3 git log e5f406f..HEAD
+COMMIT 967bac2 2026-11-17 11:52:39 +0900 docs: record the ruling that B reads a route's end at its own settings
+
+ docs/decisions.md               | 13 +++++++++++++
+ docs/research/lab-backtest-4.md | 14 ++++++++++----
+ docs/simulator-spec.md          |  1 +
+ 3 files changed, 24 insertions(+), 4 deletions(-)
+COMMIT ed73f2c 2026-11-17 10:19:10 +0900 docs: write the fourth lab backtest record before B at 90,000 rows is measured
+
+ docs/research/lab-backtest-4.md | 371 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 371 insertions(+)
+COMMIT 9f96913 2026-11-17 09:59:49 +0900 fix: measure a prediction scenario at the count its prediction file holds
+
+ poc/lab/README.md                                  |   9 ++
+ poc/lab/bin/measure-ladder                         |  58 +++++++++-
+ poc/lab/load/ladder.php                            |  27 ++++-
+ poc/lab/tests/ladder-gate.sh                       |  98 +++++++++++++++-
+ poc/lab/tests/limits-guard.sh                      |   4 +-
+ poc/lab/tests/write-guards.sh                      |   7 +-
+ poc/runtime/src/LabLoad/Ladder.php                 |  16 ++-
+ .../Unit/LabLoad/LadderScaleFromPredictionTest.php | 128 +++++++++++++++++++++
+ 8 files changed, 331 insertions(+), 16 deletions(-)
+COMMIT d4c350f 2026-11-17 09:21:47 +0900 docs: record the mark measurement at 150,000 rows with the app logs copied before the stack was taken down
+
+ docs/research/lab-data/mark-150k/README.md         |   48 +
+ .../lab-data/mark-150k/app-log-after-mark.txt      | 1232 ++++++++++++++++++++
+ .../mark-150k/limits-after-mark/settings-fpm.txt   |   59 +
+ .../mark-150k/limits-after-mark/settings-ini.txt   |    1 +
+ .../mark-150k/limits-after-mark/settings-nginx.txt |  193 +++
+ .../mark-150k/limits-after-mark/settings.err       |    0
+ .../mark-150k/limits-after-mark/settings.json      |    8 +
+ .../mark-150k/limits-before-mark/settings-fpm.txt  |   59 +
+ .../mark-150k/limits-before-mark/settings-ini.txt  |    1 +
+ .../limits-before-mark/settings-nginx.txt          |  193 +++
+ .../mark-150k/limits-before-mark/settings.err      |    0
+ .../mark-150k/limits-before-mark/settings.json     |    8 +
+ .../lab-data/mark-150k/mark-150000/context.json    |   20 +
+ .../lab-data/mark-150k/mark-150000/http.jsonl      |   19 +
+ .../mark-150k/mark-150000/table-counts.json        |    9 +
+ docs/research/lab-data/mark-150k/mark-times.txt    |    3 +
+ .../lab-data/mark-150k/request-probe-output.txt    |   21 +
+ .../lab-data/mark-150k/stats-mark-150000.tsv       |   82 ++
+ .../lab-data/mark-150k/targets-150000.output.txt   |    1 +
+ .../lab-data/mark-150k/web-log-after-mark.txt      |    0
+ 20 files changed, 1957 insertions(+)
+-- 4 RESUME-s-5 / stats.sh sha
+ls: cannot access '/home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5': No such file or directory
+a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
+a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
+-- 5 chain process
+no chain process
+2026-11-19 00:35:50
+-- 5b Windows event 1074 (reboot) / WSL uptime
+event 1074 (host <host>, user <user>): restart initiated by the user (power off), not Windows Update, at 2026-11-19 00:14:08
+event 1074 (host <host>, user <user>): restart initiated by the user (power off), not Windows Update, at 2026-11-17 23:46:02
+event 1074 (host <host>, user <user>): restart initiated by the user (restart), not Windows Update, at 2026-11-16 20:18:48
+
+
+wsl up since: 2026-11-19 00:35:50
+peak-lab-web Exited (0) 28 hours ago
+peak-lab-app Exited (0) 28 hours ago
+peak-lab-k6 Exited (137) 28 hours ago
+peak-lab-tools Exited (137) 28 hours ago
+peak-lab-db Exited (137) 28 hours ago
+-- 5c watch.log tail
+2026-11-17T20:49:48+09:00 newest_file_age=2123s max_stmt_time=?s
+2026-11-17T20:54:48+09:00 newest_file_age=2423s max_stmt_time=?s
+2026-11-17T20:59:48+09:00 newest_file_age=2723s max_stmt_time=?s
+2026-11-19T00:40:47+09:00 resume: bring stack up (bin/up, volume kept)
+up exit=0
+use-db rc=0
+check-limits rc=0
+2026-11-19T00:41:46+09:00 RESUME-s-5 mark placed (before chain restart)

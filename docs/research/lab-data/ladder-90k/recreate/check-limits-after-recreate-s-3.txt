@@ -1,0 +1,2 @@
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "600s", "k6_request_timeout": "600s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+HostConfig.Memory=6442450944 started=2026-11-17T06:52:03.824128557Z

@@ -1,0 +1,30 @@
+== shutdown 20261117 ==
+2026-11-17T20:15:50+09:00
+-- 1 docker volume ls
+local     (other volumes of the working machine, not part of this measurement: names left out)
+local     peak-lab-dbdata
+local     peak-sim-dev_mysql-data
+-- 2 docker ps -a peak-lab-*
+peak-lab-web	Exited (0) 6 seconds ago
+peak-lab-app	Exited (0) 5 seconds ago
+peak-lab-k6	Exited (137) 6 seconds ago
+peak-lab-tools	Exited (137) 6 seconds ago
+peak-lab-db	Exited (137) 4 seconds ago
+-- 3 compose diff sha256 / git status
+08e29d4756e3c1b59ffc7c3cb67bed1ca70759f71212f199d90f78611d956375  -
+ M poc/lab/compose/nginx/lab.conf
+ M poc/lab/compose/php/zz-lab.ini
+-- 4 chain.log tail
+2026-11-17T20:14:25+09:00 END s-4 exit=0
+2026-11-17T20:14:26+09:00 RECREATE app/web before s-5 (use-db 90000)
+2026-11-17T20:14:42+09:00 recreated and checked before s-5
+2026-11-17T20:14:42+09:00 PAUSED before s-5 (maintainer's request): waiting for /home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5
+2026-11-17T20:15:42+09:00 PAUSED by the maintainer's order at 20:05 (end-of-day shutdown): s-4 done, chain is held at the before-s-5 guard; stopping the stack with volumes kept
+2026-11-17T20:15:46+09:00 stack stopped (docker compose stop, volume kept)
+-- 5 RESUME-s-5
+ls: cannot access '/home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5': No such file or directory
+-- 6 stats.sh sha256
+a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
+a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
+a6267ad8486c2a85032b3420f89cec8737f6ac93587d142236bb5d037f3ae70c  scripts/stats.sh.orig
+2026-11-17T18:39:25+09:00 check: RESUME-s-5 exists? NO
