@@ -117,9 +117,10 @@ a different table from the one the estimate was made from. Every prediction outp
 
 Some routes rewrite a table other routes read (`POST /settings/maintenance/regenerate-references` deletes every row of `references` and
 rebuilds it; `PUT /books/{slug}` inserts a row of `slug_history` for every child of the book). Each request is rolled back, so the rows
-return, but the optimizer's statistics do not. To keep one route from changing what the next one reads, test A is measured on databases
-whose statistics are held after the build (`--analyze-after-build=on` for `bin/measure`, `--stats-auto-recalc=off` for `bin/variance-run`);
-the door `poc/lab/bin/measure-extrapolation` adds the option and refuses the opposite.
+return, but the optimizer's statistics do not. A profile lists such routes in `state_changing` (route, tables, why; `profiles/bookstack.php`),
+and they are measured after every other route of their database, in the order listed (`RouteOrder`, used by the driver of `bin/measure` and by
+`bin/variance-run`). The repeat runs several laps on one database, so after each lap it also runs `ANALYZE TABLE` on the tables those routes
+rewrite, outside any request (`g<G>/restore_*.log`). The automatic recalculation of statistics is left as it was.
 
 ## An app that needs more PHP extensions
 
