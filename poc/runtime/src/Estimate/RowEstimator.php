@@ -27,7 +27,8 @@ use PeakSim\Runtime\Judge\CostFit;
  * sizes already seen. Both change the point of a marked type and nothing else; H1, H2 and H3 are left as they were defined.
  *
  *   P1  a type marked `plan_changes_at_scale` whose plan on the database of N rows (default state) reads one table by a full scan (`ALL`, no join,
- *       no subquery): the point is the rows of that scan (`rows_examined_per_scan`). A plan that reads more than one table is not read this way.
+ *       no subquery), at a size above the largest scale: the point is the rows of that scan (`rows_examined_per_scan`). A plan that reads more than
+ *       one table is not read this way.
  *   P2  a type marked `plan_changes_at_scale` or `plan_unstable` whose rows per run were fitted (three scales or more), at a size above the largest scale:
  *       the point is not below the value at the largest scale carried along a line through the origin (value x N / that scale).
  *
@@ -429,7 +430,9 @@ final class RowEstimator
         $point = $h1;
         $rule = null;
         $input = null;
-        if (($marks['plan_changes_at_scale'] ?? false) === true) {
+        // both rules are about sizes above what the capture measured; at or below its largest scale the measured values stand
+        $largest = $series === [] ? 0 : (int) max(array_keys($series));
+        if (($marks['plan_changes_at_scale'] ?? false) === true && $n > $largest) {
             $scan = self::singleTableScanRows((array) ($explained['target_scale']['default']['raw'] ?? []));
             if ($scan !== null && $scan !== $point) {
                 $point = $scan;
@@ -438,7 +441,7 @@ final class RowEstimator
             }
         }
         if (count($series) >= CostFit::MIN_SCALES) {
-            $scale = (int) max(array_keys($series));
+            $scale = $largest;
             if ($scale > 0 && $n > $scale) {
                 $value = $series[$scale];
                 $line = $value * $n / $scale;

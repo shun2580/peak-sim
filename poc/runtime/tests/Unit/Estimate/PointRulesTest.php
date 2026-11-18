@@ -119,6 +119,48 @@ final class PointRulesTest extends TestCase
         $this->assertEqualsWithDelta($t['per_exec_h1'], $t['per_exec'], 1e-9);
     }
 
+    public function test_p1_does_not_apply_at_a_size_that_is_not_above_the_largest_scale_either(): void
+    {
+        // the capture measured 10,000 rows; at N = 10,000 the plan's full scan of 99,000 rows is not a reading of that size, and the measured value stands
+        $t = self::moved('H1_RANGE', 10000)['p1_scan'];
+        $this->assertArrayNotHasKey('point_rule', $t);
+        $this->assertEqualsWithDelta(50.0, $t['per_exec'], 1e-9);
+    }
+
+    public function test_the_reader_of_the_formulas_leaves_the_fit_at_the_sizes_the_capture_measured_so_that_a_calibration_there_does_not_move(): void
+    {
+        [$capture, $explain] = PointRuleFixtures::fixture();
+        $capture['routes'] = [$capture['routes'][0]];
+        $explain['routes'] = [$explain['routes'][0]];
+        $with = RowEstimator::estimate($capture, $explain, 'H1_RANGE', PointRuleFixtures::N, null, true);
+        // the same formulas read without the rule (a copy that has no point_rule) must give the same figures at 100, 5,000 and 10,000 rows
+        $bare = $with;
+        foreach ($bare['routes'] as &$route) {
+            foreach ($route['types'] as &$type) {
+                unset($type['formula']['point_rule']);
+            }
+        }
+        unset($route, $type);
+        foreach ([100, 5000, 10000] as $n) {
+            $this->assertSame(self::readerFigures($bare, $n), self::readerFigures($with, $n), 'at ' . $n);
+        }
+        // above the largest scale the rule is read
+        $this->assertNotSame(self::readerFigures($bare, 100000), self::readerFigures($with, 100000));
+    }
+
+    /**
+     * @param array<string, mixed> $estimate
+     *
+     * @return array<string, mixed>
+     */
+    private static function readerFigures(array $estimate, int $n): array
+    {
+        $cost = EstimateFormulas::fromDocument($estimate)->evaluate('GET /moved', $n);
+        unset($cost['n_mark']);
+
+        return $cost;
+    }
+
     public function test_the_rules_are_in_h1_range_only(): void
     {
         foreach (['H1', 'H2', 'H3'] as $candidate) {

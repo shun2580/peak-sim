@@ -178,7 +178,9 @@ final class EstimateFormulas
             $rule = isset($f['point_rule']) && is_array($f['point_rule']) ? $f['point_rule'] : null;
             $perFit = $perExec;
             if ($rule !== null) {
-                if (($rule['rule'] ?? null) === 'P1' && (int) ($rule['at'] ?? 0) > 0) {
+                // P1 is a statement about sizes above what the capture measured: at or below its largest scale (the sizes the calibration runs at) the fit stands
+                $measured = array_map('intval', (array) ($f['scales'] ?? []));
+                if (($rule['rule'] ?? null) === 'P1' && (int) ($rule['at'] ?? 0) > 0 && ($measured === [] || $n > max($measured))) {
                     $perExec = (float) $rule['scan_rows'] * $n / (int) $rule['at'];
                 } elseif (($rule['rule'] ?? null) === 'P2' && (int) ($rule['scale'] ?? 0) > 0 && $n > (int) $rule['scale']) {
                     $perExec = max($perExec, (float) $rule['value'] * $n / (int) $rule['scale']);
