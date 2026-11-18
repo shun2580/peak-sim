@@ -42,6 +42,8 @@ final class Driver
         private readonly bool $gateBypass = true,
         private readonly bool $warm = true,
         private readonly ?string $tapDir = null,
+        /** @var list<string> the "METHOD uri" of the routes measured after every other route of their database (`RouteOrder`) */
+        private readonly array $lastRoutes = [],
     ) {
     }
 
@@ -90,7 +92,7 @@ final class Driver
                 }
                 $buildNanos = hrtime(true) - $started;
 
-                foreach ($entry['items'] as [$index, $axis]) {
+                foreach (RouteOrder::lastRoutesLast($entry['items'], static fn (array $item): string => $tasks[$item[0]]->spec->key(), $this->lastRoutes) as [$index, $axis]) {
                     $task = $tasks[$index];
                     $began = hrtime(true);
                     $stop = $this->measure($task, $point, $axis, $byTask[$index], $all);

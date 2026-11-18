@@ -119,7 +119,9 @@ $driverBuilder = $options->analyzeAfterBuild
         return new StatsStatements(new PdoStatsDb(ExplainDb::open($c, $c->dbNameForScale($point->scale))));
     })
     : $builder;
-$driver = new Driver($planner, $driverBuilder, $runner, $options->gateBypass, $options->warm, $options->tapDir);
+// The routes the profile says rewrite a table other routes read are measured after every other route of their database (RouteOrder).
+$lastRoutes = $options->profile === null ? [] : array_keys(Profile::stateChanging(Profile::load($options->profile)));
+$driver = new Driver($planner, $driverBuilder, $runner, $options->gateBypass, $options->warm, $options->tapDir, $lastRoutes);
 $result = $driver->run($tasks, $scales);
 
 // 3. Record.

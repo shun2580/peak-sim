@@ -7,6 +7,7 @@ namespace PeakSim\Runtime\Variance;
 use PeakSim\Runtime\Measure\DataPlanner;
 use PeakSim\Runtime\Measure\DatabasePoint;
 use PeakSim\Runtime\Measure\MeasureRequest;
+use PeakSim\Runtime\Measure\RouteOrder;
 use PeakSim\Runtime\Measure\RouteTask;
 use PeakSim\Runtime\Run\Attempt;
 
@@ -28,13 +29,14 @@ final class TrialPlan
      * @param list<string>    $routeKeys "METHOD uri" of the routes to repeat (`RouteSpec::key()`)
      * @param int             $scale     the size of the database (the main sweep's point)
      * @param string          $mode      generator or seeder
+     * @param array<string, list<string>> $stateChanging the profile's routes that rewrite a table other routes read ("METHOD uri" => its tables, in the order they go): they go last in their database
      *
      * @return list<array{key: string, tag: string, scale: int, build_args: list<string>, routes: list<array{route: string, method: string, uri: string, measure_args: list<string>}>}>
      *         one entry per database to build, in the order its first route appears in the task list
      *
      * @throws \InvalidArgumentException a route is not in the list, is in it twice, or was not prepared (it has a fail class)
      */
-    public static function build(array $tasks, array $routeKeys, int $scale, DataPlanner $planner, string $mode, ?string $profile = null): array
+    public static function build(array $tasks, array $routeKeys, int $scale, DataPlanner $planner, string $mode, ?string $profile = null, array $stateChanging = []): array
     {
         if ($routeKeys === [] || count(array_unique($routeKeys)) !== count($routeKeys)) {
             throw new \InvalidArgumentException('name at least one route, each once');
@@ -100,8 +102,17 @@ final class TrialPlan
             }
         }
 
-        return array_values(array_map(static function (array $group): array {
+        return array_values(array_map(static function (array $group) use ($stateChanging): array {
             unset($group['recipe']);
+            $group['routes'] = RouteOrder::lastRoutesLast($group['routes'], static fn (array $r): string => $r['method'] . ' ' . $r['route'], array_keys($stateChanging));
+            // the tables to ANALYZE between two laps: those the state-changing routes of this group rewrite
+            $restore = [];
+            foreach ($group['routes'] as $r) {
+                foreach ($stateChanging[$r['method'] . ' ' . $r['route']] ?? [] as $table) {
+                    $restore[$table] = true;
+                }
+            }
+            $group['restore_tables'] = array_keys($restore);
 
             return $group;
         }, $groups));
@@ -136,6 +147,7 @@ final class TrialPlan
                 $routes .= implode("\t", [$r + 1, $route['method'], $route['route'], $route['uri'], preg_replace('/[^A-Za-z0-9]/', '_', $route['method'] . ' ' . $route['route'])]) . "\n";
             }
             file_put_contents($gd . '/plan.routes', $routes);
+            file_put_contents($gd . '/plan.restore', implode("\n", $group['restore_tables'] ?? []) . (($group['restore_tables'] ?? []) === [] ? '' : "\n"));
         }
     }
 

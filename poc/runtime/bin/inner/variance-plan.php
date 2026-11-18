@@ -13,7 +13,9 @@ declare(strict_types=1);
 //
 // Exit codes: 0 done / 2 usage or a route that cannot be planned.
 
+use PeakSim\Runtime\Measure\BuildFailure;
 use PeakSim\Runtime\Measure\GeneratorPlanner;
+use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Measure\RouteTask;
 use PeakSim\Runtime\Measure\SeederPlanner;
 use PeakSim\Runtime\Variance\TrialPlan;
@@ -56,7 +58,11 @@ if (!is_array($list)) {
 try {
     $tasks = array_map(RouteTask::fromArray(...), $list);
     $planner = $opts['data'] === 'seeder' ? new SeederPlanner() : new GeneratorPlanner(isset($opts['base']) ? (int) $opts['base'] : GeneratorPlanner::BASE);
-    $plan = TrialPlan::build($tasks, explode(',', $opts['routes']), (int) $opts['scale'], $planner, $opts['data'], $opts['profile'] ?? null);
+    // the routes the profile says rewrite a table other routes read go last in their database, and their tables are ANALYZEd between laps
+    $stateChanging = isset($opts['profile']) && $opts['data'] === 'generator' ? Profile::stateChanging(Profile::load($opts['profile'])) : [];
+    $plan = TrialPlan::build($tasks, explode(',', $opts['routes']), (int) $opts['scale'], $planner, $opts['data'], $opts['profile'] ?? null, $stateChanging);
+} catch (BuildFailure $e) {
+    $usage($e->getMessage());
 } catch (InvalidArgumentException $e) {
     $usage($e->getMessage());
 }

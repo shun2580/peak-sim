@@ -33,6 +33,10 @@ final class Profile
      *                                  (`RebuildStep`, called by `DatabaseBuild`): a non-empty list of steps, each with a
      *                                  `name`, an artisan `command`, the `tables` it rewrites (their rows are counted before
      *                                  and after) and a `why`
+     *   state_changing                 routes that rewrite a table other routes read: a non-empty list, in the order they are measured, each
+     *                                  with the `route` ("METHOD uri"), the `tables` it rewrites and a `why`. They are measured after
+     *                                  every other route of their database (`RouteOrder`); the repeat also ANALYZEs their tables
+     *                                  between two laps (`bin/variance-run`)
      *   arguments, unfillable          the argument resolver (`Route\ArgumentResolver`)
      *   request_query                  the task builder: routes whose GET carries credentials in its query
      *                                  (`Route\ProfileRoutes::querying`, `Route\RequestCredentials`)
@@ -42,7 +46,7 @@ final class Profile
      *                                  front end is not built). It must not touch the database
      *                                  (`Profile::onBoot`, called by `Run\MeasureOne`)
      */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'rebuild', 'on_boot'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'rebuild', 'state_changing', 'on_boot'];
 
     /**
      * @return array<string, mixed> empty when no profile is named
@@ -75,6 +79,9 @@ final class Profile
         }
         if (array_key_exists('rebuild', $profile)) {
             self::checkRebuild($name, $profile['rebuild']);
+        }
+        if (array_key_exists('state_changing', $profile)) {
+            self::checkStateChanging($name, $profile['state_changing']);
         }
         if (array_key_exists('on_boot', $profile) && !is_callable($profile['on_boot'])) {
             throw new BuildFailure(sprintf('profile "%s": on_boot must be a function', $name));
@@ -117,6 +124,52 @@ final class Profile
             return;
         }
         $watch->run($profile['on_boot']);
+    }
+
+    /**
+     * The routes a profile says rewrite a table other routes read, by "METHOD uri" in the order they are measured, with the tables each
+     * rewrites. Empty for a profile with none.
+     *
+     * @param array<string, mixed> $profile
+     *
+     * @return array<string, list<string>>
+     */
+    public static function stateChanging(array $profile): array
+    {
+        $out = [];
+        foreach ((array) ($profile['state_changing'] ?? []) as $entry) {
+            $out[(string) $entry['route']] = array_values(array_map('strval', (array) $entry['tables']));
+        }
+
+        return $out;
+    }
+
+    /**
+     * @throws BuildFailure
+     */
+    private static function checkStateChanging(string $profile, mixed $entries): void
+    {
+        $fail = static fn (string $why): BuildFailure => new BuildFailure(sprintf('profile "%s": state_changing %s', $profile, $why));
+        if (!is_array($entries) || $entries === [] || !array_is_list($entries)) {
+            throw $fail('must be a non-empty list');
+        }
+        $seen = [];
+        foreach ($entries as $entry) {
+            if (!is_array($entry) || !is_string($entry['route'] ?? null) || preg_match('/^[A-Z]+ \/\S*$/D', $entry['route']) !== 1) {
+                throw $fail('has an entry with no route written "METHOD uri"');
+            }
+            if (isset($seen[$entry['route']])) {
+                throw $fail(sprintf('names %s twice', $entry['route']));
+            }
+            $seen[$entry['route']] = true;
+            $tables = $entry['tables'] ?? null;
+            if (!is_array($tables) || $tables === [] || array_filter($tables, static fn (mixed $t): bool => is_string($t) && preg_match('/^[a-z0-9_]{1,64}$/D', $t) === 1) !== $tables) {
+                throw $fail(sprintf('entry %s needs the plain names of the tables it rewrites', $entry['route']));
+            }
+            if (!is_string($entry['why'] ?? null) || trim($entry['why']) === '') {
+                throw $fail(sprintf('entry %s has no why', $entry['route']));
+            }
+        }
     }
 
     /**

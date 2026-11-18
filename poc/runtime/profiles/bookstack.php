@@ -100,6 +100,25 @@ $profile['rebuild'] = [
     ],
 ];
 
+// Routes that rewrite, in one request, a part of a table that grows with the count of rows, and that other routes read. The requests are
+// rolled back, so the rows return and the optimizer's statistics of the table do not: after the regeneration the statistics held `references`
+// at 0 rows and the routes measured after it read 374,990 rows more (docs/research/extrapolation-test-3-causes.md section 5). They are measured
+// after every other route of their database, in this order: the book update first (it fills `slug_history`; nothing else reads that table's
+// statistics), the regeneration last (it rewrites `references`, which the book routes read). Found by listing the write statements of the
+// 36 routes of the third test's estimate and keeping those that touch a number of rows that grows with N (docs/decisions.md D224).
+$profile['state_changing'] = [
+    [
+        'route' => 'PUT /books/{slug}',
+        'tables' => ['slug_history'],
+        'why' => 'inserts one `slug_history` row for every child of the book (insert ... select from `entities`); the generator puts every chapter and page in the first book, so the number of rows grows with N. No effect on a statistic has been seen; it is in by the same criterion',
+    ],
+    [
+        'route' => 'POST /settings/maintenance/regenerate-references',
+        'tables' => ['references'],
+        'why' => 'deletes every row of `references` (no condition) and rebuilds it (app/References/ReferenceStore.php updateForAll); at 300,000 rows the statistics of `references` stayed at 0 rows after the rolled-back request, and the routes measured after it read more rows',
+    ],
+];
+
 $profile['after_generation'] =
     /** @return array{fixups: array<string, int>} */
     static function (PDO $pdo, string $database) use ($profile): array {

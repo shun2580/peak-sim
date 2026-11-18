@@ -374,6 +374,7 @@ group_body() {
     run_lap "$k" "$g" "$db_dir" "$gd" "$tag" "$gscale" "$dbname" "$phase" "$lap"
     code=$?
     [ "$code" -ne 0 ] && return "$code"
+    restore_stats "$k" "$g" "$gd" "$dbname" "$phase" "$lap" || return 15
   done
   if [ "$analyze" = rerun ]; then
     run_analyze "$k" "$g" "$gd" "$dbname" || return 15
@@ -381,9 +382,24 @@ group_body() {
       run_lap "$k" "$g" "$db_dir" "$gd" "$tag" "$gscale" "$dbname" "analyzed" "$lap"
       code=$?
       [ "$code" -ne 0 ] && return "$code"
+      restore_stats "$k" "$g" "$gd" "$dbname" "analyzed" "$lap" || return 15
     done
   fi
   return 0
+}
+
+# After a lap: ANALYZE TABLE on the tables that the group's state-changing routes rewrite (g<G>/plan.restore, from the profile's
+# `state_changing`; empty for a profile with none, and then nothing runs). Those routes go last in a lap and their rolled-back requests
+# leave the statistics of these tables in another state, so the next lap starts from the state of the first. Outside any request.
+restore_stats() {
+  local k="$1" g="$2" gd="$3" dbname="$4" phase="$5" lap="$6" t list="" log="$gd/restore_${phase}_lap${lap}.log"
+  [ -s "$gd/plan.restore" ] || return 0
+  while IFS= read -r t; do
+    [[ "$t" =~ ^[a-z0-9_]+$ ]] && list+="\`$dbname\`.\`$t\`,"
+  done < "$gd/plan.restore"
+  [ -n "$list" ] || return 0
+  echo "[$(now_iso)] db$k g$g: ANALYZE TABLE on $(tr '\n' ' ' < "$gd/plan.restore")after ${phase} lap $lap (the tables its state-changing routes rewrite, outside any request)"
+  { echo "# at $(now_iso)"; mysql_root -e "ANALYZE TABLE ${list%,}"; } > "$log" 2>&1 || { echo "ANALYZE TABLE after lap $lap failed: $(tail -c 300 "$log")" >&2; return 1; }
 }
 
 run_analyze() {

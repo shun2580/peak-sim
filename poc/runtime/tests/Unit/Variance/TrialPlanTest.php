@@ -223,4 +223,52 @@ final class TrialPlanTest extends PlannerTestCase
 
         TrialPlan::build($tasks, ['GET /x'], self::SCALE, new GeneratorPlanner(), 'generator');
     }
+
+    public function test_the_state_changing_routes_go_last_in_their_database_and_the_group_names_the_tables_to_restore(): void
+    {
+        $plan = TrialPlan::build(
+            self::tasks(),
+            ['DELETE /books/{id}', 'DELETE /shelves/{slug}', 'POST /settings/recycle-bin/empty'],
+            self::SCALE,
+            new GeneratorPlanner(),
+            'generator',
+            null,
+            ['DELETE /books/{id}' => ['entities'], 'DELETE /shelves/{slug}' => ['references']],
+        );
+
+        $this->assertSame(
+            ['POST /settings/recycle-bin/empty', 'DELETE /books/{id}', 'DELETE /shelves/{slug}'],
+            array_map(static fn (array $r): string => $r['method'] . ' ' . $r['route'], $plan[0]['routes']),
+            'the others first, then the two in the order the profile lists them',
+        );
+        $this->assertSame(['entities', 'references'], $plan[0]['restore_tables']);
+    }
+
+    public function test_with_no_state_changing_route_the_order_is_the_task_list_and_nothing_is_restored(): void
+    {
+        $plan = TrialPlan::build(self::tasks(), ['DELETE /books/{id}', 'DELETE /shelves/{slug}', 'POST /settings/recycle-bin/empty'], self::SCALE, new GeneratorPlanner(), 'generator');
+
+        $this->assertSame(['DELETE /books/{id}', 'DELETE /shelves/{slug}', 'POST /settings/recycle-bin/empty'], array_map(static fn (array $r): string => $r['method'] . ' ' . $r['route'], $plan[0]['routes']));
+        $this->assertSame([], $plan[0]['restore_tables']);
+    }
+
+    public function test_the_restore_tables_are_written_to_the_plan_directory_and_the_runner_reads_them_after_each_lap(): void
+    {
+        $plan = TrialPlan::build(self::tasks(), ['DELETE /books/{id}'], self::SCALE, new GeneratorPlanner(), 'generator', null, ['DELETE /books/{id}' => ['entities']]);
+        $dir = sys_get_temp_dir() . '/peak-trial-plan-' . bin2hex(random_bytes(4));
+        mkdir($dir);
+        TrialPlan::writeFiles($plan, $dir);
+
+        $this->assertSame("entities\n", file_get_contents($dir . '/g1/plan.restore'));
+        $script = (string) file_get_contents(dirname(__DIR__, 3) . '/bin/variance-run');
+        $this->assertSame(2, substr_count($script, 'restore_stats "$k" "$g" "$gd" "$dbname"'), 'after the laps of both loops');
+
+        array_map('unlink', glob($dir . '/g1/*') ?: []);
+        array_map('unlink', glob($dir . '/*.*') ?: []);
+        rmdir($dir . '/g1');
+        foreach (glob($dir . '/*') ?: [] as $f) {
+            unlink($f);
+        }
+        rmdir($dir);
+    }
 }
