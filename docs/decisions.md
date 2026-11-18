@@ -2418,7 +2418,7 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - 変わらないもの:§0 の条件・合格線・許す誤差・段・窓・判定の規則・見積もりの規則(`RowEstimator` は触れていない)・較正(cal-1〜7)・印の規則(D218)・D222 の本文、これまでの試験の記録と合否(commit 済みの予測・記録のファイルは 1 バイトも書き換えていない)。
 - 記録:`poc/runtime/src/Measure/RebuildStep.php`・`DatabaseBuild.php`・`Profile.php`・`Options.php`、`poc/runtime/profiles/bookstack.php`、`poc/lab/bin/build-db`・`measure-extrapolation`、`poc/runtime/tests/Unit/Measure/RebuildStepTest.php`。
 
-### D227. B の測りの鎖を repo の台本にし、シナリオの区切りで止める口(止めの印)と、B の要求の時間切れ 1,800 秒の入れ方を決めた(2026-11-19 08:52 記帳。台本・設定の差分・試験だけで、ラボにも DB にも触れていない。160,000・240,000 件は測っていない。見積もりの規則・較正・印の規則・合否の規則は変えていない)
+### D227. B の測りの鎖を repo の台本にし、シナリオの区切りで止める口(止めの印)と、B の要求の時間切れ 1,800 秒の入れ方を決めた(2026-11-19 08:51 記帳。台本・設定の差分・試験だけで、ラボにも DB にも触れていない。160,000・240,000 件は測っていない。見積もりの規則・較正・印の規則・合否の規則は変えていない)
 
 - 経緯:D222 の裁定 4(B の要求の時間切れは 1,800 秒)と、指示書 #20 の T5(測りの鎖に、シナリオの区切りで止められる口を付けてから測る)。4 回目(90,000 件)の鎖は作業用の台本(repo の外)で、止める口が無く、`stats.sh` の先頭に仮の守り(`before-s-5` で印のファイルを待つ)を足して止めた。これを正式の口に置き換える。kill を使わずに区切りで止めるため(D006)。
 - **鎖**:`poc/lab/bin/measure-ladder-chain --scale=<件数> --predictions=<commit 済みの予測> --statement-record=<capture.json> --out-dir=<ラボの out の下> [--scenarios="s-1 .. s-5"] [--request-timeout=1800s] [--stop-mark=<ファイル>] [--ladder-out=<dir>]`。各シナリオの前に、アプリのログを写す(最初だけ。ほかは前のシナリオの後に写してある)→ `bin/use-db <件数>` でアプリと web のコンテナを作り直す → `bin/check-limits --require=unlimited --request-timeout=<t>` で php-fpm と nginx の側から値を読む → memory と表の統計(`bin/read-memory`・新しい `bin/read-table-stats`)を読む → `bin/measure-ladder --scenario=<s> --scheme=B --request-timeout=<t>` → memory と統計を読む → ログを写す。シナリオが 0 以外で終われば、その終了コードで止まる(19 はコンテナの状態とログの末尾を `oom-stop-<s>/` に残す)。
