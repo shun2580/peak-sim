@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Tests\Unit\LabScenarios;
 
 use PeakSim\Runtime\Simulate\Calibrate\CalibrationGate;
 use PeakSim\Runtime\Simulate\Calibrate\CalibrationPoint;
+use PeakSim\Runtime\Simulate\Predict\PredictionReport;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -269,10 +270,12 @@ final class CalibrationGateTest extends TestCase
 
         self::assertSame(0, $code, $err);
         foreach (['prediction.json', 'loaded.json'] as $file) {
+            // The committed record was written before the sentence on the maintenance state was added to the note (D224); the record is not
+            // rewritten. Taking that one sentence out of the new output gives the committed bytes back: nothing else in the fit changed.
             self::assertSame(
                 file_get_contents(self::LAB_DATA . '/calibration-limits-off/fit-5runs/out/' . $file),
-                file_get_contents($dir . '/' . $file),
-                $file . ' is not the committed one, byte for byte',
+                str_replace(PredictionReport::ESTIMATE_MAINTENANCE_CLAUSE, '', (string) file_get_contents($dir . '/' . $file)),
+                $file . ' is not the committed one, byte for byte (but for the sentence added to the note in D224)',
             );
             unlink($dir . '/' . $file);
         }

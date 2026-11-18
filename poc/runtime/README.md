@@ -93,6 +93,34 @@ it. The tool sets `APP_ENV=local`, calls each route once without a query string,
 and does not run queued listeners, so a branch that depends on any of these is not measured. A flat count on a path that
 never read the scaled tables, or whose largest response equals the empty system's, is `no_info`, not O(1).
 
+## The maintenance state of the databases (a precondition of every estimate)
+
+Some apps keep a table by a process of their own (a rebuild or an aggregate run from the app's maintenance page or console), and the
+data generator cannot write what that process writes. A profile can say so with a `rebuild` list (`profiles/bookstack.php`: the console
+command `bookstack:regenerate-references`, the one the maintenance route `POST /settings/maintenance/regenerate-references` runs, and the
+table it rewrites, `references`). Every database made by `bin/inner/build-db.php` (so every database of `bin/measure`, `bin/capture`,
+`bin/variance-run`, `bin/explain-at-scale` and the lab's `poc/lab/bin/build-db`) then ends in this order:
+
+```
+build (migrate, generate, the profile's fixups)  ->  rebuild (the app's own command)  ->  ANALYZE TABLE on every table
+```
+
+A rebuild that fails stops the build (exit 13): the database is not analysed and is not handed on. The record of the build (`rebuild` in
+the line `build-db.php` prints) keeps, for each step, the rows of the rewritten table before and after, and the tables whose figure ANALYZE
+changed. A profile with no `rebuild` is built as it always was. A capture of a profile that has one must be asked for
+`--analyze-after-build=on` (it is refused otherwise).
+
+**What you must hold for an estimate to mean something:** the database the statements were captured on and the database the estimate is
+about must be in the same maintenance state, that is, the rebuild and aggregate processes of the app finished, and then `ANALYZE TABLE`
+run. A database that skipped the process can hold different rows in the table it rewrites, and the routes that read that table then read
+a different table from the one the estimate was made from. Every prediction output carries this as part of `estimate_basis_note`.
+
+Some routes rewrite a table other routes read (`POST /settings/maintenance/regenerate-references` deletes every row of `references` and
+rebuilds it; `PUT /books/{slug}` inserts a row of `slug_history` for every child of the book). Each request is rolled back, so the rows
+return, but the optimizer's statistics do not. To keep one route from changing what the next one reads, test A is measured on databases
+whose statistics are held after the build (`--analyze-after-build=on` for `bin/measure`, `--stats-auto-recalc=off` for `bin/variance-run`);
+the door `poc/lab/bin/measure-extrapolation` adds the option and refuses the opposite.
+
 ## An app that needs more PHP extensions
 
 The default measurement image (`peak-measure-php:<PHP_VERSION>`) has `pdo_mysql zip bcmath intl exif pcntl`. An app whose
@@ -163,7 +191,7 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | `src/Run/`, `src/Boot/` | one route at one scale in one process; starting the app read-only with fakes |
 | `src/Route/`, `src/Judge/`, `src/Report/` | routes, arguments, login, bodies; the growth rules and verdicts; the comparison with the static analysis |
 | `src/Data/` | the data generator |
-| `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>` |
+| `profiles/` | app knowledge for the generator, one file per app, chosen with `--profile=<name>`; a profile may also say which maintenance commands rebuild a table after the build (`rebuild`, above) |
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
 | `bin/estimate` | a separate command: the rows each route reads at a size N by the candidates H1 to H3 of `docs/research/explain-estimate.md` (a fit per statement type, and the ratio of two EXPLAIN readings); reads `capture.json` and `explain.json` only, no database. `--candidate=H1_RANGE` gives the H1 point and, for a route with a marked statement, the upper side (the value H2 gives to the marked types). `--with-formulas` adds the formulas themselves (per statement type and per route) so `bin/simulate` can evaluate them at another size; without the flag the output is as before. `--with-placeholders` adds, per statement type, the number of values the capture's representative statement was sent with (`placeholders`: the input of the placeholder side of the `app_limit_risk` mark, read when `resources.db_placeholder_limit` is given); it only adds that key |
