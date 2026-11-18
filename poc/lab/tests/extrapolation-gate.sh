@@ -76,12 +76,23 @@ run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}"; expect_code
 git -C "$repo" commit -q -m "feat: add marked routes"
 head="$(git -C "$repo" rev-parse HEAD)"
 run "$door" --estimate="$est" --marked="$mk" measure -- "${args[@]}"; expect_code "5a open: measure exits 0" 0 $?
-grep -qx "measure --app=/x --scales=300000" "$work/tool.calls" && pass "5b measure reached bin/measure with its arguments" || fail "5b ($(cat "$work/tool.calls"))"
+grep -qx "measure --app=/x --scales=300000 --analyze-after-build=on" "$work/tool.calls" && pass "5b measure reached bin/measure with its arguments and the statistics held" || fail "5b ($(cat "$work/tool.calls"))"
 run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}"; expect_code "5c open: repeat exits 0" 0 $?
-grep -qx "variance-run --app=/x --scales=300000" "$work/tool.calls" && pass "5d repeat reached bin/variance-run with its arguments" || fail "5d ($(cat "$work/tool.calls"))"
+grep -qx "variance-run --app=/x --scales=300000 --stats-auto-recalc=off" "$work/tool.calls" && pass "5d repeat reached bin/variance-run with its arguments and the statistics held" || fail "5d ($(cat "$work/tool.calls"))"
 grep -q "^PREDICTION OK poc/lab/predictions/estimate.json $(git -C "$repo" log -1 --format=%H -- poc/lab/predictions/estimate.json) " "$work/out.txt" \
   && grep -q "^PREDICTION OK poc/lab/predictions/marked-routes.json $head " "$work/out.txt" \
   && pass "6 both gate lines are printed" || fail "6 gate lines ($(cat "$work/out.txt"))"
+# 5e-5m: the held statistics (D224)
+run "$door" --estimate="$est" --marked="$mk" measure -- "${args[@]}" --analyze-after-build=on; expect_code "5e measure given on: open" 0 $?
+grep -qx "measure --app=/x --scales=300000 --analyze-after-build=on" "$work/tool.calls" && pass "5f on is not added twice" || fail "5f ($(cat "$work/tool.calls"))"
+run "$door" --estimate="$est" --marked="$mk" measure -- "${args[@]}" --analyze-after-build=off; expect_code "5g measure given off: refused" 2 $?
+[ "$(calls)" = 0 ] && pass "5h refused: the tool was not called" || fail "5h the tool was called"
+run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}" --stats-auto-recalc=keep; expect_code "5i repeat given keep: refused" 2 $?
+[ "$(calls)" = 0 ] && pass "5j refused: the tool was not called" || fail "5j the tool was called"
+run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}" --stats-tables=entities,references; expect_code "5k --stats-tables without slug_history: refused" 2 $?
+run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}" --stats-tables=entities,slug_history; expect_code "5l --stats-tables without references: refused" 2 $?
+run "$door" --estimate="$est" --marked="$mk" repeat -- "${args[@]}" --stats-tables=entities,references,slug_history; expect_code "5m --stats-tables with both: open" 0 $?
+grep -qx "variance-run --app=/x --scales=300000 --stats-tables=entities,references,slug_history --stats-auto-recalc=off" "$work/tool.calls" && pass "5n both tables named, off added" || fail "5n ($(cat "$work/tool.calls"))"
 # 7
 for f in "$est" "$mk"; do
   name="$(basename "$f")"
