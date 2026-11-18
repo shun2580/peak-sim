@@ -1,6 +1,6 @@
 # Lab backtest (B) and the mark, fourth round: B at 90,000 rows, the mark at 150,000 rows
 
-Status: **written before B was measured. The prediction of B at 90,000 rows is committed and B has not been measured; the mark at 150,000 rows has been measured and its verdict is written (section 5). The verdict of B is not written (section 6).** This file holds the purpose, the rules, what was changed, the choice of the two row counts, the prediction of B and of the mark as committed, and the measurement and verdict of the mark. The result of B is a heading with "not yet measured" under it. When B is measured, its sections are added below; **nothing above the result of B is rewritten when the figures are added**, and no rule, count, prediction or pass line is changed by this file. Every figure says where it comes from.
+Status: **the prediction of B at 90,000 rows was committed at 2026-11-17 09:08:30 (`e5f406f`) and has not been changed. B has been measured (section 6.1) and its verdict is written (section 6.2: pass; an easy test by construction, section 3); the mark at 150,000 rows has been measured and its verdict is written (section 5: pass).** This file holds the purpose, the rules, what was changed, the choice of the two row counts, the prediction of B and of the mark as committed, the measurement and verdict of the mark, and the measurement, the verdict and the comparison with the naive estimate of B. Sections 1 to 4 were written before the measurements and were not rewritten when the figures were added, except three places that said B was not yet measured (this paragraph, the fourth point of the summary and the last row of the table in section 4.4); they were brought up to date and say so, and the figures of B are in section 6 only. No rule, count, prediction or pass line is changed by this file. Every figure says where it comes from.
 
 This file is the record of the fourth round of test B and of the mark `app_limit_risk` (`docs/simulator-spec.md`, sections 6.2, 6.4, 7.2, 7.4, 7.4.1, 7.4.2 and 7.4.3). It follows `docs/research/lab-backtest.md` (the first round, which did not pass), `docs/research/lab-backtest-2.md` (the second round: B passed at the lowest standard and missed the goal on item 4 by one scenario; the mark failed with one miss) and `docs/research/lab-backtest-3.md` (the third round: the mark passed; B was undecidable because of how the load tool counted requests). The pass lines, the tolerances and the rule for "undecidable" are those of the spec and are not moved by this file.
 
@@ -11,7 +11,8 @@ What is checked is a **check against a busy period reproduced in the lab**: a pr
 - **B at 90,000 rows is a test that is easy by construction** (section 3): 90,000 rows is between two counts already seen (70,000 and 100,000) and is **3 times the capture's largest size (30,000 rows)**. The third round carried the estimate 10 times past the capture. A pass here says less than a pass there.
 - **The prediction of B was committed at 2026-11-17 09:08:30 (`e5f406f`), before any step of B and before the first request of the mark** (09:17:22; section 4.4). The limit rps of the five scenarios is 0.2460 to 0.9828 (section 4.1).
 - **The mark at 150,000 rows: pass** (spec 7.4.1; no miss). Hits 2 (the ZIP export, stopped by the 30 s run-time limit; the book page, stopped by SQLSTATE 1390), misses 0, false alarms 0, correctly not marked 6 (section 5). Two readers made the counts from the records alone and agreed.
-- **How the CPU time of a route that does not run to its end at 90,000 rows is to be read is not yet decided** (section 4.5). This file takes neither reading.
+- **How the CPU time of a route that does not run to its end at 90,000 rows is read was decided before the first step of B** (section 4.5, D221): against B's own settings, with no run-time limit and a memory limit of 4G. B is a test of the database prediction with the run-time limit lifted and was not measured at the default 30 s. (This point said "not yet decided" when the file was first written; it was brought up to date after B was measured.)
+- **B at 90,000 rows: pass, at the lowest standard and at the goal** (section 6.2). It is an easy test, and it is one row count, measured once, on one application (sections 3 and 7). Two readers made the counts from the record alone and agreed (section 6.2). The comparison with the naive estimate is in section 6.3.
 
 ## 1. What was changed
 
@@ -256,7 +257,7 @@ The order, as in the third round (`lab-backtest-3.md`, section 3.4):
 | First request sent to the 150,000-row database (the mark) | 2026-11-17 09:17:22 (`mark-times.txt`, START) |
 | Interval between the two | 8 min 52 s |
 | Last commit that touched the prediction files | `e5f406f` (no later commit changes either file or its input) |
-| First step of B | not yet started |
+| First step of B | 2026-11-17 11:54:46 (s-1, step 1; section 6.1). This cell said "not yet started" when the table was written, before B was measured |
 
 `9f96913` (the measuring entry takes its row count from the prediction file; section 1.1) was committed at 09:59:49, after the prediction and after the mark's measurement. Between `e5f406f` and `9f96913` no file changed in `poc/lab/predictions`, in the prediction gate, in the table checker, in `poc/runtime/src/Estimate`, in `poc/runtime/src/Simulate` or in the spec (checked with `git diff --stat`); the changes are to the measuring entry, the load tool's ladder code, their tests and the records of the mark.
 
@@ -438,11 +439,58 @@ The release mark `RESUME-s-5` was made at 00:41:46 and the chain was started aga
 
 ### 6.2 Verdict
 
-Filled after the two independent readings agree.
+**B at 90,000 rows passes. All four items are met at the lowest standard and at the goal, and B is not undecidable.** The prediction used is the committed `e5f406f`, unchanged (section 6.1: the first step of B was 2 hours 46 minutes 16 seconds after its commit).
+
+**How the verdict was made.** Two readers rebuilt the counts from the record `docs/research/lab-data/ladder-90k/` alone, each without having seen the other's work, and then compared them. They agree on every figure below; there is no difference. They took the rules from section 7.2 and section 7.4 of the spec (B; the limit rps is the line between the two adjacent valid steps that cross 80%; nothing is extended), and, as section 6.3 of the spec says, the **point** of the prediction and not its width. One reader recomputed each step's utilization from the readings of the container's CPU time in each step's window; the other used the utilization written in the step's record; the two agree at all 48 steps to four decimals of a percent.
+
+**The steps.** 48 steps were run (s-1 9, s-2 8, s-3 12, s-4 8, s-5 11). All 48 are valid: nothing was dropped, and the number of requests sent in the window over the window's length equals the intended rps (the largest difference is 0.12%). **32 steps are usable** for items 1 and 2 (measured utilization from 10% to 90%: s-1 7, s-2 6, s-3 6, s-4 7, s-5 6; the step of s-4 at 0.3 rps, measured 89.98%, is inside). The steps below 10% and the two above 90% (s-2 at 0.3 rps, 91.80%; s-3 at 1.5 rps, 98.08%) are not used for items 1 and 2. Five scenarios measured a limit rps, and the line crossed 80% between two valid steps in all five.
+
+| item | measured | lowest standard | goal | result |
+| --- | --- | --- | --- | --- |
+| 1. mean absolute difference smaller than the naive estimate's | point 1.035 points; naive 28.653 points | required | required | met |
+| 2. mean absolute difference of utilization (32 usable steps) | 1.035 points | 15 points or less | 5 points or less | met, both |
+| 3. "over 80% or not" agrees with the measurement (all 48 valid steps) | 47 of 48 = 97.92% | 80% or more | 80% or more | met, both |
+| 4. predicted limit rps (point) within ±X% of the measured one | 5 of 5 within ±10%; 5 of 5 within ±20%; the largest difference is -6.79% | ±20% in 80% or more of the scenarios | ±10% in 80% or more of the scenarios | met, both |
+
+The mean absolute difference of item 2, by scenario, is s-1 1.524, s-2 0.562, s-3 0.840, s-4 1.236 and s-5 0.896 points. The signed mean (predicted minus measured) is +0.214 points. The largest difference at a usable step is 7.28 points (s-1 at 0.45 rps: predicted 91.49%, measured 84.22%); only two usable steps are over 5 points, and both are steps whose measured utilization is above 80%. Over the 32 usable steps the measured utilization is 0.920 to 1.057 times the predicted one.
+
+**Item 3.** The one step where the two disagree is s-3 at 1.0 rps: predicted 81.40%, measured 79.19%. The other 47 agree, including the five steps whose measured utilization is 80% or more (s-1 at 0.45 rps, s-2 at 0.3, s-3 at 1.5, s-4 at 0.3, s-5 at 1.0).
+
+**Item 4, by scenario.** The limit rps is the total rps at which the database utilization reaches 80%. The multiple is the measured limit over the predicted one.
+
+| scenario | measured limit rps | predicted limit rps (point) | difference of the prediction | measured / predicted |
+| --- | --- | --- | --- | --- |
+| s-1 | 0.42213 | 0.39348 | -6.79% | 1.073 |
+| s-2 | 0.25602 | 0.24598 | -3.92% | 1.041 |
+| s-3 | 1.0215 | 0.98283 | -3.78% | 1.039 |
+| s-4 | 0.26257 | 0.25231 | -3.91% | 1.041 |
+| s-5 | 0.92792 | 0.89328 | -3.73% | 1.039 |
+
+**The direction of the difference.** In all five scenarios the predicted limit rps is lower than the measured one, by 3.7% to 6.8%: the prediction says the limit is reached a little earlier than it was. At the five steps whose measured utilization is above 80%, the predicted point is higher than the measured one, by 3.90 to 24.02 points (s-1 at 0.45 rps +7.28, s-2 at 0.3 +5.77, s-3 at 1.5 +24.02, s-4 at 0.3 +5.14, s-5 at 1.0 +3.90). The cause was not separated here. For reference only and not used in the verdict, the safe side of the prediction has a mean absolute difference of 6.221 points at the usable steps and 4 of 5 limit rps within ±20% (s-5 is -27.78%).
+
+**What goes with this verdict.**
+
+- **It is an easy test**, as section 3 and section 7.4.3 of the spec say: 90,000 rows is between two counts already seen (70,000 and 100,000) and only 3 times the capture's largest size (30,000 rows). It says nothing about a count never seen, and it does not repair the third round: B at 300,000 rows stays undecidable (section 7).
+- **s-5 was measured on another day, after the database was brought up again** (section 6.1). It is counted by the same rule as the other four. For reference only: without s-5 there are 26 usable steps, the point's mean absolute difference is 1.067 points and the naive estimate's is 29.734 points, and 4 of 4 limit rps are within ±10%; the verdict does not change.
+- **Requests that were sent in a window and ended after it** (section 7.4.3 of the spec asks that they be recorded): 29 steps have 1 to 26 of them, and at the usable steps at most 9 (s-1 at 0.45 rps). Their database work falls outside the window, so the measured utilization can be a little lower than the true one for that reason. Nothing was corrected for it.
+- **B was measured with the run-time limit lifted and a memory limit of 4G** (section 4.5), and says nothing about the routes finishing at the default 30 s.
+- **One row count, once, on one application.** The same limits as in section 7 apply. This file does not claim any precision on a real deployment.
 
 ### 6.3 Comparison with the naive estimate
 
-Filled after the two independent readings agree.
+The naive estimate is the one of section 7.3 of the spec: the utilization of the calibration scenario with the largest total rps (cal-2, 36.423% for each 1 rps), multiplied by the rps of the step, with no growth of the data and no mix of routes. Its limit rps is 0.8 divided by 0.36423 = 2.19641 for every scenario. As the spec says, item 4 is shown for the naive estimate but beating it there is not used for the verdict.
+
+| | point prediction | naive estimate | naive / point |
+| --- | --- | --- | --- |
+| item 1 and 2: mean absolute difference of utilization, 32 usable steps | 1.035 points | 28.653 points | 27.7 times |
+| by scenario (s-1, s-2, s-3, s-4, s-5) | 1.524, 0.562, 0.840, 1.236, 0.896 | 30.916, 29.660, 21.092, 36.023, 23.966 | |
+| item 3: "over 80% or not" agrees, 48 valid steps | 47 of 48 = 97.92% | 43 of 48 = 89.58% | |
+| item 4: limit rps within ±20% / ±10% of the measured one | 5 of 5 / 5 of 5 | 0 of 5 / 0 of 5 | |
+| item 4: limit rps over the measured one | 0.93 to 0.96 times (predicted / measured) | 2.150 to 8.579 times (+115% to +758%) | |
+
+The naive estimate does not grow with the data and does not follow the mix of routes, and it is wrong in one direction: at the usable steps the measured utilization is 2.17 to 9.36 times the naive one, its limit rps is 2.15 to 8.58 times the measured one, and it calls all five steps whose measured utilization is 80% or more "not over 80%" (the last step of each scenario). The point prediction's mean absolute difference is 1.035 points and the naive estimate's is 28.653 points.
+
+This is one comparison at one row count (90,000), made once, on one application (BookStack), and it is an easy test (section 3). It shows that at this count the prediction was closer to the lab's measurement than the naive estimate was, by the figures above; it does not show how close either would be at a count never seen or on another application (section 7).
 
 ## 7. What the lab cannot say
 
