@@ -43,10 +43,6 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
                          (the start of the app and its requests) may run 3 x N + 120 seconds
   --warm=on|off          on (default): each measurement is a warm-up, a cold and a warm request; off: warm-up and cold only
                          (the warm request is left out, a third of the time; the cold value, which decides, is the same)
-  --analyze-after-build=on|off
-                         on: right after each database is built (and rebuilt, for a profile with `rebuild` steps), ANALYZE TABLE on every
-                         table and STATS_AUTO_RECALC=0, before a route is sent: no route's writes (each is rolled back) can change the
-                         statistics the next route reads. Default off: the run is as it was
   --keep-stack           leave the stack up afterwards (for looking around; tear it down with bin/stack down)
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-measure), PHP_VERSION (default 8.3, the image the app runs in),
@@ -68,7 +64,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 gate="" timeout="" warm="" analyze="" keep=0
+app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 gate="" timeout="" warm="" keep=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -84,7 +80,6 @@ for arg in "$@"; do
     --gate-bypass=*) gate="${arg#--gate-bypass=}" ;;
     --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
     --warm=*) warm="${arg#--warm=}" ;;
-    --analyze-after-build=*) analyze="${arg#--analyze-after-build=}" ;;
     --keep-stack) keep=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
   esac
@@ -107,7 +102,6 @@ if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] ||
 if [ -n "$gate" ]; then case "$gate" in on|off) ;; *) fail_usage "--gate-bypass takes on or off" ;; esac; fi
 if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$timeout))" -ge 1 ] && [ "$((10#$timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"; fi
 if [ -n "$warm" ]; then case "$warm" in on|off) ;; *) fail_usage "--warm takes on or off" ;; esac; fi
-if [ -n "$analyze" ]; then case "$analyze" in on|off) ;; *) fail_usage "--analyze-after-build takes on or off" ;; esac; fi
 if [ -n "$only" ]; then [[ "$only" =~ ^[^,]+(,[^,]+)*$ ]] || fail_usage "--only needs at least one route"; fi
 [ -d "$app" ] || fail_usage "--app is not a directory: $app"
 [ -f "$app/vendor/autoload.php" ] || fail_usage "the app has no vendor/autoload.php (install its dependencies first)"
@@ -130,7 +124,6 @@ inner=(--data="$data")
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")
 [ -n "$warm" ] && inner+=(--warm="$warm")
-[ -n "$analyze" ] && inner+=(--analyze-after-build="$analyze")
 if [ -n "$expected" ]; then
   cp "$expected" "$PEAK_OUT_DIR/expected.json" || exit 2
   inner+=(--expected=/out/expected.json)

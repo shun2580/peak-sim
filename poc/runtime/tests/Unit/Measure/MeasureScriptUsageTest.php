@@ -53,7 +53,6 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'profile with a path' => [['--app=/x', '--static=/y', '--profile=../x']];
         yield 'profile with a dot' => [['--app=/x', '--static=/y', '--profile=a.php']];
         yield 'empty profile' => [['--app=/x', '--static=/y', '--profile=']];
-        yield 'analyze after build maybe' => [['--app=/x', '--static=/y', '--analyze-after-build=maybe']];
         yield 'gate bypass maybe' => [['--app=/x', '--static=/y', '--gate-bypass=maybe']];
         yield 'timeout not a number' => [['--app=/x', '--static=/y', '--request-timeout=soon']];
     }

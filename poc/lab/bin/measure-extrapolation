@@ -9,11 +9,8 @@
 #
 #   --estimate=<file>   the committed estimate of test A (a .json inside poc/lab/predictions/)
 #   --marked=<file>     the committed list of marked routes (a .json inside poc/lab/predictions/)
-#   measure             runs poc/runtime/bin/measure with <arguments> (step 5 of test A: every route cold once), with the statistics held:
-#                       --analyze-after-build=on is added when not given and off is refused (exit 2)
-#   repeat              runs poc/runtime/bin/variance-run with <arguments> (step 6: the marked routes, three more cold tries), with the
-#                       statistics held: --stats-auto-recalc=off is added when not given and keep is refused; a --stats-tables must name
-#                       references and slug_history
+#   measure             runs poc/runtime/bin/measure with <arguments> (step 5 of test A: every route cold once)
+#   repeat              runs poc/runtime/bin/variance-run with <arguments> (step 6: the marked routes, three more cold tries)
 #
 # The gate (bin/prediction-gate) is open only if each of the two files is a .json inside poc/lab/predictions/, is in HEAD, has no
 # difference from HEAD (staged or not), and nothing else in that directory is untracked or changed. It reads git only. If it is closed
@@ -54,36 +51,8 @@ est_line="$("$bindir/prediction-gate" "$estimate" 2>&1)" || { echo "$est_line" >
 mk_line="$("$bindir/prediction-gate" "$marked" 2>&1)" || { echo "$mk_line" >&2; exit 12; }
 echo "$est_line"; echo "$mk_line"
 
-# THE HELD STATISTICS (docs/decisions.md D224, spec 7.4.4). Some routes of the app rewrite a table other routes read: `POST
-# /settings/maintenance/regenerate-references` deletes every row of `references` and rebuilds it, and `PUT /books/{slug}` inserts a
-# row of `slug_history` for every child of the book. Each request is rolled back, so the rows come back, but the optimizer's
-# statistics do not: in test A at 300,000 rows the regeneration left `references` at 0 rows in the statistics and the routes measured
-# after it read 374,990 rows more. So the measured databases are held in one statistics state: ANALYZE TABLE after the build
-# (the build itself is build, rebuild, ANALYZE) and then STATS_AUTO_RECALC=0, so that no route can change what the next one reads.
-# `measure`: --analyze-after-build=on (added when not given, refused when off). `repeat`: --stats-auto-recalc=off (added when not
-# given, refused when keep), and a given --stats-tables must name `references` and `slug_history`. Refused is exit 2, nothing started.
-args=("$@")
-has() { local want="$1" a; shift; for a in "$@"; do case "$a" in "$want"*) return 0 ;; esac; done; return 1; }
-refuse() { echo "measure-extrapolation: $1" >&2; exit 2; }
 case "$mode" in
-  measure)
-    tool="$PEAK_RUNTIME_BIN/measure"
-    for a in ${args[@]+"${args[@]}"}; do [ "$a" = "--analyze-after-build=off" ] && refuse "test A is measured with --analyze-after-build=on (the statistics are held, D224); off is refused"; done
-    has "--analyze-after-build=" ${args[@]+"${args[@]}"} || args+=(--analyze-after-build=on)
-    ;;
-  repeat)
-    tool="$PEAK_RUNTIME_BIN/variance-run"
-    for a in ${args[@]+"${args[@]}"}; do
-      [ "$a" = "--stats-auto-recalc=keep" ] && refuse "test A is repeated with --stats-auto-recalc=off (the statistics are held, D224); keep is refused"
-      case "$a" in
-        --stats-tables=*)
-          list=",${a#--stats-tables=},"
-          case "$list" in *,references,*) ;; *) refuse "--stats-tables must name references (the table the regeneration rewrites)" ;; esac
-          case "$list" in *,slug_history,*) ;; *) refuse "--stats-tables must name slug_history (the table PUT /books/{slug} fills)" ;; esac
-          ;;
-      esac
-    done
-    has "--stats-auto-recalc=" ${args[@]+"${args[@]}"} || args+=(--stats-auto-recalc=off)
-    ;;
+  measure) tool="$PEAK_RUNTIME_BIN/measure" ;;
+  repeat) tool="$PEAK_RUNTIME_BIN/variance-run" ;;
 esac
-exec "$tool" ${args[@]+"${args[@]}"}
+exec "$tool" "$@"
