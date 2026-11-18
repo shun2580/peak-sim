@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Estimate;
 
+use PeakSim\Runtime\Explain\PlanSummary;
 use PeakSim\Runtime\Judge\CostFit;
 
 /**
@@ -21,6 +22,17 @@ use PeakSim\Runtime\Judge\CostFit;
  *   H1_RANGE  H1 for the point, and for the upper side the value H2 gives to a marked type (the others keep their H1 value). A route
  *       with no marked statement in its EXPLAIN has no upper side (`rows_examined_upper` is null); the point is H1 for every route. The
  *       marked routes are those of `MarkedRoutes` (section 7.1), taken from every statement of the route's EXPLAIN.
+ *
+ * H1_RANGE also carries the two rules of `docs/research/extrapolation-test-3-causes.md` (sections 7.1 and 7.2), written from the records of the
+ * sizes already seen. Both change the point of a marked type and nothing else; H1, H2 and H3 are left as they were defined.
+ *
+ *   P1  a type marked `plan_changes_at_scale` whose plan on the database of N rows (default state) reads one table by a full scan (`ALL`, no join,
+ *       no subquery): the point is the rows of that scan (`rows_examined_per_scan`). A plan that reads more than one table is not read this way.
+ *   P2  a type marked `plan_changes_at_scale` or `plan_unstable` whose rows per run were fitted (three scales or more), at a size above the largest scale:
+ *       the point is not below the value at the largest scale carried along a line through the origin (value x N / that scale).
+ *
+ * P1 is applied first, then P2. A type that neither rule moves keeps its H1 value, byte for byte. The fit's value stays in `per_exec_h1`; a type
+ * the rules moved says so in `point_rule` (`P1`, `P2`) and its upper side is not below its point.
  *
  * E(s, N) (section 9.3): a type marked plan_unstable takes the heaviest of the statistics states that were taken (D107); any other
  * type takes the default state. E(s, small) is the default state at the small size.
@@ -332,9 +344,16 @@ final class RowEstimator
                 // a type held to linear growth keeps the fit's own value as its upper side
                 return $rec + ['per_exec' => $h1, 'basis' => 'h1'] + ($uncapped !== null ? ['per_exec_upper' => $uncapped, 'upper_basis' => 'h1_fit'] : []);
             }
-            // a marked type: the point stays H1, the upper side is what H2 gives (its fall-back to H1 is counted, never silent)
+            // a marked type: the point is H1 (moved by P1 or P2 where they apply), the upper side is what H2 gives (its fall-back to H1 is counted, never silent)
             $h2 = self::type($ty, $explained, RowEstimator::H2, $n, $representative, $withFormulas);
-            $upper = ['per_exec' => $h1, 'basis' => 'h1', 'per_exec_upper' => max((float) $h2['per_exec'], (float) ($uncapped ?? 0.0)), 'upper_basis' => $h2['basis']];
+            [$point, $rule, $ruleInput] = self::pointRules($h1, $series, $explained, $marks, $n);
+            $upperValue = max((float) $h2['per_exec'], (float) ($uncapped ?? 0.0));
+            if ($rule !== null) {
+                $upperValue = max($upperValue, $point);
+                $rec['point_rule'] = $rule;
+                $rec['point_rule_input'] = $ruleInput;
+            }
+            $upper = ['per_exec' => $point, 'basis' => 'h1', 'per_exec_upper' => $upperValue, 'upper_basis' => $h2['basis']];
             if (isset($h2['fallback'])) {
                 $upper['fallback'] = $h2['fallback'];
             }
@@ -397,6 +416,66 @@ final class RowEstimator
     }
 
     /**
+     * P1 then P2 (see the class comment). Only H1_RANGE calls this, and only for a marked type.
+     *
+     * @param array<int, float>    $series  scale => rows per run
+     * @param array<string, mixed>|null $explained the statement entry of explain.json
+     * @param array<string, mixed> $marks
+     *
+     * @return array{float, string|null, array<string, mixed>|null} the point, the rule that moved it (P2 when both moved it), and what the rule read
+     */
+    private static function pointRules(float $h1, array $series, ?array $explained, array $marks, int $n): array
+    {
+        $point = $h1;
+        $rule = null;
+        $input = null;
+        if (($marks['plan_changes_at_scale'] ?? false) === true) {
+            $scan = self::singleTableScanRows((array) ($explained['target_scale']['default']['raw'] ?? []));
+            if ($scan !== null && $scan !== $point) {
+                $point = $scan;
+                $rule = 'P1';
+                $input = ['scan_rows' => $scan, 'at' => $n];
+            }
+        }
+        if (count($series) >= CostFit::MIN_SCALES) {
+            $scale = (int) max(array_keys($series));
+            if ($scale > 0 && $n > $scale) {
+                $value = $series[$scale];
+                $line = $value * $n / $scale;
+                if ($line > $point) {
+                    $point = $line;
+                    $rule = 'P2';
+                    $input = ['scale' => $scale, 'value' => $value];
+                }
+            }
+        }
+
+        return [$point, $rule, $input];
+    }
+
+    /**
+     * The rows of the scan when the plan reads one table by a full scan and nothing else (no join, no subquery, not an insert); null otherwise.
+     *
+     * @param array<string, mixed> $plan the decoded EXPLAIN FORMAT=JSON of the database of N rows
+     */
+    private static function singleTableScanRows(array $plan): ?float
+    {
+        if ($plan === []) {
+            return null;
+        }
+        $tables = PlanSummary::tables($plan);
+        if (count($tables) !== 1) {
+            return null;
+        }
+        $t = $tables[0];
+        if ($t['insert'] || $t['access_type'] !== 'ALL' || $t['rows_examined_per_scan'] === null) {
+            return null;
+        }
+
+        return (float) $t['rows_examined_per_scan'];
+    }
+
+    /**
      * The formulas behind a type's point and upper side, for a reader that puts another size in. The same numbers `type` used.
      *
      * `count`: a, b, k of the count fit. `per_exec`: the H1 fit (a, b, k as rounded by CostFit::sig) or, with fewer scales than the fit needs,
@@ -444,6 +523,10 @@ final class RowEstimator
             // plan_unstable: the rows per run at each statistics state (measured at the small size x E(state, N) / E(small)), for the width
             'states' => null,
         ];
+        if (isset($type['point_rule'])) {
+            // P1 or P2 moved the point at this size: a reader that puts another size in applies the same rule (P1: the scan's rows grow with the table; P2: the line)
+            $out['point_rule'] = ['rule' => $type['point_rule']] + (array) $type['point_rule_input'];
+        }
         if (isset($type['per_exec_upper']) && ($type['upper_basis'] ?? null) !== 'h1_fit') {
             $h1 = (float) $type['per_exec_h1'];
             $up = (float) $type['per_exec_upper'];

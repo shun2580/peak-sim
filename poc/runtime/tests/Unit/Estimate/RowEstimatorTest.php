@@ -280,37 +280,46 @@ final class RowEstimatorTest extends TestCase
         $this->assertSame('not_given', RowEstimator::estimate($capture, $explain, 'H1')['routes'][0]['peak_memory']['status']);
     }
 
-    public function test_h1_range_gives_the_h1_point_and_an_upper_side_with_h2_for_the_marked_types_only(): void
+    public function test_h1_range_gives_the_h1_point_moved_by_p1_and_p2_for_the_marked_types_and_an_upper_side_not_below_it(): void
     {
         $route = self::route('H1_RANGE');
-        // the point is H1 exactly (20,329, as in test_h1_is_the_fit...)
-        $this->assertEqualsWithDelta(self::route('H1')['rows_examined'], $route['rows_examined'], 1e-9);
+        // the unmarked types keep H1 (sA 20,000, sC 80). The marked types: sB by P1 (a full scan of 100,000 rows, 3 runs), sD by P2 (the line 10 x 10, 5 runs),
+        // sE by P2 (7 x 10, 6 runs), sF by P2 (1 x 10, 7 runs; it has no plan, so P1 cannot apply). H1 alone gives 20,329 (test_h1_is_the_fit...).
+        $point = 2 * 10000.0 + 3 * 100000.0 + 4 * 20.0 + 5 * 100.0 + 6 * 70.0 + 7 * 10.0;
+        $this->assertEqualsWithDelta($point, $route['rows_examined'], 1e-6);
+        $this->assertEqualsWithDelta(self::route('H1')['rows_examined'], 20329.0, 1e-9);
         $this->assertSame(self::route('H1')['queries'], $route['queries']);
         $this->assertTrue($route['marked']);
-        // upper: the marked types sB, sD take the ratio; sE (E(small) = 0) and sF (no EXPLAIN) fall back to H1; the unmarked sA, sC keep H1
-        $upper = 2 * 10000.0 + 3 * (50.0 * 100002 / 1002) + 4 * 20.0 + 5 * (10.0 * 402 / 102) + 6 * 7.0 + 7 * 1.0;
-        $this->assertEqualsWithDelta($upper, $route['rows_examined_upper'], 1e-6);
-        // and that is what H2 gives for the route
-        $this->assertEqualsWithDelta(self::route('H2')['rows_examined'], $route['rows_examined_upper'], 1e-6);
-        $this->assertGreaterThan($route['rows_examined'], $route['rows_examined_upper']);
+        // upper: the larger of what H2 gives and the point. H2 gives sB 4,989.6, sD 39.4, sE 7 (fall-back) and sF 1 (fall-back), all below the point of the same type here
+        $this->assertEqualsWithDelta($point, $route['rows_examined_upper'], 1e-6);
+        $this->assertGreaterThanOrEqual($route['rows_examined'], $route['rows_examined_upper']);
+        // H1, H2 and H3 are not changed by the rules
+        $this->assertEqualsWithDelta(20329.0, self::route('H1')['rows_examined'], 1e-9);
     }
 
-    public function test_h1_range_types_keep_the_h1_point_and_carry_the_upper_value_for_marked_types_only(): void
+    public function test_h1_range_types_carry_the_rule_that_moved_the_point_and_the_upper_value_for_marked_types_only(): void
     {
         $t = self::types('H1_RANGE');
         foreach (['sA', 'sC'] as $id) {
             $this->assertArrayNotHasKey('per_exec_upper', $t[$id], $id);
+            $this->assertArrayNotHasKey('point_rule', $t[$id], $id);
             $this->assertSame('h1', $t[$id]['basis'], $id);
         }
-        $this->assertEqualsWithDelta(50.0, $t['sB']['per_exec'], 1e-9); // the point stays H1
-        $this->assertEqualsWithDelta(50.0 * 100002 / 1002, $t['sB']['per_exec_upper'], 1e-6);
+        $this->assertEqualsWithDelta(100000.0, $t['sB']['per_exec'], 1e-9); // P1: the rows of the full scan
+        $this->assertSame('P1', $t['sB']['point_rule']);
+        $this->assertSame(['scan_rows' => 100000.0, 'at' => self::N], $t['sB']['point_rule_input']);
+        $this->assertEqualsWithDelta(50.0, $t['sB']['per_exec_h1'], 1e-9); // the fit's value stays
+        $this->assertEqualsWithDelta(100000.0, $t['sB']['per_exec_upper'], 1e-6); // H2 gives 50 x 100,002 / 1,002 = 4,989.6, below the point
         $this->assertSame('ratio', $t['sB']['upper_basis']);
-        $this->assertEqualsWithDelta(10.0, $t['sD']['per_exec'], 1e-9);
-        $this->assertEqualsWithDelta(10.0 * 402 / 102, $t['sD']['per_exec_upper'], 1e-9);
-        // a marked type that cannot take the ratio: its upper side is its H1 value, and the fall is counted with its reason
+        $this->assertEqualsWithDelta(100.0, $t['sD']['per_exec'], 1e-9); // P2: 10 x 100,000 / 10,000
+        $this->assertSame('P2', $t['sD']['point_rule']);
+        $this->assertSame(['scale' => 10000, 'value' => 10.0], $t['sD']['point_rule_input']);
+        $this->assertEqualsWithDelta(100.0, $t['sD']['per_exec_upper'], 1e-9); // H2 gives 10 x 402 / 102 = 39.4
+        // a marked type that cannot take the ratio: its upper side is not below its point, and the fall is counted with its reason
         $this->assertSame('h1', $t['sE']['upper_basis']);
         $this->assertSame('e_small_zero', $t['sE']['fallback']);
-        $this->assertEqualsWithDelta(7.0, $t['sE']['per_exec_upper'], 1e-9);
+        $this->assertEqualsWithDelta(70.0, $t['sE']['per_exec'], 1e-9);
+        $this->assertEqualsWithDelta(70.0, $t['sE']['per_exec_upper'], 1e-9);
         $totals = RowEstimator::estimate(...self::args('H1_RANGE'))['totals'];
         $this->assertSame(['e_small_zero' => 1, 'explain_unavailable:not_explainable_kind: begin' => 1], $totals['fell_back_by_reason']);
         $this->assertSame(2, self::route('H1_RANGE')['ratio_used']); // sB, sD

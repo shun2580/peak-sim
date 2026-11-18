@@ -156,14 +156,16 @@ final class RowEstimatorFormulasTest extends TestCase
         $this->assertSame(['a' => 1000.0, 'b' => 2.0, 'k' => 1.0], $route['peak_memory_formula']);
         [$sM, $sU] = $route['types'];
 
-        // sM: count 2, rows per run 1,000 (constant), upper 1,000 x 8,002 / 2,002: the ratio is 8,002 / 2,002
-        $upper = 1000.0 * 8002 / 2002;
+        // sM: count 2, rows per run 1,000 (constant), marked. P1 reads the full scan of 8,000 rows, then P2 raises the point to the line 1,000 x 100,000 / 10,000 = 10,000.
+        // H2 gives 1,000 x 8,002 / 2,002 = 3,997 as the upper side, below the point, so the upper side is the point. The fit's value (1,000) is the base of the ratio.
         $this->assertSame(['a' => 2.0, 'b' => 0.0, 'k' => 0.0], $sM['formula']['count']);
-        $this->assertEqualsWithDelta(1000.0, $sM['per_exec'], 1e-9);
-        $this->assertEqualsWithDelta($upper, $sM['per_exec_upper'], 1e-9);
-        $this->assertEqualsWithDelta($upper, $sM['formula']['upper']['at_n'], 1e-9);
+        $this->assertEqualsWithDelta(10000.0, $sM['per_exec'], 1e-9);
+        $this->assertSame('P2', $sM['point_rule']);
+        $this->assertSame(['rule' => 'P2', 'scale' => 10000, 'value' => 1000.0], $sM['formula']['point_rule']);
+        $this->assertEqualsWithDelta(10000.0, $sM['per_exec_upper'], 1e-9);
+        $this->assertEqualsWithDelta(10000.0, $sM['formula']['upper']['at_n'], 1e-9);
         $this->assertEqualsWithDelta(1000.0, $sM['formula']['upper']['h1_at_n'], 1e-9);
-        $this->assertEqualsWithDelta(8002.0 / 2002.0, $sM['formula']['upper']['ratio'], 1e-9);
+        $this->assertEqualsWithDelta(10.0, $sM['formula']['upper']['ratio'], 1e-9);
         $this->assertSame([100, 1000, 10000], $sM['formula']['scales']);
         // sU: count 0.01 x N, rows per run 3, no upper side
         $this->assertSame(['a' => 0.0, 'b' => 0.01, 'k' => 1.0], $sU['formula']['count']);
@@ -292,7 +294,8 @@ final class RowEstimatorFormulasTest extends TestCase
         $this->assertEqualsWithDelta(1000.0 * 16002 / 2002, $states['high']['at_n'], 1e-9);
         $this->assertEqualsWithDelta(1000.0 * 4002 / 2002, $states['low']['at_n'], 1e-9);
         $this->assertEqualsWithDelta($states['high']['at_n'] / 1000.0, $states['high']['ratio'], 1e-9, 'the ratio is to the point (H1) at N');
-        $this->assertEqualsWithDelta($states['high']['at_n'], $type['per_exec_upper'], 1e-9, 'the upper side is the heaviest state, as before');
+        $this->assertEqualsWithDelta(100000.0, $type['per_exec_upper'], 1e-9, 'P2 raises the point of this constant type to the line 1,000 x 100,000 / 1,000; the heaviest state (7,993) is below it');
+        $this->assertGreaterThan($states['high']['at_n'], $type['per_exec_upper']);
         $this->assertArrayNotHasKey('e_by_state', $type, 'the figures of the type are as without the flag');
         $this->assertNull($plain['routes'][0]['types'][0]['formula'] ?? null);
     }

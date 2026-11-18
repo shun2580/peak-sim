@@ -174,7 +174,18 @@ final class EstimateFormulas
                     $held = true;
                 }
             }
-            $range = self::widthOf($f, $n, $count, $perExec);
+            // P1 and P2 (the rules of the row estimate for a marked type): the same rule the point was moved by where the estimate was made
+            $rule = isset($f['point_rule']) && is_array($f['point_rule']) ? $f['point_rule'] : null;
+            $perFit = $perExec;
+            if ($rule !== null) {
+                if (($rule['rule'] ?? null) === 'P1' && (int) ($rule['at'] ?? 0) > 0) {
+                    $perExec = (float) $rule['scan_rows'] * $n / (int) $rule['at'];
+                } elseif (($rule['rule'] ?? null) === 'P2' && (int) ($rule['scale'] ?? 0) > 0 && $n > (int) $rule['scale']) {
+                    $perExec = max($perExec, (float) $rule['value'] * $n / (int) $rule['scale']);
+                }
+                $perUpper = $perUpper === null ? null : max($perUpper, $perExec);
+            }
+            $range = self::widthOf($f, $n, $count, $perExec, $rule !== null ? $perFit : null);
             $width['queries_low'] += $range['count_low'];
             $width['queries_high'] += $range['count_high'];
             $width['rows_low'] += $range['per_exec_low'] * $range['count_low'];
@@ -236,10 +247,11 @@ final class EstimateFormulas
      * @param array<string, mixed> $f       the type's `formula`
      * @param float                $count   the point's count at n
      * @param float                $perExec the point's rows per run at n
+     * @param float|null           $perFit  the fit's own rows per run at n, when a rule (P1, P2) moved the point off it: the ratios of the statistics states are to the fit
      *
      * @return array{count_low: float, count_high: float, per_exec_low: float, per_exec_high: float, given: bool}
      */
-    private static function widthOf(array $f, int $n, float $count, float $perExec): array
+    private static function widthOf(array $f, int $n, float $count, float $perExec, ?float $perFit = null): array
     {
         $counts = [$count];
         $per = [$perExec];
@@ -252,7 +264,7 @@ final class EstimateFormulas
         }
         // a plan_unstable type: the rows per run of each statistics state, kept in the ratio to the point that it had where the estimate was made
         foreach ((array) ($f['states'] ?? []) as $state) {
-            $per[] = $state['ratio'] !== null ? $perExec * (float) $state['ratio'] : (float) $state['at_n'];
+            $per[] = $state['ratio'] !== null ? ($perFit ?? $perExec) * (float) $state['ratio'] : (float) $state['at_n'];
         }
 
         return [
