@@ -6,8 +6,9 @@
 #
 #   poc/lab/tests/predict-ladder-allocation.sh
 #
-#  1. without the flag, the prediction of B at 90,000 rows made again is byte for byte the committed one (ladder-prediction-4-b90k.json)
-#  2. without the flag, the prediction of the mark at 150,000 rows made again is byte for byte the committed one
+#  1. without the flag, the prediction of B at 90,000 rows made again is byte for byte the committed one (ladder-prediction-4-b90k.json), but for the
+#     one sentence on the maintenance state that D224 added to the note (ESTIMATE_MAINTENANCE_CLAUSE): that sentence is taken out of the new file first
+#  2. the same for the mark at 150,000 rows (ladder-prediction-4-mark150k.json)
 #  3. --request-timeout-s without --drop-marked-routes is refused (2)
 #  4. with the flag at 90,000 rows (no route marked there) it exits 0 and the output is the plain one with the allocation blocks added
 #  5. with the flag at 150,000 rows a marked route is taken out, the sum of rps is unchanged, the naive limit is unchanged, and the route is out of every stage
@@ -37,11 +38,22 @@ predict() {  # predict <out dir> <estimate> <scenario> [flags...]; prints nothin
   "$lab/bin/predict-ladder" --estimate="$e" --scenario="$s" --out="$o" --naive-count=10000 --expect-estimate-commit=a2598db "$@" >"$o/stdout.txt" 2>"$o/stderr.txt"
 }
 
+# The committed predictions were written before D224 added one sentence to the note of what the estimates assume. They are not rewritten; the
+# new output is compared with them once that sentence (read from the constant in PredictionReport.php) is taken out of it.
+without_clause() {  # without_clause <prediction.json>: the file on stdout, the sentence taken out
+  python3 - "$1" "$repo/poc/runtime/src/Simulate/Predict/PredictionReport.php" <<'PY'
+import re, sys
+clause = re.search(r"ESTIMATE_MAINTENANCE_CLAUSE = '([^']*)';", open(sys.argv[2]).read()).group(1)
+sys.stdout.write(open(sys.argv[1]).read().replace(clause, ""))
+PY
+}
+
 # 1, 2
 predict "$work/p90" "$est90" "$in90"; expect_code "1a plain at 90,000 rows: exit 0" 0 $?
-cmp -s "$work/p90/ladder-prediction.json" "$lab/predictions/ladder-prediction-4-b90k.json" && pass "1b plain at 90,000 rows: the committed bytes" || fail "1b plain at 90,000 rows: not the committed bytes"
+grep -q "same maintenance state" "$work/p90/ladder-prediction.json" && pass "1c the new output carries the sentence on the maintenance state" || fail "1c the new output has no such sentence"
+cmp -s <(without_clause "$work/p90/ladder-prediction.json") "$lab/predictions/ladder-prediction-4-b90k.json" && pass "1b plain at 90,000 rows: the committed bytes (but for the D224 sentence)" || fail "1b plain at 90,000 rows: not the committed bytes"
 predict "$work/p150" "$est150" "$in150"; expect_code "2a plain at 150,000 rows: exit 0" 0 $?
-cmp -s "$work/p150/ladder-prediction.json" "$lab/predictions/ladder-prediction-4-mark150k.json" && pass "2b plain at 150,000 rows: the committed bytes" || fail "2b plain at 150,000 rows: not the committed bytes"
+cmp -s <(without_clause "$work/p150/ladder-prediction.json") "$lab/predictions/ladder-prediction-4-mark150k.json" && pass "2b plain at 150,000 rows: the committed bytes (but for the D224 sentence)" || fail "2b plain at 150,000 rows: not the committed bytes"
 
 # 3
 predict "$work/u" "$est90" "$in90" --request-timeout-s=1800; expect_code "3a --request-timeout-s alone is refused" 2 $?
