@@ -10,6 +10,8 @@ use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\Data\Generator;
 use PeakSim\Runtime\Data\ScalePlan;
+use PeakSim\Runtime\Explain\PdoStatsDb;
+use PeakSim\Runtime\Explain\StatsStatements;
 use PeakSim\Runtime\Guard\DbGuard;
 use PeakSim\Runtime\Guard\MeasureDb;
 
@@ -21,7 +23,9 @@ use PeakSim\Runtime\Guard\MeasureDb;
  *   generator  the tool's `Generator` from a `ScalePlan` (targeted or global)
  *
  * With a profile that has an `after_generation` hook, the hook runs right after the generator, on the same connection
- * (see `afterGeneration`). The seeder mode ignores the profile.
+ * (see `afterGeneration`). With a profile that has `rebuild` steps, the app's own maintenance commands then run, and ANALYZE
+ * TABLE after them (see `RebuildStep`): build, rebuild, ANALYZE, in that order, and a failed rebuild stops the build. The
+ * seeder mode ignores the profile.
  *
  * The row counts are read back and compared with the recipe; a database that does not hold what was asked for is a
  * BuildFailure, never a measurement on the wrong data.
@@ -94,6 +98,12 @@ final class DatabaseBuild
             }
         }
         $info['fill_seconds'] = round(microtime(true) - $filled, 2);
+        if ($mode !== 'seeder') {
+            $rebuilt = self::rebuild($profile, $app['db']->connection()->getPdo(), $name, $console);
+            if ($rebuilt !== null) {
+                $info['rebuild'] = $rebuilt;
+            }
+        }
 
         $counts = self::counts($app['db']->connection()->getPdo(), $name);
         $info['rows'] = $counts;
@@ -146,6 +156,44 @@ final class DatabaseBuild
         }
 
         return is_array($summary) ? $summary : [];
+    }
+
+    /**
+     * Runs the profile's `rebuild` steps (the app's maintenance commands, through artisan) and then ANALYZE TABLE on every
+     * table, on the connection the generator filled (see `RebuildStep`). Nothing runs for a profile with no `rebuild`.
+     *
+     * @param array<string, mixed> $profile
+     *
+     * @return array<string, mixed>|null what ran, with the rows of each rebuilt table before and after, or null
+     *
+     * @throws BuildFailure
+     * @throws MeasureRefused
+     */
+    private static function rebuild(array $profile, \PDO $pdo, string $name, object $console): ?array
+    {
+        if (!isset($profile['rebuild'])) {
+            return null;
+        }
+        DbGuard::assertDbName($name);
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            $current = $pdo->query('SELECT DATABASE()')->fetchColumn();
+            if ($current !== $name) {
+                throw new MeasureRefused(sprintf('refused: the connection is on %s, not on the measurement database', is_string($current) ? json_encode(substr($current, 0, 80)) : 'no database'));
+            }
+        }
+
+        return RebuildStep::run(
+            $profile,
+            static fn (string $command): array => [$console->call($command), (string) $console->output()],
+            static function (string $table) use ($pdo): int {
+                if (preg_match('/^[a-z0-9_]{1,64}$/D', $table) !== 1) {
+                    throw new \InvalidArgumentException('not a plain table name');
+                }
+
+                return (int) $pdo->query('select count(*) from `' . $table . '`')->fetchColumn();
+            },
+            new StatsStatements(new PdoStatsDb($pdo)),
+        );
     }
 
     /**

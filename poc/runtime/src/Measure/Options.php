@@ -131,6 +131,22 @@ final class Options
         ];
     }
 
+    /**
+     * Why this run may not go on with this profile, or null. A capture (it has a tap directory) of an app whose profile has `rebuild`
+     * steps is taken on databases that end in build, rebuild, ANALYZE (`RebuildStep`), and the capture's statistics state is the one
+     * of the EXPLAIN step: it must be asked for `--analyze-after-build=on`, or it is refused before anything is built.
+     *
+     * @param array<string, mixed> $profile the loaded profile of `$this->profile`
+     */
+    public function refusalForProfile(array $profile): ?string
+    {
+        if ($this->tapDir !== null && !$this->analyzeAfterBuild && isset($profile['rebuild'])) {
+            return 'profile "' . (string) $this->profile . '" rebuilds a table of the app after the build: a capture of it needs --analyze-after-build=on (build, rebuild, ANALYZE)';
+        }
+
+        return null;
+    }
+
     public function wants(string $route, ?string $method = null): bool
     {
         if ($this->only === []) {
