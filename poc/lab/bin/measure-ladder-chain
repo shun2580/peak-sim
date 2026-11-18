@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+# Measures a run of ladder scenarios (B, s-1 .. s-5) one after the other with `bin/measure-ladder`, and can be stopped between two
+# scenarios without killing anything (docs/simulator-spec.md 7.4.3 and 7.4.4; decisions.md D227).
+#
+#   poc/lab/bin/measure-ladder-chain --scale=<rows> --predictions=<committed prediction file> --statement-record=<capture.json> \
+#       --out-dir=<dir under the out directory> [--scenarios="s-1 s-2 s-3 s-4 s-5"] [--request-timeout=1800s] [--stop-mark=<file>] \
+#       [--ladder-out=<dir>]
+#
+# The lab must already be set for B (`bin/lab-config-b apply`, then `bin/use-db <scale>`): PHP max_execution_time 0, memory_limit 4G,
+# php-fpm request_terminate_timeout 0, nginx fastcgi_read_timeout and the load tool's request timeout at --request-timeout (default 1800s).
+# The request timeout is also how long the load tool waits at the end of a step for the requests still running (k6's gracefulStop in
+# load/scenario.js), so one value covers the three places. It is passed to `check-limits` and to `measure-ladder`, which refuses a step
+# when nginx's value is shorter than it. Nothing about it is fixed in the tools: a chain given 600s is the chain of the fourth round.
+#
+# For each scenario, in order:
+#   1. THE STOP MARK. If the file --stop-mark (default <out-dir>/STOP) exists, the next scenario is not entered: the chain reads the memory
+#      and the table statistics, copies the app and web logs, writes the line "CHAIN STOP at mark before <scenario>" to chain.log and the
+#      scenarios not run to <out-dir>/chain.stopped, touches chain.done and exits 0. No mark: it goes on. The mark is only looked at
+#      here, between scenarios; a scenario that has begun is never cut. The mark is never removed by the chain (to go on, remove it and
+#      start again with --scenarios=<the ones in chain.stopped>).
+#   2. the app and web logs are copied (before the first scenario, as before-recreate-<scenario>; the others were copied after the
+#      scenario before), then the app and web containers are made again (`bin/use-db <scale>`) and the limits are read (`bin/check-limits
+#      --require=unlimited --request-timeout=<t>`), so every scenario starts on a fresh app container (7.4.3).
+#   3. memory and table statistics are read, then `bin/measure-ladder --scenario=<s> --scheme=B --request-timeout=<t>` runs, then memory and
+#      table statistics are read again and the logs are copied (after-<scenario>).
+#   A scenario that ends with a non-zero exit stops the chain with that exit (19 = the app container was stopped for memory: its state
+#   and the tail of its log are kept in <out-dir>/oom-stop-<scenario>/). Nothing is killed at any point.
+#
+# Files in <out-dir>: chain.log (every step with its time), chain.done (the chain has ended, for any reason), chain.stopped (only after a
+# stop at the mark), <scenario>.output.txt (the output of measure-ladder), mem-sequence.txt (bin/read-memory), stats-scenarios.tsv
+# (bin/read-table-stats), logs/, recreate/. A caller that runs the chain in the background and wants to be told when it ends adds its own
+# notification after it (the chain sends nothing to any other process).
+#
+# exit codes: 0 every scenario ended, or the chain stopped at the mark / 2 usage / 11 the containers could not be made again /
+# 13 the limits were not as B needs after a recreation / otherwise the exit of the scenario that stopped it (12 gate, 15, 16, 17, 19 ...)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+scale="" ; predictions="" ; statement_record="" ; out_dir="" ; scenarios="s-1 s-2 s-3 s-4 s-5" ; request_timeout="1800s" ; stop_mark="" ; ladder_out=""
+for arg in "$@"; do
+  case "$arg" in
+    --scale=*) scale="${arg#--scale=}" ;;
+    --predictions=*) predictions="${arg#--predictions=}" ;;
+    --statement-record=*) statement_record="${arg#--statement-record=}" ;;
+    --out-dir=*) out_dir="${arg#--out-dir=}" ;;
+    --scenarios=*) scenarios="${arg#--scenarios=}" ;;
+    --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
+    --stop-mark=*) stop_mark="${arg#--stop-mark=}" ;;
+    --ladder-out=*) ladder_out="${arg#--ladder-out=}" ;;
+    *) usage ;;
+  esac
+done
+[[ "$scale" =~ ^[1-9][0-9]{0,8}$ ]] && [ -n "$predictions" ] && [ -n "$statement_record" ] && [ -n "$out_dir" ] || usage
+[[ "$request_timeout" =~ ^[0-9]+(\.[0-9]+)?(ms|s|m|h)$ ]] || { echo "measure-ladder-chain: --request-timeout must be a k6 duration with a unit, such as 1800s (got '$request_timeout')" >&2; exit 2; }
+for sc in $scenarios; do
+  [[ "$sc" =~ ^s-[1-5]$ ]] || { echo "measure-ladder-chain: the chain measures s-1 .. s-5 only (got '$sc')" >&2; exit 2; }
+done
+[ -n "${scenarios// /}" ] || usage
+mkdir -p "$out_dir" || exit 2
+W="$(cd "$out_dir" && pwd)"
+lab_out="$(cd "$PEAK_LAB_OUT_DIR" && pwd)"
+case "$W" in "$lab_out"/*) ;; *) echo "measure-ladder-chain: --out-dir must be inside $lab_out (the tools container sees only that directory, as /out)" >&2; exit 2 ;; esac
+[ -n "$stop_mark" ] || stop_mark="$W/STOP"
+mkdir -p "$W/logs" "$W/recreate" || exit 2
+log() { echo "$(date -Is) $*" >>"$W/chain.log"; }
+snap() { # $1 = label: the app and web logs, read-only copies
+  docker logs peak-lab-app >"$W/logs/app-$1.txt" 2>&1; date -u -Is >"$W/logs/app-$1.at"
+  docker logs peak-lab-web >"$W/logs/web-$1.txt" 2>&1
+}
+readings() { # $1 = label
+  "$bindir/read-memory" "$W/mem-sequence.txt" --label="$1" >/dev/null 2>&1
+  "$bindir/read-table-stats" "$scale" "$W/stats-scenarios.tsv" "$1" >/dev/null 2>&1
+}
+finish() { touch "$W/chain.done"; }
+
+log "CHAIN START scale=$scale scenarios='$scenarios' request_timeout=$request_timeout stop_mark=$stop_mark"
+first=1
+remaining=($scenarios)
+for sc in $scenarios; do
+  # 1. the stop mark: between two scenarios only
+  if [ -e "$stop_mark" ]; then
+    log "CHAIN STOP at mark before $sc ($stop_mark exists); not run: ${remaining[*]}"
+    readings "stop-before-$sc"
+    snap "stop-before-$sc"
+    printf 'at=%s before=%s remaining="%s"\n' "$(date -Is)" "$sc" "${remaining[*]}" >"$W/chain.stopped"
+    finish
+    exit 0
+  fi
+  # 2. fresh app and web containers on the scenario's database
+  [ "$first" = 1 ] && snap "before-recreate-$sc"
+  log "RECREATE app/web before $sc (use-db $scale)"
+  "$bindir/read-memory" "$W/mem-sequence.txt" --label="before-recreate-$sc" >/dev/null 2>&1
+  git -C "$PEAK_REPO_ROOT" diff -- poc/lab/compose | sha256sum >"$W/recreate/compose-diff-before-recreate-$sc.sha"
+  "$bindir/check-oom" save "$W/recreate/oom-before-recreate-$sc.txt" >/dev/null 2>&1
+  "$bindir/use-db" "$scale" >"$W/recreate/use-db-recreate-$sc.txt" 2>&1 || { log "CHAIN STOP use-db failed before $sc"; finish; exit 11; }
+  "$bindir/check-limits" --require=unlimited --request-timeout="$request_timeout" --dir="$W/recreate/limits-after-recreate-$sc" >"$W/recreate/check-limits-after-recreate-$sc.txt" 2>&1 \
+    || { log "CHAIN STOP check-limits failed before $sc"; finish; exit 13; }
+  docker inspect peak-lab-app --format 'HostConfig.Memory={{.HostConfig.Memory}} started={{.State.StartedAt}}' >>"$W/recreate/check-limits-after-recreate-$sc.txt" 2>&1
+  log "recreated and checked before $sc"
+  first=0
+  # 3. the scenario
+  readings "before-$sc"
+  log "START $sc scale=$scale request_timeout=$request_timeout"
+  ml_args=(--scenario="$sc" --scale="$scale" --predictions="$predictions" --statement-record="$statement_record" --scheme=B --request-timeout="$request_timeout")
+  [ -z "$ladder_out" ] || ml_args+=(--out="$ladder_out")
+  "$bindir/measure-ladder" "${ml_args[@]}" >"$W/$sc.output.txt" 2>&1
+  rc=$?
+  log "END $sc exit=$rc"
+  readings "after-$sc"
+  snap "after-$sc"
+  if [ "$rc" -ne 0 ]; then
+    log "CHAIN STOP at $sc exit=$rc"
+    if [ "$rc" -eq 19 ]; then
+      mkdir -p "$W/oom-stop-$sc"
+      docker inspect peak-lab-app --format '{{json .State}} mem={{.HostConfig.Memory}}' >"$W/oom-stop-$sc/inspect-app.txt" 2>&1
+      docker inspect peak-lab-db --format '{{json .State}}' >"$W/oom-stop-$sc/inspect-db.txt" 2>&1
+      docker logs --tail 200 peak-lab-app >"$W/oom-stop-$sc/app-logs-tail.txt" 2>&1
+      cp "$W/mem-sequence.txt" "$W/oom-stop-$sc/" 2>/dev/null
+    fi
+    finish
+    exit "$rc"
+  fi
+  remaining=("${remaining[@]:1}")
+done
+log "CHAIN DONE ($scenarios)"
+finish
+exit 0

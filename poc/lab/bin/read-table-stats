@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Reads mysql.innodb_table_stats (table, last_update, n_rows) of the database of one scale and appends it, with a time and a label,
+# to a file. Read only: it runs no ANALYZE and touches no table of the application. `bin/measure-ladder-chain` calls it before and after
+# every scenario, so the record shows whether anything refreshed the statistics during the measurement.
+#
+#   poc/lab/bin/read-table-stats <scale> <file> <label>
+#
+# One line per table: <time>\t<label>\t<scale>\t<table>\t<last_update>\t<n_rows>. A reading that cannot be made is written as one line
+# with the table `unreadable`, and this still exits 0 (a record only; it stops nothing).
+# exit codes: 0 always (when the arguments are right) / 2 usage
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+usage() { sed -n '6p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+scale="${1:-}"; file="${2:-}"; label="${3:-}"
+[[ "$scale" =~ ^[0-9]{1,9}$ ]] && [ -n "$file" ] && [ -n "$label" ] || usage
+label="${label// /_}"
+name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
+now="$(date '+%F %T')"
+rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B -e \
+  "SELECT table_name,last_update,n_rows FROM mysql.innodb_table_stats WHERE database_name='${name}' ORDER BY table_name" 2>/dev/null)"
+if [ -z "$rows" ]; then rows="unreadable	-	-"; fi
+printf '%s\n' "$rows" | sed "s|^|${now}\t${label}\t${scale}\t|" >>"$file"
+exit 0

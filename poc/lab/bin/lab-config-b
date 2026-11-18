@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Puts the lab's settings for B (limits off, request timeout 1,800 s) on the two compose files for the time of a measurement, and takes
+# them off again afterwards (docs/simulator-spec.md 7.4.2 and 7.4.4; decisions.md D227). The settings live in one diff,
+# poc/lab/config/ladder-b-1800s.diff: PHP max_execution_time 0, PHP memory_limit 4G, nginx fastcgi_read_timeout 1800s. The default
+# files are never edited by hand and never committed with the diff on.
+#
+#   poc/lab/bin/lab-config-b apply     # git apply; refuses unless poc/lab/compose has no change at all
+#   poc/lab/bin/lab-config-b restore   # git apply -R; refuses unless the diff is exactly what is on the files; then no change is left
+#   poc/lab/bin/lab-config-b status    # prints default / B / other, and the sha256 of the two files
+#   --diff=<file> (any command) names another diff, for tests.
+#
+# The containers read the files when they are made, so after `apply` and after `restore` run `bin/use-db <scale>` (it recreates the app and
+# web containers) and read the values from the php-fpm and nginx side with `bin/check-limits`. This tool touches no container.
+# exit codes: 0 done / 2 usage, or the files are not in the state the command needs (nothing was changed)
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+
+usage() { sed -n '8,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+cmd="${1:-}"; [ -n "$cmd" ] || usage
+shift
+diff_file="$LAB_DIR/config/ladder-b-1800s.diff"
+for arg in "$@"; do
+  case "$arg" in
+    --diff=*) diff_file="${arg#--diff=}" ;;
+    *) usage ;;
+  esac
+done
+[ -f "$diff_file" ] || { echo "lab-config-b: no such diff: $diff_file" >&2; exit 2; }
+diff_file="$(cd "$(dirname "$diff_file")" && pwd)/$(basename "$diff_file")"
+cd "$PEAK_REPO_ROOT" || exit 2
+paths=(poc/lab/compose/nginx/lab.conf poc/lab/compose/php/zz-lab.ini)
+clean() { git diff --quiet -- "${paths[@]}"; }
+shas() { sha256sum "${paths[@]}"; }
+
+case "$cmd" in
+  apply)
+    clean || { echo "lab-config-b: the compose files already differ from HEAD (is B already on?); nothing was changed" >&2; exit 2; }
+    git apply --check "$diff_file" 2>/dev/null || { echo "lab-config-b: the diff does not apply to the files as they are; nothing was changed" >&2; exit 2; }
+    git apply "$diff_file" || { echo "lab-config-b: git apply failed" >&2; exit 2; }
+    echo "B ON: $(basename "$diff_file") applied at $(date -Is); recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)"
+    shas ;;
+  restore)
+    git apply -R --check "$diff_file" 2>/dev/null || { echo "lab-config-b: the files are not the default plus this diff; nothing was changed" >&2; exit 2; }
+    git apply -R "$diff_file" || { echo "lab-config-b: git apply -R failed" >&2; exit 2; }
+    clean || { echo "lab-config-b: the files still differ from HEAD after the restore" >&2; exit 2; }
+    echo "B OFF: $(basename "$diff_file") reversed at $(date -Is); recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)"
+    shas ;;
+  status)
+    if clean; then state=default
+    elif git apply -R --check "$diff_file" 2>/dev/null; then state=B
+    else state=other; fi
+    echo "STATE $state"
+    shas ;;
+  *) usage ;;
+esac
+exit 0
