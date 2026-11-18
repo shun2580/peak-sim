@@ -355,9 +355,94 @@ No request that was cut was left unmarked on the side of the limit that cut it (
 
 ## 6. B at 90,000 rows: result
 
-**Not yet measured.**
+B was measured at 90,000 rows with the prediction `e5f406f`, which was not changed. The record is `docs/research/lab-data/ladder-90k/` (committed as `b395f0e`, 2026-11-19 03:13:40). It is kept as the tools wrote it; its `README.md` lists the files and the few changes made to the copies, and no pass or fail is written in it. Times in this section are the host's clock (JST); the application's logs are in UTC, 9 hours behind. This section 6.1 gives only how B was measured. The verdict (6.2) and the comparison with the naive estimate (6.3) are written after the two independent readings of the record agree.
 
-(When B is measured, this section is followed by the records of the measurement, the verdict and the comparison with the naive estimate. The reading in section 4.5 is decided before it. The prediction in section 4.1 is not changed.)
+The CPU time of a route that does not run to its end is read as section 4.5 says, and is not repeated here: B is a test of the database prediction with the run-time limit lifted, and was not measured at the default 30 s limit.
+
+### 6.1 How B was measured
+
+**The order of the events** (`git log`, `chain.log`, `prep.log`, `s-1.output.txt`):
+
+| time | what |
+| --- | --- |
+| 2026-11-17 09:08:30 | `e5f406f`: the prediction files were committed |
+| 2026-11-17 11:52:29 | the settings of B were written to the two compose files (`git apply compose-B.diff`, `prep.log`); the stack was brought up with `bin/up` after that (the last write in `up.output.txt` is 11:52:52) |
+| 2026-11-17 11:52:39 | `967bac2`: the maintainer's ruling that B reads a route's end at its own settings (D221) was committed |
+| 2026-11-17 11:54:29 | the chain of measurements started (`B-start.txt` 11:54:28) |
+| 2026-11-17 11:54:46 | the first step of B (s-1, step 1) started |
+
+The prediction was committed about 2 h 46 min before the first step. Between `e5f406f` and the first step, no file changed in `poc/lab/predictions`, `poc/runtime/src/Estimate` or `poc/runtime/src/Simulate` (`git diff --stat e5f406f HEAD` over those paths is empty). The measuring tool is `bin/measure-ladder` as of `9f96913` (committed 2026-11-17 09:59:49, after the prediction); it measures a scenario at the count its prediction file holds.
+
+**The settings of B, as read from the php-fpm side and from nginx** (`limits-before/`, `check-limits-before.txt`):
+
+| setting | B | how it was set |
+| --- | --- | --- |
+| PHP `max_execution_time` | 0 (30 by default) | `zz-lab.ini`, added line |
+| PHP `memory_limit` | 4G (512M by default) | `zz-lab.ini`, added line |
+| php-fpm `request_terminate_timeout` | 0s | already 0s by default; not in the diff |
+| nginx `fastcgi_read_timeout` | 600s (120s by default) | `lab.conf`, one line changed |
+| the load tool's request timeout | 600s | given to every request of a step |
+
+The app container's memory limit was 6,442,450,944 bytes (6 GiB) throughout. The diff of the two compose files has sha256 `08e29d47…6375`; it was the same at B's start, before each recreation of the containers, at the stop on 2026-11-17, at the resume on 2026-11-19 and before the settings were put back. **Every step of s-1 to s-5 read `0`, `4G`, `0s`, `600s`, `600s`** from the php-fpm side before it began (`RUNG SETTINGS` in `s-N.output.txt`; `settings.json` in each step's directory).
+
+**After s-5 the defaults were put back with the values read:** the limits were read once more before anything was changed (2026-11-19 03:00:02, still `0`, `4G`, `0s`, `600s`; `limits-after-b-s5/`); the diff was reversed with `git apply -R` at 03:00:03, after which the two compose files had the sha256 recorded before B (`orig/sha256.txt`) and `git status` showed no change; the app and web containers were recreated at 03:00:09 and the values read from the php-fpm side were `max_execution_time` 30, `memory_limit` 512M, `request_terminate_timeout` 0s and nginx 120s (`limits-after-restore/`). The stack was then stopped with `compose stop` at 03:00:29, the data volume kept.
+
+**The five scenarios** (mixes as in section 2.1; times from `ladder.json` and `chain.log`):
+
+| scenario | mix | first step started | scenario ended (exit) | steps run | last step run (rps) |
+| --- | --- | --- | --- | --- | --- |
+| s-1 | even | 2026-11-17 11:54:46 | 2026-11-17 13:57:10 (0) | 9 | 0.45 |
+| s-2 | places 1 to 4 at 80% | 2026-11-17 13:57:43 | 2026-11-17 15:52:00 (0) | 8 | 0.3 |
+| s-3 | places 5 to 8 at 80% | 2026-11-17 15:52:34 | 2026-11-17 18:19:33 (0) | 12 | 1.5 |
+| s-4 | places 1, 2, 3 and 5 at 80% | 2026-11-17 18:20:07 | 2026-11-17 20:14:25 (0) | 8 | 0.3 |
+| s-5 | places 1, 3, 4 and 5 at 80% | 2026-11-19 00:42:03 | 2026-11-19 02:59:32 (0) | 11 | 1.0 |
+
+Each scenario ended by the stop rule of section 2.1 (the first step whose database utilization is 80% or more), recorded as `db_utilization_at_or_above_80_percent` in every `ladder.json`; none ended because its intended rps did not come out. The app and web containers were recreated before s-2, s-3, s-4 and, on the resume, before s-5 (`use-db 90000`; the limits were read after each recreation, `recreate/`).
+
+**The steps, with `dropped` (the load tool's dropped iterations, `k6_dropped_iterations`) and whether each step is valid** (`ladder.json`; "valid" is the record's `rps_valid`, which is the sent-count test of section 1.1). The ladder has 15 steps; "not run" means the scenario had already stopped, and such a step has no record.
+
+| step | rps | s-1 | s-2 | s-3 | s-4 | s-5 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.025 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 2 | 0.035 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 3 | 0.05 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 4 | 0.07 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 5 | 0.1 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 6 | 0.15 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 7 | 0.2 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 8 | 0.3 | 0, valid | 0, valid | 0, valid | 0, valid | 0, valid |
+| 9 | 0.45 | 0, valid | not run | 0, valid | not run | 0, valid |
+| 10 | 0.7 | not run | not run | 0, valid | not run | 0, valid |
+| 11 | 1.0 | not run | not run | 0, valid | not run | 0, valid |
+| 12 | 1.5 | not run | not run | 0, valid | not run | not run |
+| 13 | 2.2 | not run | not run | not run | not run | not run |
+| 14 | 3.3 | not run | not run | not run | not run | not run |
+| 15 | 5.0 | not run | not run | not run | not run | not run |
+
+48 steps were run (9 + 8 + 12 + 8 + 11), all with `dropped` 0 and all valid; none is marked invalid. The write counters were the same before and after every step and the table counts were the same before and after every scenario (`WRITES SAME`, `TABLES SAME`). No `ANALYZE` was run by the measurement (`stats-scenarios.tsv`, `stats-steps.tsv`). The app container was not stopped for memory in any scenario (`app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0` in every reading of `mem-sequence.txt`, and `check-oom` found nothing).
+
+**The stop between s-4 and s-5.** The chain was stopped at the maintainer's convenience and not because of anything in the measurement. The maintainer's order to stop for the day was given at 2026-11-17 20:05 (s-4's last step started at 20:05:32). s-4 ended at 20:14:25; the app and web containers were recreated and checked (20:14:42); the chain waited at a guard placed before s-5; the stack was stopped with `docker compose stop` at 20:15:46, the data volume `peak-lab-dbdata` kept. The stack stayed stopped from **2026-11-17 20:15 to 2026-11-19 00:40** (about 28 hours 25 minutes). The machine's WSL was off during this time (it came up at 2026-11-19 00:35:50), so the chain process was gone. The Windows event log shows power-offs by the user at 2026-11-17 23:46 and 2026-11-19 00:14 and no restart for an update.
+
+**s-5 was measured on a different day and after the database was brought up again.** s-5 ran on 2026-11-19; s-1 to s-4 ran on 2026-11-17. The database server was started again for s-5 (`bin/up` at 00:40:47, `resume-up.output.txt`: the database container started from the kept volume, the app and tools containers recreated), so s-5 ran on a database server that had just been started. s-1 is the same in this respect: `bin/up` created and started the database container at about 11:52 on 2026-11-17 (`up.output.txt`, last written 11:52:52), about two minutes before its first step. s-2, s-3 and s-4 were different: the same database server had been running since s-1, and only the app and web containers were recreated before each of them.
+
+**What was checked before s-5 was started** (`resume-20261119.txt`, 00:40:18, before anything was started):
+
+- the data volume `peak-lab-dbdata` was present;
+- the diff of the compose files had the same sha256 as at B's start, and `git status` showed the two compose files as the only changes;
+- `stats.sh` (with the guard) had the same sha256 as at the stop, and the file that releases the guard (`RESUME-s-5`) did not exist;
+- no chain process was running;
+- `git log e5f406f..HEAD` listed four commits (`d4c350f`, `9f96913`, `ed73f2c` and `967bac2`); none changes the prediction, the estimate, the calibration, the formula, the rule of the mark or the rule of pass and fail;
+- after the start, the app and web containers were recreated with `use-db 90000` and the values read from the php-fpm side were `0`, `4G`, `0s`, `600s`, `600s`, with the container memory limit at 6,442,450,944 bytes (`resume-before-s-5.txt`, `limits-resume-before-s-5/`).
+
+The release mark `RESUME-s-5` was made at 00:41:46 and the chain was started again for s-5 alone (`SCENARIOS=s-5`) at the same minute (`chain.log`); s-5's first step started at 00:42:03.
+
+### 6.2 Verdict
+
+Filled after the two independent readings agree.
+
+### 6.3 Comparison with the naive estimate
+
+Filled after the two independent readings agree.
 
 ## 7. What the lab cannot say
 
