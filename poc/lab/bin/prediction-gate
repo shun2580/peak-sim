@@ -9,7 +9,12 @@
 #   2. it is tracked and present in HEAD;
 #   3. it has no difference from HEAD, neither staged nor in the working tree;
 #   4. nothing in poc/lab/predictions/ is untracked or differs from HEAD (a second, uncommitted prediction file is as bad as an
-#      edited one).
+#      edited one);
+#   5. a prediction made with `predict-ladder --drop-marked-routes` (spec 7.4.4: it has an `allocation` block at the top, or in any
+#      scenario) states the allocation in full: the top block (enabled, request timeout, rules), and in every scenario the routes taken out
+#      with their reasons, the rps before and after, equal totals, and no taken-out route left in `rps_after` or in any stage. A part
+#      that is missing or does not add up closes the gate. A prediction with no `allocation` anywhere (made without the flag) is not read
+#      for it: it passes as it always did.
 # Anything else stops with exit 12 and says which. It reads git only; it touches no container and writes nothing.
 # exit codes: 0 the gate is open / 12 closed / 2 usage
 set -uo pipefail
@@ -35,6 +40,101 @@ git -C "$PEAK_REPO_ROOT" cat-file -e "HEAD:$rel" 2>/dev/null || closed "$rel is 
 git -C "$PEAK_REPO_ROOT" diff --quiet HEAD -- "$rel" || closed "$rel differs from HEAD (edited or staged after the commit)"
 if [ -n "$(git -C "$PEAK_REPO_ROOT" status --porcelain --untracked-files=all -- "poc/lab/predictions")" ]; then
   closed "poc/lab/predictions/ has an untracked or changed file besides the committed one"
+fi
+
+# 5: the allocation of a prediction made with the flag. The committed bytes are read (they are the working tree's: 3 passed).
+if git -C "$PEAK_REPO_ROOT" show "HEAD:$rel" | grep -q '"allocation"'; then
+  problem="$(git -C "$PEAK_REPO_ROOT" show "HEAD:$rel" | python3 -I -c '
+import json, math, sys
+
+def num(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+def check(d):
+    top = d.get("allocation")
+    if not isinstance(top, dict):
+        return "a scenario states an allocation but the prediction has no allocation block at the top (the flag was on: the block must be there)"
+    if top.get("enabled") is not True:
+        return "allocation.enabled is not true"
+    for k in ("request_timeout_s", "half_request_timeout_s"):
+        if not num(top.get(k)) or top[k] <= 0:
+            return "allocation.%s is missing or not a positive number" % k
+    if abs(top["half_request_timeout_s"] * 2 - top["request_timeout_s"]) > 1e-9:
+        return "allocation.half_request_timeout_s is not half of allocation.request_timeout_s"
+    for k in ("drop_rule", "stop_rule"):
+        if not isinstance(top.get(k), str) or not top[k].strip():
+            return "allocation.%s is missing or empty" % k
+    scenarios = d.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios:
+        return "the prediction has no scenarios"
+    for s in scenarios:
+        sid = s.get("id", "?") if isinstance(s, dict) else "?"
+        a = s.get("allocation") if isinstance(s, dict) else None
+        if not isinstance(a, dict):
+            return "scenario %s has no allocation (the flag was on: every scenario must state it)" % sid
+        dropped = a.get("dropped_routes")
+        before, after = a.get("rps_in_file"), a.get("rps_after")
+        if not isinstance(dropped, list):
+            return "scenario %s: allocation.dropped_routes is missing or not a list" % sid
+        if not isinstance(before, dict) or not before or not isinstance(after, dict):
+            return "scenario %s: allocation.rps_in_file / rps_after is missing or not an object" % sid
+        if not isinstance(a.get("groups_changed"), list):
+            return "scenario %s: allocation.groups_changed is missing or not a list" % sid
+        if not isinstance(a.get("not_judged"), dict):
+            return "scenario %s: allocation.not_judged is missing or not an object" % sid
+        if "longest_request" not in a:
+            return "scenario %s: allocation.longest_request is missing" % sid
+        names = []
+        for r in dropped:
+            if not isinstance(r, dict) or not isinstance(r.get("route"), str) or r["route"] not in before:
+                return "scenario %s: a dropped route is not a route of rps_in_file" % sid
+            reasons = r.get("reasons")
+            if not isinstance(reasons, list) or not reasons or any(x not in ("placeholders", "memory") for x in reasons):
+                return "scenario %s: dropped route %s has no reason (placeholders / memory)" % (sid, r["route"])
+            if not num(r.get("rps_in_file")) or abs(r["rps_in_file"] - before[r["route"]]) > 1e-12:
+                return "scenario %s: dropped route %s: rps_in_file does not match" % (sid, r["route"])
+            names.append(r["route"])
+        if len(set(names)) != len(names):
+            return "scenario %s: a route is listed twice in dropped_routes" % sid
+        if set(after) != set(before) - set(names):
+            return "scenario %s: rps_after is not rps_in_file without the dropped routes" % sid
+        if not after:
+            return "scenario %s: no route is left" % sid
+        if any(not num(v) or v < 0 for v in list(before.values()) + list(after.values())):
+            return "scenario %s: an rps is not a non-negative number" % sid
+        for k, v in (("rps_total_in_file", sum(before.values())), ("rps_total_after", sum(after.values()))):
+            if not num(a.get(k)) or abs(a[k] - v) > 1e-9:
+                return "scenario %s: allocation.%s is not the sum of its rps" % (sid, k)
+        if abs(a["rps_total_in_file"] - a["rps_total_after"]) > 1e-9:
+            return "scenario %s: the sum of rps changed by the allocation" % sid
+        stages = s.get("stages")
+        if not isinstance(stages, list) or not stages:
+            return "scenario %s has no stages" % sid
+        for st in stages:
+            rps = st.get("rps") if isinstance(st, dict) else None
+            if not isinstance(rps, dict):
+                return "scenario %s: a stage has no rps" % sid
+            left = sorted(set(rps) & set(names))
+            if left:
+                return "scenario %s: a stage still carries a dropped route (%s)" % (sid, left[0])
+            if set(rps) - set(after):
+                return "scenario %s: a stage carries a route that is not in rps_after" % sid
+    return None
+
+try:
+    d = json.load(sys.stdin)
+except Exception as e:
+    print("the file is not readable as JSON (%s)" % e)
+    sys.exit(0)
+if not isinstance(d, dict):
+    print("the file is not a JSON object")
+    sys.exit(0)
+if "allocation" in d or any(isinstance(s, dict) and "allocation" in s for s in (d.get("scenarios") or [])):
+    r = check(d)
+    if r:
+        print(r)
+' 2>&1)" || problem="the allocation check could not run: $problem"
+  [ -z "$problem" ] || closed "$rel states its allocation badly: $problem"
 fi
 
 commit="$(git -C "$PEAK_REPO_ROOT" log -1 --format=%H -- "$rel")"
