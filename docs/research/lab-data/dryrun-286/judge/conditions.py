@@ -41,7 +41,8 @@ def main():
             cells = []
             for k in ('goal_unmarked_queries', 'goal_unmarked_rows_examined', 'minimum_all_queries', 'minimum_all_rows_examined'):
                 x = ca[k]
-                cells.append('%d of %d; %d needed; short %d' % (x['inside'], x['denominator'], x['needed'], x['short']))
+                cells.append(('%d of %d; undecidable, no number short' % (x['inside'], x['denominator'])) if v['verdict'] == 'undecidable'
+                             else '%d of %d; %d needed; short %d' % (x['inside'], x['denominator'], x['needed'], x['short']))
             state = 'undecidable' if v['verdict'] == 'undecidable' else ('met' if v['condition_1a_short_all_zero'] else 'not met')
             short_1a_all_met = short_1a_all_met and state == 'met'
             out['condition_1a'][name] = {'verdict': v['verdict'], 'numbers': ca, 'state': state}
@@ -55,9 +56,9 @@ def main():
         if B['undecidable']:
             L.append('B is **undecidable** (%s). No number short is given (D153). Condition 1b is not met.\n' % '; '.join(B['undecidable_reasons']))
         else:
-            L.append('B at %s rows: **%s**. 1) item 1, smaller than the naive estimate: %s. 2) item 2, points over 5: %.3f. 3) item 3, agree %d of %d valid steps, short %d. '
+            L.append('B at %s rows: **%s**. 1) item 1, smaller than the naive estimate: %s. 2) item 2, points over 5: %s. 3) item 3, agree %d of %d valid steps, short %d. '
                      '4) item 4, within ±10%% in %d of %d scenarios, short %d (lowest standard: short %d).\n' % (
-                         B['rows'], B['verdict'], 'yes' if o['item1_smaller_than_naive'] else 'no', o['item2_excess_points_over_5'],
+                         B['rows'], B['verdict'], 'yes' if o['item1_smaller_than_naive'] else 'no', 'none' if o['item2_excess_points_over_5'] is None else '%.3f' % o['item2_excess_points_over_5'],
                          o['item3_agree'], o['item3_valid_stages'], o['item3_short'], o['item4_within_goal'], o['item4_scenarios_with_limit'],
                          o['item4_short_goal'], o['item4_short_minimum']))
         L.append('Counted as condition 1b met (7.4.4: the goal met, 5 times the capture\'s largest size or more, a count not seen before): **%s**%s. '

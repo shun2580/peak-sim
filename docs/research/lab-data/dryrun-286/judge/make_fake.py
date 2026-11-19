@@ -11,6 +11,7 @@ Deterministic: the same call writes the same bytes.
 Writes under <dir>:
   b/prediction.json, b/ladders/<id>-30000/ladder.json   B: the 5 scenarios of the fourth round, 2 steps each (the shape of the dry run)
   b-full/prediction.json, b-full/ladders/...             B: the same, every step up to the first one over 80% (the shape of a real run)
+  b-none/...                                             B: 2 steps each, all above 90% (no usable step: the means are null)
   a/<app>/estimate.json, marked.json, attempts.jsonl, variance/   A: a few routes of each application
 """
 import argparse, copy, json, os, shutil, sys
@@ -31,7 +32,7 @@ def dump(path, obj):
         fh.write('\n')
 
 
-def fake_b(out, steps_each):
+def fake_b(out, steps_each, boost=1.0):
     pred = json.load(open(PRED_B))
     pred['estimate_at'] = FAKE_SCALE
     dump(os.path.join(out, 'prediction.json'), pred)
@@ -42,7 +43,7 @@ def fake_b(out, steps_each):
                 break
             # made-up utilisation: the predicted point times a factor that depends on the scenario and the step
             factor = 0.93 + 0.03 * (len(sc['id']) % 3) + 0.02 * (i % 4)
-            util = min(1.2, st['utilization']['point'] * factor)
+            util = min(1.2, st['utilization']['point'] * factor * boost)
             rungs.append({
                 'scenario': sc['id'], 'scale': FAKE_SCALE, 'mix': sc.get('mix'), 'scheme': 'B', 'rung': i + 1,
                 'decided_rps': st['rps_total'], 'achieved_rps': st['rps_total'], 'rps_ratio': 1.0, 'rps_valid': True,
@@ -112,6 +113,7 @@ def main():
         sys.exit('make_fake: the output directory is not empty: ' + a.out)
     fake_b(os.path.join(a.out, 'b'), 2)
     fake_b(os.path.join(a.out, 'b-full'), None)
+    fake_b(os.path.join(a.out, 'b-none'), 2, 1000.0)   # every step above 90%: no usable step, so the means are null
     fake_a(a.out)
     print('make_fake: made-up records written to ' + a.out)
     return 0

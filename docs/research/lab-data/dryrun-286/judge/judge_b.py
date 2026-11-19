@@ -88,7 +88,7 @@ def main():
     short4_min = max(0, ceil_share(i4['scenarios_with_limit']) - i4['within_minimum'])
     one_b = {
         'item1_smaller_than_naive': bool(i1['minimum']),
-        'item2_excess_points_over_5': max(0.0, i2['mean_points'] - i2['line_target_points']),
+        'item2_excess_points_over_5': None if i2['mean_points'] is None else max(0.0, i2['mean_points'] - i2['line_target_points']),
         'item3_agree': i3['agree'], 'item3_valid_stages': i3['valid_stages'], 'item3_short': short3,
         'item4_within_goal': i4['within_target'], 'item4_within_minimum': i4['within_minimum'],
         'item4_scenarios_with_limit': i4['scenarios_with_limit'], 'item4_short_goal': short4_goal, 'item4_short_minimum': short4_min,
@@ -127,6 +127,9 @@ def main():
     json.dump(out, open(os.path.join(a.out, 'b-verdict.json'), 'w'), indent=1, sort_keys=True)
     open(os.path.join(a.out, 'b-verdict.json'), 'a').write('\n')
 
+    def pt(x):
+        return 'none (no usable step)' if x is None else '%.3f pt' % x
+
     def yes(x):
         return 'met' if x else 'not met'
     L = []
@@ -140,18 +143,18 @@ def main():
     if not consistent:
         L.append('**The tool and this script disagree on "undecidable". Stop and read both.**\n')
     L.append('| Item | Value | Lowest standard | Goal |\n| --- | --- | --- | --- |')
-    L.append('| 1. mean abs. difference smaller than the naive estimate | point %.3f pt; naive %.3f pt | %s | %s |' % (
-        i1['mean_points'], i1['mean_points_naive'], yes(i1['minimum']), yes(i1['target'])))
-    L.append('| 2. mean abs. difference (15 / 5 points) | %.3f pt over %d usable steps | %s | %s |' % (
-        i2['mean_points'], usable, yes(i2['minimum']), yes(i2['target'])))
+    L.append('| 1. mean abs. difference smaller than the naive estimate | point %s; naive %s | %s | %s |' % (
+        pt(i1['mean_points']), pt(i1['mean_points_naive']), yes(i1['minimum']), yes(i1['target'])))
+    L.append('| 2. mean abs. difference (15 / 5 points) | %s over %d usable steps | %s | %s |' % (
+        pt(i2['mean_points']), usable, yes(i2['minimum']), yes(i2['target'])))
     L.append('| 3. "over 80%% or not" agrees (all valid steps, 80%% or more) | %d of %d = %.2f%% | %s | %s |' % (
         i3['agree'], i3['valid_stages'], 100 * i3['share'], yes(i3['minimum']), yes(i3['target'])))
     L.append('| 4. predicted limit rps within ±20%% / ±10%% (80%% or more of the scenarios with a limit) | %d / %d of %d | %s | %s |\n' % (
         i4['within_minimum'], i4['within_target'], i4['scenarios_with_limit'], yes(i4['minimum']), yes(i4['target'])))
-    L.append('Numbers condition 1b is counted with (D153, D167; the goal): item 1 smaller than naive: %s; item 2 over the 5 points: %.3f; '
+    L.append('Numbers condition 1b is counted with (D153, D167; the goal): item 1 smaller than naive: %s; item 2 over the 5 points: %s; '
              'item 3 short: %d (%d of %d valid steps agree, %d needed); item 4 short: %d at the goal, %d at the lowest standard '
              '(%d of %d within ±10%%, %d within ±20%%).\n' % (
-                 'yes' if one_b['item1_smaller_than_naive'] else 'no', one_b['item2_excess_points_over_5'], short3,
+                 'yes' if one_b['item1_smaller_than_naive'] else 'no', 'none (no usable step)' if one_b['item2_excess_points_over_5'] is None else '%.3f' % one_b['item2_excess_points_over_5'], short3,
                  i3['agree'], i3['valid_stages'], ceil_share(i3['valid_stages']), short4_goal, short4_min,
                  i4['within_target'], i4['scenarios_with_limit'], i4['within_minimum']))
     if undecidable:

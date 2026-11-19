@@ -12,7 +12,7 @@ These scripts make the verdict of B (the lab backtest) and of A (the extrapolati
 | `order_check.py` | The prediction was committed before the first measurement and is unchanged since: reads `git log`, the step records' `started_at` and the commit each step recorded, or an order record |
 | `estimate_length.py` | The estimate of how long the measurements will take, from the windows and waits of the rules and the times of the earlier records. Writes a Markdown file; every premise is written as a premise |
 | `make_fake.py` | Writes made-up records in the shape a dry run writes (B with 2 steps per scenario and with full ladders; A with a few routes of each application, one route that fails, one that measures 0). They are fake and used for nothing else |
-| `selftest.sh` | 31 checks: known answers (the 90,000-row B, the first round's B, the third run's A must give the committed figures; the tool's own `score.json` and `compare.json` must be byte for byte the committed ones), the made-up records, the order check (including a case that must fail), and a changed comparison tool (must stop the script) |
+| `selftest.sh` | 32 checks: known answers (the 90,000-row B, the first round's B, the third run's A must give the committed figures; the tool's own `score.json` and `compare.json` must be byte for byte the committed ones), the made-up records, the order check (including a case that must fail), and a changed comparison tool (must stop the script) |
 
 ## Use
 
@@ -32,7 +32,7 @@ bash selftest.sh        # before anything else
 
 ## What the checks found while the scripts were written
 
-Each was a defect of a script, found by the made-up records or the known answers, and corrected before use: a line of the records written with sorted keys was not read by the comparison tool (it reads a line from its first `{"route"`); the word "indeterminate" was not mapped to undecidable, so an undecidable application was printed as met; a relative error of `null` (a route that measures 0) stopped the writing of the table; two percent signs in a text template. No rule of a tool was touched.
+Each was a defect of a script, found by the made-up records or the known answers, and corrected before use: a line of the records written with sorted keys was not read by the comparison tool (it reads a line from its first `{"route"`); the word "indeterminate" was not mapped to undecidable, so an undecidable application was printed as met; a relative error of `null` (a route that measures 0) stopped the writing of the table; two percent signs in a text template. Found when the dry run's records were read: a directory of extra cold laps that does not exist (an application with no marked route has none) stopped `judge_a.py` (it is now read as empty, and the output says so); a prediction whose steps are all outside 10% to 90% gives a mean of `null`, which stopped `judge_b.py` (the output now says "none (no usable step)"); an undecidable application was shown with short numbers of 0 (now "n/a"). No rule of a tool was touched.
 
 ## What is not covered
 

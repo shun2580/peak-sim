@@ -63,6 +63,7 @@ check "made-up B, 2 steps each: undecidable for both reasons, items still shown"
 check "made-up B, 2 steps each: the tool and the script agree" expect "$scratch/fb/b-verdict.json" "d['tool_and_script_agree_on_undecidable']" True
 check "made-up B, full ladders: runs" py "$here/judge_b.py" --prediction "$scratch/fake/b-full/prediction.json" --ladder-dir "$scratch/fake/b-full/ladders" --out "$scratch/fbf" --captured-max 30000
 check "made-up B, full ladders: decided, with a limit rps for 4 scenarios or more" expect "$scratch/fbf/b-verdict.json" "(d['verdict'] != 'undecidable', d['counts']['scenarios_with_limit'] >= 4)" "(True, True)"
+check "made-up B with no usable step: runs (the means are null) and is undecidable" bash -c "python3 -I '$here/judge_b.py' --prediction '$scratch/fake/b-none/prediction.json' --ladder-dir '$scratch/fake/b-none/ladders' --out '$scratch/fbn' --captured-max 30000 && python3 -I -c \"import json; d=json.load(open('$scratch/fbn/b-verdict.json')); assert d['verdict']=='undecidable' and d['counts']['usable_stages']==0\""
 F="$scratch/fake/a"
 check "made-up A: runs" py "$here/judge_a.py" --out "$scratch/fa" \
   --app fixtures $F/fixtures/estimate.json $F/fixtures/marked.json $F/fixtures/attempts.jsonl $F/fixtures/variance \

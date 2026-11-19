@@ -58,7 +58,15 @@ def main():
     os.makedirs(a.out, exist_ok=True)
     r1 = os.path.join(a.out, 'R1')
     cmd = ['python3', '-I', tool, '--out', r1]
+    no_variance = []
     for app in a.app:
+        app = list(app)
+        if ',' not in app[4] and not os.path.exists(app[4]):
+            # an application with no marked route has no repeat and so no variance directory (the third run's verification app): read it as empty
+            empty = os.path.join(a.out, 'empty-variance-' + app[0])
+            os.makedirs(empty, exist_ok=True)
+            no_variance.append(app[0])
+            app[4] = empty
         cmd += ['--app'] + app
     run = subprocess.run(cmd, capture_output=True, text=True)
     if run.returncode != 0 or not os.path.isfile(os.path.join(r1, 'compare.json')):
@@ -67,8 +75,9 @@ def main():
     cmp_ = json.load(open(os.path.join(r1, 'compare.json')))
     names = [x[0] for x in a.app]
 
-    result = {'rows': cmp_.get('at'), 'tool_sha256': TOOL_SHA256, 'rule': cmp_.get('rule'), 'apps': {}}
+    result = {'no_variance_directory_read_as_empty': no_variance, 'rows': cmp_.get('at'), 'tool_sha256': TOOL_SHA256, 'rule': cmp_.get('rule'), 'apps': {}}
     L = ['# A verdict (judge_a.py)\n',
+         ('No variance directory was given for: %s (read as empty: no extra cold laps).\n' % ', '.join(no_variance)) if no_variance else '',
          'Rows %s. The comparison tool is `extrapolation-data-2/compare_test2.py` (SHA-256 `%s`, checked before the run). %s.\n' % (
              cmp_.get('at'), TOOL_SHA256, cmp_.get('rule'))]
     for name in names:
@@ -109,10 +118,10 @@ def main():
         L.append('| Condition 1a (D153; per application, D215) | Inside | Denominator | Needed | Short |\n| --- | --- | --- | --- | --- |')
         for q in GATING:
             v = one_a['goal_unmarked_' + q]
-            L.append('| Goal, unmarked routes, %s (%s) | %d | %d | %d | %d |' % (LABEL[q], GOAL[q], v['inside'], v['denominator'], v['needed'], v['short']))
+            L.append('| Goal, unmarked routes, %s (%s) | %d | %d | %s | %s |' % (LABEL[q], GOAL[q], v['inside'], v['denominator'], *(('n/a', 'n/a (undecidable)') if undecidable else (v['needed'], v['short']))))
         for q in GATING:
             v = one_a['minimum_all_' + q]
-            L.append('| Lowest standard, all routes, %s (%s) | %d | %d | %d | %d |' % (LABEL[q], MIN[q], v['inside'], v['denominator'], v['needed'], v['short']))
+            L.append('| Lowest standard, all routes, %s (%s) | %d | %d | %s | %s |' % (LABEL[q], MIN[q], v['inside'], v['denominator'], *(('n/a', 'n/a (undecidable)') if undecidable else (v['needed'], v['short']))))
         L.append('')
         if undecidable:
             L.append('The test is undecidable here: no number short is given (D153).\n')
