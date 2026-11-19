@@ -1,0 +1,15 @@
+tool_head=c72478d483f6f647d568cfb36e5d065e5762eb3c
+start_explain_a-fixtures=2026-11-19T17:19:31+09:00 capture_sha=37a8dcd9383a157308d3e5651a6594cbe1d588f0321c9960be13b6d75af753b8 tasks_sha=0218161cf8c08f64f408e731394b9d198e8777b861b9906614f1587e2cd610f1
+end_explain_a-fixtures=2026-11-19T17:22:28+09:00 exit=0
+start_est_tools=2026-11-19T17:22:36+09:00
+end_est_tools=2026-11-19T17:22:40+09:00
+the EXPLAIN above (17:19:31 to 17:22:28, small side 24,000) was set aside and not used: it was taken with a small side of 24,000 before the decision to use the tool default 10,000 (as in the earlier A rounds) reached the run; the EXPLAIN below it is the one the estimate reads. The 24,000 run also marked 0 of 24 routes and gave an estimate identical byte for byte to this one.
+start_explain_a-fixtures=2026-11-19T17:23:58+09:00 capture_sha=37a8dcd9383a157308d3e5651a6594cbe1d588f0321c9960be13b6d75af753b8 tasks_sha=0218161cf8c08f64f408e731394b9d198e8777b861b9906614f1587e2cd610f1
+end_explain_a-fixtures=2026-11-19T17:26:14+09:00 exit=0
+start_est_tools=2026-11-19T17:26:29+09:00
+end_est_tools=2026-11-19T17:26:32+09:00
+files_changed_between_6ae5195_rehearsal_tool_and_tool_head_in_build_and_generator_paths=0
+files_changed_between_6ae5195_and_tool_head_anywhere_in_poc_runtime_and_poc_lab_bin=poc/lab/bin/measure-ladder poc/lab/bin/measure-ladder-chain 
+files_changed_between_8f4cd65_capture_tool_and_tool_head_in_generator_fixtures_app_and_DatabaseBuild=0
+build_db_script_changed_between_8f4cd65_and_tool_head=4 comment lines only (git diff --stat 8f4cd65 c72478d)
+leftover_stack_after_run=none (compose project peak-t4-afx taken down by the tool without -v; no container, volume or network of it remains)

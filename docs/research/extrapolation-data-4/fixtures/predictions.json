@@ -1,0 +1,775 @@
+{
+    "schema_version": "0.1",
+    "source": "s1",
+    "at": 240000,
+    "routes": [
+        {
+            "route": "GET /hidden/appends",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1081321970.1600823,
+                    "a": 35408.1264822,
+                    "b": 4505.36067514,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/blade",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 854710304.6551584,
+                    "a": 84354.3696414,
+                    "b": 3146.02900048,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/cache",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 867785346.2806863,
+                    "a": 45775.2094862,
+                    "b": 3615.58154613,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/conditional-binding",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 867784410.2806863,
+                    "a": 44839.2094862,
+                    "b": 3615.58154613,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/cursor",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240003,
+                    "a": 3,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 17613863.616875168,
+                    "a": 68878.5464594,
+                    "b": 64.5861874731,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/model-with",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2.0557172375555712,
+                    "a": 1.0010587424,
+                    "b": 0.931772186956,
+                    "k": 0.01
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 232891.10869684923,
+                    "a": 8.58265951478,
+                    "b": 1.09831717227,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 688705413.6635858,
+                    "a": 44388.9011858,
+                    "b": 2869.42093651,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /hidden/resource",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 927792753.8816587,
+                    "a": 75424.1604573,
+                    "b": 3415.09127189,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /ng/collection-filter",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240003,
+                    "a": 3,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 323115252.9782522,
+                    "a": 40072.7658012,
+                    "b": 1189.29677474,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /ng/count-in-loop",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1200003,
+                    "a": 3,
+                    "b": 5,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 399607091.1493217,
+                    "a": 54654.9565217,
+                    "b": 1664.80181747,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/first-or-create-in-loop",
+            "axis": "N",
+            "table": "products",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480001,
+                    "a": 1,
+                    "b": 2,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 365835378.6850096,
+                    "a": 65223.2810709,
+                    "b": 1050.97089204,
+                    "k": 1.03
+                }
+            }
+        },
+        {
+            "route": "GET /ng/get-then-count",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240003,
+                    "a": 3,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 323115252.9782522,
+                    "a": 40072.7658012,
+                    "b": 1189.29677474,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /ng/layered",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 855865233.7822514,
+                    "a": 54300.0790514,
+                    "b": 3565.87889043,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/n-plus-one",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 863694965.2521992,
+                    "a": 50371.3833992,
+                    "b": 3598.51914112,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/nested",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 960001,
+                    "a": 1,
+                    "b": 4,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1920003,
+                    "a": 3,
+                    "b": 8,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2761338944.7026405,
+                    "a": 42291.4466403,
+                    "b": 11505.4027219,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/save-in-loop",
+            "axis": "N",
+            "table": "customers",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 482360334.85352415,
+                    "a": 42220.8063241,
+                    "b": 2009.65880853,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/service",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240001,
+                    "a": 1,
+                    "b": 1,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 480003,
+                    "a": 3,
+                    "b": 2,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 857785152.7717218,
+                    "a": 54294.9565217,
+                    "b": 3573.87857423,
+                    "k": 1
+                }
+            }
+        },
+        {
+            "route": "GET /ng/unbounded",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240003,
+                    "a": 3,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 474070543.4624707,
+                    "a": 45431.2726625,
+                    "b": 1744.97012337,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /ok/chunk",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2401,
+                    "a": 1,
+                    "b": 0.01,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 215899619.67433113,
+                    "a": 50.5109353448,
+                    "b": 0.0129375015976,
+                    "k": 1.9
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 159263.13005884865,
+                    "a": 57669.9865375,
+                    "b": 89755.7512251,
+                    "k": 0.01
+                }
+            }
+        },
+        {
+            "route": "GET /ok/eager",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2.0557172375555712,
+                    "a": 1.0010587424,
+                    "b": 0.931772186956,
+                    "k": 0.01
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 232891.10869684923,
+                    "a": 8.58265951478,
+                    "b": 1.09831717227,
+                    "k": 0.99
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 518491562.42300695,
+                    "a": 61410.2576478,
+                    "b": 1908.43291488,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /ok/lazy",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2401,
+                    "a": 1,
+                    "b": 0.01,
+                    "k": 1
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 215899619.67433113,
+                    "a": 50.5109353448,
+                    "b": 0.0129375015976,
+                    "k": 1.9
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 160832.1645500269,
+                    "a": 58421.3031866,
+                    "b": 90478.1905223,
+                    "k": 0.01
+                }
+            }
+        },
+        {
+            "route": "GET /ok/paginate",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2.0557172375555712,
+                    "a": 1.0010587424,
+                    "b": 0.931772186956,
+                    "k": 0.01
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240174.15019789414,
+                    "a": 12.8853754941,
+                    "b": 1.00067193676,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 68529.42021464484,
+                    "a": 59265.2999932,
+                    "b": 8184.68689022,
+                    "k": 0.01
+                }
+            }
+        },
+        {
+            "route": "GET /ok/with-count",
+            "axis": "N",
+            "table": "orders",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1101388.9772363112,
+                    "a": 266.236749031,
+                    "b": 972822.528547,
+                    "k": 0.01
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 428431447.3030938,
+                    "a": 43371.7611248,
+                    "b": 1576.97213461,
+                    "k": 1.01
+                }
+            }
+        },
+        {
+            "route": "GET /unknown/dynamic",
+            "axis": "N",
+            "table": null,
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 1,
+                    "a": 1,
+                    "b": 0,
+                    "k": 0
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240002,
+                    "a": 2,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 59032,
+                    "a": 59032,
+                    "b": 0,
+                    "k": 0
+                }
+            }
+        },
+        {
+            "route": "POST /ok/bulk",
+            "axis": "N",
+            "table": "customers",
+            "static_lower_bound": null,
+            "quantities": {
+                "queries": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 2.0557172375555712,
+                    "a": 1.0010587424,
+                    "b": 0.931772186956,
+                    "k": 0.01
+                },
+                "rows_examined": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 240002,
+                    "a": 2,
+                    "b": 1,
+                    "k": 1
+                },
+                "peak_memory": {
+                    "status": "predicted",
+                    "fit_status": "ok",
+                    "value": 519542117.8320403,
+                    "a": 36842.9590004,
+                    "b": 2450.0831994,
+                    "k": 0.99
+                }
+            }
+        }
+    ]
+}

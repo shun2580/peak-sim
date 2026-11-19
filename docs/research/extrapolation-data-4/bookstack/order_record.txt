@@ -1,0 +1,14 @@
+tool_head=c72478d483f6f647d568cfb36e5d065e5762eb3c (git archive poc/runtime poc/lab/bin merge_inputs.py)
+now=2026-11-19T17:19:59+09:00
+start_explain_a-bookstack=2026-11-19T17:20:22+09:00 capture=t2r/bookstack capture_sha=8e59d81fe0dd44c8626ba27681ed007c9e1d80e8510ec82a6be8ba7645209b0f tasks_sha=ee329bfb0a8a518acaf60b1a06b1323fe176731d12c289e70330d1fd72d98dfa
+start_explain_a-bookstack12=2026-11-19T17:20:23+09:00 capture=t2r/bookstack12 capture_sha=02fc02e08608146ed1ece0f6c5871f6691dd50bd87d22cde91db02d96ac6e8bd tasks_sha=92fc91013f8c9e0a5b4d5ad23b8b7b9b11a1e3772d86ae4ae3b7cae8bd00d0e8
+start_predict=2026-11-19T17:20:50+09:00
+end_predict=2026-11-19T17:20:53+09:00
+end_explain_a-bookstack12=2026-11-19T17:30:13+09:00 exit=0
+down_peak-t4a-b12=2026-11-19T17:30:16+09:00 exit=0
+end_explain_a-bookstack=2026-11-19T17:38:15+09:00 exit=0
+down_peak-t4a-bs=2026-11-19T17:38:18+09:00 exit=0
+start_est_tools=2026-11-19T17:38:29+09:00
+cmp estimate identical
+cmp marked identical
+end_est_tools=2026-11-19T17:38:33+09:00

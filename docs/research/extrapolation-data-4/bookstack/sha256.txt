@@ -1,0 +1,13 @@
+# SHA-256 of the inputs and outputs of the BookStack A estimate at 240,000 rows (fifth round)
+8e59d81fe0dd44c8626ba27681ed007c9e1d80e8510ec82a6be8ba7645209b0f  capture.json of the main run, 31 routes (retaken, t2r; not in the repository)
+02fc02e08608146ed1ece0f6c5871f6691dd50bd87d22cde91db02d96ac6e8bd  capture.json of the 12 routes (retaken, t2r; not in the repository)
+ee329bfb0a8a518acaf60b1a06b1323fe176731d12c289e70330d1fd72d98dfa  tasks.json of the main run
+92fc91013f8c9e0a5b4d5ad23b8b7b9b11a1e3772d86ae4ae3b7cae8bd00d0e8  tasks.json of the 12 routes
+72663e2acbd92afb609c9564d49525f848c8045bd3a1b37749a4fd2409a94a1b  explain.json of the main run (not in the repository)
+716cccd7e04234933a1bae0ea8592ff56e8982e59c5eec41cb06101a3c43e2a1  explain.json of the 12 routes (not in the repository)
+8c7125bed1f250d9f49c1f3538b16de132fa383b6131203bd6d6bb672f965813  merged capture.json (not in the repository)
+9ce54b8b16bf7f9847f9f23d39c4c76d9a586c86bd09c26c4b8fa5744887215f  merged explain.json (not in the repository)
+5f409c300b490463b9a198e677f301e09125d288a0d06d89fbce19c01a3a518f  fits.json (= ../../extrapolation-data-3/bookstack/fits.json)
+a881e945e9e8932f6f61881dcd9cf851efbeadec3d6d74cdd4a3fb8947927936  predictions.json (bin/predict --at=240000)
+8c6f11dcf28b2a6ef6c6a3207aa0b53397e0ca3650bb17f4dbd6c29bddda6d10  estimate.json = poc/lab/predictions/extrapolation-4-bookstack-estimate.json
+63cb2e67ceef2b44c7cefe5ea907dcc02ead47fc0c19d82ee62edca0c32f7000  marked-routes.json = poc/lab/predictions/extrapolation-4-bookstack-marked.json

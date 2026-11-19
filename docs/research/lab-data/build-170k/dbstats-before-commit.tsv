@@ -1,0 +1,46 @@
+# reading of performance_schema.table_io_waits_summary_by_table for schema peak_sim_measure_d60189cad0bc_lab_170000 just before the prediction is committed; compare with dbstats-baseline.tsv
+# date -Is: 2026-11-19T17:31:10+09:00
+# server clock: 2026-11-19 08:31:10
+# Uptime (seconds): 18316
+object_schema	object_name	count_read	count_write	count_fetch	count_insert	count_update	count_delete
+peak_sim_measure_d60189cad0bc_lab_170000	activities	510003	170000	510003	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	api_tokens	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	attachments	19	5	19	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	bookshelves_books	15	5	15	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	cache	0	0	0	0	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	comments	19	5	19	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	deletions	510003	170000	510003	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	email_confirmations	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	entities	1360015	442000	1360015	170000	272000	0
+peak_sim_measure_d60189cad0bc_lab_170000	entity_container_data	6	102010	6	102005	0	5
+peak_sim_measure_d60189cad0bc_lab_170000	entity_page_data	136011	68010	136011	68005	0	5
+peak_sim_measure_d60189cad0bc_lab_170000	entity_permissions	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	failed_jobs	0	0	0	0	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	favourites	510003	170000	510003	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	images	680005	340000	680005	170000	170000	0
+peak_sim_measure_d60189cad0bc_lab_170000	imports	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	jobs	0	0	0	0	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	joint_permissions	3400002	1870000	3400002	1700000	0	170000
+peak_sim_measure_d60189cad0bc_lab_170000	mention_history	17	5	17	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	mfa_values	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	migrations	0	104	0	104	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	page_revisions	25	9	25	5	4	0
+peak_sim_measure_d60189cad0bc_lab_170000	password_resets	0	0	0	0	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	permission_role	632	152	632	152	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	references	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	role_permissions	391	32	391	32	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	role_user	29	7	29	7	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	roles	59	5	59	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	search_terms	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	sessions	0	0	0	0	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	settings	1	6	1	6	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	slug_history	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	social_accounts	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	sort_rules	2	5	2	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	tags	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	user_invites	18	5	18	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	users	25	5	25	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	views	510002	170000	510002	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	watches	510003	170000	510003	170000	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	webhook_tracked_events	17	5	17	5	0	0
+peak_sim_measure_d60189cad0bc_lab_170000	webhooks	17	5	17	5	0	0
