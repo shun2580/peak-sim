@@ -1,0 +1,5 @@
+/peak-lab-db exit=0 oom=false restarts=0 finished=2026-11-19T21:45:44.837232567Z
+/peak-lab-app exit=0 oom=false restarts=0 finished=2026-11-19T21:45:43.824345859Z
+/peak-lab-web exit=0 oom=false restarts=0 finished=2026-11-19T21:45:43.61287705Z
+/peak-lab-k6 exit=137 oom=false restarts=0 finished=2026-11-19T21:45:43.161864293Z
+/peak-lab-tools exit=137 oom=false restarts=0 finished=2026-11-19T21:45:43.144355571Z

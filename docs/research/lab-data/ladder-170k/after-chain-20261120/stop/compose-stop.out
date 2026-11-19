@@ -1,0 +1,11 @@
+ Container peak-lab-tools Stopping 
+ Container peak-lab-k6 Stopping 
+ Container peak-lab-tools Stopped 
+ Container peak-lab-k6 Stopped 
+ Container peak-lab-web Stopping 
+ Container peak-lab-web Stopped 
+ Container peak-lab-app Stopping 
+ Container peak-lab-app Stopped 
+ Container peak-lab-db Stopping 
+ Container peak-lab-db Stopped 
+exit=0

@@ -40,7 +40,7 @@ The db log was read before and after every scenario of the second run; each time
 
 ## Restoring the settings
 
-After s-5 (2026-11-20 06:38:13) the logs were copied, the diff was saved, and `compose-B.diff` was reversed with `bin/lab-config-b restore` at 06:38:41; the two compose files then had the sha256 of before B (`zz-lab.ini` f495eab5…261b, `lab.conf` 604aedff…5ec5) and `git status` showed no change in `poc/lab/compose`. The app and web containers were recreated with `use-db 170000` (06:38:49) and the values read from the php-fpm and nginx side were the defaults (`limits-after-restore/`: `max_execution_time` 30, `memory_limit` 512M, `request_terminate_timeout` 0s, nginx 120s). The lab was left up with the data volume kept.
+After s-5 (2026-11-20 06:38:13) the logs were copied, the diff was saved, and `compose-B.diff` was reversed with `bin/lab-config-b restore` at 06:38:41; the two compose files then had the sha256 of before B (`zz-lab.ini` f495eab5…261b, `lab.conf` 604aedff…5ec5) and `git status` showed no change in `poc/lab/compose`. The app and web containers were recreated with `use-db 170000` (06:38:49) and the values read from the php-fpm and nginx side were the defaults (`limits-after-restore/`: `max_execution_time` 30, `memory_limit` 512M, `request_terminate_timeout` 0s, nginx 120s). The lab was left up at that point, with the data volume kept; it was then stopped with `docker compose stop` at 06:45:41-06:45:45 (containers and the volume kept; see `after-chain-20261120/stop/` and the last section of `pause-20261119/RESUME-20261120.md`).
 
 ## Changes to the copies
 
