@@ -2,7 +2,7 @@
 # Measures one prediction scenario (t-1 .. t-5, r-1 .. r-5 of the re-check, or s-1 .. s-5 of the third backtest) on the lab, step by step up the rps ladder
 # (docs/simulator-spec.md sections 7.2, 7.4.1 and 7.4.2).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--scale=<N>] [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--scale=<N>] [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--require-allocation] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --dry-run [--predictions=<file>] [--scale=<N>] [--scheme=<spec|A|B>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> --statement-record=<capture.json> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
@@ -67,6 +67,10 @@
 #   that was predicted. The line `ALLOCATION <scenario>: ...` says so, and `<scenario>-<count>/allocation.json` keeps what the plans were made from. A
 #   prediction with no `allocation` anywhere is measured exactly as before (the mix; plans byte for byte the same). A prediction with half of one, or whose
 #   `rps_after` disagrees with its stages or with the dropped routes, is refused with exit 2 before any container is touched.
+#   --require-allocation (default off; the B chain sets it): a second guard behind the gate, which passes a prediction with no allocation as one made without
+#   the flag. With it, a prediction that does not state an allocation for this scenario (the top block enabled and the scenario's own block; a prediction made with
+#   the flag states both even when it drops no route) is refused with exit 2 before any container is touched, so a B that must be measured on an allocated mix
+#   cannot be measured on the mix by a prediction that was made without it. Without the flag nothing changes. It needs --predictions and is refused with --trial.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -109,7 +113,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record= ; scale_arg= ; scale_given=
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record= ; scale_arg= ; scale_given= ; require_allocation=0
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -122,10 +126,15 @@ for arg in "$@"; do
     --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
     --statement-record=*) statement_record="${arg#--statement-record=}" ;;
     --scale=*) scale_arg="${arg#--scale=}" ; scale_given=1 ;;
+    --require-allocation) require_allocation=1 ;;
     *) usage ;;
   esac
 done
 [[ "$scheme" =~ ^(spec|A|B)$ ]] || usage
+if [ "$require_allocation" = 1 ] && { [ -n "$trial" ] || [ -z "$predictions" ]; }; then
+  echo "measure-ladder: --require-allocation reads the allocation of a prediction: it needs --predictions and is refused with --trial" >&2
+  exit 2
+fi
 # the same shape scenario.js accepts (a number alone would be milliseconds, so a unit is required)
 if [ -n "$request_timeout" ] && ! [[ "$request_timeout" =~ ^[0-9]+(\.[0-9]+)?(ms|s|m|h)$ ]]; then
   echo "measure-ladder: --request-timeout must be a k6 duration with a unit, such as 600s (got '$request_timeout')" >&2
@@ -219,9 +228,9 @@ fi
 # that still has an rps, an rps_after that is not what the stages hold) is refused (exit 2) before any container is touched. Reads the file only.
 alloc_json=""
 if [ -z "$trial" ] && [ -n "$predictions" ]; then
-  alloc_json="$(python3 - "$predictions" "$scenario" <<'PY'
+  alloc_json="$(python3 - "$predictions" "$scenario" "$require_allocation" <<'PY'
 import json, math, sys
-path, sid = sys.argv[1], sys.argv[2]
+path, sid, require = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
 def refuse(why):
     sys.stderr.write("measure-ladder: the allocation of %s in %s: %s\n" % (sid, path, why))
     sys.exit(2)
@@ -231,6 +240,8 @@ top = doc.get("allocation")
 sc = [s for s in doc.get("scenarios", []) if isinstance(s, dict) and s.get("id") == sid][0]
 alloc = sc.get("allocation")
 on = isinstance(top, dict) and top.get("enabled") is True
+if require and not (on and isinstance(alloc, dict)):
+    refuse("--require-allocation: the prediction does not state an allocation for this scenario (the top block enabled and the scenario's own block, even with no route dropped); it was not made with predict-ladder --drop-marked-routes")
 if alloc is None and not on:
     sys.exit(0)                                   # no allocation anywhere (or one that is off): the mix, as always
 if alloc is not None and not on:

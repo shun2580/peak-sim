@@ -4,13 +4,18 @@
 #
 #   poc/lab/bin/measure-ladder-chain --scale=<rows> --predictions=<committed prediction file> --statement-record=<capture.json> \
 #       --out-dir=<dir under the out directory> [--scenarios="s-1 s-2 s-3 s-4 s-5"] [--request-timeout=1800s] [--stop-mark=<file>] \
-#       [--ladder-out=<dir>]
+#       [--ladder-out=<dir>] [--allow-no-allocation]
 #
 # The lab must already be set for B (`bin/lab-config-b apply`, then `bin/use-db <scale>`): PHP max_execution_time 0, memory_limit 4G,
 # php-fpm request_terminate_timeout 0, nginx fastcgi_read_timeout and the load tool's request timeout at --request-timeout (default 1800s).
 # The request timeout is also how long the load tool waits at the end of a step for the requests still running (k6's gracefulStop in
 # load/scenario.js), so one value covers the three places. It is passed to `check-limits` and to `measure-ladder`, which refuses a step
 # when nginx's value is shorter than it. Nothing about it is fixed in the tools: a chain given 600s is the chain of the fourth round.
+#
+# The chain measures B with `bin/measure-ladder --require-allocation`: the prediction must state its allocation for the scenario (made with
+# `predict-ladder --drop-marked-routes`, even when no route is dropped), or measure-ladder refuses with 2 before any container is touched and the
+# chain stops with that exit. The gate alone passes a prediction made without the flag, which would be measured on the mix. `--allow-no-allocation`
+# leaves the flag out (a prediction made before the allocation existed, such as the 90,000-row one) and the line in chain.log says so.
 #
 # For each scenario, in order:
 #   1. THE STOP MARK. If the file --stop-mark (default <out-dir>/STOP) exists, the next scenario is not entered: the chain reads the memory
@@ -38,7 +43,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
-scale="" ; predictions="" ; statement_record="" ; out_dir="" ; scenarios="s-1 s-2 s-3 s-4 s-5" ; request_timeout="1800s" ; stop_mark="" ; ladder_out=""
+scale="" ; predictions="" ; statement_record="" ; out_dir="" ; scenarios="s-1 s-2 s-3 s-4 s-5" ; request_timeout="1800s" ; stop_mark="" ; ladder_out="" ; require_allocation=1
 for arg in "$@"; do
   case "$arg" in
     --scale=*) scale="${arg#--scale=}" ;;
@@ -49,6 +54,7 @@ for arg in "$@"; do
     --request-timeout=*) request_timeout="${arg#--request-timeout=}" ;;
     --stop-mark=*) stop_mark="${arg#--stop-mark=}" ;;
     --ladder-out=*) ladder_out="${arg#--ladder-out=}" ;;
+    --allow-no-allocation) require_allocation=0 ;;
     *) usage ;;
   esac
 done
@@ -75,7 +81,8 @@ readings() { # $1 = label
 }
 finish() { touch "$W/chain.done"; }
 
-log "CHAIN START scale=$scale scenarios='$scenarios' request_timeout=$request_timeout stop_mark=$stop_mark"
+log "CHAIN START scale=$scale scenarios='$scenarios' request_timeout=$request_timeout stop_mark=$stop_mark require_allocation=$require_allocation"
+[ "$require_allocation" = 1 ] || log "NOTE --allow-no-allocation: measure-ladder is not given --require-allocation; a prediction with no allocation is measured on the mix"
 first=1
 remaining=($scenarios)
 for sc in $scenarios; do
@@ -104,6 +111,7 @@ for sc in $scenarios; do
   readings "before-$sc"
   log "START $sc scale=$scale request_timeout=$request_timeout"
   ml_args=(--scenario="$sc" --scale="$scale" --predictions="$predictions" --statement-record="$statement_record" --scheme=B --request-timeout="$request_timeout")
+  [ "$require_allocation" = 0 ] || ml_args+=(--require-allocation)
   [ -z "$ladder_out" ] || ml_args+=(--out="$ladder_out")
   "$bindir/measure-ladder" "${ml_args[@]}" >"$W/$sc.output.txt" 2>&1
   rc=$?

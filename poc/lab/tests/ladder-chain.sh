@@ -18,6 +18,8 @@
 #    7  a scenario that ends non-zero stops the chain with its exit (13); 19 keeps the state of the containers; nothing after it runs
 #    8  a recreation that fails stops it (use-db: 11; the limits not as B needs: 13) before any measurement
 #    9  usage errors (2) touch nothing; the chain contains no kill
+#   16  the chain measures with --require-allocation by default (every scenario), --allow-no-allocation leaves it out and chain.log says so; a refusal
+#       of measure-ladder (2) stops the chain with 2
 # B  the real measure-ladder and check-limits behind a stand-in docker, B's settings taken from the diff itself:
 #   10  the lab left at the default, or at the 600 s of the fourth round, with 1800s asked: 13 before the load tool
 #   11  the lab as the diff makes it, with 1800s asked: the load tool is called with REQUEST_TIMEOUT=1800s, and the step's settings say 1800s
@@ -31,6 +33,9 @@
 #   14  a prediction with none: the plan has all 8 routes, the mix's shares, no `allocation` key; make-plan's output is byte for byte what it was before the
 #       option existed (hashes taken before the change, 16 plans over the 8 mixes)
 #   15  a prediction with half an allocation, a dropped route that has an rps, stages that disagree: exit 2 before any container is touched
+#   17  --require-allocation (D227): a prediction with an allocation, even one that drops no route, is measured; one with none (the gate passes it as made
+#       without the flag), or with one that is switched off, is refused (2) before any container; without the flag nothing changed; it needs --predictions
+#       and refuses --trial
 # D  bin/lab-config-b in a throw-away repository: status; apply gives 1800s, max_execution_time 0, memory_limit 4G; a second apply and a
 #    restore that is not exactly the diff are refused and change nothing; restore gives back the bytes; the diff applies to the files of HEAD
 # No test is skipped: a precondition that is not met is a failure, not a skip.
@@ -196,6 +201,17 @@ run_chain "$work/not-in-out"; expect_code "9d an --out-dir outside the lab's out
 run_chain "$d" --bogus; expect_code "9e an unknown option: 2" 2 $?
 [ ! -s "$A/calls" ] && pass "9f none of them called any tool" || fail "9f $(head -2 "$A/calls")"
 if grep -Eq '(^|[^A-Za-z_])(kill|pkill|killall)([^A-Za-z_]|$)' <(grep -v '^#' "$lab/bin/measure-ladder-chain" | grep -v 'oom_kill'); then fail "9g the chain's code contains a kill"; else pass "9g the chain's code contains no kill (the stop is the mark)"; fi
+
+# 16 -------------------------------------------------------------------------------------------------------------------------
+reset_a; chain_dir; run_chain "$d"
+[ "$(grep '^measure-ladder ' "$A/calls" | grep -c -- ' --require-allocation')" = 5 ] && has "$d/chain.log" 'require_allocation=1' && ! has "$d/chain.log" 'NOTE --allow-no-allocation' \
+  && pass "16 by default every scenario is measured with --require-allocation (5 of 5), and chain.log says require_allocation=1" || fail "16 $(grep '^measure-ladder ' "$A/calls" | head -1)"
+reset_a; chain_dir; run_chain "$d" --allow-no-allocation --scenarios="s-1 s-2"
+[ "$(calls_of measure-ladder)" = 2 ] && ! grep '^measure-ladder ' "$A/calls" | grep -q -- '--require-allocation' && has "$d/chain.log" 'NOTE --allow-no-allocation' \
+  && pass "16b --allow-no-allocation leaves the flag out, and chain.log says so" || fail "16b"
+reset_a; chain_dir; printf '2' >"$A/s/rc-s-1"; run_chain "$d"; rc=$?
+expect_code "16c measure-ladder refusing the prediction (2) stops the chain with 2" 2 $rc
+[ "$(order_of)" = "s-1" ] && pass "16d nothing after it ran" || fail "16d order '$(order_of)'"
 
 # ================================================================================================================================
 # D (first: B's values are read from the diff for B and C)
@@ -373,6 +389,12 @@ d = doc(); d["scenarios"][0]["stages"][3]["rps"][DROP] = 0.001; write("alloc-sta
 d = doc(); st = d["scenarios"][0]["stages"][5]["rps"]; k = sorted(st)[0]; st[k] *= 1.5; write("alloc-stage-shares", d)
 d = doc(); d["scenarios"][0]["allocation"]["rps_total_after"] = 1.5; write("alloc-total", d)
 d = doc(); d["allocation"]["enabled"] = False; d["scenarios"][0].pop("allocation"); write("alloc-off", d)
+# a prediction made with the flag that drops no route still states the allocation: the block at the top, and the scenario's own with no dropped route
+d = doc(); sc = d["scenarios"][0]
+full = 1.0 / len(routes)
+sc["allocation"].update({"dropped_routes": [], "rps_after": {r: 0.125 for r in routes}})
+sc["stages"] = [{"rps_total": t, "rps": {r: t * full for r in routes}} for t in rungs]
+write("alloc-zero", d)
 PY
 git -C "$brepo" add -A && git -C "$brepo" commit -q -m "chore: seed the allocation predictions"
 plan1() { echo "$out/ladder/s-1-$SCALE/rung-01-0.025/plan.json"; }
@@ -442,6 +464,26 @@ expect_code "15c a prediction whose stages do not have the shares of rps_after: 
 [ ! -s "$Bdir/docker.calls" ] && pass "15d ... and no container was touched" || fail "15d $(wc -l <"$Bdir/docker.calls") docker calls"
 reset_e; ml_pred alloc-top-only; rc=$?
 expect_code "15e half an allocation (the top without the scenario's): the gate closes first (12)" 12 $rc
+
+# 17 -------------------------------------------------------------------------------------------------------------------------
+ml_req() { ml_b --scenario=s-1 --predictions="$brepo/poc/lab/predictions/$1.json" --scheme=B --request-timeout=600s --require-allocation; }
+reset_e; ml_req alloc-ok; rc=$?
+[ "$(k6_calls)" -ge 1 ] && has "$Bdir/ml.out" 'ALLOCATION s-1: 7 routes sent' && pass "17 --require-allocation with an allocation: measured on it (the load tool is reached)" || fail "17 rc $rc ($(head -2 "$Bdir/ml.err"))"
+reset_e; ml_req alloc-zero; rc=$?
+[ "$(k6_calls)" -ge 1 ] && has "$Bdir/ml.out" 'ALLOCATION s-1: 8 routes sent, 0 not sent (none)' && [ "$(routes_in_plan "$(plan1)" | tr ',' '\n' | wc -l)" = 8 ] \
+  && pass "17b an allocation that drops no route counts as stated: measured, all 8 routes sent (the block is there even with nothing dropped)" || fail "17b rc $rc ($(head -2 "$Bdir/ml.err"))"
+reset_e; ml_req p; rc=$?
+expect_code "17c --require-allocation with a prediction that has none (the gate passes it): 2" 2 $rc
+[ ! -s "$Bdir/docker.calls" ] && has "$Bdir/ml.err" 'require-allocation' && pass "17d ... before any container, and the refusal names the flag" || fail "17d $(head -2 "$Bdir/ml.err"); docker calls $(wc -l <"$Bdir/docker.calls")"
+reset_e; ml_pred p; rc=$?
+[ "$(k6_calls)" -ge 1 ] && pass "17e the same prediction without the flag is measured as before" || fail "17e rc $rc"
+PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$lab/bin/measure-ladder" --scenario=s-1 --dry-run \
+  --predictions="$brepo/poc/lab/predictions/alloc-off.json" --scheme=B --require-allocation >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+expect_code "17f a block that is switched off does not count as stated (dry run): 2" 2 $rc
+"$lab/bin/measure-ladder" --scenario=s-1 --dry-run --require-allocation >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+expect_code "17g --require-allocation without --predictions: 2" 2 $rc
+"$lab/bin/measure-ladder" --trial=cal-2 --predictions="$bpred" --require-allocation >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+expect_code "17h --require-allocation with --trial: 2" 2 $rc
 
 echo
 echo "ladder chain tests: $passed passed, $failed failed, $skipped skipped"
