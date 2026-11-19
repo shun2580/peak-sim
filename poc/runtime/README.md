@@ -96,24 +96,17 @@ never read the scaled tables, or whose largest response equals the empty system'
 ## The maintenance state of the databases (a precondition of every estimate)
 
 Some apps keep a table by a process of their own (a rebuild or an aggregate run from the app's maintenance page or console), and the
-data generator cannot write what that process writes. A profile can say so with a `rebuild` list (`profiles/bookstack.php`: the console
-command `bookstack:regenerate-references`, the one the maintenance route `POST /settings/maintenance/regenerate-references` runs, and the
-table it rewrites, `references`). Every database made by `bin/inner/build-db.php` (so every database of `bin/measure`, `bin/capture`,
-`bin/variance-run`, `bin/explain-at-scale` and the lab's `poc/lab/bin/build-db`) then ends in this order:
-
-```
-build (migrate, generate, the profile's fixups)  ->  rebuild (the app's own command)  ->  ANALYZE TABLE on every table
-```
-
-A rebuild that fails stops the build (exit 13): the database is not analysed and is not handed on. The record of the build (`rebuild` in
-the line `build-db.php` prints) keeps, for each step, the rows of the rewritten table before and after, and the tables whose figure ANALYZE
-changed. A profile with no `rebuild` is built as it always was. A capture of a profile that has one must be asked for
-`--analyze-after-build=on` (it is refused otherwise).
+data generator cannot write what that process writes. **No database made by this tool has such a process run on it.** Every database
+made by `bin/inner/build-db.php` (so every database of `bin/measure`, `bin/capture`, `bin/variance-run`, `bin/explain-at-scale` and the
+lab's `poc/lab/bin/build-db`) is built, and then ANALYZEd where the tool asks for it (`--analyze-after-build=on`, the EXPLAIN step), and
+nothing else is run on it. The line `build-db.php` prints keeps the rows of every table after the build (`rows`), so a record shows what
+each table held. The decision and its reason are in `docs/decisions.md` (D229, D230).
 
 **What you must hold for an estimate to mean something:** the database the statements were captured on and the database the estimate is
-about must be in the same maintenance state, that is, the rebuild and aggregate processes of the app finished, and then `ANALYZE TABLE`
-run. A database that skipped the process can hold different rows in the table it rewrites, and the routes that read that table then read
-a different table from the one the estimate was made from. Every prediction output carries this as part of `estimate_basis_note`.
+about must be in the same maintenance state: the rebuild and aggregate processes of the app run on both or on neither, and `ANALYZE TABLE`
+run on both. A database that had the process run on it can hold different rows in the table it rewrites, and the routes that read that
+table then read a different table from the one the estimate was made from. Every prediction output carries this as part of
+`estimate_basis_note`.
 
 Some routes rewrite a table other routes read (`POST /settings/maintenance/regenerate-references` deletes every row of `references` and
 rebuilds it; `PUT /books/{slug}` inserts a row of `slug_history` for every child of the book). Each request is rolled back, so the rows
