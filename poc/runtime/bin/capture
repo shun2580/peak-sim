@@ -48,9 +48,7 @@ usage: bin/capture --app=<dir> --static=<analysis.json> [options]
   --analyze-after-build=on|off
                          on: right after each database is built, ANALYZE TABLE on every table and STATS_AUTO_RECALC=0, before a route
                          is sent (the statistics state the EXPLAIN step puts its databases in, so the plans the capture sees are the
-                         plans EXPLAIN reads). Default off: the capture is as it was. A profile with `rebuild` steps (bookstack: the app's
-                         `regenerate-references`) makes every database end in build, rebuild, ANALYZE (bin/inner/build-db.php, whatever this
-                         option says), and a capture with such a profile must say on: with off it is refused (exit 2).
+                         plans EXPLAIN reads). Default off: the capture is as it was.
   --keep-stack           leave the stack up afterwards (tear it down with bin/stack down)
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-capture), PHP_VERSION (default 8.3), PEAK_PHP_IMAGE (an already built image)

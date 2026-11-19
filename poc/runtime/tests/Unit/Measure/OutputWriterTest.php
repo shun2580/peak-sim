@@ -93,31 +93,6 @@ final class OutputWriterTest extends PlannerTestCase
         $this->assertArrayNotHasKey('statistics', $summary['builds'][0]);
     }
 
-    public function test_the_rebuild_of_a_build_with_the_rows_before_and_after_stays_in_the_record(): void
-    {
-        $rebuild = [
-            'order' => ['build', 'rebuild', 'analyze'],
-            'steps' => [['name' => 'regenerate_references', 'command' => 'bookstack:regenerate-references', 'seconds' => 1.5, 'rows_before' => ['references' => 100], 'rows_after' => ['references' => 0]]],
-            'analyze' => ['tables' => 3, 'seconds' => 0.4, 'table_rows_changed' => []],
-        ];
-        $base = self::sample();
-        $result = new DriverResult(0, null, $base->report, $base->attempts, $base->timings, [['point' => 'ord:100', 'database' => 'peak_sim_measure_x', 'rows' => ['references' => 0], 'rebuild' => $rebuild]]);
-
-        (new OutputWriter($this->dir))->write($result, [], [], null);
-
-        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
-        $this->assertSame($rebuild, $summary['builds'][0]['rebuild']);
-    }
-
-    public function test_a_build_without_a_rebuild_has_no_rebuild_key_and_the_rest_of_its_record_is_as_it_was(): void
-    {
-        (new OutputWriter($this->dir))->write(self::sample(), [], [], null);
-
-        $summary = json_decode((string) file_get_contents($this->dir . '/summary.json'), true);
-        $this->assertArrayNotHasKey('rebuild', $summary['builds'][0]);
-        $this->assertSame(['point' => 'ord:100', 'database' => 'peak_sim_measure_x', 'rows' => ['orders' => 100]], $summary['builds'][0]);
-    }
-
     public function test_with_expectations_it_puts_them_beside_the_static_analysis_and_the_measurement(): void
     {
         (new OutputWriter($this->dir))->write(self::sample(), [], [], [['route' => '/ok/eager', 'group' => 'ok', 'query' => 'O(1)']]);

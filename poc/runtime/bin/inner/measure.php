@@ -66,18 +66,6 @@ try {
     $stop(MeasureRefused::EXIT_CODE, $e->getMessage());
 }
 
-// A capture of an app whose profile has `rebuild` steps must be asked for `--analyze-after-build=on` (Options::refusalForProfile).
-if ($options->profile !== null && $options->tapDir !== null) {
-    try {
-        $refusal = $options->refusalForProfile(Profile::load($options->profile));
-    } catch (BuildFailure $e) {
-        $stop(MeasureExit::USAGE, $e->getMessage());
-    }
-    if ($refusal !== null) {
-        $stop(MeasureExit::USAGE, $refusal);
-    }
-}
-
 $bin = dirname(__DIR__);
 $planner = $options->data === 'seeder' ? new SeederPlanner() : new GeneratorPlanner($options->base, $options->nTables === [] ? null : $options->nTables);
 $builder = new ProcessDatabaseBuilder($bin . '/inner/build-db.php', $env, $options->data, ProcessDatabaseBuilder::TIMEOUT, PHP_BINARY, $options->profile);

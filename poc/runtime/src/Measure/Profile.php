@@ -29,10 +29,6 @@ final class Profile
      *   reference_rows, role_permissions, fixups, after_generation
      *                                  the hook that runs after the generator (`DatabaseBuild::afterGeneration`); the
      *                                  first three are what that hook reads in the profile that has one
-     *   rebuild                        the app's own maintenance commands run after the generator and before ANALYZE TABLE
-     *                                  (`RebuildStep`, called by `DatabaseBuild`): a non-empty list of steps, each with a
-     *                                  `name`, an artisan `command`, the `tables` it rewrites (their rows are counted before
-     *                                  and after) and a `why`
      *   state_changing                 routes that rewrite a table other routes read: a non-empty list, in the order they are measured, each
      *                                  with the `route` ("METHOD uri"), the `tables` it rewrites and a `why`. They are measured after
      *                                  every other route of their database (`RouteOrder`); the repeat also ANALYZEs their tables
@@ -46,7 +42,7 @@ final class Profile
      *                                  front end is not built). It must not touch the database
      *                                  (`Profile::onBoot`, called by `Run\MeasureOne`)
      */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'rebuild', 'state_changing', 'on_boot'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'state_changing', 'on_boot'];
 
     /**
      * @return array<string, mixed> empty when no profile is named
@@ -76,9 +72,6 @@ final class Profile
         }
         if (array_key_exists('after_generation', $profile) && !is_callable($profile['after_generation'])) {
             throw new BuildFailure(sprintf('profile "%s": after_generation must be a function', $name));
-        }
-        if (array_key_exists('rebuild', $profile)) {
-            self::checkRebuild($name, $profile['rebuild']);
         }
         if (array_key_exists('state_changing', $profile)) {
             self::checkStateChanging($name, $profile['state_changing']);
@@ -168,38 +161,6 @@ final class Profile
             }
             if (!is_string($entry['why'] ?? null) || trim($entry['why']) === '') {
                 throw $fail(sprintf('entry %s has no why', $entry['route']));
-            }
-        }
-    }
-
-    /**
-     * A `rebuild` is a non-empty list of steps; each names itself, an artisan command (a plain command name, no arguments:
-     * what is run is the command and nothing a profile can add to it), the plain table names it rewrites, and why.
-     *
-     * @throws BuildFailure
-     */
-    private static function checkRebuild(string $profile, mixed $steps): void
-    {
-        $fail = static fn (string $why): BuildFailure => new BuildFailure(sprintf('profile "%s": rebuild %s', $profile, $why));
-        if (!is_array($steps) || $steps === [] || !array_is_list($steps)) {
-            throw $fail('must be a non-empty list of steps');
-        }
-        foreach ($steps as $step) {
-            if (!is_array($step)) {
-                throw $fail('has a step that is not a list of facts');
-            }
-            if (!is_string($step['name'] ?? null) || preg_match('/^[a-z][a-z0-9_]{0,40}$/D', $step['name']) !== 1) {
-                throw $fail('has a step with no plain name');
-            }
-            if (!is_string($step['command'] ?? null) || preg_match('/^[a-z][a-z0-9:_-]{0,80}$/D', $step['command']) !== 1) {
-                throw $fail(sprintf('step "%s" has no plain artisan command name', $step['name']));
-            }
-            $tables = $step['tables'] ?? null;
-            if (!is_array($tables) || $tables === [] || array_filter($tables, static fn (mixed $t): bool => is_string($t) && preg_match('/^[a-z0-9_]{1,64}$/D', $t) === 1) !== $tables) {
-                throw $fail(sprintf('step "%s" needs the plain names of the tables it rewrites', $step['name']));
-            }
-            if (!is_string($step['why'] ?? null) || trim($step['why']) === '') {
-                throw $fail(sprintf('step "%s" has no why', $step['name']));
             }
         }
     }

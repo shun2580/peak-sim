@@ -8,11 +8,11 @@
 #
 # Which tables are "N" (docs/simulator-spec.md section 7.2) is not decided here: one of the two forms is required.
 # Runs the closed-network check first (exit 11). A long build should be started detached (setsid nohup ...).
-# The database ends in this order, inside build-db.php (the `rebuild` of profiles/bookstack.php, RebuildStep): build, then the app's own
-# `bookstack:regenerate-references`, then ANALYZE TABLE on every table. A rebuild that fails is exit 13 and nothing is analysed or handed on.
-# The line the builder prints holds `rebuild`: for each step the rows of the rewritten table (`references`) before and after, and the tables
-# whose figure ANALYZE changed; the rows of every table after all of it are in `rows`. Keep that line with the record of the build.
-# exit codes: 0 built / 2 usage / 11 not sealed / others: those of build-db.php (10 refused, 13 could not be built, or the rebuild failed)
+# The database is built and handed on as the builder leaves it: the app's own rebuild of a table is not run on it (decisions.md D229 and D230;
+# the generated bodies hold no links to each other, so a rebuild would empty `references` at every count). The line the builder prints
+# holds `rows`, the rows of every table after the build: keep it with the record of the build. ANALYZE TABLE is run by the tool that
+# needs the statistics (the capture's --analyze-after-build, the EXPLAIN step), not here.
+# exit codes: 0 built / 2 usage / 11 not sealed / others: those of build-db.php (10 refused, 13 could not be built)
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 usage() { echo "usage: bin/build-db --scale=N (--n-tables=a,b | --global) [--base=5]" >&2; exit 2; }

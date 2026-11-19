@@ -85,21 +85,6 @@ $profile = [
     ],
 ];
 
-// The `references` table is the app's index of the links between its entities, and the app writes it by its own rebuild from the
-// page and container bodies. The generator fills it with made-up rows instead. A database that skipped the rebuild holds those
-// rows, and the routes that read `references` then read a table in a state the app does not keep it in. The command is the one the maintenance page runs (`POST /settings/maintenance/regenerate-references`,
-// app/Settings/MaintenanceController.php:83-96, which calls ReferenceStore::updateForAll()), by its console name
-// (app/Console/Commands/RegenerateReferencesCommand.php, which calls the same method). It runs after the fixups above (the
-// reference rebuild fails on a null text, see container_data_cleared) and before ANALYZE TABLE (RebuildStep).
-$profile['rebuild'] = [
-    [
-        'name' => 'regenerate_references',
-        'command' => 'bookstack:regenerate-references',
-        'tables' => ['references'],
-        'why' => 'the app keeps `references` (the cross-item link index) by rebuilding it from the page and container bodies (app/References/ReferenceStore.php updateForAll); the maintenance page and the console command run the same method. A database made without it holds the generator\'s rows in that table, not the state the app writes',
-    ],
-];
-
 // Routes that rewrite, in one request, a part of a table that grows with the count of rows, and that other routes read. The requests are
 // rolled back, so the rows return and the optimizer's statistics of the table do not: after the regeneration the statistics held `references`
 // at 0 rows and the routes measured after it read 374,990 rows more (docs/research/extrapolation-test-3-causes.md section 5). They are measured

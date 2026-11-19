@@ -15,8 +15,8 @@ final class PredictionReport
     public const SCHEMA_VERSION = '0.1';
 
     /** What the row estimates assume about the database they were read from (simulator-spec.md 7.2: the lab's databases are analyzed after the build). Always in the output. */
-    /** The sentence added to the note on 2026-11-19 (docs/decisions.md D224): the maintenance state of the databases. Kept apart so a test can take it out and show that nothing else in an older record changed. */
-    public const ESTIMATE_MAINTENANCE_CLAUSE = '; they also assume that the database the statements were captured on and the database the estimate is used on are in the same maintenance state, the rebuild and aggregate processes of the application finished and then ANALYZE TABLE run (for BookStack, regenerate-references), because a table such a process rewrites can hold different rows in another state';
+    /** The sentence added to the note on 2026-11-19 (docs/decisions.md D224, reworded by D230 to say "the same on both" instead of "finished"): the maintenance state of the databases. Kept apart so a test can take it out and show that nothing else in an older record changed. */
+    public const ESTIMATE_MAINTENANCE_CLAUSE = '; they also assume that the database the statements were captured on and the database the estimate is used on are in the same maintenance state: the rebuild and aggregate processes of the application (for BookStack, regenerate-references) were run on both or on neither, and then ANALYZE TABLE was run on both, because a table such a process rewrites can hold different rows in another state';
 
     public const ESTIMATE_BASIS_NOTE = 'the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ' . self::ESTIMATE_MAINTENANCE_CLAUSE;
 
