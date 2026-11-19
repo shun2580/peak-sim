@@ -1,0 +1,13 @@
+tool_head=c72478d483f6f647d568cfb36e5d065e5762eb3c (git archive poc/runtime poc/lab/bin merge_inputs.py)
+now=2026-11-19T17:19:29+09:00
+decision=2026-11-19T17:19:29+09:00 small-scale of the EXPLAIN comparison for B = one tenth of the target = 17,000 at 170,000 (as 9,000/15,000 at 90,000/150,000 in the fourth round, D201 practice); fixed before any EXPLAIN of this count was taken
+start_explain_b=2026-11-19T17:19:38+09:00 capture=~/projects/peak-sim-trials/_out/cmd277_recapture2/bookstack capture_sha=69f08fcad32bdd31367747d8231dab69df32596a837876253169eda88807d839 tasks_sha=2dd8145996fc89e35a2af7d938f5b57597683fbbc9c542f68feaed4cdbd7f815
+start_predict=2026-11-19T17:20:13+09:00
+end_predict=2026-11-19T17:20:13+09:00
+end_explain_b=2026-11-19T17:23:20+09:00 exit=0
+start_estimate_1=2026-11-19T17:23:36+09:00
+end_estimate_1=2026-11-19T17:23:37+09:00
+start_estimate_2=2026-11-19T17:23:37+09:00
+end_estimate_2=2026-11-19T17:23:38+09:00
+start_marked=2026-11-19T17:23:38+09:00
+end_marked=2026-11-19T17:23:38+09:00
