@@ -1,0 +1,7 @@
+--scale=30000
+--uri=/shelves/1
+--method=GET
+--route=/shelves/{slug}
+--axis=N
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

@@ -1,0 +1,7 @@
+label=a-dry30k
+started=2026-11-19T12:45:15+0900
+source_commit=6ae51955765527efc0acd8f076c89f69a488d1ef
+scale=30000 dbs=1 laps=2 parallel=0 tap=off analyze=none data=generator profile=bookstack request_timeout=600
+routes=GET /books/{slug},PUT /books/{slug},GET /books/{slug}/references,GET /shelves/{slug},PUT /shelves/{slug},DELETE /shelves/{slug},POST /settings/maintenance/regenerate-references
+php_image=peak-measure-php-bookstack:8.3
+finished=2026-11-19T12:55:39+0900 exit=0

@@ -1,0 +1,2 @@
+start_iso=2026-11-19T12:30:02+09:00 tool_commit=6ae51955765527efc0acd8f076c89f69a488d1ef project=peak-dr6-a-fx
+exit=0 end_iso=2026-11-19T12:33:36+09:00

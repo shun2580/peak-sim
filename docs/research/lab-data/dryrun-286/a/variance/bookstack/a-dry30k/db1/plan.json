@@ -1,0 +1,153 @@
+[
+    {
+        "key": "t35c980:30000",
+        "tag": "t35c980",
+        "scale": 30000,
+        "build_args": [
+            "--scale=30000",
+            "--mode=generator",
+            "--recipe-json={\"mode\":\"targeted\",\"n_tables\":[\"entities\"],\"m_table\":null,\"m_per\":null,\"n\":30000,\"m\":0,\"base\":5}",
+            "--profile=bookstack"
+        ],
+        "routes": [
+            {
+                "route": "/books/{slug}",
+                "method": "GET",
+                "uri": "/books/1",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/books/1",
+                    "--method=GET",
+                    "--route=/books/{slug}",
+                    "--axis=N",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/shelves/{slug}",
+                "method": "GET",
+                "uri": "/shelves/1",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/shelves/1",
+                    "--method=GET",
+                    "--route=/shelves/{slug}",
+                    "--axis=N",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/books/{slug}",
+                "method": "PUT",
+                "uri": "/books/1",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/books/1",
+                    "--method=PUT",
+                    "--route=/books/{slug}",
+                    "--axis=N",
+                    "--body-json={\"name\":\"x_1\"}",
+                    "--csrf",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/settings/maintenance/regenerate-references",
+                "method": "POST",
+                "uri": "/settings/maintenance/regenerate-references",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/settings/maintenance/regenerate-references",
+                    "--method=POST",
+                    "--route=/settings/maintenance/regenerate-references",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            }
+        ],
+        "restore_tables": [
+            "slug_history",
+            "references"
+        ]
+    },
+    {
+        "key": "te52a32:30000",
+        "tag": "te52a32",
+        "scale": 30000,
+        "build_args": [
+            "--scale=30000",
+            "--mode=generator",
+            "--recipe-json={\"mode\":\"targeted\",\"n_tables\":[\"references\"],\"m_table\":null,\"m_per\":null,\"n\":30000,\"m\":0,\"base\":5}",
+            "--profile=bookstack"
+        ],
+        "routes": [
+            {
+                "route": "/books/{slug}/references",
+                "method": "GET",
+                "uri": "/books/1/references",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/books/1/references",
+                    "--method=GET",
+                    "--route=/books/{slug}/references",
+                    "--axis=N",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/shelves/{slug}",
+                "method": "PUT",
+                "uri": "/shelves/1",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/shelves/1",
+                    "--method=PUT",
+                    "--route=/shelves/{slug}",
+                    "--axis=N",
+                    "--body-json={\"name\":\"x_1\"}",
+                    "--csrf",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            }
+        ],
+        "restore_tables": []
+    },
+    {
+        "key": "te7dbd5:30000",
+        "tag": "te7dbd5",
+        "scale": 30000,
+        "build_args": [
+            "--scale=30000",
+            "--mode=generator",
+            "--recipe-json={\"mode\":\"targeted\",\"n_tables\":[\"deletions\"],\"m_table\":null,\"m_per\":null,\"n\":30000,\"m\":0,\"base\":5}",
+            "--profile=bookstack"
+        ],
+        "routes": [
+            {
+                "route": "/shelves/{slug}",
+                "method": "DELETE",
+                "uri": "/shelves/1",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/shelves/1",
+                    "--method=DELETE",
+                    "--route=/shelves/{slug}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            }
+        ],
+        "restore_tables": []
+    }
+]

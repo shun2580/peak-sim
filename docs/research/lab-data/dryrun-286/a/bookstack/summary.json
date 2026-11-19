@@ -1,0 +1,857 @@
+{
+    "meta": {
+        "data": "generator",
+        "profile": "bookstack",
+        "gate_bypass_retry": true,
+        "scales": [
+            30000
+        ],
+        "run_id": "03fae1d96e78",
+        "laravel": "13.35.0",
+        "php": "8.3.36",
+        "request_time_limit_seconds": 600,
+        "seconds": 652
+    },
+    "exit": 0,
+    "message": null,
+    "summary": {
+        "routes": 9,
+        "tried": 9,
+        "classes": {
+            "not_found": 3,
+            "ok": 4,
+            "validation_422": 2
+        },
+        "verdicts": {
+            "measured_O1": 0,
+            "measured_ON": 0,
+            "measured_ONM": 0,
+            "inconclusive": 0,
+            "no_info": 0,
+            "not_measured": 9
+        },
+        "relations": {
+            "agree": 0,
+            "runtime_only": 0,
+            "static_stronger": 0,
+            "conflict": 0,
+            "not_comparable": 9
+        },
+        "conflicts": [],
+        "static_stronger": []
+    },
+    "timings": [
+        {
+            "point": "t35c980:0",
+            "build_seconds": 13.52,
+            "measure_seconds": 1.2,
+            "routes": 4
+        },
+        {
+            "point": "t35c980:30000",
+            "build_seconds": 51.49,
+            "measure_seconds": 201.55,
+            "routes": 4
+        },
+        {
+            "point": "t59e984:0",
+            "build_seconds": 25.56,
+            "measure_seconds": 0.32,
+            "routes": 1
+        },
+        {
+            "point": "t59e984:30000",
+            "build_seconds": 27.23,
+            "measure_seconds": 5.26,
+            "routes": 1
+        },
+        {
+            "point": "t7d53bc:0",
+            "build_seconds": 32.02,
+            "measure_seconds": 0.76,
+            "routes": 1
+        },
+        {
+            "point": "t7d53bc:30000",
+            "build_seconds": 10.5,
+            "measure_seconds": 0.93,
+            "routes": 1
+        },
+        {
+            "point": "te52a32:0",
+            "build_seconds": 19.52,
+            "measure_seconds": 0.67,
+            "routes": 2
+        },
+        {
+            "point": "te52a32:30000",
+            "build_seconds": 10.07,
+            "measure_seconds": 1.61,
+            "routes": 2
+        },
+        {
+            "point": "te7dbd5:0",
+            "build_seconds": 9.69,
+            "measure_seconds": 0.3,
+            "routes": 1
+        },
+        {
+            "point": "te7dbd5:30000",
+            "build_seconds": 10.08,
+            "measure_seconds": 79.54,
+            "routes": 1
+        }
+    ],
+    "builds": [
+        {
+            "point": "t35c980:0",
+            "database": "peak_sim_measure_03fae1d96e78_t35c980_0",
+            "mode": "generator",
+            "scale": 0,
+            "laravel": "13.35.0",
+            "migrate_seconds": 12.91,
+            "generation": {
+                "scope": "targeted:entities",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.39,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 0,
+                "entity_container_data": 0,
+                "entity_page_data": 0,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 0,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 13.48
+        },
+        {
+            "point": "t35c980:30000",
+            "database": "peak_sim_measure_03fae1d96e78_t35c980_30000",
+            "mode": "generator",
+            "scale": 30000,
+            "laravel": "13.35.0",
+            "migrate_seconds": 23.03,
+            "generation": {
+                "scope": "targeted:entities",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 28.01,
+            "rows": {
+                "activities": 30000,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 30000,
+                "email_confirmations": 5,
+                "entities": 30000,
+                "entity_container_data": 18000,
+                "entity_page_data": 12000,
+                "entity_permissions": 30000,
+                "failed_jobs": 0,
+                "favourites": 30000,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 270000,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 30000,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 30000,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 30000,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 30000,
+                "user_invites": 5,
+                "users": 7,
+                "views": 30000,
+                "watches": 30000,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 51.46
+        },
+        {
+            "point": "t59e984:0",
+            "database": "peak_sim_measure_03fae1d96e78_t59e984_0",
+            "mode": "generator",
+            "scale": 0,
+            "laravel": "13.35.0",
+            "migrate_seconds": 24.74,
+            "generation": {
+                "scope": "targeted:roles",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.6,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 20,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 2,
+                "roles": 4,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 25.52
+        },
+        {
+            "point": "t59e984:30000",
+            "database": "peak_sim_measure_03fae1d96e78_t59e984_30000",
+            "mode": "generator",
+            "scale": 30000,
+            "laravel": "13.35.0",
+            "migrate_seconds": 19.92,
+            "generation": {
+                "scope": "targeted:roles",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 7.11,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 150020,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 30002,
+                "roles": 30004,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 27.2
+        },
+        {
+            "point": "t7d53bc:0",
+            "database": "peak_sim_measure_03fae1d96e78_t7d53bc_0",
+            "mode": "generator",
+            "scale": 0,
+            "laravel": "13.35.0",
+            "migrate_seconds": 31.59,
+            "generation": {
+                "scope": "targeted:images",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.26,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 0,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 31.99
+        },
+        {
+            "point": "t7d53bc:30000",
+            "database": "peak_sim_measure_03fae1d96e78_t7d53bc_30000",
+            "mode": "generator",
+            "scale": 30000,
+            "laravel": "13.35.0",
+            "migrate_seconds": 8.79,
+            "generation": {
+                "scope": "targeted:images",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 1.55,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 30000,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 10.47
+        },
+        {
+            "point": "te52a32:0",
+            "database": "peak_sim_measure_03fae1d96e78_te52a32_0",
+            "mode": "generator",
+            "scale": 0,
+            "laravel": "13.35.0",
+            "migrate_seconds": 19.11,
+            "generation": {
+                "scope": "targeted:references",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.26,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 0,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 19.49
+        },
+        {
+            "point": "te52a32:30000",
+            "database": "peak_sim_measure_03fae1d96e78_te52a32_30000",
+            "mode": "generator",
+            "scale": 30000,
+            "laravel": "13.35.0",
+            "migrate_seconds": 9.03,
+            "generation": {
+                "scope": "targeted:references",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.88,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 5,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 30000,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 10.04
+        },
+        {
+            "point": "te7dbd5:0",
+            "database": "peak_sim_measure_03fae1d96e78_te7dbd5_0",
+            "mode": "generator",
+            "scale": 0,
+            "laravel": "13.35.0",
+            "migrate_seconds": 9.18,
+            "generation": {
+                "scope": "targeted:deletions",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.35,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 0,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 9.66
+        },
+        {
+            "point": "te7dbd5:30000",
+            "database": "peak_sim_measure_03fae1d96e78_te7dbd5_30000",
+            "mode": "generator",
+            "scale": 30000,
+            "laravel": "13.35.0",
+            "migrate_seconds": 9.06,
+            "generation": {
+                "scope": "targeted:deletions",
+                "generated": 33,
+                "failed": 2,
+                "skipped": 6,
+                "reasons": {
+                    "autoinc_gap": 1,
+                    "parent_not_generated": 1
+                },
+                "failed_tables": [
+                    {
+                        "table": "permission_role",
+                        "reason": "parent_not_generated",
+                        "detail": "needs role_permissions, which was not generated (autoinc_gap)"
+                    },
+                    {
+                        "table": "role_permissions",
+                        "reason": "autoinc_gap",
+                        "detail": "id is not 1..67"
+                    }
+                ]
+            },
+            "fill_seconds": 0.84,
+            "rows": {
+                "activities": 5,
+                "api_tokens": 5,
+                "attachments": 5,
+                "bookshelves_books": 5,
+                "cache": 0,
+                "comments": 5,
+                "deletions": 30000,
+                "email_confirmations": 5,
+                "entities": 5,
+                "entity_container_data": 3,
+                "entity_page_data": 2,
+                "entity_permissions": 5,
+                "failed_jobs": 0,
+                "favourites": 5,
+                "images": 5,
+                "imports": 5,
+                "jobs": 0,
+                "joint_permissions": 45,
+                "mention_history": 5,
+                "mfa_values": 5,
+                "migrations": 104,
+                "page_revisions": 5,
+                "password_resets": 0,
+                "permission_role": 122,
+                "references": 5,
+                "role_permissions": 62,
+                "role_user": 7,
+                "roles": 9,
+                "search_terms": 5,
+                "sessions": 0,
+                "settings": 6,
+                "slug_history": 5,
+                "social_accounts": 5,
+                "sort_rules": 5,
+                "tags": 5,
+                "user_invites": 5,
+                "users": 7,
+                "views": 5,
+                "watches": 5,
+                "webhook_tracked_events": 5,
+                "webhooks": 5
+            },
+            "total_seconds": 10.06
+        }
+    ]
+}

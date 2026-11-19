@@ -1,0 +1,4 @@
+1	GET	/books/{slug}	/books/1	GET__books__slug_
+2	GET	/shelves/{slug}	/shelves/1	GET__shelves__slug_
+3	PUT	/books/{slug}	/books/1	PUT__books__slug_
+4	POST	/settings/maintenance/regenerate-references	/settings/maintenance/regenerate-references	POST__settings_maintenance_regenerate_references

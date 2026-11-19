@@ -1,0 +1,14 @@
+db1	g1	plain	1	1	GET /books/{slug}	0	2/2	db1/g1/plain_lap1/01_GET__books__slug_
+db1	g1	plain	1	2	GET /shelves/{slug}	0	2/2	db1/g1/plain_lap1/02_GET__shelves__slug_
+db1	g1	plain	1	3	PUT /books/{slug}	0	2/2	db1/g1/plain_lap1/03_PUT__books__slug_
+db1	g1	plain	1	4	POST /settings/maintenance/regenerate-references	0	2/2	db1/g1/plain_lap1/04_POST__settings_maintenance_regenerate_references
+db1	g1	plain	2	5	GET /books/{slug}	0	2/2	db1/g1/plain_lap2/05_GET__books__slug_
+db1	g1	plain	2	6	GET /shelves/{slug}	0	2/2	db1/g1/plain_lap2/06_GET__shelves__slug_
+db1	g1	plain	2	7	PUT /books/{slug}	0	2/2	db1/g1/plain_lap2/07_PUT__books__slug_
+db1	g1	plain	2	8	POST /settings/maintenance/regenerate-references	0	2/2	db1/g1/plain_lap2/08_POST__settings_maintenance_regenerate_references
+db1	g2	plain	1	9	GET /books/{slug}/references	0	2/2	db1/g2/plain_lap1/09_GET__books__slug__references
+db1	g2	plain	1	10	PUT /shelves/{slug}	0	2/2	db1/g2/plain_lap1/10_PUT__shelves__slug_
+db1	g2	plain	2	11	GET /books/{slug}/references	0	2/2	db1/g2/plain_lap2/11_GET__books__slug__references
+db1	g2	plain	2	12	PUT /shelves/{slug}	0	2/2	db1/g2/plain_lap2/12_PUT__shelves__slug_
+db1	g3	plain	1	13	DELETE /shelves/{slug}	0	2/2	db1/g3/plain_lap1/13_DELETE__shelves__slug_
+db1	g3	plain	2	14	DELETE /shelves/{slug}	0	2/2	db1/g3/plain_lap2/14_DELETE__shelves__slug_

@@ -1,0 +1,9 @@
+--scale=30000
+--uri=/settings/maintenance/regenerate-references
+--method=POST
+--route=/settings/maintenance/regenerate-references
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

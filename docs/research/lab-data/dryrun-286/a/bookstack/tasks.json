@@ -1,0 +1,546 @@
+[
+    {
+        "spec": {
+            "uri": "/books/{slug}",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\Entities\\Controllers\\BookController@show",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "n_table": "entities",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/books/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/books/{slug}",
+            "method": "PUT",
+            "methods": [
+                "PUT"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\Entities\\Controllers\\BookController@update",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N*M)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N*M)",
+                    "confidence": null
+                },
+                "n_table": "entities",
+                "m_table": "references",
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/books/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": {
+            "name": "x_1"
+        },
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/books/{slug}/references",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\References\\ReferenceController@book",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N*M)",
+                    "confidence": null
+                },
+                "n_table": "references",
+                "m_table": "entities",
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/books/1/references",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/settings/maintenance/regenerate-references",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": [],
+            "action": "BookStack\\Settings\\MaintenanceController@regenerateReferences",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": "entities",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/settings/maintenance/regenerate-references",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/settings/users/create",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": [],
+            "action": "BookStack\\Users\\Controllers\\UserController@create",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "n_table": "roles",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/settings/users/create",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/settings/users/create",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": [],
+            "action": "BookStack\\Users\\Controllers\\UserController@store",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "n_table": "images",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/settings/users/create",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/shelves/{slug}",
+            "method": "DELETE",
+            "methods": [
+                "DELETE"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\Entities\\Controllers\\BookshelfController@destroy",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "n_table": "deletions",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/shelves/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/shelves/{slug}",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\Entities\\Controllers\\BookshelfController@show",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "n_table": "entities",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/shelves/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/shelves/{slug}",
+            "method": "PUT",
+            "methods": [
+                "PUT"
+            ],
+            "middleware": [
+                "web",
+                "auth",
+                "BookStack\\Http\\Middleware\\ApplyCspRules",
+                "BookStack\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "BookStack\\Http\\Middleware\\StartSessionExtended",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "BookStack\\Http\\Middleware\\PreventRequestForgery",
+                "BookStack\\Http\\Middleware\\CheckEmailConfirmed",
+                "BookStack\\Http\\Middleware\\RunThemeActions",
+                "BookStack\\Http\\Middleware\\Localization",
+                "BookStack\\Http\\Middleware\\ClearPerRequestCaches",
+                "BookStack\\Http\\Middleware\\Authenticate"
+            ],
+            "parameters": {
+                "slug": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "string",
+                    "scope": null
+                }
+            },
+            "action": "BookStack\\Entities\\Controllers\\BookshelfController@update",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N)",
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": "O(N*M)",
+                    "confidence": null
+                },
+                "n_table": "references",
+                "m_table": "entities",
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/shelves/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "BookStack\\Users\\Models\\User:1",
+        "body": {
+            "name": "x_1"
+        },
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    }
+]

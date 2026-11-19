@@ -1,0 +1,190 @@
+{
+    "meta": {
+        "data": "seeder",
+        "profile": null,
+        "gate_bypass_retry": true,
+        "scales": [
+            30000
+        ],
+        "run_id": "30ebd8990df4",
+        "laravel": "13.39.0",
+        "php": "8.3.36",
+        "request_time_limit_seconds": 600,
+        "seconds": 187.3
+    },
+    "exit": 0,
+    "message": null,
+    "summary": {
+        "routes": 4,
+        "tried": 4,
+        "classes": {
+            "exception": 1,
+            "ok": 3
+        },
+        "verdicts": {
+            "measured_O1": 0,
+            "measured_ON": 0,
+            "measured_ONM": 0,
+            "inconclusive": 0,
+            "no_info": 0,
+            "not_measured": 4
+        },
+        "relations": {
+            "agree": 0,
+            "runtime_only": 0,
+            "static_stronger": 0,
+            "conflict": 0,
+            "not_comparable": 4
+        },
+        "conflicts": [],
+        "static_stronger": []
+    },
+    "timings": [
+        {
+            "point": "cust:0",
+            "build_seconds": 1.18,
+            "measure_seconds": 0.15,
+            "routes": 1
+        },
+        {
+            "point": "cust:30000",
+            "build_seconds": 2.08,
+            "measure_seconds": 13.81,
+            "routes": 1
+        },
+        {
+            "point": "ord:0",
+            "build_seconds": 0.64,
+            "measure_seconds": 0.32,
+            "routes": 2
+        },
+        {
+            "point": "ord:30000",
+            "build_seconds": 4.07,
+            "measure_seconds": 41.9,
+            "routes": 2
+        },
+        {
+            "point": "prod:0",
+            "build_seconds": 0.61,
+            "measure_seconds": 0.16,
+            "routes": 1
+        },
+        {
+            "point": "prod:30000",
+            "build_seconds": 1.4,
+            "measure_seconds": 111.79,
+            "routes": 1
+        }
+    ],
+    "builds": [
+        {
+            "point": "cust:0",
+            "database": "peak_sim_measure_30ebd8990df4_cust_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 1.04,
+            "fill_seconds": 0.01,
+            "rows": {
+                "customers": 0,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 1.16
+        },
+        {
+            "point": "cust:30000",
+            "database": "peak_sim_measure_30ebd8990df4_cust_30000",
+            "mode": "seeder",
+            "scale": 30000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.91,
+            "fill_seconds": 1.02,
+            "rows": {
+                "customers": 30000,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 2.06
+        },
+        {
+            "point": "ord:0",
+            "database": "peak_sim_measure_30ebd8990df4_ord_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.49,
+            "fill_seconds": 0.01,
+            "rows": {
+                "customers": 20,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.61
+        },
+        {
+            "point": "ord:30000",
+            "database": "peak_sim_measure_30ebd8990df4_ord_30000",
+            "mode": "seeder",
+            "scale": 30000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.5,
+            "fill_seconds": 3.43,
+            "rows": {
+                "customers": 20,
+                "items": 90000,
+                "migrations": 5,
+                "orders": 30000,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 4.05
+        },
+        {
+            "point": "prod:0",
+            "database": "peak_sim_measure_30ebd8990df4_prod_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.47,
+            "fill_seconds": 0.01,
+            "rows": {
+                "customers": 1,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 0
+            },
+            "total_seconds": 0.58
+        },
+        {
+            "point": "prod:30000",
+            "database": "peak_sim_measure_30ebd8990df4_prod_30000",
+            "mode": "seeder",
+            "scale": 30000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.5,
+            "fill_seconds": 0.76,
+            "rows": {
+                "customers": 1,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 30000
+            },
+            "total_seconds": 1.37
+        }
+    ]
+}

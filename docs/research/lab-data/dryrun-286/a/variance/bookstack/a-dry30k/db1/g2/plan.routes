@@ -1,0 +1,2 @@
+1	GET	/books/{slug}/references	/books/1/references	GET__books__slug__references
+2	PUT	/shelves/{slug}	/shelves/1	PUT__shelves__slug_

@@ -1,0 +1,4 @@
+--scale=30000
+--mode=generator
+--recipe-json={"mode":"targeted","n_tables":["deletions"],"m_table":null,"m_per":null,"n":30000,"m":0,"base":5}
+--profile=bookstack
