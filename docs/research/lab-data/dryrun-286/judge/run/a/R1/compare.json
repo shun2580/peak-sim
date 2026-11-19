@@ -1,0 +1,4361 @@
+{
+ "schema_version": "1",
+ "at": 30000,
+ "rule": "B decides, A shown (docs/simulator-spec.md 7.1)",
+ "scopes": {
+  "fixtures": {
+   "summary": {
+    "A": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: the denominator has 3 routes, fewer than 5",
+      "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: the denominator has 3 routes, fewer than 5",
+      "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "rows_examined": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "peak_memory": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       }
+      }
+     }
+    },
+    "B": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: the denominator has 3 routes, fewer than 5",
+      "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: the denominator has 3 routes, fewer than 5",
+      "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "rows_examined": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "peak_memory": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       }
+      }
+     }
+    }
+   }
+  },
+  "bookstack": {
+   "summary": {
+    "A": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "rows_examined": {
+        "denominator": 8,
+        "within_min": 5,
+        "within_goal": 5,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "peak_memory": {
+        "denominator": 8,
+        "within_min": 8,
+        "within_goal": 8,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 2,
+        "within_goal": 2,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    },
+    "B": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "rows_examined": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "peak_memory": {
+        "denominator": 8,
+        "within_min": 8,
+        "within_goal": 8,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    }
+   }
+  },
+  "both apps": {
+   "summary": {
+    "A": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 11,
+        "within_min": 10,
+        "within_goal": 10,
+        "unmeasured": 46,
+        "no_estimate": 3,
+        "routes": 60,
+        "with_estimate": 57
+       },
+       "rows_examined": {
+        "denominator": 11,
+        "within_min": 8,
+        "within_goal": 8,
+        "unmeasured": 46,
+        "no_estimate": 3,
+        "routes": 60,
+        "with_estimate": 57
+       },
+       "peak_memory": {
+        "denominator": 11,
+        "within_min": 11,
+        "within_goal": 11,
+        "unmeasured": 48,
+        "no_estimate": 1,
+        "routes": 60,
+        "with_estimate": 59
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 7,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 42,
+        "no_estimate": 2,
+        "routes": 51,
+        "with_estimate": 49
+       },
+       "rows_examined": {
+        "denominator": 7,
+        "within_min": 6,
+        "within_goal": 6,
+        "unmeasured": 42,
+        "no_estimate": 2,
+        "routes": 51,
+        "with_estimate": 49
+       },
+       "peak_memory": {
+        "denominator": 7,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 44,
+        "no_estimate": 0,
+        "routes": 51,
+        "with_estimate": 51
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 2,
+        "within_goal": 2,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    },
+    "B": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 11,
+        "within_min": 10,
+        "within_goal": 10,
+        "unmeasured": 46,
+        "no_estimate": 3,
+        "routes": 60,
+        "with_estimate": 57
+       },
+       "rows_examined": {
+        "denominator": 11,
+        "within_min": 10,
+        "within_goal": 10,
+        "unmeasured": 46,
+        "no_estimate": 3,
+        "routes": 60,
+        "with_estimate": 57
+       },
+       "peak_memory": {
+        "denominator": 11,
+        "within_min": 11,
+        "within_goal": 11,
+        "unmeasured": 48,
+        "no_estimate": 1,
+        "routes": 60,
+        "with_estimate": 59
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 7,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 42,
+        "no_estimate": 2,
+        "routes": 51,
+        "with_estimate": 49
+       },
+       "rows_examined": {
+        "denominator": 7,
+        "within_min": 6,
+        "within_goal": 6,
+        "unmeasured": 42,
+        "no_estimate": 2,
+        "routes": 51,
+        "with_estimate": 49
+       },
+       "peak_memory": {
+        "denominator": 7,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 44,
+        "no_estimate": 0,
+        "routes": 51,
+        "with_estimate": 51
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "apps": [
+  {
+   "app": "fixtures",
+   "at": 30000,
+   "rows": [
+    {
+     "route": "GET /hidden/appends",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 135196228.3806822,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/blade",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 104714104.68891029,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/cache",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 108513221.5933862,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/conditional-binding",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 108512285.5933862,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/cursor",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 2216867.8588125,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/model-with",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 2.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30026.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 86127016.9964858,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /hidden/resource",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 113653572.05446833,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/collection-filter",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 39593371.40912979,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/count-in-loop",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 150003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 49998709.480621696,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/first-or-create-in-loop",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 60003.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60001.0,
+       "cold_values": [
+        60001.0
+       ],
+       "cold_first": 60001.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 60001.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 60001.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [
+        60003.0
+       ],
+       "cold_first": 60003.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 60003.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 60003.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 43021396.02926401,
+       "cold_values": [
+        40132696.0
+       ],
+       "cold_first": 40132696.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 40132696.0,
+        "relative_error": 0.07197871853074636,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 40132696.0,
+        "relative_error": 0.07197871853074636,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /ng/get-then-count",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 39593371.40912979,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/layered",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 107030666.7919514,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/n-plus-one",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 60003.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [
+        30001.0
+       ],
+       "cold_first": 30001.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 30001.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 30001.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [
+        60003.0
+       ],
+       "cold_first": 60003.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 60003.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 60003.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 108005945.6169992,
+       "cold_values": [
+        107554968.0
+       ],
+       "cold_first": 107554968.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 107554968.0,
+        "relative_error": 0.00419299661731287,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 107554968.0,
+        "relative_error": 0.00419299661731287,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /ng/nested",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "rows_examined": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "peak_memory": {
+       "predicted": 345204373.1036403,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/save-in-loop",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 60331985.062224105,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/service",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 30001.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 60003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 107270652.18342172,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ng/unbounded",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 58079158.32823978,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ok/chunk",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 301.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 4543261.76196293,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 157172.3733979707,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ok/eager",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 30026.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 2.0,
+       "cold_values": [
+        2.0
+       ],
+       "cold_first": 2.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 2.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 2.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 30026.0,
+       "cold_values": [
+        30026.0
+       ],
+       "cold_first": 30026.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 30026.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 30026.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 63531536.99662677,
+       "cold_values": [
+        62086280.0
+       ],
+       "cold_first": 62086280.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 62086280.0,
+        "relative_error": 0.023278202472861508,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 62086280.0,
+        "relative_error": 0.023278202472861508,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /ok/lazy",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 301.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 4543261.76196293,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 158724.57949930112,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ok/paginate",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 2.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30019.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 68338.76737736858,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /ok/with-count",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 270003.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 52489868.81487557,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /unknown/dynamic",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 1.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30002.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 59032.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "POST /ok/bulk",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": false,
+       "what": "500",
+       "rows_examined": null
+      }
+     ],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [
+      {
+       "ok": false,
+       "class": "500",
+       "class_raw": "exception",
+       "status": 500,
+       "attempt": 1,
+       "detail": "Illuminate\\Database\\QueryException: SQLSTATE[HY000]: General error: 1390 Prepared statement contains too many placeholde",
+       "label": "measurement run 1",
+       "route": "POST /ok/bulk",
+       "kind": "measure"
+      }
+     ],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "rows_examined": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "peak_memory": {
+       "predicted": 66339491.085778184,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size; failed tries: 500"
+      }
+     }
+    }
+   ],
+   "problems": [],
+   "measured_without_estimate": [],
+   "outside_failed": [],
+   "variance_files": 0,
+   "marked_count": 0,
+   "failed_tries": [
+    {
+     "ok": false,
+     "class": "500",
+     "class_raw": "exception",
+     "status": 500,
+     "attempt": 1,
+     "detail": "Illuminate\\Database\\QueryException: SQLSTATE[HY000]: General error: 1390 Prepared statement contains too many placeholde",
+     "label": "measurement run 1",
+     "route": "POST /ok/bulk",
+     "kind": "measure"
+    }
+   ],
+   "superseded_tries": [],
+   "failure_counts": {
+    "used": {
+     "timeout": 0,
+     "422": 0,
+     "500": 1,
+     "exception": 0,
+     "other": 0
+    },
+    "superseded": {
+     "timeout": 0,
+     "422": 0,
+     "500": 0,
+     "exception": 0,
+     "other": 0
+    }
+   },
+   "summary": {
+    "A": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: the denominator has 3 routes, fewer than 5",
+      "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: the denominator has 3 routes, fewer than 5",
+      "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "rows_examined": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "peak_memory": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       }
+      }
+     }
+    },
+    "B": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: the denominator has 3 routes, fewer than 5",
+      "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: the denominator has 3 routes, fewer than 5",
+      "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "rows_examined": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 19,
+        "no_estimate": 2,
+        "routes": 24,
+        "with_estimate": 22
+       },
+       "peak_memory": {
+        "denominator": 3,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 21,
+        "no_estimate": 0,
+        "routes": 24,
+        "with_estimate": 24
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "rows_examined": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       },
+       "peak_memory": {
+        "denominator": 0,
+        "within_min": 0,
+        "within_goal": 0,
+        "unmeasured": 0,
+        "no_estimate": 0,
+        "routes": 0,
+        "with_estimate": 0
+       }
+      }
+     }
+    }
+   },
+   "top_errors_B": [
+    {
+     "route": "GET /ng/first-or-create-in-loop",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 60001.0,
+     "measured": 60001.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/first-or-create-in-loop",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 60003.0,
+     "measured": 60003.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/n-plus-one",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 30001.0,
+     "measured": 30001.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/n-plus-one",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 60003.0,
+     "measured": 60003.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ok/eager",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 2.0,
+     "measured": 2.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ok/eager",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 30026.0,
+     "measured": 30026.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    }
+   ],
+   "top_errors_A": [
+    {
+     "route": "GET /ng/first-or-create-in-loop",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 60001.0,
+     "measured": 60001.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/first-or-create-in-loop",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 60003.0,
+     "measured": 60003.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/n-plus-one",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 30001.0,
+     "measured": 30001.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ng/n-plus-one",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 60003.0,
+     "measured": 60003.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ok/eager",
+     "quantity": "queries",
+     "marked": false,
+     "predicted": 2.0,
+     "measured": 2.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /ok/eager",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 30026.0,
+     "measured": 30026.0,
+     "relative_error": 0.0,
+     "within_min": true,
+     "within_goal": true
+    }
+   ],
+   "width_table": []
+  },
+  {
+   "app": "bookstack",
+   "at": 30000,
+   "rows": [
+    {
+     "route": "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60103.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 239114.2936031114,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 54351220.19007914,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /books/{bookSlug}/draft/{pageId}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60101.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 239108.04272419857,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 54360910.73957549,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /books/{bookSlug}/page/{pageSlug}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60102.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 239112.79184528574,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 54359279.20287423,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /books/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60107.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 239128.5444820242,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 54376435.194533445,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /import/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 5.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 202.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 94088.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /settings/maintenance/cleanup-images",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60033.98577628269,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 884680.6811597508,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 3518271.362271368,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /settings/sorting/rules/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 6.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 205.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 94072.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "DELETE /shelves/{slug}",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 239015.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 239015.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 239015.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60100.0,
+       "cold_values": [
+        60100.0,
+        60100.0,
+        60100.0
+       ],
+       "cold_first": 60100.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 60100.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 60100.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 239109.79536093705,
+       "cold_values": [
+        239015.0,
+        239015.0,
+        239015.0
+       ],
+       "cold_first": 239015.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 239015.0,
+        "relative_error": 0.00039660841761833017,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 239015.0,
+        "relative_error": 0.00039660841761833017,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 54367585.52682737,
+       "cold_values": [
+        59862688.0,
+        59862688.0,
+        59862688.0
+       ],
+       "cold_first": 59862688.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 59862688.0,
+        "relative_error": 0.09179511740556368,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 59862688.0,
+        "relative_error": 0.09179511740556368,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+     "marked": true,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 23.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 198497.15399635202,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 110265680.89280799,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 8.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 11142.494475360432,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 8037312.716690094,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/copy",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 4.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 198.6,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 274344.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/draft/{pageId}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 13.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 211.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 1260792.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/export/zip",
+     "marked": true,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 36003.76794449,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 252031.66501951817,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 55469888.53531978,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/page/{pageSlug}",
+     "marked": true,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 24.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 198501.18171358234,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 110363680.415225,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 8.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 12611.538975184623,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 7719454.327105562,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /books/{slug}",
+     "marked": true,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 234454.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 234454.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 378457.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 48.454730177433234,
+       "cold_values": [
+        45.0,
+        45.0,
+        45.0
+       ],
+       "cold_first": 45.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 45.0,
+        "relative_error": 0.07677178172073854,
+        "within_min": false,
+        "within_goal": false
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 45.0,
+        "relative_error": 0.07677178172073854,
+        "within_min": false,
+        "within_goal": false
+       }
+      },
+      "rows_examined": {
+       "predicted": 378974.8149878138,
+       "cold_values": [
+        234454.0,
+        234454.0,
+        378457.0
+       ],
+       "cold_first": 234454.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 234454.0,
+        "relative_error": 0.6164143712106163,
+        "within_min": false,
+        "within_goal": false
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 378457.0,
+        "relative_error": 0.0013682267412515057,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 114828674.64210859,
+       "cold_values": [
+        115862200.0,
+        115862200.0,
+        115862200.0
+       ],
+       "cold_first": 115862200.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 115862200.0,
+        "relative_error": 0.008920298060035203,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 115862200.0,
+        "relative_error": 0.008920298060035203,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /books/{slug}/references",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10710.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10710.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10710.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 7.0,
+       "cold_values": [
+        7.0,
+        7.0,
+        7.0
+       ],
+       "cold_first": 7.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 7.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 7.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 11137.085754179565,
+       "cold_values": [
+        10710.0,
+        10710.0,
+        10710.0
+       ],
+       "cold_first": 10710.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 10710.0,
+        "relative_error": 0.03987728797194817,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 10710.0,
+        "relative_error": 0.03987728797194817,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 7670352.8474814035,
+       "cold_values": [
+        6655000.0,
+        6655000.0,
+        6655000.0
+       ],
+       "cold_first": 6655000.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 6655000.0,
+        "relative_error": 0.15256992449006815,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 6655000.0,
+        "relative_error": 0.15256992449006815,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /images/edit/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 6.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 199.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 4019104.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /oidc/callback",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 0.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 0.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 25632.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /settings/sorting/rules/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 4.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 196.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 314088.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /settings/users/create",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 30202.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 4.0,
+       "cold_values": [
+        4.0
+       ],
+       "cold_first": 4.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 4.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 4.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 30202.0,
+       "cold_values": [
+        30202.0
+       ],
+       "cold_first": 30202.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 30202.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 30202.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 100750241.19238508,
+       "cold_values": [
+        99972624.0
+       ],
+       "cold_first": 99972624.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 99972624.0,
+        "relative_error": 0.007778301311617843,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 99972624.0,
+        "relative_error": 0.007778301311617843,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /settings/users/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 8.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 30210.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 100836223.66317378,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "marked": true,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 236.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 236.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 236.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 18.28917469811173,
+       "cold_values": [
+        18.0,
+        18.0,
+        18.0
+       ],
+       "cold_first": 18.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 18.0,
+        "relative_error": 0.016065261006207185,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 18.0,
+        "relative_error": 0.016065261006207185,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 258.9744889274157,
+       "cold_values": [
+        236.0,
+        236.0,
+        236.0
+       ],
+       "cold_first": 236.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 236.0,
+        "relative_error": 0.09734952935345625,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 236.0,
+        "relative_error": 0.09734952935345625,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 356141.40178437484,
+       "cold_values": [
+        331200.0,
+        331200.0,
+        331200.0
+       ],
+       "cold_first": 331200.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 331200.0,
+        "relative_error": 0.07530616480789507,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 331200.0,
+        "relative_error": 0.07530616480789507,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "GET /shelves/{slug}/references",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 7.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 11137.903196505658,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 9057521.589050736,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "POST /books/{bookSlug}/copy",
+     "marked": true,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "rows_examined": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "estimate incomplete (partial)"
+      },
+      "peak_memory": {
+       "predicted": null,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "no_estimate",
+       "reason": "peak_memory not_predicted: scale 10000: not measured"
+      }
+     }
+    },
+    {
+     "route": "POST /books/{bookSlug}/draft/{pageId}",
+     "marked": true,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 47.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 102393.89618495839,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 564355.7760149755,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "POST /import/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 2.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 191.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 91456.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "POST /settings/maintenance/regenerate-references",
+     "marked": true,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 4503507.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 4503507.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 4503507.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 608.0312253362351,
+       "cold_values": [
+        608.0,
+        608.0,
+        608.0
+       ],
+       "cold_first": 608.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 608.0,
+        "relative_error": 5.135746091305667e-05,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 608.0,
+        "relative_error": 5.135746091305667e-05,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 4503431.64535174,
+       "cold_values": [
+        4503507.0,
+        4503507.0,
+        4503507.0
+       ],
+       "cold_first": 4503507.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 4503507.0,
+        "relative_error": 1.6732437245106914e-05,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 4503507.0,
+        "relative_error": 1.6732437245106914e-05,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 264667.8911657141,
+       "cold_values": [
+        219912.0,
+        219912.0,
+        219912.0
+       ],
+       "cold_first": 219912.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 219912.0,
+        "relative_error": 0.20351727584540238,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 219912.0,
+        "relative_error": 0.20351727584540238,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "POST /settings/recycle-bin/empty",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 60096.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 239091.54096637294,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 54341969.192785494,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 20.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 11035.246472756628,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 132586.91844347687,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /books/{bookSlug}/page/{pageSlug}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 29.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 11060.666293604216,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 132947.90105744454,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 26.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 11057.666293604216,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 1266976.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "marked": true,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 382733.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 382725.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 448734.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 70508.73714174012,
+       "cold_values": [
+        70511.0,
+        70511.0,
+        70511.0
+       ],
+       "cold_first": 70511.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 70511.0,
+        "relative_error": 3.2092272977046475e-05,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 70511.0,
+        "relative_error": 3.2092272977046475e-05,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 461403.6815483358,
+       "cold_values": [
+        382733.0,
+        382725.0,
+        448734.0
+       ],
+       "cold_first": 382733.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 382733.0,
+        "relative_error": 0.20554977372825395,
+        "within_min": false,
+        "within_goal": false
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 448734.0,
+        "relative_error": 0.028234280327177844,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "peak_memory": {
+       "predicted": 47144999.50157427,
+       "cold_values": [
+        48038864.0,
+        48038864.0,
+        48038864.0
+       ],
+       "cold_first": 48038864.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 48038864.0,
+        "relative_error": 0.018607111492597528,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 48038864.0,
+        "relative_error": 0.018607111492597528,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    },
+    {
+     "route": "PUT /settings/sorting/rules/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 2.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 191.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 94048.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /settings/users/{id}",
+     "marked": false,
+     "tries": [],
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 4.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "rows_examined": {
+       "predicted": 201.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      },
+      "peak_memory": {
+       "predicted": 90624.0,
+       "cold_values": [],
+       "cold_first": null,
+       "category": "unmeasured",
+       "reason": "no cold value at the size"
+      }
+     }
+    },
+    {
+     "route": "PUT /shelves/{slug}",
+     "marked": false,
+     "tries": [
+      {
+       "kind": "measure",
+       "label": "measurement run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10730.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10730.0
+      },
+      {
+       "kind": "variance",
+       "label": "variance run 1",
+       "state": "used",
+       "ok": true,
+       "what": "ok",
+       "rows_examined": 10730.0
+      }
+     ],
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "failed_tries": [],
+     "timed_out": false,
+     "q": {
+      "queries": {
+       "predicted": 21.0,
+       "cold_values": [
+        21.0,
+        21.0,
+        21.0
+       ],
+       "cold_first": 21.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 21.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 21.0,
+        "relative_error": 0.0,
+        "within_min": true,
+        "within_goal": true
+       }
+      },
+      "rows_examined": {
+       "predicted": 35037.69598885663,
+       "cold_values": [
+        10730.0,
+        10730.0,
+        10730.0
+       ],
+       "cold_first": 10730.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 10730.0,
+        "relative_error": 2.265395711915809,
+        "within_min": false,
+        "within_goal": false
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 10730.0,
+        "relative_error": 2.265395711915809,
+        "within_min": false,
+        "within_goal": false
+       }
+      },
+      "peak_memory": {
+       "predicted": 129863.37676949764,
+       "cold_values": [
+        128960.0,
+        128960.0,
+        128960.0
+       ],
+       "cold_first": 128960.0,
+       "category": "in_denominator",
+       "A": {
+        "category": "in_denominator",
+        "measured": 128960.0,
+        "relative_error": 0.007005092815583447,
+        "within_min": true,
+        "within_goal": true
+       },
+       "B": {
+        "category": "in_denominator",
+        "measured": 128960.0,
+        "relative_error": 0.007005092815583447,
+        "within_min": true,
+        "within_goal": true
+       }
+      }
+     }
+    }
+   ],
+   "problems": [],
+   "measured_without_estimate": [
+    "POST /settings/users/create"
+   ],
+   "outside_failed": [
+    {
+     "ok": false,
+     "class": "422",
+     "class_raw": "validation_422",
+     "status": 422,
+     "attempt": 1,
+     "detail": "The name field is required. (and 3 more errors) | fields: name, email, password, password-confirm",
+     "label": "measurement run 1",
+     "route": "POST /settings/users/create"
+    }
+   ],
+   "variance_files": 14,
+   "marked_count": 9,
+   "failed_tries": [],
+   "superseded_tries": [],
+   "failure_counts": {
+    "used": {
+     "timeout": 0,
+     "422": 0,
+     "500": 0,
+     "exception": 0,
+     "other": 0
+    },
+    "superseded": {
+     "timeout": 0,
+     "422": 0,
+     "500": 0,
+     "exception": 0,
+     "other": 0
+    }
+   },
+   "summary": {
+    "A": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "rows_examined": {
+        "denominator": 8,
+        "within_min": 5,
+        "within_goal": 5,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "peak_memory": {
+        "denominator": 8,
+        "within_min": 8,
+        "within_goal": 8,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 2,
+        "within_goal": 2,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    },
+    "B": {
+     "verdict": "indeterminate",
+     "reasons": [
+      "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+      "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+     ],
+     "shares": {
+      "all": {
+       "queries": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "rows_examined": {
+        "denominator": 8,
+        "within_min": 7,
+        "within_goal": 7,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       },
+       "peak_memory": {
+        "denominator": 8,
+        "within_min": 8,
+        "within_goal": 8,
+        "unmeasured": 27,
+        "no_estimate": 1,
+        "routes": 36,
+        "with_estimate": 35
+       }
+      },
+      "unmarked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 23,
+        "no_estimate": 0,
+        "routes": 27,
+        "with_estimate": 27
+       }
+      },
+      "marked": {
+       "queries": {
+        "denominator": 4,
+        "within_min": 3,
+        "within_goal": 3,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "rows_examined": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       },
+       "peak_memory": {
+        "denominator": 4,
+        "within_min": 4,
+        "within_goal": 4,
+        "unmeasured": 4,
+        "no_estimate": 1,
+        "routes": 9,
+        "with_estimate": 8
+       }
+      }
+     }
+    }
+   },
+   "top_errors_B": [
+    {
+     "route": "PUT /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 35037.69598885663,
+     "measured": 10730.0,
+     "relative_error": 2.265395711915809,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 258.9744889274157,
+     "measured": 236.0,
+     "relative_error": 0.09734952935345625,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /books/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 48.454730177433234,
+     "measured": 45.0,
+     "relative_error": 0.07677178172073854,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "GET /books/{slug}/references",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 11137.085754179565,
+     "measured": 10710.0,
+     "relative_error": 0.03987728797194817,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 461403.6815483358,
+     "measured": 448734.0,
+     "relative_error": 0.028234280327177844,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 18.28917469811173,
+     "measured": 18.0,
+     "relative_error": 0.016065261006207185,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /books/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 378974.8149878138,
+     "measured": 378457.0,
+     "relative_error": 0.0013682267412515057,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "DELETE /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 239109.79536093705,
+     "measured": 239015.0,
+     "relative_error": 0.00039660841761833017,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "POST /settings/maintenance/regenerate-references",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 608.0312253362351,
+     "measured": 608.0,
+     "relative_error": 5.135746091305667e-05,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 70508.73714174012,
+     "measured": 70511.0,
+     "relative_error": 3.2092272977046475e-05,
+     "within_min": true,
+     "within_goal": true
+    }
+   ],
+   "top_errors_A": [
+    {
+     "route": "PUT /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 35037.69598885663,
+     "measured": 10730.0,
+     "relative_error": 2.265395711915809,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "GET /books/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 378974.8149878138,
+     "measured": 234454.0,
+     "relative_error": 0.6164143712106163,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 461403.6815483358,
+     "measured": 382733.0,
+     "relative_error": 0.20554977372825395,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": true,
+     "predicted": 258.9744889274157,
+     "measured": 236.0,
+     "relative_error": 0.09734952935345625,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /books/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 48.454730177433234,
+     "measured": 45.0,
+     "relative_error": 0.07677178172073854,
+     "within_min": false,
+     "within_goal": false
+    },
+    {
+     "route": "GET /books/{slug}/references",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 11137.085754179565,
+     "measured": 10710.0,
+     "relative_error": 0.03987728797194817,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 18.28917469811173,
+     "measured": 18.0,
+     "relative_error": 0.016065261006207185,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "DELETE /shelves/{slug}",
+     "quantity": "rows_examined",
+     "marked": false,
+     "predicted": 239109.79536093705,
+     "measured": 239015.0,
+     "relative_error": 0.00039660841761833017,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "POST /settings/maintenance/regenerate-references",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 608.0312253362351,
+     "measured": 608.0,
+     "relative_error": 5.135746091305667e-05,
+     "within_min": true,
+     "within_goal": true
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "quantity": "queries",
+     "marked": true,
+     "predicted": 70508.73714174012,
+     "measured": 70511.0,
+     "relative_error": 3.2092272977046475e-05,
+     "within_min": true,
+     "within_goal": true
+    }
+   ],
+   "width_table": [
+    {
+     "route": "GET /books/{bookSlug}/chapter/{chapterSlug}",
+     "point": 198497.15399635202,
+     "upper": 866463.1462866386,
+     "cold_values": [],
+     "cold_min": null,
+     "cold_max": null,
+     "cold_count": 0,
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/export/zip",
+     "point": 252031.66501951817,
+     "upper": 913723.358148472,
+     "cold_values": [],
+     "cold_min": null,
+     "cold_max": null,
+     "cold_count": 0,
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     }
+    },
+    {
+     "route": "GET /books/{bookSlug}/page/{pageSlug}",
+     "point": 198501.18171358234,
+     "upper": 866819.3683844805,
+     "cold_values": [],
+     "cold_min": null,
+     "cold_max": null,
+     "cold_count": 0,
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     }
+    },
+    {
+     "route": "GET /books/{slug}",
+     "point": 378974.8149878138,
+     "upper": 2512978.9936852194,
+     "cold_values": [
+      234454.0,
+      234454.0,
+      378457.0
+     ],
+     "cold_min": 234454.0,
+     "cold_max": 378457.0,
+     "cold_count": 3,
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "point_vs_range": "above",
+     "upper_vs_range": "above",
+     "point_and_upper_enclose_range": false
+    },
+    {
+     "route": "GET /shelves/{slug}",
+     "point": 258.9744889274157,
+     "upper": 258.9755350054449,
+     "cold_values": [
+      236.0,
+      236.0,
+      236.0
+     ],
+     "cold_min": 236.0,
+     "cold_max": 236.0,
+     "cold_count": 3,
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "point_vs_range": "above",
+     "upper_vs_range": "above",
+     "point_and_upper_enclose_range": false
+    },
+    {
+     "route": "POST /books/{bookSlug}/copy",
+     "point": null,
+     "upper": 0.0,
+     "cold_values": [],
+     "cold_min": null,
+     "cold_max": null,
+     "cold_count": 0,
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     }
+    },
+    {
+     "route": "POST /books/{bookSlug}/draft/{pageId}",
+     "point": 102393.89618495839,
+     "upper": 379574.868435965,
+     "cold_values": [],
+     "cold_min": null,
+     "cold_max": null,
+     "cold_count": 0,
+     "cold_runs": {
+      "measure": 0,
+      "variance": 0
+     }
+    },
+    {
+     "route": "POST /settings/maintenance/regenerate-references",
+     "point": 4503431.64535174,
+     "upper": 54339291.342398554,
+     "cold_values": [
+      4503507.0,
+      4503507.0,
+      4503507.0
+     ],
+     "cold_min": 4503507.0,
+     "cold_max": 4503507.0,
+     "cold_count": 3,
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "point_vs_range": "below",
+     "upper_vs_range": "above",
+     "point_and_upper_enclose_range": true
+    },
+    {
+     "route": "PUT /books/{slug}",
+     "point": 461403.6815483358,
+     "upper": 1480032.7561309005,
+     "cold_values": [
+      382733.0,
+      382725.0,
+      448734.0
+     ],
+     "cold_min": 382725.0,
+     "cold_max": 448734.0,
+     "cold_count": 3,
+     "cold_runs": {
+      "measure": 1,
+      "variance": 2
+     },
+     "point_vs_range": "above",
+     "upper_vs_range": "above",
+     "point_and_upper_enclose_range": false
+    }
+   ]
+  }
+ ]
+}

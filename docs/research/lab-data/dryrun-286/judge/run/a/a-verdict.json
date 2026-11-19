@@ -1,0 +1,357 @@
+{
+ "apps": {
+  "bookstack": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 4,
+     "inside": 4,
+     "needed": 4,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 4,
+     "inside": 3,
+     "needed": 4,
+     "short": 1
+    },
+    "minimum_all_queries": {
+     "denominator": 8,
+     "inside": 7,
+     "needed": 7,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 8,
+     "inside": 7,
+     "needed": 7,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": false,
+   "condition_3_misses": [
+    {
+     "marked": true,
+     "outside_goal": {
+      "queries": 0.07677178172073854
+     },
+     "route": "GET /books/{slug}"
+    },
+    {
+     "marked": false,
+     "outside_goal": {
+      "rows_examined": 2.265395711915809
+     },
+     "route": "PUT /shelves/{slug}"
+    }
+   ],
+   "condition_3_misses_marked": 1,
+   "condition_3_misses_unmarked": 1,
+   "no_estimate_routes": [
+    "POST /books/{bookSlug}/copy"
+   ],
+   "not_measured_with_estimate": [
+    "DELETE /books/{bookSlug}/chapter/{chapterSlug}",
+    "DELETE /books/{bookSlug}/draft/{pageId}",
+    "DELETE /books/{bookSlug}/page/{pageSlug}",
+    "DELETE /books/{id}",
+    "DELETE /import/{id}",
+    "DELETE /settings/maintenance/cleanup-images",
+    "DELETE /settings/sorting/rules/{id}",
+    "GET /books/{bookSlug}/chapter/{chapterSlug}",
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+    "GET /books/{bookSlug}/copy",
+    "GET /books/{bookSlug}/draft/{pageId}",
+    "GET /books/{bookSlug}/export/zip",
+    "GET /books/{bookSlug}/page/{pageSlug}",
+    "GET /books/{bookSlug}/page/{pageSlug}/references",
+    "GET /images/edit/{id}",
+    "GET /oidc/callback",
+    "GET /settings/sorting/rules/{id}",
+    "GET /settings/users/{id}",
+    "GET /shelves/{slug}/references",
+    "POST /books/{bookSlug}/draft/{pageId}",
+    "POST /import/{id}",
+    "POST /settings/recycle-bin/empty",
+    "PUT /books/{bookSlug}/chapter/{chapterSlug}",
+    "PUT /books/{bookSlug}/page/{pageSlug}",
+    "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+    "PUT /settings/sorting/rules/{id}",
+    "PUT /settings/users/{id}"
+   ],
+   "reasons": [
+    "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_reasons": [
+    "queries: 27 of 35 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: 27 of 35 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_verdict": "undecidable",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 8,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 27,
+      "with_estimate": 35,
+      "within_goal": 8,
+      "within_min": 8
+     },
+     "queries": {
+      "denominator": 8,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 27,
+      "with_estimate": 35,
+      "within_goal": 7,
+      "within_min": 7
+     },
+     "rows_examined": {
+      "denominator": 8,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 27,
+      "with_estimate": 35,
+      "within_goal": 7,
+      "within_min": 7
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 4,
+      "no_estimate": 1,
+      "routes": 9,
+      "unmeasured": 4,
+      "with_estimate": 8,
+      "within_goal": 4,
+      "within_min": 4
+     },
+     "queries": {
+      "denominator": 4,
+      "no_estimate": 1,
+      "routes": 9,
+      "unmeasured": 4,
+      "with_estimate": 8,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "rows_examined": {
+      "denominator": 4,
+      "no_estimate": 1,
+      "routes": 9,
+      "unmeasured": 4,
+      "with_estimate": 8,
+      "within_goal": 4,
+      "within_min": 4
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 4,
+      "no_estimate": 0,
+      "routes": 27,
+      "unmeasured": 23,
+      "with_estimate": 27,
+      "within_goal": 4,
+      "within_min": 4
+     },
+     "queries": {
+      "denominator": 4,
+      "no_estimate": 0,
+      "routes": 27,
+      "unmeasured": 23,
+      "with_estimate": 27,
+      "within_goal": 4,
+      "within_min": 4
+     },
+     "rows_examined": {
+      "denominator": 4,
+      "no_estimate": 0,
+      "routes": 27,
+      "unmeasured": 23,
+      "with_estimate": 27,
+      "within_goal": 3,
+      "within_min": 3
+     }
+    }
+   },
+   "tool_verdict_word": "indeterminate",
+   "verdict": "undecidable"
+  },
+  "fixtures": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": false,
+   "condition_3_misses": [],
+   "condition_3_misses_marked": 0,
+   "condition_3_misses_unmarked": 0,
+   "no_estimate_routes": [
+    "GET /ng/nested",
+    "POST /ok/bulk"
+   ],
+   "not_measured_with_estimate": [
+    "GET /hidden/appends",
+    "GET /hidden/blade",
+    "GET /hidden/cache",
+    "GET /hidden/conditional-binding",
+    "GET /hidden/cursor",
+    "GET /hidden/model-with",
+    "GET /hidden/resource",
+    "GET /ng/collection-filter",
+    "GET /ng/count-in-loop",
+    "GET /ng/get-then-count",
+    "GET /ng/layered",
+    "GET /ng/save-in-loop",
+    "GET /ng/service",
+    "GET /ng/unbounded",
+    "GET /ok/chunk",
+    "GET /ok/lazy",
+    "GET /ok/paginate",
+    "GET /ok/with-count",
+    "GET /unknown/dynamic"
+   ],
+   "reasons": [
+    "queries: the denominator has 3 routes, fewer than 5",
+    "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: the denominator has 3 routes, fewer than 5",
+    "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_reasons": [
+    "queries: the denominator has 3 routes, fewer than 5",
+    "queries: 19 of 22 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: the denominator has 3 routes, fewer than 5",
+    "rows_examined: 19 of 22 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_verdict": "undecidable",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 3,
+      "no_estimate": 0,
+      "routes": 24,
+      "unmeasured": 21,
+      "with_estimate": 24,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "queries": {
+      "denominator": 3,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 19,
+      "with_estimate": 22,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "rows_examined": {
+      "denominator": 3,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 19,
+      "with_estimate": 22,
+      "within_goal": 3,
+      "within_min": 3
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     },
+     "queries": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     },
+     "rows_examined": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 3,
+      "no_estimate": 0,
+      "routes": 24,
+      "unmeasured": 21,
+      "with_estimate": 24,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "queries": {
+      "denominator": 3,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 19,
+      "with_estimate": 22,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "rows_examined": {
+      "denominator": 3,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 19,
+      "with_estimate": 22,
+      "within_goal": 3,
+      "within_min": 3
+     }
+    }
+   },
+   "tool_verdict_word": "indeterminate",
+   "verdict": "undecidable"
+  }
+ },
+ "both_apps_not_for_the_verdict": {
+  "reasons": [
+   "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+   "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+  ],
+  "verdict": "undecidable"
+ },
+ "no_variance_directory_read_as_empty": [
+  "fixtures"
+ ],
+ "rows": 30000,
+ "rule": "B decides, A shown (docs/simulator-spec.md 7.1)",
+ "tool_sha256": "95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b"
+}

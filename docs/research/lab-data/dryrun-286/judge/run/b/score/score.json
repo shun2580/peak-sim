@@ -1,0 +1,2368 @@
+{
+    "schema_version": "0.1",
+    "threshold": 0.8,
+    "usable_range": [
+        0.1,
+        0.9
+    ],
+    "counts": {
+        "scenarios": 5,
+        "stages_measured": 10,
+        "valid_stages": 10,
+        "usable_stages": 0,
+        "scenarios_with_limit": 0
+    },
+    "indeterminate": {
+        "is": true,
+        "reasons": [
+            "usable stages 0 < 10",
+            "scenarios whose limit rps was measured 0 < 4"
+        ]
+    },
+    "items": {
+        "1": {
+            "name": "mean absolute difference of the prediction is smaller than that of the naive estimate",
+            "mean_points": null,
+            "mean_points_naive": null,
+            "minimum": false,
+            "target": false
+        },
+        "2": {
+            "name": "mean absolute difference (points)",
+            "mean_points": null,
+            "line_minimum_points": 15,
+            "line_target_points": 5,
+            "minimum": false,
+            "target": false
+        },
+        "3": {
+            "name": "agreement on \"exceeded the threshold\" over all valid stages",
+            "agree": 10,
+            "valid_stages": 10,
+            "share": 1,
+            "share_naive": 1,
+            "minimum": true,
+            "target": true
+        },
+        "4": {
+            "name": "predicted limit rps (point) within the tolerance of the measured one, over scenarios whose limit was measured",
+            "scenarios_with_limit": 0,
+            "within_minimum": 0,
+            "within_target": 0,
+            "tolerance_minimum": 0.2,
+            "tolerance_target": 0.1,
+            "minimum": false,
+            "target": false,
+            "safe_within_minimum": 0,
+            "safe_within_target": 0,
+            "naive_within_minimum": 0,
+            "naive_within_target": 0,
+            "naive_used_for_the_verdict": false
+        }
+    },
+    "verdict": "indeterminate",
+    "scenarios": [
+        {
+            "id": "s-1",
+            "stages": [
+                {
+                    "rps": 0.025,
+                    "predicted": {
+                        "point": 0.018731285907311393,
+                        "safe": 0.01981708123876682,
+                        "naive": 0.009105776026512353
+                    },
+                    "observed": 0.029430798939200243,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -1.069951303188885,
+                        "safe": -0.9613717700433424,
+                        "naive": -2.0325022912687887
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.035,
+                    "predicted": {
+                        "point": 0.026223800270235936,
+                        "safe": 0.027743913734273536,
+                        "naive": 0.012748086437117296
+                    },
+                    "observed": 0.03549644339479078,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.9272643124554842,
+                        "safe": -0.7752529660517242,
+                        "naive": -2.274835695767348
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.05,
+                    "predicted": {
+                        "point": 0.037462571814622786,
+                        "safe": 0.03963416247753364,
+                        "naive": 0.018211552053024705
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.07,
+                    "predicted": {
+                        "point": 0.05244760054047187,
+                        "safe": 0.05548782746854707,
+                        "naive": 0.025496172874234592
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.1,
+                    "predicted": {
+                        "point": 0.07492514362924557,
+                        "safe": 0.07926832495506728,
+                        "naive": 0.03642310410604941
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.15,
+                    "predicted": {
+                        "point": 0.1123877154438683,
+                        "safe": 0.11890248743260086,
+                        "naive": 0.05463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.2,
+                    "predicted": {
+                        "point": 0.14985028725849114,
+                        "safe": 0.15853664991013455,
+                        "naive": 0.07284620821209882
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.3,
+                    "predicted": {
+                        "point": 0.2247754308877366,
+                        "safe": 0.23780497486520172,
+                        "naive": 0.10926931231814824
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.45,
+                    "predicted": {
+                        "point": 0.3371631463316049,
+                        "safe": 0.35670746229780254,
+                        "naive": 0.16390396847722236
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.7,
+                    "predicted": {
+                        "point": 0.5244760054047187,
+                        "safe": 0.5548782746854707,
+                        "naive": 0.2549617287423459
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1,
+                    "predicted": {
+                        "point": 0.7492514362924553,
+                        "safe": 0.7926832495506724,
+                        "naive": 0.36423104106049414
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1.5,
+                    "predicted": {
+                        "point": 1.1238771544386832,
+                        "safe": 1.1890248743260088,
+                        "naive": 0.5463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 2.2,
+                    "predicted": {
+                        "point": 1.6483531598434018,
+                        "safe": 1.7439031490114794,
+                        "naive": 0.8013082903330871
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 3.3,
+                    "predicted": {
+                        "point": 2.4725297397651027,
+                        "safe": 2.615854723517219,
+                        "naive": 1.2019624354996306
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 5,
+                    "predicted": {
+                        "point": 3.7462571814622767,
+                        "safe": 3.9634162477533623,
+                        "naive": 1.8211552053024707
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                }
+            ],
+            "limit": {
+                "measured": {
+                    "status": "not_measured",
+                    "reason": "app_bound_below_threshold: the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured",
+                    "reason_code": "app_bound_below_threshold",
+                    "method": null,
+                    "rps": null,
+                    "basis": [
+                        {
+                            "rps": 0.025,
+                            "utilization": 0.029430798939200243
+                        },
+                        {
+                            "rps": 0.035,
+                            "utilization": 0.03549644339479078
+                        }
+                    ]
+                },
+                "predicted": {
+                    "point": 1.0677323542530202,
+                    "safe": 1.0092303583473916,
+                    "naive": 2.1964080756838356
+                },
+                "relative_error": {
+                    "point": null,
+                    "safe": null,
+                    "naive": null
+                },
+                "within": {
+                    "point": [],
+                    "safe": [],
+                    "naive": []
+                }
+            }
+        },
+        {
+            "id": "s-2",
+            "stages": [
+                {
+                    "rps": 0.025,
+                    "predicted": {
+                        "point": 0.03493946067624316,
+                        "safe": 0.03696627862591703,
+                        "naive": 0.009105776026512353
+                    },
+                    "observed": 0.043346257079986523,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.8406796403743366,
+                        "safe": -0.6379978454069491,
+                        "naive": -3.4240481053474174
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.035,
+                    "predicted": {
+                        "point": 0.04891524494674042,
+                        "safe": 0.05175279007628384,
+                        "naive": 0.012748086437117296
+                    },
+                    "observed": 0.05752833578530424,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.8613090838563819,
+                        "safe": -0.5775545709020398,
+                        "naive": -4.478024934818695
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.05,
+                    "predicted": {
+                        "point": 0.06987892135248631,
+                        "safe": 0.07393255725183406,
+                        "naive": 0.018211552053024705
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.07,
+                    "predicted": {
+                        "point": 0.09783048989348084,
+                        "safe": 0.10350558015256768,
+                        "naive": 0.025496172874234592
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.1,
+                    "predicted": {
+                        "point": 0.13975784270497263,
+                        "safe": 0.14786511450366813,
+                        "naive": 0.03642310410604941
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.15,
+                    "predicted": {
+                        "point": 0.20963676405745893,
+                        "safe": 0.22179767175550216,
+                        "naive": 0.05463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.2,
+                    "predicted": {
+                        "point": 0.27951568540994526,
+                        "safe": 0.29573022900733625,
+                        "naive": 0.07284620821209882
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.3,
+                    "predicted": {
+                        "point": 0.41927352811491786,
+                        "safe": 0.4435953435110043,
+                        "naive": 0.10926931231814824
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.45,
+                    "predicted": {
+                        "point": 0.6289102921723767,
+                        "safe": 0.6653930152665064,
+                        "naive": 0.16390396847722236
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.7,
+                    "predicted": {
+                        "point": 0.9783048989348081,
+                        "safe": 1.0350558015256766,
+                        "naive": 0.2549617287423459
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1,
+                    "predicted": {
+                        "point": 1.397578427049726,
+                        "safe": 1.478651145036681,
+                        "naive": 0.36423104106049414
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1.5,
+                    "predicted": {
+                        "point": 2.0963676405745897,
+                        "safe": 2.2179767175550222,
+                        "naive": 0.5463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 2.2,
+                    "predicted": {
+                        "point": 3.0746725395093977,
+                        "safe": 3.2530325190806986,
+                        "naive": 0.8013082903330871
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 3.3,
+                    "predicted": {
+                        "point": 4.612008809264096,
+                        "safe": 4.879548778621047,
+                        "naive": 1.2019624354996306
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 5,
+                    "predicted": {
+                        "point": 6.9878921352486305,
+                        "safe": 7.393255725183406,
+                        "naive": 1.8211552053024707
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                }
+            ],
+            "limit": {
+                "measured": {
+                    "status": "not_measured",
+                    "reason": "app_bound_below_threshold: the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured",
+                    "reason_code": "app_bound_below_threshold",
+                    "method": null,
+                    "rps": null,
+                    "basis": [
+                        {
+                            "rps": 0.025,
+                            "utilization": 0.043346257079986523
+                        },
+                        {
+                            "rps": 0.035,
+                            "utilization": 0.05752833578530424
+                        }
+                    ]
+                },
+                "predicted": {
+                    "point": 0.5724186811389126,
+                    "safe": 0.5410336323650934,
+                    "naive": 2.196408075683836
+                },
+                "relative_error": {
+                    "point": null,
+                    "safe": null,
+                    "naive": null
+                },
+                "within": {
+                    "point": [],
+                    "safe": [],
+                    "naive": []
+                }
+            }
+        },
+        {
+            "id": "s-3",
+            "stages": [
+                {
+                    "rps": 0.025,
+                    "predicted": {
+                        "point": 0.008757024511045673,
+                        "safe": 0.009263729000520518,
+                        "naive": 0.009105776026512353
+                    },
+                    "observed": 0.018377062304740736,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.9620037793695062,
+                        "safe": -0.9113333304220218,
+                        "naive": -0.9271286278228383
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.035,
+                    "predicted": {
+                        "point": 0.012259834315463942,
+                        "safe": 0.012969220600728725,
+                        "naive": 0.012748086437117296
+                    },
+                    "observed": 0.022065412633653907,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.9805578318189965,
+                        "safe": -0.9096192032925181,
+                        "naive": -0.931732619653661
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.05,
+                    "predicted": {
+                        "point": 0.017514049022091346,
+                        "safe": 0.018527458001041035,
+                        "naive": 0.018211552053024705
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.07,
+                    "predicted": {
+                        "point": 0.024519668630927884,
+                        "safe": 0.02593844120145745,
+                        "naive": 0.025496172874234592
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.1,
+                    "predicted": {
+                        "point": 0.03502809804418269,
+                        "safe": 0.03705491600208207,
+                        "naive": 0.03642310410604941
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.15,
+                    "predicted": {
+                        "point": 0.052542147066274025,
+                        "safe": 0.05558237400312309,
+                        "naive": 0.05463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.2,
+                    "predicted": {
+                        "point": 0.07005619608836539,
+                        "safe": 0.07410983200416414,
+                        "naive": 0.07284620821209882
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.3,
+                    "predicted": {
+                        "point": 0.10508429413254805,
+                        "safe": 0.11116474800624618,
+                        "naive": 0.10926931231814824
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.45,
+                    "predicted": {
+                        "point": 0.1576264411988221,
+                        "safe": 0.1667471220093693,
+                        "naive": 0.16390396847722236
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.7,
+                    "predicted": {
+                        "point": 0.24519668630927877,
+                        "safe": 0.2593844120145744,
+                        "naive": 0.2549617287423459
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1,
+                    "predicted": {
+                        "point": 0.3502809804418268,
+                        "safe": 0.3705491600208206,
+                        "naive": 0.36423104106049414
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1.5,
+                    "predicted": {
+                        "point": 0.5254214706627404,
+                        "safe": 0.555823740031231,
+                        "naive": 0.5463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 2.2,
+                    "predicted": {
+                        "point": 0.7706181569720192,
+                        "safe": 0.8152081520458055,
+                        "naive": 0.8013082903330871
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 3.3,
+                    "predicted": {
+                        "point": 1.1559272354580286,
+                        "safe": 1.2228122280687082,
+                        "naive": 1.2019624354996306
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 5,
+                    "predicted": {
+                        "point": 1.751404902209134,
+                        "safe": 1.852745800104103,
+                        "naive": 1.8211552053024707
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                }
+            ],
+            "limit": {
+                "measured": {
+                    "status": "not_measured",
+                    "reason": "app_bound_below_threshold: the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured",
+                    "reason_code": "app_bound_below_threshold",
+                    "method": null,
+                    "rps": null,
+                    "basis": [
+                        {
+                            "rps": 0.025,
+                            "utilization": 0.018377062304740736
+                        },
+                        {
+                            "rps": 0.035,
+                            "utilization": 0.022065412633653907
+                        }
+                    ]
+                },
+                "predicted": {
+                    "point": 2.2838807833383368,
+                    "safe": 2.1589578018610247,
+                    "naive": 2.1964080756838356
+                },
+                "relative_error": {
+                    "point": null,
+                    "safe": null,
+                    "naive": null
+                },
+                "within": {
+                    "point": [],
+                    "safe": [],
+                    "naive": []
+                }
+            }
+        },
+        {
+            "id": "s-4",
+            "stages": [
+                {
+                    "rps": 0.025,
+                    "predicted": {
+                        "point": 0.026211701385979305,
+                        "safe": 0.02773181484855459,
+                        "naive": 0.009105776026512353
+                    },
+                    "observed": 0.03404335632440947,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.7831654938430164,
+                        "safe": -0.6311541475854877,
+                        "naive": -2.4937580297897117
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.035,
+                    "predicted": {
+                        "point": 0.03669638194037103,
+                        "safe": 0.03882454078797643,
+                        "naive": 0.012748086437117296
+                    },
+                    "observed": 0.04396899267997028,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.7272610739599249,
+                        "safe": -0.5144451891993849,
+                        "naive": -3.1220906242852986
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.05,
+                    "predicted": {
+                        "point": 0.05242340277195861,
+                        "safe": 0.05546362969710918,
+                        "naive": 0.018211552053024705
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.07,
+                    "predicted": {
+                        "point": 0.07339276388074206,
+                        "safe": 0.07764908157595286,
+                        "naive": 0.025496172874234592
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.1,
+                    "predicted": {
+                        "point": 0.10484680554391722,
+                        "safe": 0.11092725939421837,
+                        "naive": 0.03642310410604941
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.15,
+                    "predicted": {
+                        "point": 0.15727020831587585,
+                        "safe": 0.16639088909132757,
+                        "naive": 0.05463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.2,
+                    "predicted": {
+                        "point": 0.20969361108783444,
+                        "safe": 0.22185451878843673,
+                        "naive": 0.07284620821209882
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.3,
+                    "predicted": {
+                        "point": 0.3145404166317517,
+                        "safe": 0.33278177818265514,
+                        "naive": 0.10926931231814824
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.45,
+                    "predicted": {
+                        "point": 0.4718106249476275,
+                        "safe": 0.49917266727398263,
+                        "naive": 0.16390396847722236
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.7,
+                    "predicted": {
+                        "point": 0.7339276388074203,
+                        "safe": 0.7764908157595283,
+                        "naive": 0.2549617287423459
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1,
+                    "predicted": {
+                        "point": 1.048468055439172,
+                        "safe": 1.1092725939421835,
+                        "naive": 0.36423104106049414
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1.5,
+                    "predicted": {
+                        "point": 1.5727020831587581,
+                        "safe": 1.6639088909132753,
+                        "naive": 0.5463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 2.2,
+                    "predicted": {
+                        "point": 2.3066297219661793,
+                        "safe": 2.4403997066728045,
+                        "naive": 0.8013082903330871
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 3.3,
+                    "predicted": {
+                        "point": 3.4599445829492677,
+                        "safe": 3.6605995600092056,
+                        "naive": 1.2019624354996306
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 5,
+                    "predicted": {
+                        "point": 5.2423402771958605,
+                        "safe": 5.546362969710918,
+                        "naive": 1.8211552053024707
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                }
+            ],
+            "limit": {
+                "measured": {
+                    "status": "not_measured",
+                    "reason": "app_bound_below_threshold: the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured",
+                    "reason_code": "app_bound_below_threshold",
+                    "method": null,
+                    "rps": null,
+                    "basis": [
+                        {
+                            "rps": 0.025,
+                            "utilization": 0.03404335632440947
+                        },
+                        {
+                            "rps": 0.035,
+                            "utilization": 0.04396899267997028
+                        }
+                    ]
+                },
+                "predicted": {
+                    "point": 0.7630180012159777,
+                    "safe": 0.7211933336935006,
+                    "naive": 2.1964080756838356
+                },
+                "relative_error": {
+                    "point": null,
+                    "safe": null,
+                    "naive": null
+                },
+                "within": {
+                    "point": [],
+                    "safe": [],
+                    "naive": []
+                }
+            }
+        },
+        {
+            "id": "s-5",
+            "stages": [
+                {
+                    "rps": 0.025,
+                    "predicted": {
+                        "point": 0.006575373790586711,
+                        "safe": 0.00695627290339885,
+                        "naive": 0.009105776026512353
+                    },
+                    "observed": 0.015310478204925768,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.8735104414339057,
+                        "safe": -0.8354205301526918,
+                        "naive": -0.6204702178413415
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.035,
+                    "predicted": {
+                        "point": 0.009205523306821395,
+                        "safe": 0.00973878206475839,
+                        "naive": 0.012748086437117296
+                    },
+                    "observed": 0.01774689969742486,
+                    "valid": true,
+                    "usable": false,
+                    "difference_points": {
+                        "point": -0.8541376390603466,
+                        "safe": -0.8008117632666472,
+                        "naive": -0.4998813260307565
+                    },
+                    "over_threshold": {
+                        "point": false,
+                        "safe": false,
+                        "naive": false,
+                        "observed": false
+                    },
+                    "agree": {
+                        "point": true,
+                        "naive": true
+                    },
+                    "safe_below_observed": true
+                },
+                {
+                    "rps": 0.05,
+                    "predicted": {
+                        "point": 0.013150747581173423,
+                        "safe": 0.0139125458067977,
+                        "naive": 0.018211552053024705
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.07,
+                    "predicted": {
+                        "point": 0.01841104661364279,
+                        "safe": 0.01947756412951678,
+                        "naive": 0.025496172874234592
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.1,
+                    "predicted": {
+                        "point": 0.026301495162346845,
+                        "safe": 0.0278250916135954,
+                        "naive": 0.03642310410604941
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.15,
+                    "predicted": {
+                        "point": 0.03945224274352026,
+                        "safe": 0.04173763742039309,
+                        "naive": 0.05463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.2,
+                    "predicted": {
+                        "point": 0.05260299032469369,
+                        "safe": 0.0556501832271908,
+                        "naive": 0.07284620821209882
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.3,
+                    "predicted": {
+                        "point": 0.07890448548704052,
+                        "safe": 0.08347527484078618,
+                        "naive": 0.10926931231814824
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.45,
+                    "predicted": {
+                        "point": 0.11835672823056079,
+                        "safe": 0.12521291226117928,
+                        "naive": 0.16390396847722236
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 0.7,
+                    "predicted": {
+                        "point": 0.18411046613642784,
+                        "safe": 0.19477564129516772,
+                        "naive": 0.2549617287423459
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1,
+                    "predicted": {
+                        "point": 0.2630149516234684,
+                        "safe": 0.27825091613595393,
+                        "naive": 0.36423104106049414
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 1.5,
+                    "predicted": {
+                        "point": 0.39452242743520255,
+                        "safe": 0.41737637420393087,
+                        "naive": 0.5463465615907412
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 2.2,
+                    "predicted": {
+                        "point": 0.5786328935716305,
+                        "safe": 0.6121520154990987,
+                        "naive": 0.8013082903330871
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 3.3,
+                    "predicted": {
+                        "point": 0.8679493403574458,
+                        "safe": 0.918228023248648,
+                        "naive": 1.2019624354996306
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                },
+                {
+                    "rps": 5,
+                    "predicted": {
+                        "point": 1.3150747581173419,
+                        "safe": 1.3912545806797696,
+                        "naive": 1.8211552053024707
+                    },
+                    "observed": null,
+                    "valid": false,
+                    "usable": false,
+                    "difference_points": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null
+                    },
+                    "over_threshold": {
+                        "point": null,
+                        "safe": null,
+                        "naive": null,
+                        "observed": null
+                    },
+                    "agree": {
+                        "point": null,
+                        "naive": null
+                    },
+                    "safe_below_observed": false
+                }
+            ],
+            "limit": {
+                "measured": {
+                    "status": "not_measured",
+                    "reason": "app_bound_below_threshold: the ladder stopped below the threshold (the application was the bottleneck): no stage at or above the threshold was measured",
+                    "reason_code": "app_bound_below_threshold",
+                    "method": null,
+                    "rps": null,
+                    "basis": [
+                        {
+                            "rps": 0.025,
+                            "utilization": 0.015310478204925768
+                        },
+                        {
+                            "rps": 0.035,
+                            "utilization": 0.01774689969742486
+                        }
+                    ]
+                },
+                "predicted": {
+                    "point": 3.041652176281135,
+                    "safe": 2.8751028428208967,
+                    "naive": 2.1964080756838356
+                },
+                "relative_error": {
+                    "point": null,
+                    "safe": null,
+                    "naive": null
+                },
+                "within": {
+                    "point": [],
+                    "safe": [],
+                    "naive": []
+                }
+            }
+        }
+    ],
+    "safe_side_below_observed": [
+        {
+            "scenario": "s-1",
+            "rps": 0.025,
+            "safe": 0.01981708123876682,
+            "observed": 0.029430798939200243,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-1",
+            "rps": 0.035,
+            "safe": 0.027743913734273536,
+            "observed": 0.03549644339479078,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-2",
+            "rps": 0.025,
+            "safe": 0.03696627862591703,
+            "observed": 0.043346257079986523,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-2",
+            "rps": 0.035,
+            "safe": 0.05175279007628384,
+            "observed": 0.05752833578530424,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-3",
+            "rps": 0.025,
+            "safe": 0.009263729000520518,
+            "observed": 0.018377062304740736,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-3",
+            "rps": 0.035,
+            "safe": 0.012969220600728725,
+            "observed": 0.022065412633653907,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-4",
+            "rps": 0.025,
+            "safe": 0.02773181484855459,
+            "observed": 0.03404335632440947,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-4",
+            "rps": 0.035,
+            "safe": 0.03882454078797643,
+            "observed": 0.04396899267997028,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-5",
+            "rps": 0.025,
+            "safe": 0.00695627290339885,
+            "observed": 0.015310478204925768,
+            "valid": true,
+            "usable": false
+        },
+        {
+            "scenario": "s-5",
+            "rps": 0.035,
+            "safe": 0.00973878206475839,
+            "observed": 0.01774689969742486,
+            "valid": true,
+            "usable": false
+        }
+    ]
+}

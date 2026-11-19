@@ -61,7 +61,7 @@ def main():
     def cum(k, ov, w):
         return sum(wins[i] + ov + w for i in range(k))
     L = ['# Length of the fifth round, estimated from the rules and the earlier records\n',
-         'Written by `judge/estimate_length.py` from committed records. It is an estimate of time, not of any result. No figure of a dry run is used.\n',
+         'Written by `judge/estimate_length.py` from committed records. It is an estimate of time, not of any result. No figure of a dry run is used, except the time of the procedure in the section on the rehearsal.\n',
          '## B at %s rows (s-1 to s-5, 15 steps each)\n' % format(a.rows_b, ',')]
     L.append('Step time = the window + the part outside the window + the wait at the end of the step. The window is the smallest multiple of 40 / rps seconds that is at least 300 seconds '
              '(spec 7.2); the window rule reproduces the recorded `window_sec` of all %d steps of the 90,000-row B to within 1 second (the tool rounds a fraction of a second its own way): **%s**. '
@@ -97,6 +97,44 @@ def main():
                  format(a.rows_b, ','), ', '.join('%s %.3f' % (s, ks[s][0]) for s in ks), ', '.join('%s step %d' % (s, ks[s][1]) for s in ks), total_steps, hm(case1), hm(case1_hi)))
     L.append('3. **No scenario stops early** (all 15 steps in all 5 scenarios, which needs every limit above 5 rps): **%s** without waits, **%s** as an upper bound with a 1,800-second wait at every step. Not expected; written as the bound.\n' % (hm(longest_nowait), hm(longest)))
     L.append('A step that is invalid (the intended rps did not come out) also stops its scenario, so a scenario can end earlier than its limit; the stop at a break (the stop mark) and the later resume add the wait between sessions and are not counted here. Where a route is taken out of the allocation at %s rows (spec 7.4.4) the load of a scenario and so its limit rps change, and the stop steps change with them.\n' % format(a.rows_b, ','))
+
+    # --- the length of a step as seen in the rehearsal (30,000 rows). Only the time of the procedure is used: the part outside the window and the gap between
+    # scenarios. No count of requests, no rps, no verdict figure of the rehearsal is read.
+    dr = os.path.join(LAB, 'dryrun-286/b')
+    rov, rg = [], []
+    for pth in sorted(glob.glob(os.path.join(dr, 'ladder/*/ladder.json'))):
+        for r in json.load(open(pth))['rungs']:
+            rov.append((T(r['ended_at']) - T(r['started_at'])).total_seconds() - r['window_sec'] - r['end_of_step']['longest_after_window_ms'] / 1000.0)
+    ends, starts, chain_starts = {}, {}, []
+    for ln in open(os.path.join(dr, 'chain/chain.txt')):
+        f = ln.split()
+        if len(f) > 2 and f[1] == 'CHAIN' and f[2] == 'START':
+            chain_starts.append(T(f[0]))
+        if len(f) > 2 and f[1] in ('START', 'END') and f[2].startswith('s-'):
+            (starts if f[1] == 'START' else ends)[f[2]] = T(f[0])
+    order = sorted(ends)
+    for i in range(len(order) - 1):
+        # a gap that holds a restart of the chain (the deliberate stop at a break) is not the gap between two scenarios
+        if not any(ends[order[i]] < c < starts[order[i + 1]] for c in chain_starts):
+            rg.append((starts[order[i + 1]] - ends[order[i]]).total_seconds())
+    if rov and rg:
+        rmin, rmax, rgap = min(rov), max(rov), max(rg)
+        r_case0 = sum(cum(k, rmax, 0) for k in k90.values()) + 4 * rgap
+        r_case0_hi = sum(cum(k, rmax, wait_max) for k in k90.values()) + 4 * rgap
+        r_case1 = sum(cum(ks[s][1], rmax, 0) for s in ks) + 4 * rgap
+        r_case1_hi = sum(cum(ks[s][1], rmax, wait_max) for s in ks) + 4 * rgap
+        r_longest = sum(cum(15, rmax, 0) for _ in range(5)) + 4 * rgap
+        L.append('### The length of a step as seen in the rehearsal at 30,000 rows (the procedure only)\n')
+        L.append('The rehearsal of B (`dryrun-286/b/`, 10 steps) took %.0f to %.0f s outside the window per step (the discarded first minute and the set-up; no request outlived the window, so the wait at the end was 0), '
+                 'and %.0f s at most between the end of a scenario and the start of the next (the containers made again; the one gap that holds the deliberate stop at a break is left out). That lies inside the %.0f to %.0f s of the 90,000-row record above, at its upper end. '
+                 'It is a length of the procedure, which does not depend on the row count; it is not a result and no figure of it is used for a verdict. With the largest outside part seen in the rehearsal (%.0f s) and the largest gap (%.0f s):\n' % (
+                     rmin, rmax, rgap, ov_min, ov_max, rmax, rgap))
+        L.append('- every scenario stops where it stopped at 90,000 rows (48 steps): **%s** with no wait, **%s** with the largest wait seen at 90,000 rows;' % (hm(r_case0), hm(r_case0_hi)))
+        L.append('- premise 2 (limit inversely proportional to the row count; %d steps): **%s** with no wait, **%s** with that wait;' % (total_steps, hm(r_case1), hm(r_case1_hi)))
+        L.append('- no scenario stops early (75 steps): **%s** with no wait; the upper bound with a wait of 1,800 s at every step is unchanged in kind (%s with this outside part).\n' % (
+            hm(r_longest), hm(sum(cum(15, rmax, 1800) for _ in range(5)) + 4 * rgap)))
+        L.append('One scenario of two steps (0.025 and 0.035 rps) took %s from the start of its first step to the end of its second (50 min 5 s from START to END in the chain record, the recreation included), and the five scenarios with one stop at a break in between took %s; a stop at a break adds the time until the mark is read (it waits for the running step) and the restart.\n' % (
+            hm(sum(((T(json.load(open(g))['rungs'][-1]['ended_at']) - T(json.load(open(g))['rungs'][0]['started_at'])).total_seconds()) for g in sorted(glob.glob(os.path.join(dr, 'ladder/s-1-*/ladder.json')))[:1])), hm((max(ends.values()) - T(open(os.path.join(dr, 'chain/chain.txt')).readline().split()[0])).total_seconds())))
 
     # --- the building of the B database
     fills = {}
@@ -137,7 +175,7 @@ def main():
                  hm(par), hm(ser), hm(T('2026-11-16T20:00:56+09:00').timestamp() - T('2026-11-16T19:06:43+09:00').timestamp())))
     L.append('The build of the verification app\'s measuring database at %s rows is inside its recorded %d s above. The A builds are of every table (`a-build/`), which is why they take far longer than the B build.\n' % (format(a.rows_a, ','), fx))
     L.append('## What this does not say\n')
-    L.append('- It is an estimate of time. It does not say whether B or A will pass, and uses no figure of a dry run.')
+    L.append('- It is an estimate of time. It does not say whether B or A will pass, and uses no figure of a dry run except the time of its procedure.')
     L.append('- Premise 2 of B (limit inversely proportional to the row count) and the A scaling are premises. The prediction of T4 replaces premise 2: its limit rps per scenario gives the stop steps, and the table above gives the time.')
     L.append('- The wait at the end of a step at %s rows is the figure least known: at 90,000 rows it was at most %.0f s, and the 1,800-second setting allows far more for the ZIP export.' % (format(a.rows_b, ','), wait_max))
     open(a.out, 'w').write('\n'.join(L) + '\n')

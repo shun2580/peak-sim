@@ -1,0 +1,108 @@
+{
+ "condition_1a": {
+  "bookstack": {
+   "numbers": {
+    "goal_unmarked_queries": {
+     "denominator": 4,
+     "inside": 4,
+     "needed": 4,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 4,
+     "inside": 3,
+     "needed": 4,
+     "short": 1
+    },
+    "minimum_all_queries": {
+     "denominator": 8,
+     "inside": 7,
+     "needed": 7,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 8,
+     "inside": 7,
+     "needed": 7,
+     "short": 0
+    }
+   },
+   "state": "undecidable",
+   "verdict": "undecidable"
+  },
+  "fixtures": {
+   "numbers": {
+    "goal_unmarked_queries": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 3,
+     "inside": 3,
+     "needed": 3,
+     "short": 0
+    }
+   },
+   "state": "undecidable",
+   "verdict": "undecidable"
+  }
+ },
+ "condition_1b": {
+  "counted_as_met": false,
+  "multiple_of_capture": 1.0,
+  "not_counted_because": [
+   "B is undecidable",
+   "the multiple of the capture is 1.000, below 5",
+   "the count is seen before"
+  ],
+  "numbers": {
+   "item1_smaller_than_naive": false,
+   "item2_excess_points_over_5": null,
+   "item3_agree": 10,
+   "item3_short": 0,
+   "item3_valid_stages": 10,
+   "item4_scenarios_with_limit": 0,
+   "item4_short_goal": 0,
+   "item4_short_minimum": 0,
+   "item4_within_goal": 0,
+   "item4_within_minimum": 0
+  },
+  "rows": 30000,
+  "verdict": "undecidable"
+ },
+ "condition_2": "not measured",
+ "condition_3": {
+  "bookstack": {
+   "cause_identified": 0,
+   "marked": 1,
+   "misses": 2,
+   "no_estimate": 1,
+   "not_measured": 27,
+   "remaining": 2,
+   "unmarked": 1
+  },
+  "fixtures": {
+   "cause_identified": 0,
+   "marked": 0,
+   "misses": 0,
+   "no_estimate": 2,
+   "not_measured": 19,
+   "remaining": 0,
+   "unmarked": 0
+  }
+ }
+}
