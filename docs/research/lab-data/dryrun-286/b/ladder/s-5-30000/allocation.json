@@ -1,0 +1,16 @@
+{
+  "dropped": [
+    "GET /books/{slug}"
+  ],
+  "rps_after": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.26666666666666666,
+    "GET /books/{bookSlug}/export/zip": 0.05,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 0.26666666666666666,
+    "GET /books/{slug}/references": 0.26666666666666666,
+    "GET /images/edit/{id}": 0.05,
+    "GET /oidc/callback": 0.05,
+    "GET /shelves/{slug}": 0.05
+  },
+  "scenario": "s-5",
+  "source": "~/projects/peak-sim-trials/_out/cmd286_dryrun/repo/poc/lab/predictions/ladder-prediction-dryrun-b30k-fabricated-128M.json"
+}

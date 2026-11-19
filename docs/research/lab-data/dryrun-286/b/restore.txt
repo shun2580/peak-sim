@@ -1,0 +1,24 @@
+== 2026-11-19T17:08:35+09:00 limits read before restoring (replica, B still on)
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+rc=0
+== restore (replica)
+B OFF: ladder-b-1800s.diff reversed at 2026-11-19T17:08:36+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+0
+== use-db 30000 from the real repository (the containers are made again on its mounts and default files)
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+== check-limits --require=limited
+LIMITS OK (require limited): { "php_max_execution_time": "30", "php_memory_limit": "512M", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "120s", "k6_request_timeout": null, "k6_request_timeout_note": "not given: the load tool used its own default (60 s for k6 2.3.0)" } 
+rc=0
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+main compose diff lines: 0
+mem_limit=6442450944 started=2026-11-19T08:08:38.163348768Z
+app mount: ~/projects/peak-sim

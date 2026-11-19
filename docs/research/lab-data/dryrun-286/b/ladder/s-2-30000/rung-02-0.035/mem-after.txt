@@ -1,0 +1,1 @@
+at=2026-11-19T14:35:15+09:00 label=s-2_rung_2_just_after_k6 mem_available_kib=11258756 app_memory_current=332242944 app_memory_peak=360345600 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0

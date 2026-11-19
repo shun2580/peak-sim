@@ -1,0 +1,17 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-dryrun-b30k-fabricated-128M.json 4a259b0ebfa3241fe61146dc59ae69fd55a2ae18 2026-11-19T12:54:02+09:00
+SCALE s-4 30000 rows (the count of the prediction file)
+ALLOCATION s-4: 7 routes sent, 1 not sent (GET /books/{slug}); the shares are the prediction's rps_after, not the mix's
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+TABLES BASELINE scale 30000: entities 30000 2704260852;images 30000 2658365592;references 30000 1455818882; (41 write counters)
+OOM BASELINE peak-lab-app: oom_killed=false restart_count=0 started_at=2026-11-19T06:26:53.217542662Z cgroup_oom=0 cgroup_oom_kill=0
+RUNG SETTINGS s-4 rung 1: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 1 of 15 rps 0.025 scale 30000 mix places1235 scheme B at 2026-11-19T15:27:23+09:00 (27 min 40 s)
+WRITES SAME after a step scale 30000: 41 write counters
+RUNG END s-4 rung 1 rps decided 0.025 achieved 0.0250 (valid) db 3.4% app 1.1% dropped 0 | 200x37 302x3 | continue
+RUNG SETTINGS s-4 rung 2: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-4 rung 2 of 15 rps 0.035 scale 30000 mix places1235 scheme B at 2026-11-19T15:56:07+09:00 (20 min 2 s)
+WRITES SAME after a step scale 30000: 41 write counters
+RUNG END s-4 rung 2 rps decided 0.035 achieved 0.0350 (valid) db 4.4% app 1.5% dropped 0 | 200x37 302x3 | continue
+MAX-STEPS s-4: stopped after rung 2 (--max-steps=2, a rehearsal setting; this is not the stopping rule)
+TABLES SAME after the load scale 30000: entities 30000 2704260852;images 30000 2658365592;references 30000 1455818882; (41 write counters)
+ladder record: ~/.cache/peak-lab/out/dryrun-286-b/ladder/s-4-30000/ladder.json

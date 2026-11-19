@@ -1,0 +1,40 @@
+== 2026-11-19T12:54:12+09:00 before: compose state (main) and replica
+797074b
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+== apply (replica)
+B ON: ladder-b-1800s.diff applied at 2026-11-19T12:54:12+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE B
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+ poc/lab/compose/nginx/lab.conf | 2 +-
+ poc/lab/compose/php/zz-lab.ini | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+== main compose diff lines: 0
+== 2026-11-19T12:54:19+09:00 use-db 30000 (replica)
+error while interpolating services.lab-app.volumes.[]: required variable PEAK_APP_ROOT is missing a value: set by poc/lab/bin/_lab.sh
+== check-limits
+LIMITS REFUSED (require unlimited): ladder: the lab is not set for this measurement (unlimited): max_execution_time is '30', this measurement needs 0 (no limit); memory_limit is '512M', this measurement needs 4G; fastcgi_read_timeout is '120s', shorter than the load tool's 1800s: nginx would cut a slow response first [exit 4; readings in ~/.cache/peak-lab/out/dryrun-286-b/prep-limits]
+rc=13
+mem_limit=6442450944 swap=6442450944 started=2026-11-19T03:25:56.828687646Z
+peak-sim mount source basename: ~/projects/peak-sim
+.../projects/peak-sim
+(note: PEAK_APP_ROOT is given explicitly for the replica: _lab.sh finds the app next to the repository only)
+== 2026-11-19T12:54:26+09:00 use-db 30000 (replica)
+PASS peak-lab-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-db: the name example.com is unreachable
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+== check-limits
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+rc=0
+mem_limit=6442450944 swap=6442450944 started=2026-11-19T03:54:27.738568359Z
+app mount: ~/projects/peak-sim-trials/_out/cmd286_dryrun/repo
+tools mount: ~/projects/peak-sim
+== 2026-11-19T12:54:47+09:00 targets 30000
+8 of 8 routes filled; unfilled 0; not in the static analysis 0; written to /out/targets-30000.json
+rc=0

@@ -1,0 +1,16 @@
+at=2026-11-19T12:55:29+09:00 label=before-recreate-s-1 mem_available_kib=9279384 app_memory_current=25063424 app_memory_peak=39575552 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T12:55:45+09:00 label=before-s-1 mem_available_kib=9379048 app_memory_current=25153536 app_memory_peak=39886848 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T13:45:51+09:00 label=after-s-1 mem_available_kib=11359960 app_memory_current=266964992 app_memory_peak=295165952 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T13:45:52+09:00 label=before-recreate-s-2 mem_available_kib=11349072 app_memory_current=267210752 app_memory_peak=295165952 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T13:46:08+09:00 label=before-s-2 mem_available_kib=11582104 app_memory_current=24932352 app_memory_peak=40153088 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T14:36:13+09:00 label=after-s-2 mem_available_kib=11289040 app_memory_current=332218368 app_memory_peak=360345600 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T14:36:14+09:00 label=stop-before-s-3 mem_available_kib=11287236 app_memory_current=332500992 app_memory_peak=360345600 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T14:36:29+09:00 label=before-recreate-s-3 mem_available_kib=11278888 app_memory_current=331792384 app_memory_peak=360345600 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T14:36:45+09:00 label=before-s-3 mem_available_kib=11556844 app_memory_current=25075712 app_memory_peak=39817216 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T15:26:50+09:00 label=after-s-3 mem_available_kib=11441812 app_memory_current=160215040 app_memory_peak=226930688 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T15:26:51+09:00 label=before-recreate-s-4 mem_available_kib=11442588 app_memory_current=160247808 app_memory_peak=226930688 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T15:27:07+09:00 label=before-s-4 mem_available_kib=11568500 app_memory_current=25206784 app_memory_peak=39612416 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T16:17:13+09:00 label=after-s-4 mem_available_kib=11380836 app_memory_current=310530048 app_memory_peak=346464256 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T16:17:14+09:00 label=before-recreate-s-5 mem_available_kib=11378988 app_memory_current=310104064 app_memory_peak=346464256 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T16:17:30+09:00 label=before-s-5 mem_available_kib=11648632 app_memory_current=25407488 app_memory_peak=39784448 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-19T17:07:35+09:00 label=after-s-5 mem_available_kib=11414936 app_memory_current=171302912 app_memory_peak=215212032 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0

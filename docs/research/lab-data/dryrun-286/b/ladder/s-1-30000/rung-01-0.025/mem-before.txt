@@ -1,0 +1,1 @@
+at=2026-11-19T12:56:02+09:00 label=s-1_rung_1_before_the_step mem_available_kib=9342784 app_memory_current=24997888 app_memory_peak=40910848 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0

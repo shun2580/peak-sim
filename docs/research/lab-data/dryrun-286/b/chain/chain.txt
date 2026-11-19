@@ -1,0 +1,24 @@
+2026-11-19T12:55:28+09:00 CHAIN START scale=30000 scenarios='s-1 s-2 s-3 s-4 s-5' request_timeout=1800s stop_mark=~/.cache/peak-lab/out/dryrun-286-b/chain/STOP require_allocation=1 max_steps=2
+2026-11-19T12:55:29+09:00 RECREATE app/web before s-1 (use-db 30000)
+2026-11-19T12:55:45+09:00 recreated and checked before s-1
+2026-11-19T12:55:46+09:00 START s-1 scale=30000 request_timeout=1800s max_steps=2
+2026-11-19T13:45:51+09:00 END s-1 exit=0
+2026-11-19T13:45:51+09:00 RECREATE app/web before s-2 (use-db 30000)
+2026-11-19T13:46:07+09:00 recreated and checked before s-2
+2026-11-19T13:46:08+09:00 START s-2 scale=30000 request_timeout=1800s max_steps=2
+2026-11-19T14:36:13+09:00 END s-2 exit=0
+2026-11-19T14:36:13+09:00 CHAIN STOP at mark before s-3 (~/.cache/peak-lab/out/dryrun-286-b/chain/STOP exists); not run: s-3 s-4 s-5
+2026-11-19T14:36:28+09:00 CHAIN START scale=30000 scenarios='s-3 s-4 s-5' request_timeout=1800s stop_mark=~/.cache/peak-lab/out/dryrun-286-b/chain/STOP require_allocation=1 max_steps=2
+2026-11-19T14:36:28+09:00 RECREATE app/web before s-3 (use-db 30000)
+2026-11-19T14:36:44+09:00 recreated and checked before s-3
+2026-11-19T14:36:45+09:00 START s-3 scale=30000 request_timeout=1800s max_steps=2
+2026-11-19T15:26:50+09:00 END s-3 exit=0
+2026-11-19T15:26:50+09:00 RECREATE app/web before s-4 (use-db 30000)
+2026-11-19T15:27:06+09:00 recreated and checked before s-4
+2026-11-19T15:27:07+09:00 START s-4 scale=30000 request_timeout=1800s max_steps=2
+2026-11-19T16:17:12+09:00 END s-4 exit=0
+2026-11-19T16:17:13+09:00 RECREATE app/web before s-5 (use-db 30000)
+2026-11-19T16:17:29+09:00 recreated and checked before s-5
+2026-11-19T16:17:30+09:00 START s-5 scale=30000 request_timeout=1800s max_steps=2
+2026-11-19T17:07:35+09:00 END s-5 exit=0
+2026-11-19T17:07:35+09:00 CHAIN DONE (s-3 s-4 s-5)
