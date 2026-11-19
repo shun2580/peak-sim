@@ -1,0 +1,3 @@
+# size of this lab database, MiB (information_schema data_length + index_length), 2026-11-19
+# columns: database, data, index, total
+scale=170000	336.1	409.9	746.0
