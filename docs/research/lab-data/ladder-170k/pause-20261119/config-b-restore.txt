@@ -1,0 +1,12 @@
+before restore (2026-11-19T23:08:31+09:00):
+STATE B
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+B OFF: ladder-b-1800s.diff reversed at 2026-11-19T23:08:31+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+rc=0
+after restore (2026-11-19T23:08:31+09:00):
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini

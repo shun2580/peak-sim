@@ -1,0 +1,88 @@
+{
+    "mix": "places1345",
+    "rps": 0.7,
+    "duration_sec": 403,
+    "warmup_sec": 60,
+    "routes": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "share": 0.26666666666666666,
+            "rps": 0.18666666666666665,
+            "rate": 14,
+            "time_unit": "75s",
+            "start_offset_sec": 3.821,
+            "planned_window_requests": 64
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "share": 0.05,
+            "rps": 0.034999999999999996,
+            "rate": 35,
+            "time_unit": "1000s",
+            "start_offset_sec": 17.214,
+            "planned_window_requests": 12
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "share": 0.26666666666666666,
+            "rps": 0.18666666666666665,
+            "rate": 14,
+            "time_unit": "75s",
+            "start_offset_sec": 3.821,
+            "planned_window_requests": 64
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "share": 0.26666666666666666,
+            "rps": 0.18666666666666665,
+            "rate": 14,
+            "time_unit": "75s",
+            "start_offset_sec": 3.821,
+            "planned_window_requests": 64
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "share": 0.05,
+            "rps": 0.034999999999999996,
+            "rate": 35,
+            "time_unit": "1000s",
+            "start_offset_sec": 17.214,
+            "planned_window_requests": 12
+        },
+        {
+            "route": "GET /oidc/callback",
+            "share": 0.05,
+            "rps": 0.034999999999999996,
+            "rate": 35,
+            "time_unit": "1000s",
+            "start_offset_sec": 17.214,
+            "planned_window_requests": 12
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "share": 0.05,
+            "rps": 0.034999999999999996,
+            "rate": 35,
+            "time_unit": "1000s",
+            "start_offset_sec": 17.214,
+            "planned_window_requests": 12
+        }
+    ],
+    "allocation": {
+        "routes_sent": [
+            "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "GET /books/{bookSlug}/export/zip",
+            "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "GET /books/{slug}/references",
+            "GET /images/edit/{id}",
+            "GET /oidc/callback",
+            "GET /shelves/{slug}"
+        ],
+        "routes_not_sent": [
+            "GET /books/{slug}"
+        ],
+        "rule": "the shares are the prediction's allocation (rps_after of the scenario), not the mix's: a route's share is its rps there over the sum; a route of the list that is not there is not sent"
+    },
+    "scheme": "B",
+    "window_sec": 343
+}

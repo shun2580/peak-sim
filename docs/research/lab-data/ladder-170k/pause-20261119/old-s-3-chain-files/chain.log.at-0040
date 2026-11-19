@@ -1,0 +1,16 @@
+2026-11-19T17:47:07+09:00 CHAIN START scale=170000 scenarios='s-1 s-2 s-3 s-4 s-5' request_timeout=1800s stop_mark=$HOME/.cache/peak-lab/out/<out-dir>/chain/STOP require_allocation=1
+2026-11-19T17:47:07+09:00 RECREATE app/web before s-1 (use-db 170000)
+2026-11-19T17:47:24+09:00 recreated and checked before s-1
+2026-11-19T17:47:24+09:00 START s-1 scale=170000 request_timeout=1800s
+2026-11-19T19:47:25+09:00 END s-1 exit=0
+2026-11-19T19:47:26+09:00 RECREATE app/web before s-2 (use-db 170000)
+2026-11-19T19:47:42+09:00 recreated and checked before s-2
+2026-11-19T19:47:43+09:00 START s-2 scale=170000 request_timeout=1800s
+2026-11-19T21:29:58+09:00 END s-2 exit=0
+2026-11-19T21:29:59+09:00 RECREATE app/web before s-3 (use-db 170000)
+2026-11-19T21:30:15+09:00 recreated and checked before s-3
+2026-11-19T21:30:16+09:00 START s-3 scale=170000 request_timeout=1800s
+2026-11-19T23:07:35+09:00 CHAIN: s-3 marked INVALID (stopped for the maintainer's convenience, WSL shutdown; not a measurement failure); lab stopped at about 2026-11-19T23:07:35+09:00 with docker compose stop (volumes kept); on resume s-3 is measured again from rung 1, then s-4 and s-5. See ladder/s-3-170000/INVALID.txt and pause-20261119/
+2026-11-19T23:07:43+09:00 END s-3 exit=19
+2026-11-19T23:07:44+09:00 CHAIN STOP at s-3 exit=19
+2026-11-19T23:08:26+09:00 CHAIN: correction to the 23:07:35 line: rung 6 had ended valid at 23:07:37 and rung 7 was cut at 23:07:42 (4 s in) by the lab stop; the s-3 exit=19 (memory guard) is the effect of the stop, not a real OOM; s-3 stays INVALID as a whole

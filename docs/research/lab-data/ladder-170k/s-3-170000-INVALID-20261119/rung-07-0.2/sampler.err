@@ -1,0 +1,2 @@
+sample-cpu: cannot read cpu.stat in peak-lab-db; stop and report, do not use an instantaneous figure instead
+

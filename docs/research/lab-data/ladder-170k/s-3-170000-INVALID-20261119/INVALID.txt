@@ -1,0 +1,7 @@
+s-3 (scale 170000) is INVALID for the verdict: do not use its records for pass/fail.
+Reason: the maintainer stopped the lab for his own convenience (WSL shutdown, order 2026-11-19 22:56; wait limit 23:15). Not a failure of the measurement.
+CORRECTION (written after the stop): rung 6 (0.15 rps) in fact ENDED at 23:07:37 as valid (db 31.7%, app 12.7%, dropped 0, 200x64 302x16), the rung 7 (0.2 rps) started 23:07:38 and was cut at about 23:07:42 by the lab stop, 4 seconds in.
+s-3 was cut at the very start of rung 7; rungs 1-6 ended valid (db 6.3/8.4/11.0/14.0/18.2/31.7%). They are kept as they are, not deleted, but s-3 is invalid as a whole for the verdict.
+The 'oom-stop' at rung 7 (check-oom could not read the app container's cgroup memory.events) is the effect of the lab stop, NOT a real memory kill. rung-07-0.2 has no record.json.
+Marked invalid at 2026-11-19T23:07:35+09:00. On resume s-3 is measured again from rung 1 (then s-4, s-5).
+Copies taken before the stop: $HOME/.cache/peak-lab/out/<out-dir>/pause-20261119/copy-before-stop (2026-11-19T23:07:26..29).

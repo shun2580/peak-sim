@@ -1,0 +1,88 @@
+== 2026-11-19T17:46:28+09:00 before: HEAD 7a4cf32; poc/lab status/diff:
+predictions: no diff from HEAD
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+== free
+               total        used        free      shared  buff/cache   available
+Mem:           15936        5824        2132          10        8232       10111
+== commit f52f692 time: 2026-11-19T17:40:41+09:00
+828309f446e8f98d151e04dce65b13faa55f5e8d4e337874e53d72ed386a2b28  poc/lab/predictions/ladder-prediction-5-b170k.json
+== 2026-11-19T17:46:28+09:00 apply B
+B ON: ladder-b-1800s.diff applied at 2026-11-19T17:46:28+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE B
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+ poc/lab/compose/nginx/lab.conf | 2 +-
+ poc/lab/compose/php/zz-lab.ini | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+== 2026-11-19T17:46:28+09:00 use-db 170000
+ Container peak-lab-app Recreate 
+ Container peak-lab-app Recreated 
+ Container peak-lab-web Recreate 
+ Container peak-lab-web Recreated 
+ Container peak-lab-app Starting 
+ Container peak-lab-app Started 
+ Container peak-lab-web Starting 
+ Container peak-lab-web Started 
+PASS container: peak-lab-db is running
+PASS container: peak-lab-app is running
+PASS container: peak-lab-web is running
+PASS container: peak-lab-k6 is running
+PASS container: peak-lab-tools is running
+PASS network: peak-lab_lab-internal internal=true
+PASS peak-lab-db: network mode peak-lab_lab-internal
+PASS peak-lab-db: no published port
+PASS peak-lab-app: network mode peak-lab_lab-internal
+PASS peak-lab-app: no published port
+PASS peak-lab-web: network mode peak-lab_lab-internal
+PASS peak-lab-web: no published port
+PASS peak-lab-k6: network mode peak-lab_lab-internal
+PASS peak-lab-k6: no published port
+PASS peak-lab-tools: network mode peak-lab_lab-internal
+PASS peak-lab-tools: no published port
+peak-lab-app: PASS negative dns:example.com              did not resolve
+peak-lab-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-app: PASS negative http:example.com             no response
+peak-lab-app: PASS negative default-route                no default route
+peak-lab-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-app: PREFLIGHT OK
+peak-lab-tools: PASS negative dns:example.com              did not resolve
+peak-lab-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-tools: PASS negative http:example.com             no response
+peak-lab-tools: PASS negative default-route                no default route
+peak-lab-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-tools: PREFLIGHT OK
+PASS peak-lab-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-web: http://example.com is unreachable
+PASS peak-lab-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-k6: http://example.com is unreachable
+PASS peak-lab-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-db: the name example.com is unreachable
+PASS peak-lab-db: its own port (3306) (positive control)
+PREFLIGHT OK
+rc=0
+== check-limits
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+rc=0
+mem_limit=6442450944 started=2026-11-19T08:46:30.424487524Z OOMKilled=false
+170000
+== 2026-11-19T17:46:44+09:00 targets 170000
+cp: '$HOME/.cache/peak-lab/out/static.json' and '$HOME/.cache/peak-lab/out/static.json' are the same file
+8 of 8 routes filled; unfilled 0; not in the static analysis 0; written to /out/targets-170000.json
+rc=0
+be65281cba06436e42b07eb81f84b14e77a3c6362e4cc2f2d83b084c95636199  $HOME/.cache/peak-lab/out/static.json

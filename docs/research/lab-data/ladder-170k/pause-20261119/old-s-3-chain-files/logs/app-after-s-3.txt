@@ -1,0 +1,11 @@
+[19-Nov-2026 12:30:02] NOTICE: [pool www] 'user' directive is ignored when FPM is not running as root
+[19-Nov-2026 12:30:02] NOTICE: [pool www] 'group' directive is ignored when FPM is not running as root
+[19-Nov-2026 12:30:02] NOTICE: fpm is running, pid 1
+[19-Nov-2026 12:30:02] NOTICE: ready to handle connections
+[19-Nov-2026 12:33:18 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[19-Nov-2026 12:33:18 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[19-Nov-2026 12:33:18 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[19-Nov-2026 12:33:18 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[19-Nov-2026 12:33:18 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[19-Nov-2026 14:07:41] NOTICE: Finishing ...
+[19-Nov-2026 14:07:41] NOTICE: exiting, bye-bye!

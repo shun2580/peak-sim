@@ -1,0 +1,140 @@
+{
+    "scenario": "s-3",
+    "scale": 170000,
+    "mix": "last80",
+    "scheme": "B",
+    "rung": 8,
+    "decided_rps": 0.3,
+    "achieved_rps": 0.3,
+    "rps_ratio": 1.0,
+    "rps_valid": true,
+    "rps_status": "valid",
+    "rps_counted": "sent",
+    "rps_invalid_reasons": [],
+    "requests_sent_in_window": 120,
+    "end_of_step": {
+        "wait_for_running_requests": "1800s",
+        "requests_finished_after_window": 3,
+        "longest_after_window_ms": 102325.55224609375,
+        "note": "The load tool waits at the end of the step for requests still running (as long as the request timeout). The database work of those requests happens after the kept window and is outside the step's database utilization."
+    },
+    "db_utilization": 0.5598008516915184,
+    "db_utilization_percent": 55.98008516915184,
+    "app_cpu_utilization": 0.22551125854185552,
+    "app_cpu_percent": 22.551125854185553,
+    "k6_dropped_iterations": 0,
+    "requests_in_window": 120,
+    "requests_not_2xx": 24,
+    "http_status": {
+        "200": 96,
+        "302": 24
+    },
+    "http_status_by_route": {
+        "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+            "200": 8
+        },
+        "GET /books/{bookSlug}/export/zip": {
+            "200": 8
+        },
+        "GET /books/{bookSlug}/page/{pageSlug}/references": {
+            "200": 8
+        },
+        "GET /books/{slug}/references": {
+            "200": 24
+        },
+        "GET /images/edit/{id}": {
+            "200": 24
+        },
+        "GET /oidc/callback": {
+            "302": 24
+        },
+        "GET /shelves/{slug}": {
+            "200": 24
+        }
+    },
+    "window_sec": 400,
+    "window_epoch": {
+        "from": 1795109263.966102,
+        "to": 1795109663.966102
+    },
+    "started_at": "2026-11-20T02:26:38+09:00",
+    "ended_at": "2026-11-20T02:36:06+09:00",
+    "decision": {
+        "stop": false,
+        "reasons": [],
+        "note": null
+    },
+    "trial": false,
+    "prediction": {
+        "file": "poc/lab/predictions/ladder-prediction-5-b170k.json",
+        "commit": "f52f6921d19cd19e1052d0fba2b42429e23cfbc8",
+        "commit_time": "2026-11-19T17:40:41+09:00"
+    },
+    "settings": {
+        "php_max_execution_time": "0",
+        "php_memory_limit": "4G",
+        "php_fpm_request_terminate_timeout": "0s",
+        "nginx_fastcgi_read_timeout": "1800s",
+        "k6_request_timeout": "1800s",
+        "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+        "k6_request_timeout_seen_by_k6": "1800s"
+    },
+    "per_route": [
+        {
+            "route": "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
+            "target_rps": 0.02,
+            "achieved_rps": 0.02,
+            "requests": 8,
+            "requests_sent": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /books/{bookSlug}/export/zip",
+            "target_rps": 0.02,
+            "achieved_rps": 0.02,
+            "requests": 8,
+            "requests_sent": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /books/{bookSlug}/page/{pageSlug}/references",
+            "target_rps": 0.02,
+            "achieved_rps": 0.02,
+            "requests": 8,
+            "requests_sent": 8,
+            "planned_requests": 8
+        },
+        {
+            "route": "GET /books/{slug}/references",
+            "target_rps": 0.06,
+            "achieved_rps": 0.06,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /images/edit/{id}",
+            "target_rps": 0.06,
+            "achieved_rps": 0.06,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /oidc/callback",
+            "target_rps": 0.06,
+            "achieved_rps": 0.06,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        },
+        {
+            "route": "GET /shelves/{slug}",
+            "target_rps": 0.06,
+            "achieved_rps": 0.06,
+            "requests": 24,
+            "requests_sent": 24,
+            "planned_requests": 24
+        }
+    ]
+}
