@@ -1,0 +1,12 @@
+# row counts seen before the fifth round (earlier predictions, builds, estimates, measurements)
+100
+1000
+10000
+30000
+50000
+70000
+90000
+100000
+150000
+200000
+300000
