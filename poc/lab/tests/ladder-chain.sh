@@ -25,6 +25,12 @@
 #   12  without the flag nothing changed: 600s asked on a 600 s lab still reaches the load tool with REQUEST_TIMEOUT=600s; a scenario with no
 #       --request-timeout is refused (2) as before
 # C  the wait at the end of a step: the real k6 (`inspect`) gives gracefulStop 30m0s for 1800s, 10m0s for 600s
+# E  the allocation (D226, D227): the real measure-ladder reads the prediction's allocation and sends that, not the mix:
+#   13  a prediction with an allocation: the plan sends 7 routes at the shares of rps_after and the dropped route is not sent; the ALLOCATION line is
+#       printed and allocation.json is kept; a prediction with none then removes the stale allocation.json
+#   14  a prediction with none: the plan has all 8 routes, the mix's shares, no `allocation` key; make-plan's output is byte for byte what it was before the
+#       option existed (hashes taken before the change, 16 plans over the 8 mixes)
+#   15  a prediction with half an allocation, a dropped route that has an rps, stages that disagree: exit 2 before any container is touched
 # D  bin/lab-config-b in a throw-away repository: status; apply gives 1800s, max_execution_time 0, memory_limit 4G; a second apply and a
 #    restore that is not exactly the diff are refused and change nothing; restore gives back the bytes; the diff applies to the files of HEAD
 # No test is skipped: a precondition that is not met is a failure, not a skip.
@@ -331,6 +337,111 @@ k6_graceful() {  # k6_graceful <REQUEST_TIMEOUT or "-">: the gracefulStop values
 [ "$(k6_graceful 1800s)" = "30m0s" ] && pass "C1 REQUEST_TIMEOUT=1800s: every stream waits 30m0s at the end of a step (gracefulStop)" || fail "C1 got '$(k6_graceful 1800s)'"
 [ "$(k6_graceful 600s)" = "10m0s" ] && pass "C2 REQUEST_TIMEOUT=600s: 10m0s, as in the fourth round" || fail "C2 got '$(k6_graceful 600s)'"
 [ -z "$(k6_graceful -)" ] && pass "C3 no REQUEST_TIMEOUT: no gracefulStop is set, k6's own default stays" || fail "C3 got '$(k6_graceful -)'"
+
+# ================================================================================================================================
+# E. the allocation: measure-ladder sends the prediction's rps_after, not the mix
+# ================================================================================================================================
+python3 - "$lab/routes/route-list.json" "$brepo/poc/lab/predictions" "$SCALE" <<'PY'
+import copy, json, sys
+routes = [s["route"] for s in json.load(open(sys.argv[1]))["selected"]]
+outdir, scale = sys.argv[2], int(sys.argv[3])
+DROP = "GET /books/{slug}"
+rungs = [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0]
+tables = {"entities": scale, "images": scale, "references": scale}
+kept = [r for r in routes if r != DROP]
+after = {r: 1.0 / len(kept) for r in kept}          # even mix: 1/8 each in the file, the dropped route's share handed to the other seven
+def doc(with_top=True, with_sc=True):
+    sc = {"id": "s-1", "tables": tables, "rps_total_in_file": 1.0,
+          "stages": [{"rps_total": t, "rps": {r: t * after[r] for r in kept}} for t in rungs]}
+    if with_sc:
+        sc["allocation"] = {"dropped_routes": [{"route": DROP, "reasons": ["placeholders"], "rps_in_file": 0.125}],
+                            "groups_changed": [], "not_judged": {}, "longest_request": None,
+                            "rps_in_file": {r: 0.125 for r in routes}, "rps_after": dict(after),
+                            "rps_total_in_file": 1.0, "rps_total_after": 1.0}
+    d = {"scenarios": [sc]}
+    if with_top:
+        d["allocation"] = {"enabled": True, "request_timeout_s": 1800.0, "half_request_timeout_s": 900.0,
+                           "drop_rule": "a made-up rule for this test", "stop_rule": "a made-up stop rule for this test"}
+    return d
+def write(name, d):
+    json.dump(d, open("%s/%s.json" % (outdir, name), "w"))
+write("alloc-ok", doc())
+write("alloc-top-only", doc(with_sc=False))
+write("alloc-scenario-only", doc(with_top=False))
+d = doc(); d["scenarios"][0]["allocation"]["rps_after"][DROP] = 0.1; write("alloc-dropped-has-rps", d)
+d = doc(); d["scenarios"][0]["stages"][3]["rps"][DROP] = 0.001; write("alloc-stage-has-dropped", d)
+d = doc(); st = d["scenarios"][0]["stages"][5]["rps"]; k = sorted(st)[0]; st[k] *= 1.5; write("alloc-stage-shares", d)
+d = doc(); d["scenarios"][0]["allocation"]["rps_total_after"] = 1.5; write("alloc-total", d)
+d = doc(); d["allocation"]["enabled"] = False; d["scenarios"][0].pop("allocation"); write("alloc-off", d)
+PY
+git -C "$brepo" add -A && git -C "$brepo" commit -q -m "chore: seed the allocation predictions"
+plan1() { echo "$out/ladder/s-1-$SCALE/rung-01-0.025/plan.json"; }
+reset_e() { set_b php=0 pool=0s nginx=600s mem=4G; }
+ml_pred() { ml_b --scenario=s-1 --predictions="$brepo/poc/lab/predictions/$1.json" --scheme=B --request-timeout=600s; }
+routes_in_plan() { python3 -c 'import json,sys; print(",".join(sorted(r["route"] for r in json.load(open(sys.argv[1]))["routes"])))' "$1"; }
+
+# 13 -------------------------------------------------------------------------------------------------------------------------
+reset_e; ml_pred alloc-ok; rc=$?
+[ "$(k6_calls)" -ge 1 ] && pass "13 a prediction with an allocation is measured (the load tool is reached)" || fail "13 rc $rc ($(head -3 "$Bdir/ml.err"))"
+has "$Bdir/ml.out" "ALLOCATION s-1: 7 routes sent, 1 not sent (GET /books/{slug})" && pass "13b the ALLOCATION line says 7 routes sent and names the one not sent" || fail "13b $(grep ALLOCATION "$Bdir/ml.out")"
+python3 - "$(plan1)" <<'PY' && pass "13c the plan sends 7 routes, each at 1/7 of the rps, and not the dropped route" || fail "13c the plan is not the allocation's"
+import json, sys
+p = json.load(open(sys.argv[1]))
+routes = [r["route"] for r in p["routes"]]
+ok = len(routes) == 7 and "GET /books/{slug}" not in routes
+ok = ok and all(abs(r["share"] - 1 / 7) < 1e-9 for r in p["routes"])
+ok = ok and abs(sum(r["rps"] for r in p["routes"]) - p["rps"]) < 1e-9
+ok = ok and p["allocation"]["routes_not_sent"] == ["GET /books/{slug}"]
+sys.exit(0 if ok else 1)
+PY
+[ -s "$out/ladder/s-1-$SCALE/allocation.json" ] && has "$out/ladder/s-1-$SCALE/allocation.json" '"GET /books/{slug}"' && pass "13d allocation.json is kept with the scenario's records" || fail "13d"
+# every step's plan has the same seven routes (the stagger of scheme B keeps the allocation's routes)
+PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$lab/bin/measure-ladder" --scenario=s-1 --dry-run \
+  --predictions="$brepo/poc/lab/predictions/alloc-ok.json" --scheme=B >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?   # a dry run touches no container: the real docker runs the PHP tool in a throw-away container
+[ "$rc" = 0 ] && ls "$out/ladder/s-1-$SCALE/dry-run/B"/rung-*/plan.json | wc -l | grep -qx 15 && pass "13e a dry run makes the plans of all 15 steps under every scheme from the allocation" || fail "13e rc $rc ($(head -2 "$Bdir/ml.err"))"
+bad=0; for f in "$out/ladder/s-1-$SCALE/dry-run"/*/rung-*/plan.json; do [ "$(routes_in_plan "$f")" = "$(routes_in_plan "$(plan1)")" ] || bad=$((bad + 1)); done
+[ "$bad" = 0 ] && pass "13f all 45 dry-run plans (15 steps x 3 schemes) hold the same seven routes" || fail "13f $bad plans differ"
+reset_e; ml_pred p; rc=$?   # p.json has no allocation: the stale allocation.json of the run before is taken away
+[ ! -e "$out/ladder/s-1-$SCALE/allocation.json" ] && pass "13g a prediction with no allocation removes the allocation.json left by the run before" || fail "13g"
+
+# 14 -------------------------------------------------------------------------------------------------------------------------
+[ "$(k6_calls)" -ge 1 ] && ! has "$Bdir/ml.out" 'ALLOCATION' && pass "14 a prediction with no allocation is measured and prints no ALLOCATION line" || fail "14"
+python3 - "$(plan1)" <<'PY' && pass "14b its plan has all 8 routes at the mix's 1/8 and no allocation key" || fail "14b the plan changed"
+import json, sys
+p = json.load(open(sys.argv[1]))
+ok = len(p["routes"]) == 8 and all(abs(r["share"] - 0.125) < 1e-12 for r in p["routes"]) and "allocation" not in p and p["mix"] == "even"
+sys.exit(0 if ok else 1)
+PY
+rm -rf "$out/ladder/s-1-$SCALE/dry-run"
+PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$lab/bin/measure-ladder" --scenario=s-1 --dry-run \
+  --predictions="$brepo/poc/lab/predictions/alloc-off.json" --scheme=B >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+[ "$rc" = 0 ] && [ "$(routes_in_plan "$out/ladder/s-1-$SCALE/dry-run/B/rung-05-0.1/plan.json" | tr ',' '\n' | wc -l)" = 8 ] && ! has "$Bdir/ml.out" 'ALLOCATION' \
+  && pass "14c in a dry run an allocation switched off at the top and absent in the scenario is the mix, as before (the gate itself closes on a block that is not enabled)" || fail "14c rc $rc ($(head -2 "$Bdir/ml.err"))"
+golden="$here/ladder-chain.golden-plans.txt"
+bad=0; n_g=0
+while read -r mix rps dur warm sha; do
+  [ "$rps" = 0.3 ] || [ "$rps" = 0.025 ] || continue
+  case "$mix" in even|first80|last80|places1235|places1345|bookpage80zip0|odd80|even80) ;; *) continue ;; esac
+  got="$("$real_docker" run --rm --pull=never --network none --cpuset-cpus="$cpuset" -u "$(id -u):$(id -g)" -v "$repo_real:/peak-sim:ro" "$php_image" php /peak-sim/poc/lab/load/make-plan.php --routes=/peak-sim/poc/lab/routes/route-list.json --mix="$mix" --rps="$rps" --duration="$dur" --warmup="$warm" 2>&1 | sha256sum | cut -c1-16)"
+  n_g=$((n_g + 1)); [ "$got" = "$sha" ] || bad=$((bad + 1))
+done <"$golden"
+[ "$n_g" = 16 ] && [ "$bad" = 0 ] && pass "14d make-plan without --allocation is byte for byte what it was before (16 plans over the 8 mixes; hashes taken before the change)" || fail "14d $bad of $n_g plans differ"
+
+# 15 -------------------------------------------------------------------------------------------------------------------------
+# measure-ladder's own reading of the allocation, tried in a dry run (the gate is not enforced there, so the file reaches this check): exit 2, nothing planned
+for name in alloc-top-only alloc-scenario-only alloc-dropped-has-rps alloc-stage-has-dropped alloc-stage-shares alloc-total; do
+  rm -rf "$out/ladder/s-1-$SCALE/dry-run"
+  PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$lab/bin/measure-ladder" --scenario=s-1 --dry-run \
+    --predictions="$brepo/poc/lab/predictions/$name.json" --scheme=B >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+  expect_code "15 $name: refused in a dry run (2)" 2 $rc
+  has "$Bdir/ml.err" "the allocation of s-1" && [ ! -d "$out/ladder/s-1-$SCALE/dry-run" ] && pass "15b $name: the refusal names the allocation and no plan was made" || fail "15b $name: $(head -2 "$Bdir/ml.err")"
+done
+# in a measurement: the stages that disagree with rps_after pass the gate (it does not read the shares) and are refused here, before any container; the others the gate closes first (12)
+reset_e; ml_pred alloc-stage-shares; rc=$?
+expect_code "15c a prediction whose stages do not have the shares of rps_after: 2 in a measurement too" 2 $rc
+[ ! -s "$Bdir/docker.calls" ] && pass "15d ... and no container was touched" || fail "15d $(wc -l <"$Bdir/docker.calls") docker calls"
+reset_e; ml_pred alloc-top-only; rc=$?
+expect_code "15e half an allocation (the top without the scenario's): the gate closes first (12)" 12 $rc
 
 echo
 echo "ladder chain tests: $passed passed, $failed failed, $skipped skipped"

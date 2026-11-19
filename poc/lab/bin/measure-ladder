@@ -61,6 +61,12 @@
 # measured at its own count. --scale=<N> is only a statement of what the caller expects: it must be the prediction's count, or the tool refuses
 # (exit 2, before any container) and nothing is measured. A prediction file that holds no scenario of this name, or one whose tables are not of
 # one count, is refused the same way. Only a dry run with no --predictions takes --scale (or, without it, the table's count) as it is.
+# THE ALLOCATION (decisions.md D226 and D227): when the prediction file holds an `allocation` (a prediction made with `predict-ladder --drop-marked-routes`:
+#   the routes marked at the scenario's count are taken out of the mix and their rps handed to the routes that stay), the load is sent that way: the
+#   plan's shares are the scenario's `allocation.rps_after` (a route's rps over their sum) and a dropped route is not sent, so the measurement is the one
+#   that was predicted. The line `ALLOCATION <scenario>: ...` says so, and `<scenario>-<count>/allocation.json` keeps what the plans were made from. A
+#   prediction with no `allocation` anywhere is measured exactly as before (the mix; plans byte for byte the same). A prediction with half of one, or whose
+#   `rps_after` disagrees with its stages or with the dropped routes, is refused with exit 2 before any container is touched.
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -205,6 +211,63 @@ elif [ -z "$trial" ] && [ -n "$scale_arg" ]; then
 fi
 [ -z "$scale_use" ] || echo "SCALE $scenario $scale_use rows$([ -z "$predictions" ] || echo " (the count of the prediction file)")"
 
+# 1a'. THE ALLOCATION (decisions.md D226 and D227). A prediction made with `predict-ladder --drop-marked-routes` takes the routes that cannot run to the end
+# at the scenario's count out of the mix and hands their rps to the routes that stay (its `allocation`, at the top and in each scenario). The load
+# must be sent that way, or the measurement is not the one that was predicted: the shares of the plan are then the scenario's `allocation.rps_after`, not
+# the mix's, and a dropped route is not sent. A prediction with no `allocation` anywhere (every earlier one) leaves this empty and the plan is made as
+# it always was, byte for byte. A prediction that has one half of it (the top without the scenario's, the scenario's without the top's, a dropped route
+# that still has an rps, an rps_after that is not what the stages hold) is refused (exit 2) before any container is touched. Reads the file only.
+alloc_json=""
+if [ -z "$trial" ] && [ -n "$predictions" ]; then
+  alloc_json="$(python3 - "$predictions" "$scenario" <<'PY'
+import json, math, sys
+path, sid = sys.argv[1], sys.argv[2]
+def refuse(why):
+    sys.stderr.write("measure-ladder: the allocation of %s in %s: %s\n" % (sid, path, why))
+    sys.exit(2)
+with open(path) as fh:
+    doc = json.load(fh)
+top = doc.get("allocation")
+sc = [s for s in doc.get("scenarios", []) if isinstance(s, dict) and s.get("id") == sid][0]
+alloc = sc.get("allocation")
+on = isinstance(top, dict) and top.get("enabled") is True
+if alloc is None and not on:
+    sys.exit(0)                                   # no allocation anywhere (or one that is off): the mix, as always
+if alloc is not None and not on:
+    refuse("the scenario has an allocation but the top of the file does not say it is on")
+if not isinstance(alloc, dict):
+    refuse("the top of the file says the allocation is on but the scenario has none")
+after = alloc.get("rps_after")
+if not isinstance(after, dict) or not after:
+    refuse("no rps_after")
+def positive(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
+if not all(isinstance(k, str) and positive(v) for k, v in after.items()):
+    refuse("rps_after holds a route that is not a name or an rps that is not a positive number")
+dropped = [d.get("route") for d in alloc.get("dropped_routes", []) if isinstance(d, dict)]
+if any(r in after for r in dropped):
+    refuse("a dropped route still has an rps in rps_after")
+total = sum(after.values())
+for key in ("rps_total_after", "rps_total_in_file"):
+    if key in alloc and abs(alloc[key] - total) > 1e-6 * max(1.0, abs(total)):
+        refuse("%s (%s) is not the sum of rps_after (%s)" % (key, alloc[key], total))
+for j, st in enumerate(sc.get("stages", [])):
+    rps = st.get("rps") if isinstance(st, dict) else None
+    if not isinstance(rps, dict):
+        continue
+    if set(rps) != set(after):
+        refuse("stage %d holds other routes than rps_after (%s)" % (j, sorted(set(rps) ^ set(after))))
+    t = sum(rps.values())
+    if t > 0 and any(abs(rps[r] / t - after[r] / total) > 1e-6 for r in after):
+        refuse("stage %d does not have the shares of rps_after" % j)
+json.dump({"rps_after": after, "dropped": dropped, "scenario": sid, "source": path}, sys.stdout, indent=2, sort_keys=True)
+PY
+)" || exit 2
+  if [ -n "$alloc_json" ]; then
+    echo "ALLOCATION $scenario: $(printf '%s' "$alloc_json" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("%d routes sent, %d not sent (%s); the shares are the prediction'"'"'s rps_after, not the mix'"'"'s" % (len(d["rps_after"]), len(d["dropped"]), ", ".join(d["dropped"]) or "none"))')"
+  fi
+fi
+
 # 1b. THE WRITE GUARD (i). Not in a dry run (nothing is measured). Nothing below touches a container until it has passed. ------------------------
 if [ "$dry" = 0 ]; then
   [ -n "$statement_record" ] || { echo "measure-ladder: --statement-record=<capture.json> is required (the guard that the lab writes only views reads it)" >&2; exit 2; }
@@ -259,6 +322,7 @@ mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${rungs_args[@]}")
 
 sdir="$out/${scenario}-${scale}"
 mkdir -p "$sdir"
+if [ -n "$alloc_json" ]; then printf '%s\n' "$alloc_json" >"$sdir/allocation.json"; else rm -f "$sdir/allocation.json"; fi   # what the plans below are made from (kept with the scenario's records)
 duration=360 ; warmup=60
 
 # make_plan <rps> <file> <scheme>: the length of the step under the scheme (ladder.php shape), the plan (make-plan), then, for a
@@ -267,7 +331,8 @@ make_plan() {
   local shape tmp
   shape="$(php_tool poc/lab/load/ladder.php shape --scheme="$3" --rps="$1")" || return 1
   read -r duration warmup <<<"$shape"
-  php_tool poc/lab/load/make-plan.php --routes="$(routes_path)" --mix="$mix" --rps="$1" --duration="$duration" --warmup="$warmup" >"$2" || return 1
+  local alloc_args=(); [ -z "$alloc_json" ] || alloc_args=(--allocation="$(host_or_container "$sdir/allocation.json")")
+  php_tool poc/lab/load/make-plan.php --routes="$(routes_path)" --mix="$mix" --rps="$1" --duration="$duration" --warmup="$warmup" "${alloc_args[@]}" >"$2" || return 1
   if [ "$3" != spec ]; then
     tmp="$2.tmp"
     php_tool poc/lab/load/ladder.php stagger --scheme="$3" "$(host_or_container "$2")" >"$tmp" && mv "$tmp" "$2" || return 1

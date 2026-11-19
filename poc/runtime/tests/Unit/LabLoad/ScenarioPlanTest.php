@@ -135,4 +135,134 @@ final class ScenarioPlanTest extends TestCase
         $this->assertSame([8, 2, 8, 2, 8, 2, 8, 2], array_column($plan['routes'], 'rate'));
         $this->assertSame(['mix', 'rps', 'duration_sec', 'warmup_sec', 'routes'], array_keys($plan));
     }
+
+    // ---- an allocation (decisions.md D226 and D227): the shares are the prediction's rps_after, a dropped route is not sent ----------------
+
+    /**
+     * What `predict-ladder --drop-marked-routes` hands out: the routes of a group (the same share in the mix) keep the group's total
+     * between the routes that stay.
+     *
+     * @param list<string> $routes
+     * @param list<string> $dropped
+     *
+     * @return array{rps_after: array<string, float>, dropped: list<string>}
+     */
+    private static function allocationFor(array $routes, string $mix, array $dropped): array
+    {
+        $shares = RouteMix::shares(count($routes), $mix, $routes);
+        $inFile = array_combine($routes, $shares);
+        $groups = [];
+        foreach ($inFile as $route => $share) {
+            $groups[sprintf('%.12f', $share)][] = $route;
+        }
+        $after = [];
+        foreach ($groups as $members) {
+            $kept = array_values(array_diff($members, $dropped));
+            if ($kept === []) {
+                continue;
+            }
+            $factor = count($members) / count($kept);
+            foreach ($kept as $route) {
+                $after[$route] = $inFile[$route] * $factor;
+            }
+        }
+
+        return ['rps_after' => $after, 'dropped' => $dropped];
+    }
+
+    public function test_an_allocation_sends_the_shares_of_rps_after_and_leaves_the_dropped_route_out(): void
+    {
+        $routes = self::routes();
+        $allocation = self::allocationFor($routes, RouteMix::EVEN, ['GET /r4']);
+        $plan = ScenarioPlan::build($routes, RouteMix::EVEN, 1.4, 360, 60, $allocation);
+
+        $this->assertSame(array_values(array_diff($routes, ['GET /r4'])), array_column($plan['routes'], 'route'));
+        foreach ($plan['routes'] as $r) {
+            $this->assertEqualsWithDelta(1 / 7, $r['share'], 1e-12);
+            $this->assertEqualsWithDelta(0.2, $r['rps'], 1e-12);
+        }
+        $this->assertEqualsWithDelta(1.4, array_sum(array_column($plan['routes'], 'rps')), 1e-9);
+        $this->assertSame(RouteMix::EVEN, $plan['mix']);
+        $this->assertSame(['GET /r4'], $plan['allocation']['routes_not_sent']);
+        $this->assertSame(array_column($plan['routes'], 'route'), $plan['allocation']['routes_sent']);
+    }
+
+    public function test_an_allocation_keeps_the_80_20_proportions_of_the_groups_that_stay(): void
+    {
+        $routes = self::routes();
+        $allocation = self::allocationFor($routes, RouteMix::FIRST_80, ['GET /r2']); // one of the four routes with 80% in all
+        $plan = ScenarioPlan::build($routes, RouteMix::FIRST_80, 10.0, 360, 60, $allocation);
+        $byRoute = array_column($plan['routes'], null, 'route');
+
+        $this->assertArrayNotHasKey('GET /r2', $byRoute);
+        foreach (['GET /r1', 'GET /r3', 'GET /r4'] as $heavy) {
+            $this->assertEqualsWithDelta(0.8 / 3, $byRoute[$heavy]['share'], 1e-12);
+        }
+        foreach (['GET /r5', 'GET /r6', 'GET /r7', 'GET /r8'] as $light) {
+            $this->assertEqualsWithDelta(0.05, $byRoute[$light]['share'], 1e-12);
+        }
+        $this->assertEqualsWithDelta(10.0, array_sum(array_column($plan['routes'], 'rps')), 1e-9);
+    }
+
+    public function test_without_an_allocation_the_plan_is_what_it_always_was_and_has_no_extra_key(): void
+    {
+        foreach (RouteMix::names() as $mix) {
+            $with = ScenarioPlan::build(self::routes(), $mix, 0.45, 356, 60, null);
+            $without = ScenarioPlan::build(self::routes(), $mix, 0.45, 356, 60);
+            $this->assertSame($without, $with, $mix);
+            $this->assertSame(['mix', 'rps', 'duration_sec', 'warmup_sec', 'routes'], array_keys($with), $mix);
+            $this->assertCount(8, $with['routes'], $mix);
+        }
+    }
+
+    public function test_every_rung_of_the_b_ladder_can_be_written_with_any_one_route_or_any_two_routes_of_a_group_dropped_in_every_s_mix(): void
+    {
+        $routes = self::routes();
+        $rungs = \PeakSim\Runtime\LabLoad\Ladder::rungsFor('s-1');
+        $this->assertCount(15, $rungs);
+        $drops = [];
+        foreach ($routes as $a) {
+            $drops[] = [$a];
+        }
+        $drops[] = ['GET /r1', 'GET /r2'];
+        $drops[] = ['GET /r7', 'GET /r8'];
+        $drops[] = ['GET /r4', 'GET /r5'];
+        foreach ([RouteMix::EVEN, RouteMix::FIRST_80, RouteMix::LAST_80, RouteMix::PLACES_1235, RouteMix::PLACES_1345] as $mix) {
+            foreach ($drops as $dropped) {
+                $allocation = self::allocationFor($routes, $mix, $dropped);
+                foreach ($rungs as $rps) {
+                    $plan = ScenarioPlan::build($routes, $mix, (float) $rps, 360, 60, $allocation);
+                    $label = "$mix without " . implode(',', $dropped) . " at $rps";
+                    $this->assertEqualsWithDelta((float) $rps, array_sum(array_column($plan['routes'], 'rps')), 1e-9, $label);
+                    foreach ($plan['routes'] as $r) {
+                        $this->assertNotContains($r['route'], $dropped, $label);
+                        $this->assertGreaterThanOrEqual(1, $r['rate'], $label);
+                        $this->assertEqualsWithDelta($r['rps'], $r['rate'] / (int) rtrim($r['time_unit'], 's'), $r['rps'] * 0.001, $label);
+                    }
+                }
+            }
+        }
+    }
+
+    public function test_an_allocation_that_does_not_fit_the_list_is_refused_and_nothing_is_planned(): void
+    {
+        $routes = self::routes();
+        $good = self::allocationFor($routes, RouteMix::EVEN, ['GET /r4']);
+        $bad = [
+            'no rps_after' => ['dropped' => []],
+            'an empty rps_after' => ['rps_after' => [], 'dropped' => []],
+            'a route that is not in the list' => ['rps_after' => $good['rps_after'] + ['GET /nowhere' => 0.1], 'dropped' => ['GET /r4']],
+            'an rps of 0' => ['rps_after' => ['GET /r1' => 0.0, 'GET /r2' => 1.0], 'dropped' => []],
+            'a negative rps' => ['rps_after' => ['GET /r1' => -1.0, 'GET /r2' => 1.0], 'dropped' => []],
+            'a dropped route that still has an rps' => ['rps_after' => $good['rps_after'], 'dropped' => ['GET /r1']],
+        ];
+        foreach ($bad as $label => $allocation) {
+            try {
+                ScenarioPlan::build($routes, RouteMix::EVEN, 1.0, 360, 60, $allocation);
+                $this->fail("$label was not refused");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
 }
