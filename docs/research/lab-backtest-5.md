@@ -43,7 +43,7 @@ Under the settings of B, a route whose statement carries more values than the pl
 | --- | --- |
 | Route taken out | `GET /books/{slug}`, in **all five** scenarios |
 | Reason | placeholders: its largest statement carries 102,009 values at 170,000 rows, 1.56 times the limit of 65,535 |
-| Memory mark | none of the 8 routes (the largest predicted peak is that of the same route, about 638 MB, 22% of 4G) |
+| Memory mark | none of the 8 routes (the largest predicted peak of one request is that of the same route, `GET /books/{slug}`: 637,592,246 bytes, about 638 MB, 14.8% of 4G; the mark rule multiplies the peak by the measured-over-predicted ratio 1.51, which gives about 963 MB, 22.4% of 4G, still under the limit) |
 | Rps shared out | s-1: 7 routes that stay, each ×1.1429; s-2 to s-5: 3 routes that stay in the group, each ×1.3333 |
 | Groups left empty | none |
 | Longest single request predicted | `GET /books/{bookSlug}/export/zip`, upper bound 540.9 s of PHP CPU time (the stop rule is 900 s, half of the request timeout) |
