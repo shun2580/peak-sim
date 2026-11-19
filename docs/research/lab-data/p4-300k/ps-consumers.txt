@@ -1,0 +1,15 @@
+# 2026-11-19T08:43:31+0900 before
+events_statements_cpu	NO
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	NO
+# 2026-11-19T08:43:32+0900 after enabling history_long
+events_statements_cpu	NO
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	YES
+# 2026-11-19T09:23:52+0900 after restoring (read back)
+events_statements_cpu	NO
+events_statements_current	YES
+events_statements_history	YES
+events_statements_history_long	NO

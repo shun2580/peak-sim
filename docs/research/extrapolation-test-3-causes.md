@@ -278,3 +278,70 @@ Proposals of test B are checked at a size not yet used (150,000 rows, then 120,0
 - The two others (`GET /shelves/{slug}`, `GET /books/{bookSlug}/page/{pageSlug}`) are not explained by a statement. The records show that the measured request reads a quantity the capture never read (1.25·N), and that it appears after a route that rewrites `references` and leaves its statistics at 0, which is a question about the state of the measured database (7.5) as much as about a rule.
 - For test B s-3: 6.5% to 13.4% of the gap is the book page that the application could not finish; the remaining 93% is the ZIP route, which cannot be split without a complete request.
 - Nothing in the estimate was changed, and nothing here is a recount of the third run.
+
+## 10. Sections 5 and 6, measured: which statements read the extra rows (added 2026-11-19)
+
+**What this section is.** The status line at the top of this file (records only, nothing measured) describes sections 0 to 9 and still holds for them; they are not changed. This section reports the measurement that 7.4 asked for (P4): one cold request of each of the two routes in the lab, at 300,000 rows, with the rows read by each statement, in the database state before and after a rebuild of `references`. It is a measurement made to find a cause. **It is not a test of A or B, it gives no pass or failure and no condition count, and the records and the verdicts at 300,000 rows (A and B) stand.** No estimate, calibration, formula, mark rule or pass line was changed. The records, the order of the steps and the commands are in `docs/research/lab-data/p4-300k/` (read its `README.md` first).
+
+The measurement was made on the lab's 300,000-row database (built by the lab's builder, analyzed once), not on the database that test A measured (built by the measuring tool, not analyzed; it no longer exists). The same two kinds of statement are involved in both; where the two databases differ, it is said.
+
+### 10.1 Five states and what each route read
+
+The rows are the handler figure of one cold request (D96), per statement, from the tap (`GET /shelves/{slug}` is `/shelves/1`, the page route `/books/1/page/3`).
+
+| State of the database | `n_rows` of `references` in the statistics | Shelf route | Page route |
+| --- | ---: | ---: | ---: |
+| As built, analyzed once (measured twice, the same rows) | 299,088 | 244 | 1,980,245 |
+| After `POST /settings/maintenance/regenerate-references` was sent through the measuring process (rolled back: the data stays, 300,000 rows) | **0** | **375,234** | **2,355,235** |
+| Then `ANALYZE TABLE` on all 41 tables (data unchanged) | 299,088 | 244 | 1,980,245 |
+| After the same rebuild run for real (committed): `references` holds 0 rows | 0 | 230 | 1,980,230 |
+| Then `ANALYZE TABLE` again | 0 | 230 | 1,980,230 |
+
+The second row is the state test A's measuring database was in after that route (section 5: `n_rows` of `references` 0 from the shelf trial on, data intact), and it gives test A's figures again: 375,234 against 375,226 for the shelf route (8 rows apart), and a page route 374,990 rows above its first-state value (test A: 1,635,227 against 1,260,237, the same 374,990).
+
+### 10.2 The shelf route (section 5): the two statements
+
+**Established, by a per-statement reading and by arithmetic.** Two statements on `references` read the extra rows; every other statement of the route reads the same rows in all five states (228 rows over 16 statements).
+
+| Statement | Rows, statistics in order | Rows, statistics 0 (data intact) | Plan, statistics in order | Plan, statistics 0 |
+| --- | ---: | ---: | --- | --- |
+| `select distinct from_type from references` | 8 | **300,002** | `range` on `references_from_type_index`, "Using index for group-by" | `index` on `references_from_type_index` (the whole index), "Using index" |
+| `select count(*) from references where to_type = ? and to_id = ? and (…exists…)` (the count of references to the shelf) | 8 | **75,004** | `ref` on `references_to_id_index` | `ref` on `references_to_type_index` |
+
+The two rises are 299,994 and 74,996, together **374,990 rows**, which is the whole difference between the first two rows of 10.1 (375,234 − 244 = 374,990). That is 1.0·N and 0.25·N: the first statement reads every entry of an index; the second reads an index on `to_type` instead of the index on `to_id`. The same two statements, with the same rows, are on the page route (300,002 and 75,005; 10.3). Section 5 gives the same 374,990 as the difference between the cold values of the chapter route; that route was not measured here, so that it is the same two statements there is consistent with the records and not shown. The server's own `performance_schema` shows the same two executions as the two largest of the request (300,000 and 75,003 rows for the shelf route; it counts rows examined in its own way, see the README).
+
+**Established for this database: `ANALYZE` removes it.** From the second row to the third row of 10.1 only `ANALYZE TABLE` was run (on all 41 tables; the data was not touched), and the shelf route went back from 375,234 to 244 rows, the same 8 and 8 for the two statements and the same two plans as in the first state.
+
+**Consistent with, not shown: it is the statistics of `references` that carry it.** The `EXPLAIN` of both statements, in the state with statistics 0, shows `references` with 1 row, and the plans differ from the plans with statistics in order only in how `references` is read. But `ANALYZE` was run on 41 tables, and the statistics of `entities` also moved (296,185 to 287,740 rows); no test analyzed `references` alone. Why the statistics were 0: the persistent statistics of `references` were written at 08:49:19, twelve seconds after the rebuild route began, which fits the server recalculating them in the background while the route's first statement (`delete from references`, rolled back at the end) had made the table look empty. The time fits; no record shows the recalculation itself.
+
+So the shelf route's 99.92% miss (section 5) was a state effect, as section 5 read it as a possibility: the measured database was left, by a route that rewrites `references` and rolls back, with statistics that say the table is empty, and under them two statements the estimate holds at 8 rows each read 374,990 rows between them. The estimate (289 rows) describes a database whose statistics are in order (D180), and those two statements are not marked (section 5: the only mark on the shelf route is on the `views` select).
+
+### 10.3 The page route (section 6): one part established, one not
+
+**Established, by the same reading.** The 374,990 rows that the high state of the page route holds above its low state (1,260,237 and 1,635,227 in test A) are the same two statements: 300,002 and 75,005 rows in the state with statistics 0, 8 and 9 with statistics in order. The page route's two large statements (the pages of the book, 1,200,000 rows, and the entities and container data of the book, 779,999 rows) read the same in all five states.
+
+**Not established: the low level of 4.2·N.** Section 6 found that test A's page route read **4.2·N + 237** in its low state, 720,003 rows (2.4·N) fewer than the capture's line (6.6·N), and that the statement behind the drop is not recorded. In the lab's database the page route reads **6.6·N + 245** (1,980,245) in the states with statistics in order, and in every other state: **the drop is not reproduced**, the statement of 779,999 rows read 779,999 in all five states, and the two `references` statements cannot account for it (they read at most 375,007 rows in any state here and they only add). So nothing measured here says which statement read 2.4·N less in test A. What differs between the two databases is known only in outline: test A's measuring database was built by the measuring tool with every table at 300,000 rows and was not analyzed; the lab's was built for three tables at 300,000 rows and was analyzed. Which of these, if either, moved the page route is not shown. What would settle it: the tap of the same request on a database built the way test A's was, which no longer exists and was not rebuilt here (one such build took 4,057 s).
+
+**Arithmetic of the 23.01% (section 6), no measurement of the cause.** The estimate (2,011,437) is above the largest cold value (1,635,227) by 376,210 rows. With the lab's line (1,980,245): the estimate is 31,192 above the line; the line is 720,008 above test A's low level (1,260,237, the part not reproduced); and the two `references` statements put 374,990 above the low level in the high state, which the estimate does not have. 31,192 + 720,008 − 374,990 = 376,210. The first two parts raise the miss, the third lowers it, and the third is now identified.
+
+### 10.4 The rebuild itself: the state it leaves
+
+The rebuild run for real (the app's own `ReferenceStore::updateForAll()`, the call that the route and `artisan bookstack:regenerate-references` make, committed, 299.2 s) took `references` from 300,000 rows to **0**. The lab's generated pages hold no links that the rebuild could find, so it deletes every row and puts none back. In that state the statistics (`n_rows` 0, written by the server eleven seconds into the call and not changed after it) are true, with or without `ANALYZE`, and the two statements read 2 and 0 rows: the shelf route reads 230 rows and the page route 1,980,230.
+
+Two things follow, and they are facts about this database, not about an application with real content:
+
+- Under the order build, rebuild, `ANALYZE` (docs/simulator-spec.md 7.4.4), the lab's BookStack database has an empty `references`. The 1.25·N effect does not appear in that state, and the statements of sections 3 and 4, which are statements on `references`, would read no rows; but then no route's reading of `references` grows with the count either, so those routes stop testing how a `references`-bound statement scales. Whether that is what the order is meant to give is for the project owner.
+- The state of section 5 (statistics 0, data intact) is made by a rolled-back rebuild, not by a rebuild that is kept. A measuring tool that rolls back every request leaves it behind whenever it measures that route before the others (7.5).
+
+### 10.5 What can be said, and what cannot
+
+| | Degree |
+| --- | --- |
+| The extra 1.25·N of the shelf route and of the page route is two statements on `references` (300,002 and 75,004 rows; 8 and 8 before), and their sum is the difference | Established by a per-statement reading and by arithmetic |
+| `ANALYZE` of the database removes it (data unchanged) | Established for this database |
+| That the statistics of `references` alone carry it | Consistent with the `EXPLAIN`, not shown |
+| That the rolled-back rebuild route set the statistics to 0 by a background recalculation | The time fits, not shown |
+| The page route's low level of 4.2·N in test A (720,003 rows fewer than the capture's line) | Not established; not reproduced in the lab's database (6.6·N in every state) |
+| The measured figures here are a statement about the precision of the estimate in an application | Not claimed |
+
+This section changes none of the proposals of section 7, and the proposals stay as written. Nothing here is a recount of the third run, and the sizes 100,000, 200,000 and 300,000 stay used up as a check of any repair made from these results (7).

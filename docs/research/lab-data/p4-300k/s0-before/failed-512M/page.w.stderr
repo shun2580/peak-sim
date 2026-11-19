@@ -1,0 +1,7 @@
+app support: vite_assets
+booted: {"db_name":"peak_sim_measure_d60189cad0bc_lab_300000","laravel":"13.35.0","php":"8.3.36","connections":{"default":"mysql","names":["sqlite","mysql","mariadb","pgsql","sqlsrv","mysql_testing"],"overridden":["mysql_testing"],"replaced_non_mysql":{"sqlite":"sqlite","pgsql":"pgsql","sqlsrv":"sqlsrv"},"verified_database":"peak_sim_measure_d60189cad0bc_lab_300000"},"fakes":{"cache_store":"Illuminate\\Cache\\ArrayStore","session_driver":"array","mail":"Illuminate\\Support\\Testing\\Fakes\\MailFake","notification":"Illuminate\\Support\\Testing\\Fakes\\NotificationFake","queue":"Illuminate\\Support\\Testing\\Fakes\\QueueFake","http":"every request fails with a connection error","disks_replaced":["s3"]}}
+[18-Nov-2026 23:38:48 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) in /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php on line 1137
+[2026-11-18 23:38:48] local.ERROR: Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Allowed memory size of 536870912 bytes exhausted (tried to allocate 2097152 bytes) at /app/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php:1137)
+[stacktrace]
+#0 {main}
+"} 

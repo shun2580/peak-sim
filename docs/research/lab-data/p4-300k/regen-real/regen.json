@@ -1,0 +1,16 @@
+{
+ "started": "2026-11-19T09:10:00+09:00",
+ "ended": "2026-11-19T09:15:00+09:00",
+ "exit": 0,
+ "global_status_delta": {
+  "Handler_read_first": 1,
+  "Handler_read_key": 126456698,
+  "Handler_read_last": 0,
+  "Handler_read_next": 451791600,
+  "Handler_read_prev": 0,
+  "Handler_read_rnd": 0,
+  "Handler_read_rnd_next": 300507,
+  "Innodb_rows_read": 578544600,
+  "Questions": 6110
+ }
+}
