@@ -36,6 +36,9 @@
 #   17  --require-allocation (D227): a prediction with an allocation, even one that drops no route, is measured; one with none (the gate passes it as made
 #       without the flag), or with one that is switched off, is refused (2) before any container; without the flag nothing changed; it needs --predictions
 #       and refuses --trial
+#   18  --max-steps (D231; a setting for a rehearsal, default off): the chain hands it to every measure-ladder call and says so in chain.log, and without it
+#       nothing is carried or written; measure-ladder ends a scenario after N steps (counting the recorded ones: the load tool is not called for them), and
+#       refuses a value that is not 1 to 99, and --trial, before any container
 # D  bin/lab-config-b in a throw-away repository: status; apply gives 1800s, max_execution_time 0, memory_limit 4G; a second apply and a
 #    restore that is not exactly the diff are refused and change nothing; restore gives back the bytes; the diff applies to the files of HEAD
 # No test is skipped: a precondition that is not met is a failure, not a skip.
@@ -484,6 +487,40 @@ expect_code "17f a block that is switched off does not count as stated (dry run)
 expect_code "17g --require-allocation without --predictions: 2" 2 $rc
 "$lab/bin/measure-ladder" --trial=cal-2 --predictions="$bpred" --require-allocation >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
 expect_code "17h --require-allocation with --trial: 2" 2 $rc
+
+# 18 -------------------------------------------------------------------------------------------------------------------------
+# --max-steps (D231): a setting for a rehearsal of the tools, default off. In the chain it is handed to every measure-ladder call; in measure-ladder it ends the
+# scenario after the first N steps, counting the ones already recorded; invalid values and --trial are refused (2) before any container.
+reset_a; chain_dir; run_chain "$d" --max-steps=2; rc=$?
+[ "$rc" = 0 ] && [ "$(grep '^measure-ladder ' "$A/calls" | grep -c -- ' --max-steps=2')" = 5 ] && has "$d/chain.log" 'CHAIN START .*max_steps=2' && [ "$(grep -c 'START s-.* max_steps=2' "$d/chain.log")" = 5 ] \
+  && pass "18 the chain hands --max-steps=2 to all 5 measure-ladder calls and chain.log says max_steps=2 (CHAIN START and 5 START lines)" || fail "18 rc $rc ($(grep '^measure-ladder ' "$A/calls" | head -1))"
+reset_a; chain_dir; run_chain "$d"
+! grep '^measure-ladder ' "$A/calls" | grep -q -- 'max-steps' && ! has "$d/chain.log" 'max_steps' && pass "18b without the flag no call carries --max-steps and chain.log has no max_steps (the chain is what it was)" || fail "18b"
+for bad in 0 100 x -1 ""; do
+  reset_a; chain_dir; run_chain "$d" --max-steps="$bad"; rc=$?
+  [ "$rc" = 2 ] && [ ! -s "$A/calls" ] && pass "18c --max-steps='$bad' is refused (2) and nothing is called" || fail "18c '$bad': rc $rc, calls $(wc -l <"$A/calls")"
+done
+for bad in 0 100 x; do
+  set_b php="$php_val" pool=0s nginx="$nginx_val" mem="$mem_val"
+  ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=1800s --max-steps="$bad"; rc=$?
+  [ "$rc" = 2 ] && [ ! -s "$Bdir/docker.calls" ] && has "$Bdir/ml.err" 'max-steps' && pass "18d measure-ladder --max-steps='$bad': 2 before any container, naming the flag" || fail "18d '$bad': rc $rc"
+done
+"$lab/bin/measure-ladder" --trial=cal-2 --max-steps=1 >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+expect_code "18e --max-steps with --trial: 2" 2 $rc
+# the two lowest steps already recorded: with --max-steps=2 the scenario is read to its end there, the load tool is never called, MAX-STEPS says why
+set_b php="$php_val" pool=0s nginx="$nginx_val" mem="$mem_val"
+sd="$out/ladder/s-1-$SCALE"; rm -rf "$sd"; mkdir -p "$sd/rung-01-0.025" "$sd/rung-02-0.035"
+for r in rung-01-0.025:1:0.025 rung-02-0.035:2:0.035; do
+  python3 -c 'import json,sys; d,i,r=sys.argv[1].split(":"); json.dump({"rung":int(i),"rps":float(r),"decision":{"stop":False,"reasons":[]}}, open(sys.argv[2]+"/"+d+"/record.json","w"))' "$r" "$sd"
+done
+ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=1800s --max-steps=2; rc=$?
+[ "$(k6_calls)" = 0 ] && [ "$(grep -c '^RUNG SKIP' "$Bdir/ml.out")" = 2 ] && has "$Bdir/ml.out" 'MAX-STEPS s-1: stopped after rung 2' && ! has "$Bdir/ml.out" 'RUNG START' \
+  && pass "18f two steps already recorded and --max-steps=2: both skipped, MAX-STEPS after rung 2, no step started, the load tool never called" || fail "18f rc $rc k6 $(k6_calls) ($(tail -3 "$Bdir/ml.out" | tr '\n' '|') $(head -2 "$Bdir/ml.err"))"
+set_b php="$php_val" pool=0s nginx="$nginx_val" mem="$mem_val"
+ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=1800s --max-steps=1; rc=$?
+[ "$(k6_calls)" = 0 ] && [ "$(grep -c '^RUNG SKIP' "$Bdir/ml.out")" = 1 ] && has "$Bdir/ml.out" 'MAX-STEPS s-1: stopped after rung 1' && ! has "$Bdir/ml.out" 'rung 2' \
+  && pass "18g --max-steps=1 stops after the first step (rung 2 is not looked at)" || fail "18g rc $rc k6 $(k6_calls)"
+rm -rf "$sd"
 
 echo
 echo "ladder chain tests: $passed passed, $failed failed, $skipped skipped"

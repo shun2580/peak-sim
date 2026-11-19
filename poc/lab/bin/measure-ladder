@@ -2,7 +2,7 @@
 # Measures one prediction scenario (t-1 .. t-5, r-1 .. r-5 of the re-check, or s-1 .. s-5 of the third backtest) on the lab, step by step up the rps ladder
 # (docs/simulator-spec.md sections 7.2, 7.4.1 and 7.4.2).
 #
-#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--scale=<N>] [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--require-allocation] [--out=<dir>]
+#   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --predictions=<poc/lab/predictions/....json> --statement-record=<capture.json> [--scale=<N>] [--switch-scale] [--scheme=<spec|A|B>] [--request-timeout=<k6 duration>] [--require-allocation] [--max-steps=<N>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --scenario=<t-1..t-5|r-1..r-5|s-1..s-5> --dry-run [--predictions=<file>] [--scale=<N>] [--scheme=<spec|A|B>] [--out=<dir>]
 #   poc/lab/bin/measure-ladder --trial=<cal-2|cal-3> --statement-record=<capture.json> [--dry-run] [--switch-scale] [--scheme=<spec|A|B>] [--out=<dir under out/trial>]
 #
@@ -103,6 +103,10 @@
 # prediction gate (there is no prediction in it); the gate of the ordinary path is untouched. Its records are always under
 # <out dir>/trial/ (default and only place), named trial-<cal>-<scale>, and each record says "trial": true.
 #
+# --max-steps=<N> (1 to 99; default off, and then nothing changes) stops the scenario after its first N steps, whether they were measured now or were
+# already recorded: a setting for a rehearsal of the tools (decisions.md D231), never for a measurement that is judged. It is not the stopping rule; the
+# line `MAX-STEPS` says so, and the end-of-scenario table guard and the collection of the record run as for any scenario. Refused with --trial.
+#
 # exit codes: 0 the ladder was measured to its end or to its stopping step / 2 usage, or the app reads another scale, or a
 # missing prerequisite / 11 not sealed / 12 the prediction gate is closed / 13 a step could not be measured (the cause is printed) /
 # 15 a statement in the record writes outside `views` / 16 an N table changed / 17 a scale not seen yet and no committed prediction for it /
@@ -113,7 +117,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record= ; scale_arg= ; scale_given= ; require_allocation=0
+scenario="" ; predictions="" ; dry=0 ; switch=0 ; out="" ; scheme=spec ; trial= ; request_timeout= ; statement_record= ; scale_arg= ; scale_given= ; require_allocation=0 ; max_steps= ; max_steps_given=
 for arg in "$@"; do
   case "$arg" in
     --scenario=*) scenario="${arg#--scenario=}" ;;
@@ -127,10 +131,15 @@ for arg in "$@"; do
     --statement-record=*) statement_record="${arg#--statement-record=}" ;;
     --scale=*) scale_arg="${arg#--scale=}" ; scale_given=1 ;;
     --require-allocation) require_allocation=1 ;;
+    --max-steps=*) max_steps="${arg#--max-steps=}" ; max_steps_given=1 ;;
     *) usage ;;
   esac
 done
 [[ "$scheme" =~ ^(spec|A|B)$ ]] || usage
+if [ -n "$max_steps_given" ] && { ! [[ "$max_steps" =~ ^[1-9][0-9]?$ ]] || [ -n "$trial" ]; }; then
+  echo "measure-ladder: --max-steps takes a whole number from 1 to 99 and is refused with --trial (got '$max_steps')" >&2
+  exit 2
+fi
 if [ "$require_allocation" = 1 ] && { [ -n "$trial" ] || [ -z "$predictions" ]; }; then
   echo "measure-ladder: --require-allocation reads the allocation of a prediction: it needs --predictions and is refused with --trial" >&2
   exit 2
@@ -423,6 +432,7 @@ for rps in "${rungs[@]}"; do
     php_tool poc/lab/load/ladder.php decision "$(in_container "$d/record.json")" >/dev/null; rc=$?
     echo "RUNG SKIP $scenario rung $i rps $rps: already recorded"
     [ "$rc" = 6 ] && { echo "the scenario stopped after rung $i (recorded)"; break; }
+    if [ -n "$max_steps" ] && [ "$i" -ge "$max_steps" ]; then echo "MAX-STEPS $scenario: stopped after rung $i (--max-steps=$max_steps, a rehearsal setting; this is not the stopping rule)"; break; fi
     continue
   fi
   rm -rf "$d"; mkdir -p "$d"
@@ -487,6 +497,7 @@ for rps in "${rungs[@]}"; do
     exit 13
   fi
   [ "$rc" = 6 ] && { echo "the scenario $scenario stops after rung $i"; break; }
+  if [ -n "$max_steps" ] && [ "$i" -ge "$max_steps" ]; then echo "MAX-STEPS $scenario: stopped after rung $i (--max-steps=$max_steps, a rehearsal setting; this is not the stopping rule)"; break; fi
 done
 
 # THE WRITE GUARD (iii), the end of the scenario (the last step, or the one it stopped at): the count and checksum of the N tables again, with the counters.
