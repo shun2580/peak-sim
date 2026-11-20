@@ -1,0 +1,1911 @@
+{
+    "schema_version": "0.2",
+    "tool": {
+        "name": "peak-sim"
+    },
+    "input": {
+        "mode": "export-dir"
+    },
+    "analysis_scope": {
+        "not_covered": [
+            "application middleware",
+            "authorization (gates and policies)",
+            "route model binding",
+            "form request validation",
+            "global scopes",
+            "observers and event listeners",
+            "jobs"
+        ],
+        "note": "The cost of the processing listed here is not included in the results. This does not mean the route is safe."
+    },
+    "summary": {
+        "routes": 24,
+        "by_confidence": {
+            "high": 22,
+            "medium": 1,
+            "none": 1
+        },
+        "by_growth": {
+            "query": {
+                "O(1)": 9,
+                "O(N)": 13,
+                "O(N*M)": 1,
+                "unknown": 1
+            },
+            "memory": {
+                "O(1)": 3,
+                "O(N)": 19,
+                "O(N*M)": 1,
+                "unknown": 1
+            }
+        },
+        "gap_reasons": {
+            "DYNAMIC_METHOD_NAME": 1
+        },
+        "skipped": 2
+    },
+    "skipped": [
+        {
+            "route": "/storage/{path}",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "Closure",
+            "kind": "framework"
+        },
+        {
+            "route": "/storage/{path}",
+            "methods": [
+                "PUT"
+            ],
+            "action": "Closure",
+            "kind": "framework"
+        }
+    ],
+    "routes": [
+        {
+            "route": "/hidden/appends",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\AppendsController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/AppendsController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Hidden\\AppendsController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Models/AppendedOrder.php",
+                        "line": 15,
+                        "note": "App\\Hidden\\Models\\AppendedOrder::customerName()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/AppendsController.php",
+                        "line": 14,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Hidden/Models/AppendedOrder.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/blade",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\BladeController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/BladeController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Hidden\\BladeController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/BladeController.php",
+                        "line": 14,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "resources/views/hidden/blade.blade.php",
+                        "line": 12,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/cache",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\CacheController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": {
+                "sites": [
+                    {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    }
+                ],
+                "on_miss": {
+                    "query": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "high",
+                        "lower_bound": null
+                    },
+                    "memory": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "high",
+                        "lower_bound": null
+                    }
+                },
+                "on_hit": {
+                    "query": {
+                        "growth": "O(1)",
+                        "degree": 0,
+                        "confidence": "high",
+                        "lower_bound": null
+                    },
+                    "memory": {
+                        "growth": "O(N)",
+                        "degree": 1,
+                        "confidence": "medium",
+                        "lower_bound": null
+                    }
+                },
+                "restores_all_on_hit": true,
+                "adopted_view": "miss"
+            },
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [
+                {
+                    "code": "CACHE_DRIVER_SERIALIZING",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "message": "a hit restores the cached list from the store; its memory grows with it only if the cache driver serialises the value (it does for file, database and redis)",
+                    "affects": [
+                        "memory"
+                    ],
+                    "scenario": [
+                        {
+                            "cache": 252446270,
+                            "side": "hit"
+                        }
+                    ],
+                    "candidates": null,
+                    "chosen": null
+                }
+            ],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 14,
+                        "note": "App\\Http\\Controllers\\Hidden\\CacheController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 22,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "cache_restore orders"
+                },
+                {
+                    "role": "assumption",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CacheController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "CACHE_DRIVER_SERIALIZING: a hit restores the cached list from the store; its memory grows with it only if the cache driver serialises the value (it does for file, database and redis)"
+                }
+            ],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/conditional-binding",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\ConditionalBindingController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "medium",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "medium",
+            "cache": null,
+            "worst_case": [
+                {
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ConditionalBindingController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "abstract": "App\\Hidden\\Contracts\\OrderSummaries",
+                    "candidates": [
+                        "App\\Hidden\\Services\\EagerOrderSummaries",
+                        "App\\Hidden\\Services\\LazyOrderSummaries"
+                    ],
+                    "chosen": "App\\Hidden\\Services\\LazyOrderSummaries"
+                }
+            ],
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": 2
+            },
+            "gaps": [],
+            "assumptions": [
+                {
+                    "code": "WORST_CASE_OF_CANDIDATES",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ConditionalBindingController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "message": "App\\Hidden\\Contracts\\OrderSummaries has 2 implementations that cost differently; the costliest is adopted",
+                    "affects": [
+                        "query"
+                    ],
+                    "scenario": [],
+                    "candidates": [
+                        "App\\Hidden\\Services\\EagerOrderSummaries",
+                        "App\\Hidden\\Services\\LazyOrderSummaries"
+                    ],
+                    "chosen": "App\\Hidden\\Services\\LazyOrderSummaries"
+                }
+            ],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ConditionalBindingController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Hidden\\ConditionalBindingController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Providers/ConditionalBindingServiceProvider.php",
+                        "line": 25,
+                        "note": "binding App\\Hidden\\Contracts\\OrderSummaries => App\\Hidden\\Services\\EagerOrderSummaries"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Providers/ConditionalBindingServiceProvider.php",
+                        "line": 26,
+                        "note": "binding App\\Hidden\\Contracts\\OrderSummaries => App\\Hidden\\Services\\LazyOrderSummaries"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Services/EagerOrderSummaries.php",
+                        "line": 10,
+                        "note": "App\\Hidden\\Services\\EagerOrderSummaries::all()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Services/LazyOrderSummaries.php",
+                        "line": 10,
+                        "note": "App\\Hidden\\Services\\LazyOrderSummaries::all()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "binding",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ConditionalBindingController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "App\\Hidden\\Contracts\\OrderSummaries has 2 implementations that cost differently; the costliest is adopted"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Hidden/Services/EagerOrderSummaries.php",
+                        "line": 12,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Hidden/Services/LazyOrderSummaries.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Hidden/Services/LazyOrderSummaries.php",
+                        "line": 18,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 4,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/cursor",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\CursorController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CursorController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Hidden\\CursorController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/CursorController.php",
+                        "line": 16,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "pdo_buffer orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/model-with",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\ModelWithController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": 1
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ModelWithController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Hidden\\ModelWithController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ModelWithController.php",
+                        "line": 14,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/hidden/resource",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Hidden\\ResourceController@index",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ResourceController.php",
+                        "line": 12,
+                        "note": "App\\Http\\Controllers\\Hidden\\ResourceController::index()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Hidden/Resources/OrderResource.php",
+                        "line": 11,
+                        "note": "App\\Hidden\\Resources\\OrderResource::toArray()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Hidden/ResourceController.php",
+                        "line": 15,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Hidden/Resources/OrderResource.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/collection-filter",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicCollectionFilterController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicCollectionFilterController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicCollectionFilterController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicCollectionFilterController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ng/count-in-loop",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicCountInLoopController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicCountInLoopController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicCountInLoopController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicCountInLoopController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicCountInLoopController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "aggregate items, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/first-or-create-in-loop",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\DeepFirstOrCreateInLoopController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "products",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": 2,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepFirstOrCreateInLoopController.php",
+                        "line": 18,
+                        "note": "App\\Http\\Controllers\\Ng\\DeepFirstOrCreateInLoopController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepFirstOrCreateInLoopController.php",
+                        "line": 23,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select products"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepFirstOrCreateInLoopController.php",
+                        "line": 25,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "write product_stats, 1 loop"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepFirstOrCreateInLoopController.php",
+                        "line": 27,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "write product_stats, 1 loop"
+                }
+            ],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "route": "/ng/get-then-count",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicGetThenCountController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicGetThenCountController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicGetThenCountController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicGetThenCountController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ng/layered",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\DeepLayeredController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepLayeredController.php",
+                        "line": 13,
+                        "note": "App\\Http\\Controllers\\Ng\\DeepLayeredController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/UseCases/ListOrderSummaries.php",
+                        "line": 12,
+                        "note": "App\\Ng\\UseCases\\ListOrderSummaries::handle()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Domain/OrderSummaryService.php",
+                        "line": 12,
+                        "note": "App\\Ng\\Domain\\OrderSummaryService::all()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Providers/LayeredServiceProvider.php",
+                        "line": 16,
+                        "note": "binding App\\Ng\\Repositories\\OrderRepository => App\\Ng\\Repositories\\EloquentOrderRepository"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Repositories/EloquentOrderRepository.php",
+                        "line": 9,
+                        "note": "App\\Ng\\Repositories\\EloquentOrderRepository::summaries()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Ng/Repositories/EloquentOrderRepository.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Ng/Repositories/EloquentOrderRepository.php",
+                        "line": 15,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/n-plus-one",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNPlusOneController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNPlusOneController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicNPlusOneController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNPlusOneController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNPlusOneController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/nested",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNestedController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N*M)",
+                "degree": 2,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N*M)",
+                "degree": 2,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": "items",
+            "m_per": "orders",
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNestedController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicNestedController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNestedController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNestedController.php",
+                        "line": 18,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load items, 1 loop"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNestedController.php",
+                        "line": 18,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "lazy_load items, 1 loop"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicNestedController.php",
+                        "line": 19,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load products, 2 loops"
+                }
+            ],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "route": "/ng/save-in-loop",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\DeepSaveInLoopController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "customers",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepSaveInLoopController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\DeepSaveInLoopController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepSaveInLoopController.php",
+                        "line": 15,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select customers"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepSaveInLoopController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "write customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/service",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\DeepServiceController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/DeepServiceController.php",
+                        "line": 13,
+                        "note": "App\\Http\\Controllers\\Ng\\DeepServiceController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Services/OrderReportService.php",
+                        "line": 12,
+                        "note": "App\\Ng\\Services\\OrderReportService::build()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Services/OrderRowBuilder.php",
+                        "line": 12,
+                        "note": "App\\Ng\\Services\\OrderRowBuilder::build()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Ng/Services/CustomerNameResolver.php",
+                        "line": 9,
+                        "note": "App\\Ng\\Services\\CustomerNameResolver::nameOf()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Ng/Services/OrderReportService.php",
+                        "line": 16,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Ng/Services/CustomerNameResolver.php",
+                        "line": 12,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "lazy_load customers, 1 loop"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ng/unbounded",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ng\\BasicUnboundedController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicUnboundedController.php",
+                        "line": 11,
+                        "note": "App\\Http\\Controllers\\Ng\\BasicUnboundedController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ng/BasicUnboundedController.php",
+                        "line": 13,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ok/bulk",
+            "methods": [
+                "POST"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\BulkController",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "customers",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": 1
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/BulkController.php",
+                        "line": 13,
+                        "note": "App\\Http\\Controllers\\Ok\\BulkController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/BulkController.php",
+                        "line": 17,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select customers"
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/BulkController.php",
+                        "line": 25,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "payload customers"
+                }
+            ],
+            "events_found": 3,
+            "truncated": false
+        },
+        {
+            "route": "/ok/chunk",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@chunk",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 33,
+                        "note": "App\\Http\\Controllers\\Ok\\OrderController::chunk()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 38,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ok/eager",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@eager",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": 1
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 17,
+                        "note": "App\\Http\\Controllers\\Ok\\OrderController::eager()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 19,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 2,
+            "truncated": false
+        },
+        {
+            "route": "/ok/lazy",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@lazy",
+            "kind": "controller",
+            "query": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": "1/1000",
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 48,
+                        "note": "App\\Http\\Controllers\\Ok\\OrderController::lazy()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 53,
+                        "note": ""
+                    },
+                    "axis": "query",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ok/paginate",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@paginate",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": 1
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 28,
+                        "note": "App\\Http\\Controllers\\Ok\\OrderController::paginate()"
+                    },
+                    "axis": null,
+                    "note": ""
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/ok/with-count",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@withCount",
+            "kind": "controller",
+            "query": {
+                "growth": "O(1)",
+                "degree": 0,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "O(N)",
+                "degree": 1,
+                "confidence": "high",
+                "lower_bound": null
+            },
+            "n_table": "orders",
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": "high",
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 61,
+                        "note": "App\\Http\\Controllers\\Ok\\OrderController::withCount()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "event",
+                    "site": {
+                        "file": "app/Http/Controllers/Ok/OrderController.php",
+                        "line": 63,
+                        "note": ""
+                    },
+                    "axis": "memory",
+                    "note": "select orders"
+                }
+            ],
+            "events_found": 1,
+            "truncated": false
+        },
+        {
+            "route": "/unknown/dynamic",
+            "methods": [
+                "GET",
+                "HEAD"
+            ],
+            "action": "App\\Http\\Controllers\\Unknown\\DynamicController",
+            "kind": "controller",
+            "query": {
+                "growth": "unknown",
+                "degree": null,
+                "confidence": null,
+                "lower_bound": null
+            },
+            "memory": {
+                "growth": "unknown",
+                "degree": null,
+                "confidence": null,
+                "lower_bound": null
+            },
+            "n_table": null,
+            "m_table": null,
+            "m_per": null,
+            "n_table_alternatives": [],
+            "confidence": null,
+            "cache": null,
+            "worst_case": null,
+            "coefficients": {
+                "query_coefficient": null,
+                "per_item_queries": null,
+                "extra_queries_per_request": null
+            },
+            "gaps": [
+                {
+                    "code": "DYNAMIC_METHOD_NAME",
+                    "site": {
+                        "file": "app/Http/Controllers/Unknown/DynamicController.php",
+                        "line": 21,
+                        "note": ""
+                    },
+                    "message": "the method name is not a literal",
+                    "affects": [
+                        "query",
+                        "memory"
+                    ],
+                    "loop_depth": 0,
+                    "scenario": []
+                }
+            ],
+            "assumptions": [],
+            "evidence": [
+                {
+                    "role": "call",
+                    "site": {
+                        "file": "app/Http/Controllers/Unknown/DynamicController.php",
+                        "line": 15,
+                        "note": "App\\Http\\Controllers\\Unknown\\DynamicController::__invoke()"
+                    },
+                    "axis": null,
+                    "note": ""
+                },
+                {
+                    "role": "gap",
+                    "site": {
+                        "file": "app/Http/Controllers/Unknown/DynamicController.php",
+                        "line": 21,
+                        "note": ""
+                    },
+                    "axis": null,
+                    "note": "DYNAMIC_METHOD_NAME: the method name is not a literal"
+                }
+            ],
+            "events_found": 0,
+            "truncated": false
+        }
+    ]
+}

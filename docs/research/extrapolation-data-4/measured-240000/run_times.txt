@@ -1,0 +1,7 @@
+start_fixtures=2026-11-20T06:46:30+09:00
+start_bookstack_repeat=2026-11-20T06:47:35+09:00
+end_fixtures=2026-11-20T08:15:32+09:00 exit_fixtures=0
+start_bookstack=2026-11-20T08:15:32+09:00
+end_bookstack_repeat=2026-11-20T11:08:51+09:00 exit_bookstack_repeat=0
+start_bookstack=2026-11-20T23:31:51+09:00
+end_bookstack=2026-11-21T03:03:18+09:00 exit_bookstack=0

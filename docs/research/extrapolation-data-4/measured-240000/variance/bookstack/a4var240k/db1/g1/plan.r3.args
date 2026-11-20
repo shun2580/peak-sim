@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/books/1/page/3
+--method=DELETE
+--route=/books/{bookSlug}/page/{pageSlug}
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

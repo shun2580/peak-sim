@@ -1,0 +1,61 @@
+# prep diffs, 2026-11-19T17:47:16+09:00; tool copy HEAD=7a4cf32d24e64e23acbfa842fc35ab81eade4d10
+
+## 6ae5195 .. tool copy
+poc/runtime/src/Data changed_files=0
+poc/runtime/src/Measure changed_files=0
+poc/runtime/src/Capture changed_files=0
+poc/runtime/src/Variance changed_files=0
+poc/runtime/bin changed_files=0
+poc/runtime/profiles changed_files=0
+fixtures/laravel-app changed_files=0
+poc/lab/bin/build-db changed_files=0
+poc/lab/bin/measure-extrapolation changed_files=0
+poc/lab/bin/prediction-gate changed_files=0
+-- all of poc/runtime + fixtures: 0 files
+-- poc/lab/bin changed:
+poc/lab/bin/measure-ladder
+poc/lab/bin/measure-ladder-chain
+
+## 8f4cd65 .. tool copy
+poc/runtime/src/Data changed_files=0
+poc/runtime/src/Measure changed_files=3
+poc/runtime/src/Capture changed_files=0
+poc/runtime/src/Variance changed_files=1
+poc/runtime/bin changed_files=5
+poc/runtime/profiles changed_files=1
+fixtures/laravel-app changed_files=0
+poc/lab/bin/build-db changed_files=1
+poc/lab/bin/measure-extrapolation changed_files=0
+poc/lab/bin/prediction-gate changed_files=1
+-- all of poc/runtime + fixtures: 62 files
+poc/runtime/README.md
+poc/runtime/bin/estimate
+poc/runtime/bin/inner/measure.php
+poc/runtime/bin/inner/predict-ladder.php
+poc/runtime/bin/inner/variance-plan.php
+poc/runtime/bin/variance-run
+poc/runtime/profiles/bookstack.php
+poc/runtime/src/Estimate/EstimateCommand.php
+poc/runtime/src/Estimate/RowEstimator.php
+poc/runtime/src/LabLoad/LabSettings.php
+poc/runtime/src/LabLoad/Ladder.php
+poc/runtime/src/LabLoad/LadderShape.php
+poc/runtime/src/LabLoad/RouteMix.php
+poc/runtime/src/LabLoad/RpsAchievement.php
+poc/runtime/src/LabLoad/ScenarioPlan.php
+poc/runtime/src/LabLoad/StepReread.php
+poc/runtime/src/Measure/Driver.php
+poc/runtime/src/Measure/Profile.php
+poc/runtime/src/Measure/RouteOrder.php
+poc/runtime/src/Simulate/Ladder/AllocationStop.php
+-- poc/lab/bin changed:
+poc/lab/bin/build-db
+poc/lab/bin/check-limits
+poc/lab/bin/check-oom
+poc/lab/bin/lab-config-b
+poc/lab/bin/measure-ladder
+poc/lab/bin/measure-ladder-chain
+poc/lab/bin/predict-ladder
+poc/lab/bin/prediction-gate
+poc/lab/bin/read-memory
+poc/lab/bin/read-table-stats

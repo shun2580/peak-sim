@@ -1,0 +1,28 @@
+# pre-start record of the redo, 2026-11-20T23:31:38+09:00
+## free -m
+               total        used        free      shared  buff/cache   available
+Mem:           15936        4145        8357           3        3680       11790
+Swap:           4096           0        4096
+## docker ps -a
+peak-t5a-bs-measure-php-1	peak-measure-php-bookstack:8.3	Exited (255) 6 minutes ago
+peak-t5a-bs-measure-db-1	mysql:8.4.7	Exited (255) 6 minutes ago
+peak-lab-web	nginx:1.28-alpine	Exited (0) 17 hours ago
+peak-lab-app	peak-lab-php:8.3	Exited (0) 17 hours ago
+peak-lab-k6	grafana/k6:2.3.0	Exited (137) 17 hours ago
+peak-lab-tools	peak-lab-php:8.3	Exited (137) 17 hours ago
+peak-lab-db	mysql:8.4.7	Exited (0) 17 hours ago
+peak-sim-dev-php-dev-1	887dec4abd5a	Exited (255) 2 weeks ago
+peak-sim-dev-mysql-1	mysql:8.4.7	Exited (255) 2 weeks ago
+beautiful_knuth	mysql:8.4.7	Created
+rstools-testserver-1	rstools-testserver	Exited (255) 4 weeks ago
+php-practice-app-1	php-practice-app	Exited (137) 5 months ago
+tug-traefik	traefik:v3	Exited (0) 5 months ago
+## docker volume ls
+<other volume>
+<other volume>
+<other volume>
+peak-lab-dbdata
+peak-sim-dev_mysql-data
+sub_check_all
+time-slot-reservation-api_mysql-data
+## anonymous volumes: 15

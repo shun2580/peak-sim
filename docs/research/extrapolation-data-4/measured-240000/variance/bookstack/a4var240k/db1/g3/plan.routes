@@ -1,0 +1,8 @@
+1	PUT	/books/{bookSlug}/chapter/{chapterSlug}	/books/1/chapter/2	PUT__books__bookSlug__chapter__chapterSlug_
+2	GET	/books/{bookSlug}/chapter/{chapterSlug}/references	/books/1/chapter/2/references	GET__books__bookSlug__chapter__chapterSlug__references
+3	PUT	/books/{bookSlug}/page/{pageSlug}	/books/1/page/3	PUT__books__bookSlug__page__pageSlug_
+4	GET	/books/{bookSlug}/page/{pageSlug}/references	/books/1/page/3/references	GET__books__bookSlug__page__pageSlug__references
+5	PUT	/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore	/books/1/page/3/revisions/1/restore	PUT__books__bookSlug__page__pageSlug__revisions__revId__restore
+6	GET	/books/{slug}/references	/books/1/references	GET__books__slug__references
+7	PUT	/shelves/{slug}	/shelves/1	PUT__shelves__slug_
+8	GET	/shelves/{slug}/references	/shelves/1/references	GET__shelves__slug__references

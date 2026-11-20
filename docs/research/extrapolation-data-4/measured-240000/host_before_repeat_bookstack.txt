@@ -1,0 +1,8 @@
+# df -h ~, free -m and docker ps at 2026-11-20T06:47:35+09:00 (step repeat_bookstack)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   62G  894G   7% /
+               total        used        free      shared  buff/cache   available
+Mem:           15936        5306        6629           4        4246       10629
+Swap:           4096           0        4096
+peak-t5a-fx-measure-php-1 Up 50 seconds
+peak-t5a-fx-measure-db-1 Up About a minute (healthy)

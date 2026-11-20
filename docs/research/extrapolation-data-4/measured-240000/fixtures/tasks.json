@@ -1,0 +1,1154 @@
+[
+    {
+        "spec": {
+            "uri": "/hidden/appends",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\AppendsController@index",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/appends",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/blade",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\BladeController@index",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/blade",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/cache",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\CacheController@index",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/cache",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/conditional-binding",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\ConditionalBindingController@index",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "medium"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/conditional-binding",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/cursor",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\CursorController@index",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/cursor",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/model-with",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\ModelWithController@index",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/model-with",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/hidden/resource",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Hidden\\ResourceController@index",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/hidden/resource",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/collection-filter",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicCollectionFilterController",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/collection-filter",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/count-in-loop",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicCountInLoopController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/count-in-loop",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/first-or-create-in-loop",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\DeepFirstOrCreateInLoopController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "products",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/first-or-create-in-loop",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/get-then-count",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicGetThenCountController",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/get-then-count",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/layered",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\DeepLayeredController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/layered",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/n-plus-one",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNPlusOneController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/n-plus-one",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/nested",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicNestedController",
+            "static": {
+                "query": {
+                    "growth": "O(N*M)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N*M)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": "items",
+                "m_per": "orders",
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/nested",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/save-in-loop",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\DeepSaveInLoopController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "customers",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/save-in-loop",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/service",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\DeepServiceController",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/service",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ng/unbounded",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ng\\BasicUnboundedController",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ng/unbounded",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/bulk",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\BulkController",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "customers",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/bulk",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/chunk",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@chunk",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/chunk",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/eager",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@eager",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/eager",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/lazy",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@lazy",
+            "static": {
+                "query": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/lazy",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/paginate",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@paginate",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/paginate",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/ok/with-count",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Ok\\OrderController@withCount",
+            "static": {
+                "query": {
+                    "growth": "O(1)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "memory": {
+                    "growth": "O(N)",
+                    "lower_bound": null,
+                    "confidence": "high"
+                },
+                "n_table": "orders",
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/ok/with-count",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/unknown/dynamic",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings"
+            ],
+            "parameters": [],
+            "action": "App\\Http\\Controllers\\Unknown\\DynamicController",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/unknown/dynamic",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    }
+]

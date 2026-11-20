@@ -1,0 +1,311 @@
+{
+    "meta": {
+        "data": "seeder",
+        "profile": null,
+        "gate_bypass_retry": true,
+        "scales": [
+            240000
+        ],
+        "run_id": "9e0d75a1c20f",
+        "laravel": "13.39.0",
+        "php": "8.3.36",
+        "request_time_limit_seconds": 600,
+        "seconds": 5322.5
+    },
+    "exit": 0,
+    "message": null,
+    "summary": {
+        "routes": 24,
+        "tried": 24,
+        "classes": {
+            "ok": 22,
+            "runner_failed": 1,
+            "timeout": 1
+        },
+        "verdicts": {
+            "measured_O1": 0,
+            "measured_ON": 0,
+            "measured_ONM": 0,
+            "inconclusive": 0,
+            "no_info": 0,
+            "not_measured": 24
+        },
+        "relations": {
+            "agree": 0,
+            "runtime_only": 0,
+            "static_stronger": 0,
+            "conflict": 0,
+            "not_comparable": 24
+        },
+        "conflicts": [],
+        "static_stronger": []
+    },
+    "timings": [
+        {
+            "point": "all:0",
+            "build_seconds": 0.44,
+            "measure_seconds": 0.58,
+            "routes": 1
+        },
+        {
+            "point": "all:240000",
+            "build_seconds": 26.04,
+            "measure_seconds": 0.52,
+            "routes": 1
+        },
+        {
+            "point": "cust:0",
+            "build_seconds": 0.47,
+            "measure_seconds": 0.37,
+            "routes": 2
+        },
+        {
+            "point": "cust:240000",
+            "build_seconds": 6.05,
+            "measure_seconds": 857.13,
+            "routes": 2
+        },
+        {
+            "point": "itm:3",
+            "build_seconds": 0.47,
+            "measure_seconds": 0.25,
+            "routes": 1
+        },
+        {
+            "point": "itm:30",
+            "build_seconds": 0.47,
+            "measure_seconds": 0.8,
+            "routes": 1
+        },
+        {
+            "point": "itm:300",
+            "build_seconds": 0.63,
+            "measure_seconds": 6.46,
+            "routes": 1
+        },
+        {
+            "point": "ord:0",
+            "build_seconds": 0.45,
+            "measure_seconds": 2.89,
+            "routes": 20
+        },
+        {
+            "point": "ord:240000",
+            "build_seconds": 17.17,
+            "measure_seconds": 3763.41,
+            "routes": 20
+        },
+        {
+            "point": "prod:0",
+            "build_seconds": 0.78,
+            "measure_seconds": 0.14,
+            "routes": 1
+        },
+        {
+            "point": "prod:240000",
+            "build_seconds": 4.11,
+            "measure_seconds": 601.45,
+            "routes": 1
+        }
+    ],
+    "builds": [
+        {
+            "point": "all:0",
+            "database": "peak_sim_measure_9e0d75a1c20f_all_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.33,
+            "fill_seconds": 0,
+            "rows": {
+                "customers": 0,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 0
+            },
+            "total_seconds": 0.42
+        },
+        {
+            "point": "all:240000",
+            "database": "peak_sim_measure_9e0d75a1c20f_all_240000",
+            "mode": "seeder",
+            "scale": 240000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.32,
+            "fill_seconds": 25.26,
+            "rows": {
+                "customers": 240000,
+                "items": 720000,
+                "migrations": 5,
+                "orders": 240000,
+                "product_stats": 0,
+                "products": 240000
+            },
+            "total_seconds": 26.02
+        },
+        {
+            "point": "cust:0",
+            "database": "peak_sim_measure_9e0d75a1c20f_cust_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.35,
+            "fill_seconds": 0,
+            "rows": {
+                "customers": 0,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.44
+        },
+        {
+            "point": "cust:240000",
+            "database": "peak_sim_measure_9e0d75a1c20f_cust_240000",
+            "mode": "seeder",
+            "scale": 240000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.39,
+            "fill_seconds": 5.51,
+            "rows": {
+                "customers": 240000,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 6.02
+        },
+        {
+            "point": "itm:3",
+            "database": "peak_sim_measure_9e0d75a1c20f_itm_3",
+            "mode": "seeder",
+            "scale": 3,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.35,
+            "fill_seconds": 0.02,
+            "rows": {
+                "customers": 20,
+                "items": 60,
+                "migrations": 5,
+                "orders": 20,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.45
+        },
+        {
+            "point": "itm:30",
+            "database": "peak_sim_measure_9e0d75a1c20f_itm_30",
+            "mode": "seeder",
+            "scale": 30,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.33,
+            "fill_seconds": 0.03,
+            "rows": {
+                "customers": 20,
+                "items": 600,
+                "migrations": 5,
+                "orders": 20,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.45
+        },
+        {
+            "point": "itm:300",
+            "database": "peak_sim_measure_9e0d75a1c20f_itm_300",
+            "mode": "seeder",
+            "scale": 300,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.32,
+            "fill_seconds": 0.19,
+            "rows": {
+                "customers": 20,
+                "items": 6000,
+                "migrations": 5,
+                "orders": 20,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.61
+        },
+        {
+            "point": "ord:0",
+            "database": "peak_sim_measure_9e0d75a1c20f_ord_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.33,
+            "fill_seconds": 0.01,
+            "rows": {
+                "customers": 20,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 0.43
+        },
+        {
+            "point": "ord:240000",
+            "database": "peak_sim_measure_9e0d75a1c20f_ord_240000",
+            "mode": "seeder",
+            "scale": 240000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.33,
+            "fill_seconds": 16.66,
+            "rows": {
+                "customers": 20,
+                "items": 720000,
+                "migrations": 5,
+                "orders": 240000,
+                "product_stats": 0,
+                "products": 20
+            },
+            "total_seconds": 17.14
+        },
+        {
+            "point": "prod:0",
+            "database": "peak_sim_measure_9e0d75a1c20f_prod_0",
+            "mode": "seeder",
+            "scale": 0,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.66,
+            "fill_seconds": 0.01,
+            "rows": {
+                "customers": 1,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 0
+            },
+            "total_seconds": 0.76
+        },
+        {
+            "point": "prod:240000",
+            "database": "peak_sim_measure_9e0d75a1c20f_prod_240000",
+            "mode": "seeder",
+            "scale": 240000,
+            "laravel": "13.39.0",
+            "migrate_seconds": 0.65,
+            "fill_seconds": 3.33,
+            "rows": {
+                "customers": 1,
+                "items": 0,
+                "migrations": 5,
+                "orders": 0,
+                "product_stats": 0,
+                "products": 240000
+            },
+            "total_seconds": 4.09
+        }
+    ]
+}
