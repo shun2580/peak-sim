@@ -2642,6 +2642,7 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 
 - **中断(隠さず書く)**:2026-11-20 11:12:02(MoUsoCoreWorker.exe)と 11:14:13(TrustedInstaller.exe)の Windows Update による計画の再起動(Windows のシステムログ・イベント 1074)で、1 回目の BookStack(冷え全体)が 11:12:03 に終了コード 255 で切れた。書けていたのは `static.json`(45 MB)だけで、使わぬ。機械は 22:42 ごろまで落ちていた。1 回目の project のコンテナと mysql の volume は消さず(`volume rm`・`down -v`・prune なし)、測りには使っていない。検証用アプリと BookStack の繰り返しは再起動の前に終わっていて、予測も道具も同じ(7a4cf32)ゆえ、そのまま使う。再起動は、これらと 2 回目の BookStack の間に入った。
 - **2 回目の BookStack の作り**:DB は `regenerate-references` を流さずに作った(D230・捕捉と見積もりと同じ)。コンテナと DB の volume は、道具が終わりに自分で消した(`bin/measure` は `--keep-stack` なしなら自分の project に `compose down -v` をかける)ので、`peak-t5a-bs2` の volume は残っていない。
+- **道具の写しと捕捉の道具の差**:`prep_diffs.txt`(2026-11-19 の記録)で、道具の写し(7a4cf32)と、BookStack の捕捉の道具(6ae5195)との差は `poc/runtime`・`fixtures` で 0 ファイル(`poc/lab/bin` の差は `measure-ladder`・`measure-ladder-chain` のみ)。検証用アプリの捕捉の道具(8f4cd65)との差は `poc/runtime`・`fixtures` で 62 ファイル。事実として書き、評価は書かぬ。
 - **欠けた記録**:この回の周期的なメモリの記録(`memavail.tsv`)は無い。`memlog.sh` を `T5A_OUTROOT` なしで起こしたため、存在しない場所を出力先に探して何も書かなかった。メモリは 2 回目の最中に手で読んだ(available 10.2〜11.0 GB)。
 - **道具が報告した数(予測との比べはしていない)**:
 
