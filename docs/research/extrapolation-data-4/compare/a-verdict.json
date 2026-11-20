@@ -1,0 +1,364 @@
+{
+ "apps": {
+  "bookstack": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 15,
+     "inside": 15,
+     "needed": 12,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 15,
+     "inside": 13,
+     "needed": 12,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 34,
+     "inside": 34,
+     "needed": 28,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 34,
+     "inside": 29,
+     "needed": 28,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": true,
+   "condition_3_misses": [
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.1596494707608327
+     },
+     "route": "DELETE /books/{id}"
+    },
+    {
+     "marked": false,
+     "outside_goal": {
+      "rows_examined": 0.13292365576012657
+     },
+     "route": "DELETE /settings/maintenance/cleanup-images"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.5954361534546952
+     },
+     "route": "GET /books/{bookSlug}/page/{pageSlug}"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.4993252361673414
+     },
+     "route": "GET /books/{slug}/references"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "queries": 0.0487512895635229,
+      "rows_examined": 0.20234661834428117
+     },
+     "route": "GET /shelves/{slug}"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.7402345436823728
+     },
+     "route": "GET /shelves/{slug}/references"
+    },
+    {
+     "marked": false,
+     "outside_goal": {
+      "rows_examined": 0.1573018867005438
+     },
+     "route": "POST /books/{bookSlug}/draft/{pageId}"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.14527439118359284
+     },
+     "route": "POST /settings/maintenance/regenerate-references"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.15005628459960832
+     },
+     "route": "PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.4520948939562815
+     },
+     "route": "PUT /shelves/{slug}"
+    }
+   ],
+   "condition_3_misses_marked": 8,
+   "condition_3_misses_unmarked": 2,
+   "no_estimate_routes": [
+    "POST /books/{bookSlug}/copy"
+   ],
+   "not_measured_with_estimate": [
+    "GET /books/{slug}"
+   ],
+   "reasons": [
+    "queries: 34 of 34 inside +-5% (enough), needs 80%",
+    "rows_examined: 29 of 34 inside +-20% (enough), needs 80%"
+   ],
+   "rule_A_reasons": [
+    "queries: 34 of 34 inside +-5% (enough), needs 80%",
+    "rows_examined: 26 of 34 inside +-20% (not enough), needs 80%"
+   ],
+   "rule_A_verdict": "fail",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 34,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 1,
+      "with_estimate": 35,
+      "within_goal": 22,
+      "within_min": 22
+     },
+     "queries": {
+      "denominator": 34,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 1,
+      "with_estimate": 35,
+      "within_goal": 33,
+      "within_min": 34
+     },
+     "rows_examined": {
+      "denominator": 34,
+      "no_estimate": 1,
+      "routes": 36,
+      "unmeasured": 1,
+      "with_estimate": 35,
+      "within_goal": 24,
+      "within_min": 29
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 19,
+      "no_estimate": 1,
+      "routes": 21,
+      "unmeasured": 1,
+      "with_estimate": 20,
+      "within_goal": 8,
+      "within_min": 8
+     },
+     "queries": {
+      "denominator": 19,
+      "no_estimate": 1,
+      "routes": 21,
+      "unmeasured": 1,
+      "with_estimate": 20,
+      "within_goal": 18,
+      "within_min": 19
+     },
+     "rows_examined": {
+      "denominator": 19,
+      "no_estimate": 1,
+      "routes": 21,
+      "unmeasured": 1,
+      "with_estimate": 20,
+      "within_goal": 11,
+      "within_min": 14
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 15,
+      "no_estimate": 0,
+      "routes": 15,
+      "unmeasured": 0,
+      "with_estimate": 15,
+      "within_goal": 14,
+      "within_min": 14
+     },
+     "queries": {
+      "denominator": 15,
+      "no_estimate": 0,
+      "routes": 15,
+      "unmeasured": 0,
+      "with_estimate": 15,
+      "within_goal": 15,
+      "within_min": 15
+     },
+     "rows_examined": {
+      "denominator": 15,
+      "no_estimate": 0,
+      "routes": 15,
+      "unmeasured": 0,
+      "with_estimate": 15,
+      "within_goal": 13,
+      "within_min": 15
+     }
+    }
+   },
+   "tool_verdict_word": "pass",
+   "verdict": "pass"
+  },
+  "fixtures": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": true,
+   "condition_3_misses": [],
+   "condition_3_misses_marked": 0,
+   "condition_3_misses_unmarked": 0,
+   "no_estimate_routes": [
+    "GET /ng/nested",
+    "POST /ok/bulk"
+   ],
+   "not_measured_with_estimate": [
+    "GET /ng/first-or-create-in-loop"
+   ],
+   "reasons": [
+    "queries: 21 of 21 inside +-5% (enough), needs 80%",
+    "rows_examined: 21 of 21 inside +-20% (enough), needs 80%"
+   ],
+   "rule_A_reasons": [
+    "queries: 21 of 21 inside +-5% (enough), needs 80%",
+    "rows_examined: 21 of 21 inside +-20% (enough), needs 80%"
+   ],
+   "rule_A_verdict": "pass",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 22,
+      "no_estimate": 0,
+      "routes": 24,
+      "unmeasured": 2,
+      "with_estimate": 24,
+      "within_goal": 22,
+      "within_min": 22
+     },
+     "queries": {
+      "denominator": 21,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 1,
+      "with_estimate": 22,
+      "within_goal": 21,
+      "within_min": 21
+     },
+     "rows_examined": {
+      "denominator": 21,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 1,
+      "with_estimate": 22,
+      "within_goal": 21,
+      "within_min": 21
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     },
+     "queries": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     },
+     "rows_examined": {
+      "denominator": 0,
+      "no_estimate": 0,
+      "routes": 0,
+      "unmeasured": 0,
+      "with_estimate": 0,
+      "within_goal": 0,
+      "within_min": 0
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 22,
+      "no_estimate": 0,
+      "routes": 24,
+      "unmeasured": 2,
+      "with_estimate": 24,
+      "within_goal": 22,
+      "within_min": 22
+     },
+     "queries": {
+      "denominator": 21,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 1,
+      "with_estimate": 22,
+      "within_goal": 21,
+      "within_min": 21
+     },
+     "rows_examined": {
+      "denominator": 21,
+      "no_estimate": 2,
+      "routes": 24,
+      "unmeasured": 1,
+      "with_estimate": 22,
+      "within_goal": 21,
+      "within_min": 21
+     }
+    }
+   },
+   "tool_verdict_word": "pass",
+   "verdict": "pass"
+  }
+ },
+ "both_apps_not_for_the_verdict": {
+  "reasons": [
+   "queries: 55 of 55 inside +-5% (enough), needs 80%",
+   "rows_examined: 50 of 55 inside +-20% (enough), needs 80%"
+  ],
+  "verdict": "pass"
+ },
+ "no_variance_directory_read_as_empty": [],
+ "rows": 240000,
+ "rule": "B decides, A shown (docs/simulator-spec.md 7.1)",
+ "tool_sha256": "95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b"
+}
