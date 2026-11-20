@@ -1,0 +1,6 @@
+fixtures.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-fixtures-estimate.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
+fixtures.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-fixtures-marked.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
+variance/bookstack.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-bookstack-estimate.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
+variance/bookstack.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-bookstack-marked.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
+bookstack.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-bookstack-estimate.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
+bookstack.stdout.log:PREDICTION OK poc/lab/predictions/extrapolation-4-bookstack-marked.json f52f6921d19cd19e1052d0fba2b42429e23cfbc8 2026-11-19T17:40:41+09:00
