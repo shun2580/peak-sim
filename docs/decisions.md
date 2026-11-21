@@ -2684,3 +2684,76 @@ D72 の委任による判断。仕様に書かれていない細部を、止ま�
 - **ラボの限界**:生成データの本文に互いのリンクが無く、作り直しを流すと `references` が全件数で 0 件になるため、どの DB も作り直しを流していない(2026-11-19 12:10 の裁定・D229)。結果の文書 §7 に書いた。「本番での精度」とは書いていない。
 - **変わらないもの**:§0 の条件・合格線・許す誤差・段・窓・判定の規則・見積もりの規則・較正・印の規則(D218)・予測(f52f692)・これまでの試験の記録と合否。D232〜D234 の本文は書き換えていない。
 - 記録:結果の文書は `docs/research/extrapolation-test-4.md`、測りの記録は `docs/research/extrapolation-data-4/measured-240000/`(commit 0c8fc47)。判定の出力(`a-verdict`・`compare`・`order`)の SHA-256 は結果の文書 §4.1 に書いた。
+
+### D236. 測りの後始末で消えた DB の扱い(A の 3 つの DB)と、履歴の内部語の範囲を、メンテナーが裁いた。道具の後始末を既定で volume を消さぬ形に直し、本番の DB は最終報告が受け入れられるまで残す(2026-11-21 10:04 記帳。メンテナーの裁定は 2 件で、文面の時刻は 08:35 と 08:50、受けたのは 08:29 と 08:48。D235 が別に決めるとした `compose down -v` の扱いに答える。予測・見積もり・較正・式・印の規則・合格線・許す誤差・判定の規則・これまでの記録と合否は変えていない。D233〜D235 の本文は書き換えていない)
+
+> 時刻の読み方:メンテナーの文面の時刻は、受けた端末の時計より先にある。1 件目は文面 08:35 に対し受けたのは 08:29、2 件目は文面 08:50 に対し受けたのは 08:48。記帳にはどちらも書く。
+
+#### 1. 後始末の `compose down -v` を、禁止に触れたとは扱わない(1 件目の裁定。文面 08:35・受けたのは 08:29)
+
+D235 は、A(240,000 件)の 3 つの測りの終わりに、道具が自前の project に `compose down -v` をかけ、DB の volume が 3 つとも残っていないことを書き、その扱いを別に決めるとした。メンテナーはこう裁いた。
+
+- **扱い**:測りの指示で禁じていた、volume を消す操作(`down -v` など)に触れたとは扱わない。理由は三つ。
+  1. 人の手ではなく、道具の後始末だった。
+  2. 消えたのは、A のために建てた DB だけだった。
+  3. 記録は DB が消える前に書かれており、合否の数は変わらない。
+- **消えた 3 つの DB**(いずれも匿名 volume。volume の ID は記録に残っていない。project 名で名指しする):
+
+  | project | 何の測りか | 消えた経路 |
+  |---|---|---|
+  | `peak-t5a-fx` | 検証用アプリ(全ルートを冷えで 1 回) | `bin/measure` が終わりに自分の project へ `compose down -v --remove-orphans` をかけた(`--keep-stack` なし) |
+  | `peak-t5a-bs2` | BookStack の冷え全体・2 回目 | 同上 |
+  | `peak-t5a-var-a4var240k-db1` | BookStack の繰り返し(印のルート×3 周) | `--keep-stack` で走らせたが、台本の最後の行が `bin/stack down`(`compose down -v`)を呼んだ |
+
+  切れた 1 回目(`peak-t5a-bs`)の DB は、道具の後始末が走らぬまま残っており、消していない(出典は A の記録の README の 22 行目。D233 ではない)。
+- **(a) 道具の後始末を、既定で volume を消さぬ形に直した**。volume を消すのは、明示の旗 `--purge` を渡したときだけで、旗なしで消す道はコードに無い。
+  - 直した commit:`09514cd`(fix: 後始末の本体と旗 `--purge`・呼ばれ先)・`2935949`(test: 試験と静的な見張り)・`a95a5a0`(docs: 道具の README に「What a run leaves behind」を足した)。枝 `fix/teardown-keep-volumes` の 3 本を、今の履歴の上へ載せ直したもので、中身・メッセージ・作者は元と同じ(patch-id 同一)。
+  - 呼ばれ先(volume を消しうる口の全部):`bin/measure`・`bin/capture`・`bin/explain-at-scale`・`bin/variance-run` の終わりの後始末(正常・失敗・中断のどの道でも)と、`bin/stack down`。どれも旗なしでは volume を残し、`--purge` のときだけ消す。`bin/stack down` が受ける旗は `--purge` だけで、ほかの引数は使い方の誤り(終了コード 2)。`down` に `-v` を付ける場所は、`_stack.sh` の `stack_down()` の `--purge` の枝と、ラボの `bin/down` の `--purge` の枝の 2 か所だけである。環境変数で消す道は無い。
+  - `--keep-stack`(止めぬ旗)と `--purge`(消す旗)は、4 つの測りの口のどれでも同時に渡せない(使い方の誤り。終了コード 2)。
+  - DB の volume は名前付きにした(`<project>_measure-dbdata`)。残った volume のある project は、測りの口も `bin/stack up` も、再び起こすことを断る(別の使い捨てのパスワードで作った DB に当たって黙って失敗するのを避けるため)。断りは後始末の登録より前に置いてあり、断った run が自分の後始末で volume を消すことはない。volume の一覧が取れぬときは断らずに通すが、その場合は `compose up` も失敗する。
+  - 試験:本体の Unit・Acceptance は PHP 8.3・8.2 とも 2528 本・10610 件、RuntimeUnit は PHP 8.3・8.2 とも 2894 本・36435 件の確認で通り、SKIP 0(`phpunit.runtime.xml` は skip・risky・warning・incomplete を失敗にする)。`StackTeardownTest` は 48 本・175 件。旗なしで `down` に `-v` が付かないこと・`--purge` で付くこと・失敗の道でも付かないこと・`--keep-stack` と `--purge` を断ること・残った volume のある project を起こさないこと、を偽の docker で確かめる。本物の docker を使う試験は、project 名が `peak-measure-dev` で始まらぬ名なら自分で落ちる。**旗なしで volume を消す道が後から増えぬよう、静的な見張りを置いた**:`down` に `-v`/`--volumes` を付ける行、`docker volume rm`、`prune` などが許す一覧に無ければ落ちる。許す一覧は、上の 2 か所と `scripts/` の 3 行で、一覧と実物を行の一字まで両向きに照合する。
+  - `scripts/` の開発・試験用の stack の 3 本(`e2e-live.sh`・`measure-timing.sh`・`run-tests-logged.sh`)は、**直さなかった**。この 3 本は、測りの DB に触れぬ試験用の使い捨て DB を、自分の project の分だけ畳む。守る DB が無く、直すと試験のたびに volume が溜まるだけである。静的な見張りの許す一覧で名指しして止めた。
+- **(b) 今後、本番の測りで建てた DB は、メンテナーが最終報告を受け入れるまで残す**。後から原因を調べられるようにするため。受け入れの後に消すときは、`--purge` を明示する。道具の README にも書いた(「What a run leaves behind」。`a95a5a0`)。
+  - **いま残っている本番の DB**:ラボの `peak-lab-dbdata`(B の 170,000 件)、切れた 1 回目の BookStack の DB(コンテナ `peak-t5a-bs-measure-db-1` とその匿名 volume `30334340cea5…`)。どちらも、最終報告が受け入れられるまで消さない。切れた 1 回目の DB は匿名 volume で、新しい守り(名前付き volume のラベルで探す)には見えない。**受け入れまで、project `peak-t5a-bs` で `bin/stack up` も `bin/stack down --purge` も打たぬこと**(`--purge` を明示した道ゆえ、その匿名 volume も消える)。
+  - **このため、A の BookStack の重い値 4 本の原因は、同じ DB ではもう調べられない**。D235 の重い値 4 本(`GET /books/{slug}/references` 168,207・`GET /shelves/{slug}/references` 324,204・`PUT /shelves/{slug}` 504,226・`PUT …/revisions/{revId}/restore` 324,245。いずれも各ルートの 4 つの冷えた値のうち、繰り返しの 3 周目の 1 回だけに出た)は、その値を出した DB(project `peak-t5a-var-a4var240k-db1`)が消えたため、同じ DB で測り直すことができない。切れた 1 回目の DB は別の DB で、「同じ DB」ではない。原因は調べておらず、不明のまま残る。A の記録の README(`docs/research/extrapolation-data-4/measured-240000/README.md`)にも同じことを書いた。
+
+#### 2. 履歴の内部語:書き換えは 3664c75 以降の 7 本だけ(2 件目の裁定。文面 08:50・受けたのは 08:48)
+
+- **経緯**:1 件目の裁定は、push の前に 3664c75 以降の履歴を書き換え、内部語の検索が全 commit で 0 になること、予測の commit f52f692 の中身が変わらぬことを確かめよ、と定めていた。書き換えの前の下調べで、内部語は f52f692 とその先祖にも、f52f692 と 3664c75 の間にも、広く当たることが分かった(最初の commit から入っている)。「全 commit で 0」は「f52f692 より前は書き換えない」と両立しない。止まってメンテナーに伺ったところ、**1 件目の「全 commit で 0」はメンテナーの書き方の誤りであり、2 件目で次のとおり改める**と裁定された。
+- **裁定の内容と実施**
+  1. 履歴を書き換えたのは **3664c75 以降の 7 本だけ**(3664c75・1bddff5・170a28b・14c31ba・1c35955・fea297d・ec17206)。確かめは「その 7 本の追加行とメッセージに内部語の当たり 0」とした。
+  2. **a513080 とそれより前は書き換えていない**。a513080 を書き換えれば、a513080 自身の hash が変わり、a513080 と 3664c75 の間の commit(b5b5f12)の hash も変わって、文書がその hash を名指す所が切れるため。
+  3. 書き換えの前の main を指す印として、枝 `backup/before-rewrite-20261121`(= ec17206)を残した。実在を照合した(`git rev-parse` が ec17206 の全桁を返す)。ほかに残る枝も、**どれも push せぬ**:`rewrite/main-20261121`(1 回目の書き換え。下の漏れがある)・`rewrite/main-20261121b`(2 回目の書き換え。今の main の元で、先端は a95a5a0)・`fix/teardown-keep-volumes`(道具の直しの元)。いずれも消していない。
+  4. **1 回目の書き換えには漏れがあった**。命の番号を下線の無い綴りで書いた路(run_scripts の名など)を、確かめの型が拾わず、追加行に当たりが残った。そのため 7 本を**元から作り直した**(2 回目)。確かめの型は、下線の有無を問わず命の番号を拾う形に広げた(追加行・メッセージとも、大文字小文字を問わない)。
+  5. 書き換えの後、repo の文書・記録が名指す commit の hash がどれも今の履歴にあり、main から辿れること(`git cat-file -e` と `git merge-base --is-ancestor`)を確かめた。書き換えた 7 本が互いを名指す所は、新しい hash に直した(下の対応表)。**この表の左の列(書き換え前の hash)だけは、新しい履歴の先祖でなく、名指す目的で書いている**。
+  6. 書き換えの前後の対応(作者と作成者の名前・メール・日時、メッセージの全文は 7 本とも同一。書き換えの前の 7 本は `backup/before-rewrite-20261121` から辿れる):
+
+     | 書き換え前 | 書き換え後 | author と committer の日時 | 件名 |
+     |---|---|---|---|
+     | 3664c75 | 0c8fc47 | 2026-11-21T03:05:57+09:00 | docs: record the measured outputs of test A at 240,000 rows |
+     | 1bddff5 | da357c5 | 2026-11-21T03:08:12+09:00 | docs: record how B at 170,000 rows and A at 240,000 rows were measured as D233 |
+     | 170a28b | cc4cf4e | 2026-11-21T03:08:48+09:00 | docs: add the tool-copy diff to D233 and drop internal terms from it |
+     | 14c31ba | f1ba9ee | 2026-11-21T03:17:59+09:00 | docs: mask internal names in the test A records at 240,000 rows |
+     | 1c35955 | 438dbe7 | 2026-11-21T03:20:58+09:00 | docs: record the verdict of test A at 240,000 rows as D235 |
+     | fea297d | 921c20a | 2026-11-21T03:20:58+09:00 | docs: add the result of test A at 240,000 rows |
+     | ec17206 | b245767 | 2026-11-21T03:24:54+09:00 | docs: add the verdict outputs of test A at 240,000 rows |
+
+     書き換えた 7 本は a513080 の子 b5b5f12 の上に、この順で一直線に並ぶ。その上に道具の直しの 3 本(09514cd・2935949・a95a5a0)が載る。
+  7. **f52f692 の hash は変わっていない。予測 4 ファイルの blob の SHA-256 も変わっていない**:`poc/lab/predictions/extrapolation-4-fixtures-estimate.json` = `27b5109546920e38008d1224b7288b4377c245800532dd17c720aa073a345335`・`…-fixtures-marked.json` = `4b96cfcd034204c1948ebaacef866d1b57d4de72cce8230438c70fcf8290eaef`・`…-bookstack-estimate.json` = `8c6f11dcf28b2a6ef6c6a3207aa0b53397e0ca3650bb17f4dbd6c29bddda6d10`・`…-bookstack-marked.json` = `63cb2e67ceef2b44c7cefe5ea907dcc02ead47fc0c19d82ee62edca0c32f7000`。f52f692 と a513080 は今の main の先祖である。予測が測りより前、の時刻の証拠(f52f692 は 2026-11-19 17:40:41・最初の要求は 2026-11-20 06:46:30)は崩れていない。
+  8. **f1ba9ee の件名と中身がずれている**。件名は「mask internal names」のままだが、伏せ字の大半は書き換えで 1 本目(0c8fc47)へ前倒しした。f1ba9ee 自身の変更は、README の言い直しと `prediction_ok_gate_lines.txt` の 2 ファイル(+12/−4)だけである。メッセージは元のまま。
+- **今の木の内部語は、新しい commit で清書した**(a513080 が D234 に入れた 2 行を含む)。清書は、`docs/decisions.md`(`e527445`)・日本語の仕様書 5 つ(`6d48cc7`)・試験とコメントと `.gitignore`(`d62aaa8`)・`docs/research/lab-data/` と第 3・第 4 の外挿の記録(`ddf9c5a`・`3994ab0`・`89d415a`・`9318950`・`91ad804`)・README の言い直し(`d45a1b1`)。SHA-256 を記録で名指されているファイル(予測・予測の入力・記録の生データなど)は触れず、直した各ディレクトリの README に、直す前の SHA-256 と直した行数を書いた。
+- **今の木に残る当たり(内部語の検索の結果)は、次の 27 行だけである**。
+  - **A(6 行。sha256 で名指しされた記録で、触れない)**:ホームの絶対パスと作業機の利用者名を含む 4 行 = `docs/research/lab-data/ladder-90k/scripts/stats.sh:15`・`ladder-90k/scripts/stats.sh.orig:4`・`ladder-300k/scripts/stats.sh.orig-T6B2:4`・`recheck-ladder-b/stats.sh:4`。命の番号を含む名の 2 行 = `docs/research/lab-data/ladder-90k/scripts/stats.sh:5`・`docs/research/lab-data/recheck-mark/mark-200000/context.json:4`。**利用者名の 4 行は、公開の前の判断として残す**。f52f692 より前の履歴に残る内部語(一部は push 済み)と合わせ、公開の前にメンテナーがまとめて決める(D49 の持ち越し)。
+  - **B(21 行。語でない・または当たりを探す側の行で、直さない)**
+    - 語の一部(別の英単語の中の綴り)5 行:`poc/runtime/tests/Unit/Simulate/Predict/AppMemoryRiskTest.php:257`・`AppPlaceholderRiskTest.php:257`・`tests/Acceptance/Support/MetamorphicScenarios.php:103`・`tests/Unit/Engine/WalkingSkeletonTest.php:12`・`tests/Unit/Model/ModelDescriptorTest.php:72`。
+    - 「ホームの絶対パスが出力に無い」ことを確かめる試験と、その旨の文書 15 行:`docs/research/artisan/11/NOTES.md:174`・`poc/runtime/tests/Unit/LabRoutes/RouteListTest.php:178`・`poc/runtime/tests/Unit/Profiles/KoelAdminProfileTest.php:87`・`KoelProfileTest.php:70`・`KoelUserboundProfileTest.php:77`・`scripts/run-tests-logged.sh:35`・`:42`・`:89`・`tests/Acceptance/DeterminismTest.php:63`・`tests/Support/ReportAssert.php:174`・`tests/Unit/Benchmarks/RealAppsStaticScorerTest.php:288`・`tests/Unit/Known/KnownTableTest.php:184`・`tests/Unit/Output/JsonRendererTest.php:248`・`:333`・`tests/Unit/Output/SchemaDocTest.php:83`。
+    - 1 行 = `poc/lab/tests/write-guards.sh:78`。リポジトリの外にある実際の捕捉の記録の路で、命の番号を含む名のディレクトリを指す。その記録が作業機に在るときだけ使う試験(無ければ飛ばして通す)で、名を替えると別のディレクトリを指して試験の意味が変わるため、替えていない。この行は、書き換えた 7 本の追加行ではなく、元からある行である。
+- **f52f692 より前の履歴に残る内部語は、今は触れない**。理由:(i)予測の commit f52f692 とその先祖は書き換えられない(予測が測りより前であることの証拠になっている)。(ii)これは D49 の持ち越しで、履歴に残る内部語の扱いは「公開するときにメンテナーが決める」と既に定めている。(iii)一部は origin/main(2546218)までに push 済みで、push 済みの履歴は触れない(D66)。公開の前に、メンテナーがまとめて決める。origin/main は今の main の先祖で、push は fast-forward で済む。
+
+#### 3. 判定の出力の置き場(D235 を補う。D235 は書き換えない)
+
+D235 の末尾は、判定の出力(`a-verdict`・`compare`・`order`)の SHA-256 を結果の文書 §4.1 に書いたとする。それらの置き場は `docs/research/extrapolation-data-4/compare/` で、commit は `b245767`(書き換えの前の hash は ec17206)。D235 の記録欄が commit の hash を書いていないので、ここで補う。
+
+#### 変わらないもの
+
+予測(f52f692)・見積もり・較正・式・印の規則・合格線・許す誤差・判定の規則・段・窓・これまでの記録と合否(D234・D235 の合否を含む)。D233〜D235 の本文は書き換えていない。

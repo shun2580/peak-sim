@@ -25,6 +25,14 @@ What was kept and what was reused:
 - The other two steps were cleaned up by the tool in the same way, read from the tool code at 7a4cf32 (the volumes were not listed afterwards): the verification app (project `peak-t5a-fx`) was run without `--keep-stack`, so `bin/measure` ran `compose down -v --remove-orphans` at its end; the repeat (project `peak-t5a-var-a4var240k-db1`) ran with `--keep-stack`, but the last line of its script calls `bin/stack down` (`compose down -v`), which removed its volume. The third run (`../extrapolation-data-3/measured/`) was cleaned up the same way (its `fixtures.wall.txt` and `bookstack.wall.txt` have no `--keep-stack`; `repeat.wall.txt` has it and ends with `bin/stack down`). No judgement of this is written here.
 - Before the second round the sha256 of the four prediction files in the tool copy was compared with the blobs at f52f692: all four are the same (`prediction_sha256_before_redo.txt`). `PREDICTION OK` (f52f692, 2026-11-19T17:40:41) is printed twice by the gate at the start of each of the three steps. `*.log` files are not kept in git, so the six lines are copied to `prediction_ok_gate_lines.txt`.
 
+## What cannot be investigated any more, and what is kept from now on
+
+The databases of three of the four steps are gone: the verification app (project `peak-t5a-fx`), the second BookStack round (`peak-t5a-bs2`) and the repeat (`peak-t5a-var-a4var240k-db1`). The tool removed each one's volume itself when the step ended (see above). Their volumes were anonymous, and the volume IDs were not recorded, so a project name is the only name left. The numbers in this directory were written before the databases were removed and do not change.
+
+The four heavy values of BookStack that appear in only one of the four cold values of a route (`GET /books/{slug}/references`, `GET /shelves/{slug}/references`, `PUT /shelves/{slug}` and `PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore`, each in the third lap of the repeat) were measured on the database of the repeat. That database no longer exists, so **the cause of these four values cannot be investigated on the same database any more**. The first, cut BookStack round (`peak-t5a-bs`) is a different database; it was not the one that gave these values.
+
+From now on the tool does not remove a volume unless `--purge` is passed, and a database built for a real measurement is kept until the final report is accepted (D236 in `docs/decisions.md`).
+
 ## Counts of what the tool reported (no comparison with the estimates)
 
 | | Routes tried | Outcome classes |
