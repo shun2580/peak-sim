@@ -12,5 +12,5 @@
     "GET /shelves/{slug}": 0.05
   },
   "scenario": "s-2",
-  "source": "~/projects/peak-sim-trials/_out/cmd286_dryrun/repo/poc/lab/predictions/ladder-prediction-dryrun-b30k-fabricated-128M.json"
+  "source": "~/projects/peak-sim-trials/_out/run-286_dryrun/repo/poc/lab/predictions/ladder-prediction-dryrun-b30k-fabricated-128M.json"
 }

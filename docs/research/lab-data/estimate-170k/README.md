@@ -73,3 +73,7 @@ bin/marked-routes --explain=<out>/b-n170000/explain.json > marked-routes-170000.
 
 `170k/estimate.json` is a byte-for-byte copy of `estimate-170000.json` (same SHA-256). The ladder prediction tool reads one `estimate.json` per directory and takes the commit of an estimate from the last commit that touched its directory, so the count needs a directory of its own.
 Nothing in the estimate was changed.
+
+## Changes to the copies
+
+- After the first commit the copies in this directory were changed again, to take the names of the working environment out. The sha256 given here is of each file as it was committed before this change, so these files no longer have the bytes the tools wrote. The home directory of the working machine is written `<home>`; in directory, volume and label names the short word that named the operator's task before a number is written `run-` (the number and the rest of the name are kept, so one place has one name in every file, for example `run-281t6b`, `run-277t6`, `run-277_recapture2`); these names differ from the paths the runs really used. sha256 before, and the number of lines changed: `order_record.txt` caf797af26c59252f8fd3813cbb20a2e3331d35dd9795b0170a85e9f9cb4fd69 (1 line).

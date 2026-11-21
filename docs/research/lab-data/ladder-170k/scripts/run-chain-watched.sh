@@ -25,7 +25,7 @@ for sc in "$@"; do
   rm -f "$W/chain/chain.done"
   poc/lab/bin/measure-ladder-chain --scale=170000 \
     --predictions=poc/lab/predictions/ladder-prediction-5-b170k.json \
-    --statement-record="$HOME/projects/peak-sim-trials/_out/cmd277_recapture2/bookstack/capture.json" \
+    --statement-record="$HOME/projects/peak-sim-trials/_out/run-277_recapture2/bookstack/capture.json" \
     --out-dir="$W/chain" --ladder-out="$W/ladder" --scenarios="$sc" >> "$W/chain.stdout" 2>&1
   rc=$?
   echo "chain($sc) exit=$rc $(date -Is)" >> "$W/chain-ends.txt"

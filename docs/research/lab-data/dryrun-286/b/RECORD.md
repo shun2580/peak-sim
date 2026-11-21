@@ -21,7 +21,7 @@
 
 ## Where the chain was run from (the gate, and why a copy)
 
-The gate (`bin/prediction-gate`) opens only for a prediction that is committed in `poc/lab/predictions/` of the repository, and the rehearsal prediction must not be committed in the real repository. So the same tools were run from a throw-away copy of the repository, with no remote, outside the working tree (a sibling directory of the repository, `_out/cmd286_dryrun/repo`, kept and not deleted):
+The gate (`bin/prediction-gate`) opens only for a prediction that is committed in `poc/lab/predictions/` of the repository, and the rehearsal prediction must not be committed in the real repository. So the same tools were run from a throw-away copy of the repository, with no remote, outside the working tree (a sibling directory of the repository, `_out/run-286_dryrun/repo`, kept and not deleted):
 
 - the copy was made with `git clone` at `797074b5fffcaa74c1424354b301b15e2869f7e2` (the real repository's `HEAD` at 12:51:29, which already held the `--max-steps` change below), then its remote was removed;
 - the only commit made in the copy is `4a259b0ebfa3241fe61146dc59ae69fd55a2ae18` (12:54:02): the two rehearsal predictions of B at 30,000 rows, added to the copy's `poc/lab/predictions/` (`ladder-prediction-dryrun-b30k.json`, and `ladder-prediction-dryrun-b30k-fabricated-128M.json` that has one made-up mark). The gate was opened by both (`PREDICTION OK ... 4a259b0e...`);
