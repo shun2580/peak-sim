@@ -110,7 +110,7 @@ printf '#!/usr/bin/env bash\nexit 0\n' >"$work/lab/observe/sample-cpu"; chmod +x
 grepo="$work/repo"; mkdir -p "$grepo/poc/lab/predictions"
 git -C "$grepo" init -q . && git -C "$grepo" config user.email t@example.invalid && git -C "$grepo" config user.name t
 # the prediction holds the scenarios of the re-check (their tables are of 50,000 and 200,000 rows) and t-4 (10,000 rows): the count of a scenario is read from it, and the refusal for counts not seen yet is open for them
-python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; json.dump({"scenarios":[{"id":"r-1","tables":n(50000)},{"id":"r-2","tables":n(50000)},{"id":"r-3","tables":n(200000)},{"id":"r-4","tables":n(200000)},{"id":"r-5","tables":n(200000)},{"id":"t-4","tables":n(10000)}]}, open(sys.argv[1],"w"))' "$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
+python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; st=[{"rps_total":r,"warmup_sec":60,"warmup_basis":{"GET /x":1.0}} for r in (0.025,0.035,0.05,0.07,0.1,0.15,0.2,0.3,0.45,0.7,1.0,1.5,2.2,3.3,5.0)]; json.dump({"scenarios":[{"id":i,"tables":n(c),"stages":st} for i,c in (("r-1",50000),("r-2",50000),("r-3",200000),("r-4",200000),("r-5",200000),("t-4",10000))]}, open(sys.argv[1],"w"))' "$grepo/poc/lab/predictions/p.json"; git -C "$grepo" add -A && git -C "$grepo" commit -q -m "chore: seed"
 pred="$grepo/poc/lab/predictions/p.json"
 for scale in 10000 50000 200000; do echo '{}' >"$out/targets-$scale.json"; done
 

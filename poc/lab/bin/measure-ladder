@@ -71,6 +71,15 @@
 #   the flag. With it, a prediction that does not state an allocation for this scenario (the top block enabled and the scenario's own block; a prediction made with
 #   the flag states both even when it drops no route) is refused with exit 2 before any container is touched, so a B that must be measured on an allocated mix
 #   cannot be measured on the mix by a prediction that was made without it. Without the flag nothing changes. It needs --predictions and is refused with --trial.
+# THE PREPARATION OF EACH STEP (section 7.4.5; the discarded first part of a step): a measurement takes it from the prediction file, step by step: the
+#   `warmup_sec` of the stage whose `rps_total` is the step's rps (a whole number of seconds, 60 or more) and its basis `warmup_basis` (the route and its upper
+#   bound in seconds). A prediction file that does not state them for every stage of the scenario stops the measurement with exit 2 before any container is
+#   touched and before anything is sent; it never goes back to 60 s on its own. The kept window is the same whatever the preparation is (the scheme's), so a
+#   longer preparation makes a longer step. The line `WARMUP <scenario>: ...` says what was read. A dry run reads them too; if the file states none it says so
+#   and shows the table at 60 s (a dry run measures nothing). A trial has no prediction and keeps its 60 s.
+# THE REQUESTS RUNNING AT THE EDGES OF THE WINDOW (section 7.4.5; a reading, never judged): each step's record holds, by route, the number of requests that had been
+#   sent and had no answer yet at the window's first instant and at its last instant (`running_requests` in record.json, with the layer they were counted in:
+#   the load tool's sending side, k6, not php-fpm).
 # The tools used are the lab's own: load/make-plan.php, load/scenario.js, load/summarize-run.php, observe/sample-cpu.
 #
 # The scale: `bin/build-db --scale=N --n-tables=entities,images,references` (once per scale; the 8 routes' N tables all become N)
@@ -288,6 +297,43 @@ PY
   fi
 fi
 
+# 1a''. THE PREPARATION OF EACH STEP (section 7.4.5). A measurement (not a dry run, not a trial) needs the prediction file to state `warmup_sec` (a whole number of seconds,
+# 60 or more) and `warmup_basis` for every stage of the scenario; otherwise it stops here (exit 2), before any container is touched, and does not fall back to 60 s. A dry run
+# reads them if the file has them (all or none; a half is refused) and otherwise shows 60 s and says so. Reads the file only; no container.
+warmup_json=""
+if [ -z "$trial" ] && [ -n "$predictions" ]; then
+  warmup_json="$(python3 - "$predictions" "$scenario" "$dry" <<'PY'
+import json, math, sys
+path, sid, dry = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+def refuse(why):
+    sys.stderr.write("measure-ladder: the preparation (warmup_sec) of %s in %s: %s\n" % (sid, path, why))
+    sys.exit(2)
+with open(path) as fh:
+    doc = json.load(fh)
+sc = [s for s in doc.get("scenarios", []) if isinstance(s, dict) and s.get("id") == sid][0]
+stages = [st for st in sc.get("stages", []) if isinstance(st, dict)]
+have = [("warmup_sec" in st or "warmup_basis" in st) for st in stages]
+if not any(have):
+    if dry:
+        sys.exit(0)                       # a dry run: nothing is stated, the caller shows 60 s and says so
+    refuse("the prediction file states no preparation for any stage; a measurement does not go back to 60 s on its own, so nothing was measured")
+if not all(have):
+    refuse("only some stages state a preparation (stage %s have none)" % [j for j, h in enumerate(have) if not h])
+out = []
+for j, st in enumerate(stages):
+    w, basis, rps = st.get("warmup_sec"), st.get("warmup_basis"), st.get("rps_total")
+    if not (isinstance(w, int) and not isinstance(w, bool) and w >= 60):
+        refuse("stage %d: warmup_sec must be a whole number of seconds, 60 or more (got %s)" % (j, json.dumps(w)))
+    if not isinstance(basis, dict) or not basis:
+        refuse("stage %d: warmup_basis (the route and its upper bound in seconds) is missing" % j)
+    if not (isinstance(rps, (int, float)) and not isinstance(rps, bool) and math.isfinite(rps) and rps > 0):
+        refuse("stage %d: rps_total is missing" % j)
+    out.append([rps, w])
+json.dump(out, sys.stdout)
+PY
+)" || exit 2
+fi
+
 # 1b. THE WRITE GUARD (i). Not in a dry run (nothing is measured). Nothing below touches a container until it has passed. ------------------------
 if [ "$dry" = 0 ]; then
   [ -n "$statement_record" ] || { echo "measure-ladder: --statement-record=<capture.json> is required (the guard that the lab writes only views reads it)" >&2; exit 2; }
@@ -340,16 +386,42 @@ rungs_args=("${tflag[@]}"); [ -n "$trial" ] || rungs_args=(--scenario="$scenario
 mapfile -t rungs < <(php_tool poc/lab/load/ladder.php rungs "${rungs_args[@]}")
 [ "${#rungs[@]}" -gt 0 ] || { echo "measure-ladder: cannot read the ladder" >&2; exit 13; }
 
+# the preparation of each step, in the order of the steps: the stage of the prediction file with the step's rps (a step the file has no stage for stops here, exit 2)
+warmups=()
+if [ -n "$warmup_json" ]; then
+  mapfile -t warmups < <(python3 - "$warmup_json" "${rungs[@]}" <<'PY'
+import json, sys
+stages = json.loads(sys.argv[1])
+for r in sys.argv[2:]:
+    hit = [w for rps, w in stages if abs(rps - float(r)) <= 1e-9 * max(1.0, abs(rps))]
+    print(hit[0] if len(hit) == 1 else "none")
+PY
+)
+  for k in "${!rungs[@]}"; do
+    if ! [[ "${warmups[$k]:-none}" =~ ^[0-9]+$ ]]; then
+      echo "measure-ladder: the prediction file has no single stage with rps ${rungs[$k]} (step $((k + 1))), so its preparation cannot be read; nothing was measured" >&2
+      exit 2
+    fi
+  done
+  echo "WARMUP $scenario: the discarded start of each step is read from the prediction file (section 7.4.5): $(for k in "${!rungs[@]}"; do printf '%s=%ss ' "${rungs[$k]}" "${warmups[$k]}"; done)"
+elif [ "$dry" = 1 ] && [ -n "$predictions" ]; then
+  echo "WARMUP $scenario: the prediction file states no preparation (a dry run only): the table below uses 60 s; a measurement with this file would stop (exit 2)"
+fi
+# the discarded start of step number $1 (1-based): the file's, or empty (the tool's 60 s: only a trial and a dry run with no preparation in the file)
+warmup_of() { [ "${#warmups[@]}" -gt 0 ] && echo "${warmups[$(($1 - 1))]}" || true; }
+
 sdir="$out/${scenario}-${scale}"
 mkdir -p "$sdir"
 if [ -n "$alloc_json" ]; then printf '%s\n' "$alloc_json" >"$sdir/allocation.json"; else rm -f "$sdir/allocation.json"; fi   # what the plans below are made from (kept with the scenario's records)
 duration=360 ; warmup=60
 
-# make_plan <rps> <file> <scheme>: the length of the step under the scheme (ladder.php shape), the plan (make-plan), then, for a
-# staggered scheme, each route's start time (ladder.php stagger). Sets $duration and $warmup for this step.
+# make_plan <rps> <file> <scheme> [<discarded start in s>]: the length of the step under the scheme (ladder.php shape; the discarded start is the prediction file's
+# for this step, 60 s if none is given), the plan (make-plan), then, for a staggered scheme, each route's start time (ladder.php stagger). Sets $duration and
+# $warmup for this step.
 make_plan() {
-  local shape tmp
-  shape="$(php_tool poc/lab/load/ladder.php shape --scheme="$3" --rps="$1")" || return 1
+  local shape tmp warmup_args=()
+  [ -z "${4:-}" ] || warmup_args=(--warmup="$4")
+  shape="$(php_tool poc/lab/load/ladder.php shape --scheme="$3" --rps="$1" "${warmup_args[@]}")" || return 1
   read -r duration warmup <<<"$shape"
   local alloc_args=(); [ -z "$alloc_json" ] || alloc_args=(--allocation="$(host_or_container "$sdir/allocation.json")")
   php_tool poc/lab/load/make-plan.php --routes="$(routes_path)" --mix="$mix" --rps="$1" --duration="$duration" --warmup="$warmup" "${alloc_args[@]}" >"$2" || return 1
@@ -369,12 +441,12 @@ if [ "$dry" = 1 ]; then
     for rps in "${rungs[@]}"; do
       i=$((i + 1))
       d="$sdir/dry-run/$sc/rung-$(printf '%02d' "$i")-$rps"; mkdir -p "$d"
-      make_plan "$rps" "$d/plan.json" "$sc" || { echo "measure-ladder: the plan failed for rps $rps, scheme $sc (see above)" >&2; exit 13; }
+      make_plan "$rps" "$d/plan.json" "$sc" "$(warmup_of "$i")" || { echo "measure-ladder: the plan failed for rps $rps, scheme $sc (see above)" >&2; exit 13; }
     done
     php_tool poc/lab/load/ladder.php table --dir="$(host_or_container "$sdir/dry-run/$sc")" || exit 13
   done
   echo
-  echo "a step is its window + 60 s discarded; the scenario stops earlier at the first step at 80% DB utilization or with its rps not out (plus about 1 min per step to start and read)"
+  echo "a step is its window + its discarded start (60 s, or what the prediction file states for the step); the scenario stops earlier at the first step at 80% DB utilization or with its rps not out (plus about 1 min per step to start and read)"
   echo "plans are in $sdir/dry-run/<scheme>/"
   exit 0
 fi
@@ -436,7 +508,7 @@ for rps in "${rungs[@]}"; do
     continue
   fi
   rm -rf "$d"; mkdir -p "$d"
-  make_plan "$rps" "$d/plan.json" "$scheme" || { echo "measure-ladder: the plan failed for rps $rps (scheme $scheme)" >&2; exit 13; }
+  make_plan "$rps" "$d/plan.json" "$scheme" "$(warmup_of "$i")" || { echo "measure-ladder: the plan failed for rps $rps (scheme $scheme)" >&2; exit 13; }
   read_settings "$d" || { echo "measure-ladder: the limits (PHP, k6, web server) are not as $scenario needs them, or could not be read, at rung $i: $(cat "$d/check-limits.err" 2>/dev/null). Stopped; nothing was measured." >&2; exit 13; }
   echo "RUNG SETTINGS $scenario rung $i: $(tr '\n' ' ' <"$d/settings.json" | tr -s ' ')"
   # THE MEMORY GUARD, before the step (the samplers have not started): nothing may have happened to the app container since the baseline
@@ -446,7 +518,7 @@ for rps in "${rungs[@]}"; do
   rm -f "$d/oom-stop.txt"
   "$bindir/read-memory" "$d/mem-before.txt" --label="$scenario rung $i before the step" >/dev/null 2>&1   # MEM-BEFORE
   started_epoch="$(date +%s)"; started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
-  echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s)"
+  echo "RUNG START $scenario rung $i of ${#rungs[@]} rps $rps scale $scale mix $mix scheme $scheme at $started_at ($((duration / 60)) min $((duration % 60)) s, the first $warmup s discarded)"
 
   # The samplers stop themselves (--seconds): the kept window ends at k6's own start + $duration s, and k6 starts a few seconds
   # after this line, so they run $duration + 60 s. Nothing is killed.

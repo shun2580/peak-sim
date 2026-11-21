@@ -39,6 +39,10 @@
 #   18  --max-steps (D231; a setting for a rehearsal, default off): the chain hands it to every measure-ladder call and says so in chain.log, and without it
 #       nothing is carried or written; measure-ladder ends a scenario after N steps (counting the recorded ones: the load tool is not called for them), and
 #       refuses a value that is not 1 to 99, and --trial, before any container
+# W  the preparation of each step (spec 7.4.5), the real measure-ladder behind the stand-in docker: each step's discarded start is the prediction file's `warmup_sec` for the
+#    stage with its rps (19: the WARMUP line, the plan of step 1 at 300 s with a window of 1600 s, the start line, the plans of a dry run, the same kept window as with 60 s);
+#    a file with none / a half / 59 / a fraction / a string / no basis is refused (2, 20) before any container, a step with no single stage (21) before the first step, and
+#    nothing goes back to 60 s on its own; a dry run with none goes on at 60 s and says so (22); a trial reads none (23)
 # D  bin/lab-config-b in a throw-away repository: status; apply gives 1800s, max_execution_time 0, memory_limit 4G; a second apply and a
 #    restore that is not exactly the diff are refused and change nothing; restore gives back the bytes; the diff applies to the files of HEAD
 # No test is skipped: a precondition that is not met is a failure, not a skip.
@@ -303,7 +307,7 @@ FAKE
 chmod +x "$Bdir/fakebin/docker"
 brepo="$Bdir/repo"; mkdir -p "$brepo/poc/lab/predictions"
 git -C "$brepo" init -q . && git -C "$brepo" config user.email t@example.invalid && git -C "$brepo" config user.name t
-python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; json.dump({"scenarios":[{"id":"s-1","tables":n(int(sys.argv[2]))}]}, open(sys.argv[1],"w"))' "$brepo/poc/lab/predictions/p.json" "$SCALE"
+python3 -c 'import json,sys; n=lambda c:{"entities":c,"images":c,"references":c}; st=[{"rps_total":r,"warmup_sec":60,"warmup_basis":{"GET /x":1.0}} for r in (0.025,0.035,0.05,0.07,0.1,0.15,0.2,0.3,0.45,0.7,1.0,1.5,2.2,3.3,5.0)]; json.dump({"scenarios":[{"id":"s-1","tables":n(int(sys.argv[2])),"stages":st}]}, open(sys.argv[1],"w"))' "$brepo/poc/lab/predictions/p.json" "$SCALE"
 git -C "$brepo" add -A && git -C "$brepo" commit -q -m "chore: seed"
 echo '{}' >"$out/targets-$SCALE.json"
 bpred="$brepo/poc/lab/predictions/p.json"
@@ -371,7 +375,7 @@ kept = [r for r in routes if r != DROP]
 after = {r: 1.0 / len(kept) for r in kept}          # even mix: 1/8 each in the file, the dropped route's share handed to the other seven
 def doc(with_top=True, with_sc=True):
     sc = {"id": "s-1", "tables": tables, "rps_total_in_file": 1.0,
-          "stages": [{"rps_total": t, "rps": {r: t * after[r] for r in kept}} for t in rungs]}
+          "stages": [{"rps_total": t, "rps": {r: t * after[r] for r in kept}, "warmup_sec": 60, "warmup_basis": {"GET /x": 1.0}} for t in rungs]}
     if with_sc:
         sc["allocation"] = {"dropped_routes": [{"route": DROP, "reasons": ["placeholders"], "rps_in_file": 0.125}],
                             "groups_changed": [], "not_judged": {}, "longest_request": None,
@@ -396,7 +400,7 @@ d = doc(); d["allocation"]["enabled"] = False; d["scenarios"][0].pop("allocation
 d = doc(); sc = d["scenarios"][0]
 full = 1.0 / len(routes)
 sc["allocation"].update({"dropped_routes": [], "rps_after": {r: 0.125 for r in routes}})
-sc["stages"] = [{"rps_total": t, "rps": {r: t * full for r in routes}} for t in rungs]
+sc["stages"] = [{"rps_total": t, "rps": {r: t * full for r in routes}, "warmup_sec": 60, "warmup_basis": {"GET /x": 1.0}} for t in rungs]
 write("alloc-zero", d)
 PY
 git -C "$brepo" add -A && git -C "$brepo" commit -q -m "chore: seed the allocation predictions"
@@ -520,6 +524,89 @@ set_b php="$php_val" pool=0s nginx="$nginx_val" mem="$mem_val"
 ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=1800s --max-steps=1; rc=$?
 [ "$(k6_calls)" = 0 ] && [ "$(grep -c '^RUNG SKIP' "$Bdir/ml.out")" = 1 ] && has "$Bdir/ml.out" 'MAX-STEPS s-1: stopped after rung 1' && ! has "$Bdir/ml.out" 'rung 2' \
   && pass "18g --max-steps=1 stops after the first step (rung 2 is not looked at)" || fail "18g rc $rc k6 $(k6_calls)"
+rm -rf "$sd"
+
+# ================================================================================================================================
+# W. the preparation of each step (section 7.4.5): measure-ladder takes the discarded start of every step from the prediction file, stage by stage, and stops
+#    before anything is sent when the file does not state it (no step goes back to 60 s on its own)
+# ================================================================================================================================
+python3 - "$brepo/poc/lab/predictions" "$SCALE" <<'PY'
+import json, sys
+outdir, scale = sys.argv[1], int(sys.argv[2])
+rungs = [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0]
+tables = {"entities": scale, "images": scale, "references": scale}
+def stage(t, w=None, basis=True):
+    st = {"rps_total": t}
+    if w is not None:
+        st["warmup_sec"] = w
+    if basis and w is not None:
+        st["warmup_basis"] = {"route": "GET /books/{slug}/references", "upper_bound_sec": 54.5 if w == 60 else 540.5}   # the shape the prediction tool writes
+    return st
+def write(name, stages):
+    json.dump({"scenarios": [{"id": "s-1", "tables": tables, "stages": stages}]}, open("%s/%s.json" % (outdir, name), "w"))
+mixed = {0.025: 300, 0.035: 90, 0.1: 125, 5.0: 400}
+write("warm-mixed", [stage(t, mixed.get(t, 60)) for t in rungs])
+write("warm-none", [stage(t) for t in rungs])
+write("warm-59", [stage(t, 59 if t == 0.3 else 60) for t in rungs])
+write("warm-half", [stage(t, 60) if t != 0.45 else stage(t) for t in rungs])
+write("warm-float", [stage(t, 90.5 if t == 0.2 else 60) for t in rungs])
+write("warm-string", [stage(t, "90" if t == 0.2 else 60) for t in rungs])
+write("warm-nobasis", [stage(t, 60, basis=(t != 0.2)) for t in rungs])
+write("warm-missing-stage", [stage(t, 60) for t in rungs if t != 0.05])
+write("warm-twice", [stage(t, 60) for t in rungs] + [stage(0.05, 70)])
+PY
+git -C "$brepo" add -A && git -C "$brepo" commit -q -m "chore: seed the preparation predictions"
+ml_warm() { ml_b --scenario=s-1 --predictions="$brepo/poc/lab/predictions/$1.json" --scheme=B --request-timeout=600s; }
+dry_warm() { rm -rf "$out/ladder/s-1-$SCALE/dry-run"; PEAK_REPO_ROOT="$repo_real" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$lab/bin/measure-ladder" --scenario=s-1 --dry-run \
+  --predictions="$brepo/poc/lab/predictions/$1.json" --scheme=B >"$Bdir/ml.out" 2>"$Bdir/ml.err"; }
+plan_field() { python3 -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p[sys.argv[2]])' "$1" "$2"; }
+
+# 19: a prediction that states the preparation of each step: every step is made with its own
+reset_e; sd="$out/ladder/s-1-$SCALE"; rm -rf "$sd"
+ml_warm warm-mixed; rc=$?
+has "$Bdir/ml.out" 'WARMUP s-1: .*0.025=300s 0.035=90s 0.05=60s' && has "$Bdir/ml.out" '0.1=125s' && has "$Bdir/ml.out" '5=400s\|5.0=400s' && pass "19 the WARMUP line says what was read from the file, step by step" || fail "19 $(grep WARMUP "$Bdir/ml.out" | cut -c1-300)"
+[ "$(plan_field "$sd/rung-01-0.025/plan.json" warmup_sec)" = 300 ] && [ "$(plan_field "$sd/rung-01-0.025/plan.json" duration_sec)" = 1900 ] \
+  && pass "19b step 1 (0.025 rps): the discarded start is 300 s and the step 1900 s (a window of 1600 s as in scheme B, 300 + 1600)" || fail "19b $(plan_field "$sd/rung-01-0.025/plan.json" warmup_sec) $(plan_field "$sd/rung-01-0.025/plan.json" duration_sec)"
+has "$Bdir/ml.out" 'RUNG START s-1 rung 1 of 15 .*the first 300 s discarded' && pass "19c the step's start line says its discarded start" || fail "19c $(grep 'RUNG START' "$Bdir/ml.out" | cut -c1-300)"
+dry_warm warm-mixed; rc=$?
+okw=1
+for pair in 01-0.025:300 02-0.035:90 03-0.05:60 05-0.1:125 15-5:400 08-0.3:60; do
+  d="$out/ladder/s-1-$SCALE/dry-run/B/rung-${pair%%:*}"; [ "$(plan_field "$d/plan.json" warmup_sec)" = "${pair##*:}" ] || { okw=0; echo "     rung ${pair%%:*}: $(plan_field "$d/plan.json" warmup_sec)" >&2; }
+done
+[ "$rc" = 0 ] && [ "$okw" = 1 ] && pass "19d a dry run makes each step's plan with that step's preparation (300, 90, 60, 125, 400 and the 60 in between)" || fail "19d rc $rc okw $okw ($(head -2 "$Bdir/ml.err"))"
+windows() { python3 - "$out/ladder/s-1-$SCALE/dry-run/B" <<'PY'
+import glob, json, sys
+for f in sorted(glob.glob(sys.argv[1] + "/rung-*/plan.json")):
+    p = json.load(open(f))
+    print(f.split("/")[-2], p["duration_sec"] - p["warmup_sec"], p["window_sec"])
+PY
+}
+windows_mixed="$(windows)"
+dry_warm warm-none; windows_plain="$(windows)"
+[ -n "$windows_mixed" ] && [ "$(printf '%s\n' "$windows_mixed" | wc -l)" = 15 ] && [ "$windows_mixed" = "$windows_plain" ] && pass "19e the kept window of every one of the 15 steps is the same with the preparations of the file as with 60 s everywhere (a longer preparation lengthens the step only)" || fail "19e the windows differ"
+
+# 20: a prediction that does not state it, or states it wrongly, is refused before any container; nothing is sent and nothing is written for a step
+for name in warm-none warm-half warm-59 warm-float warm-string warm-nobasis; do
+  reset_e; rm -rf "$sd"; ml_warm "$name"; rc=$?
+  expect_code "20 $name: refused (2)" 2 $rc
+  [ ! -s "$Bdir/docker.calls" ] && [ ! -e "$sd" ] && has "$Bdir/ml.err" 'the preparation (warmup_sec) of s-1' && pass "20b $name: no container was touched, no step directory was made, the refusal names the preparation" || fail "20b $name: docker calls $(wc -l <"$Bdir/docker.calls"), $(head -2 "$Bdir/ml.err")"
+done
+has "$Bdir/ml.err" 'does not go back to 60 s' || { reset_e; ml_warm warm-none; has "$Bdir/ml.err" 'does not go back to 60 s' && pass "20c the refusal says it does not go back to 60 s on its own" || fail "20c $(head -2 "$Bdir/ml.err")"; }
+# a rung with no stage (or two) in the file: it stops after the steps are read and before the first step is made; the load tool is never called
+for name in warm-missing-stage warm-twice; do
+  reset_e; rm -rf "$sd"; ml_warm "$name"; rc=$?
+  expect_code "21 $name: refused (2)" 2 $rc
+  [ "$(k6_calls)" = 0 ] && [ ! -e "$sd" ] && has "$Bdir/ml.err" 'no single stage with rps 0.05' && pass "21b $name: the load tool was never called, no step directory was made, the refusal names the step" || fail "21b $name: k6 $(k6_calls), $(head -2 "$Bdir/ml.err")"
+done
+# a dry run measures nothing: with no preparation in the file it goes on at 60 s and says so; with a half or a wrong one it still refuses
+dry_warm warm-none; rc=$?
+has "$Bdir/ml.out" 'WARMUP s-1: the prediction file states no preparation (a dry run only)' && [ "$(plan_field "$out/ladder/s-1-$SCALE/dry-run/B/rung-01-0.025/plan.json" warmup_sec)" = 60 ] && [ "$rc" = 0 ] \
+  && pass "22 a dry run on a file with no preparation: plans at 60 s, and the WARMUP line says a measurement would stop" || fail "22 rc $rc ($(grep WARMUP "$Bdir/ml.out" | cut -c1-200))"
+for name in warm-half warm-59; do dry_warm "$name"; rc=$?; expect_code "22b a dry run on $name: refused (2)" 2 $rc; done
+# the trial has no prediction and keeps 60 s (it is not touched)
+set_b php=30 pool=0s nginx=120s mem=512M; : >"$Bdir/docker.calls"; rm -rf "$out/trial"
+PATH="$Bdir/fakebin:$PATH" PEAK_REPO_ROOT="$brepo" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$out" "$Bdir/lab/bin/measure-ladder" --trial=cal-2 --statement-record="$Bdir/rec/ok.json" >"$Bdir/ml.out" 2>"$Bdir/ml.err"; rc=$?
+! has "$Bdir/ml.out" 'WARMUP' && ! has "$Bdir/ml.err" 'the preparation (warmup_sec)' && pass "23 a trial reads no preparation (no WARMUP line, no refusal for one) and keeps its 60 s" || fail "23 $(head -3 "$Bdir/ml.out" | cut -c1-200)"
 rm -rf "$sd"
 
 echo

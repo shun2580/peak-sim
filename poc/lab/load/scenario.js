@@ -19,6 +19,11 @@
 // ones that had finished by then, and the arrivals the load tool dropped (dropped_iterations, which must be 0). Section 7.4.3.
 // A request sent at or after the window's end is tagged phase=after and counted nowhere in the check (phase.js).
 //
+// Also written down, by route and never judged (section 7.4.5): how many requests were RUNNING at the window's first instant and at its last
+// instant, that is sent before that instant and not answered until at or after it (lab_running_at_window_start / lab_running_at_window_end).
+// They are counted here, on the load tool's sending side (each request is timed from its own send to its answer), not in php-fpm; the summary
+// says so (running_counted_by). They show whether the load had reached a steady state when the window opened and when it closed.
+//
 // It sends no write: a route that is not a GET is refused before any request is made.
 import http from 'k6/http';
 import exec from 'k6/execution';
@@ -53,6 +58,9 @@ const sentCount = new Counter('lab_sent');
 // A request of the kept window that finished after the window's end, and how long after (the Gauge keeps the largest).
 const afterWindowCount = new Counter('lab_finished_after_window');
 const afterWindowMs = new Gauge('lab_after_window_ms');
+// A request that was sent before the window's first (last) instant and was still without an answer at it, tagged with its route.
+const runningAtStart = new Counter('lab_running_at_window_start');
+const runningAtEnd = new Counter('lab_running_at_window_end');
 
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 299 }));
 
@@ -96,6 +104,8 @@ plan.routes.forEach((r, i) => {
   }
   thresholds['http_reqs{phase:measure,route:' + r.route + '}'] = ['count>=0'];
   thresholds['lab_sent{phase:measure,route:' + r.route + '}'] = ['count>=0'];
+  thresholds['lab_running_at_window_start{route:' + r.route + '}'] = ['count>=0'];
+  thresholds['lab_running_at_window_end{route:' + r.route + '}'] = ['count>=0'];
 });
 
 export const options = {
@@ -111,7 +121,8 @@ export function hit() {
   // The start of the whole scenario (not of this route's stream, which may start later): for a stream that starts at 0 it is the
   // stream's own start; for a later one, the time since the test began gives it.
   const started = r.start_offset_sec ? Date.now() - exec.instance.currentTestRunDuration : exec.scenario.startTime;
-  const phase = phaseAt(Date.now() - started, plan.warmup_sec, plan.duration_sec);
+  const sentAt = Date.now();
+  const phase = phaseAt(sentAt - started, plan.warmup_sec, plan.duration_sec);
   scenarioStart.add(started);
   const params = {
     headers: Object.assign({}, targets.headers || {}, t.headers || {}),
@@ -123,8 +134,16 @@ export function hit() {
   }
   sentCount.add(1, { phase: phase, route: r.route });
   http.get(targets.base_url + t.path, params);
+  const windowStart = started + plan.warmup_sec * 1000;
   const windowEnd = started + plan.duration_sec * 1000;
   const now = Date.now();
+  // running at an instant: sent before it, answered at or after it
+  if (sentAt < windowStart && now >= windowStart) {
+    runningAtStart.add(1, { route: r.route });
+  }
+  if (sentAt < windowEnd && now >= windowEnd) {
+    runningAtEnd.add(1, { route: r.route });
+  }
   if (phase === 'measure' && now > windowEnd) {
     afterWindowCount.add(1, { phase: phase });
     afterWindowMs.add(now - windowEnd);
@@ -139,7 +158,13 @@ function metric(data, key) {
 export function handleSummary(data) {
   const per_route = {};
   const per_route_sent = {};
+  const running_at_window_start = {};
+  const running_at_window_end = {};
   for (const r of plan.routes) {
+    const rs = metric(data, 'lab_running_at_window_start{route:' + r.route + '}');
+    running_at_window_start[r.route] = rs ? rs.count : 0;
+    const re = metric(data, 'lab_running_at_window_end{route:' + r.route + '}');
+    running_at_window_end[r.route] = re ? re.count : 0;
     const v = metric(data, 'http_reqs{phase:measure,route:' + r.route + '}');
     per_route[r.route] = v ? v.count : 0;
     const sv = metric(data, 'lab_sent{phase:measure,route:' + r.route + '}');
@@ -202,6 +227,9 @@ export function handleSummary(data) {
     duration_ms: dur ? { avg: dur.avg, p95: dur['p(95)'], max: dur.max } : null,
     per_route: per_route,
     per_route_sent: per_route_sent,
+    running_at_window_start: running_at_window_start,
+    running_at_window_end: running_at_window_end,
+    running_counted_by: 'k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)',
   };
   const files = {};
   files[summaryPath] = JSON.stringify(out, null, 2) + '\n';

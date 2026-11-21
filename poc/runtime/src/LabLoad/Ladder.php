@@ -306,8 +306,12 @@ final class Ladder
             'http_status' => $summary['requests']['http_status'] ?? null,
             // the same by route (which route was cut): null for a run made before the load tool counted it
             'http_status_by_route' => $summary['requests']['http_status_by_route'] ?? null,
+            'warmup_sec' => $summary['warmup_sec'] ?? null,
             'window_sec' => $summary['window_sec'],
             'window_epoch' => $summary['window_epoch'],
+            // section 7.4.5: the requests running (sent, not yet answered) at the window's first and last instant, by route, and the layer they were
+            // counted in; a reading, never judged. Null for a record made before it.
+            'running_requests' => $summary['running_requests'] ?? null,
             'started_at' => $meta['started_at'],
             'ended_at' => $meta['ended_at'],
             'decision' => $decision,

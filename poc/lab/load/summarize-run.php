@@ -103,6 +103,7 @@ $record = [
     'mix' => $plan['mix'],
     'scheme' => $plan['scheme'] ?? 'spec',
     'rps' => $rps,
+    'warmup_sec' => (int) $plan['warmup_sec'],
     'window_sec' => $window,
     'window_epoch' => ['from' => $from, 'to' => $to],
     'db_utilization' => $util,
@@ -124,6 +125,15 @@ if ($hasSent) {
     $record['requests']['finished_after_window'] = (int) ($k6['finished_after_window'] ?? 0);
     $record['requests']['longest_after_window_ms'] = (float) ($k6['longest_after_window_ms'] ?? 0);
     $record['requests']['graceful_stop'] = $k6['graceful_stop'] ?? null;
+}
+if (isset($k6['running_at_window_start']) && is_array($k6['running_at_window_start']) && isset($k6['running_at_window_end']) && is_array($k6['running_at_window_end'])) {
+    // read only, never judged (section 7.4.5): the requests that had been sent and had no answer yet at the window's first and last instant, by route,
+    // counted by the load tool on its sending side (`running_counted_by`)
+    $record['running_requests'] = [
+        'at_window_start' => $k6['running_at_window_start'],
+        'at_window_end' => $k6['running_at_window_end'],
+        'counted_by' => $k6['running_counted_by'] ?? null,
+    ];
 }
 if ($app !== null) {
     $record['app_cpu_utilization'] = $app;

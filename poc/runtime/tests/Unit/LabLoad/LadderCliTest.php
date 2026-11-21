@@ -495,4 +495,85 @@ final class LadderCliTest extends TestCase
         $this->assertArrayNotHasKey('app_cpu_utilization', $r);
         $this->assertArrayNotHasKey('http_status', $r['requests']);
     }
+
+    public function test_shape_takes_the_discarded_start_of_a_step_from_the_prediction_and_the_plan_and_the_table_follow_it(): void
+    {
+        $this->assertSame([0, "600 300\n"], array_slice(self::tool('ladder.php', ['shape', '--scheme=spec', '--rps=0.05', '--warmup=300']), 0, 2));
+        $this->assertSame([0, "1100 300\n"], array_slice(self::tool('ladder.php', ['shape', '--scheme=B', '--rps=0.05', '--warmup=300']), 0, 2));
+        $this->assertSame([0, "860 60\n"], array_slice(self::tool('ladder.php', ['shape', '--scheme=B', '--rps=0.05', '--warmup=60']), 0, 2));
+        foreach (['59', '0', 'abc', '30.5', ''] as $bad) {
+            $this->assertSame(2, self::tool('ladder.php', ['shape', '--scheme=spec', '--rps=1', '--warmup=' . $bad])[0], "--warmup=$bad is refused");
+        }
+
+        // the plan made with that start has the same window, and the staggered streams are placed against the longer start
+        [, $plan] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), '--mix=even', '--rps=0.05', '--duration=600', '--warmup=300']);
+        file_put_contents($this->dir . '/plan.json', $plan);
+        $this->assertSame(300, json_decode($plan, true)['warmup_sec']);
+        [$code, $out] = self::tool('ladder.php', ['stagger', '--scheme=A', $this->dir . '/plan.json']);
+        $this->assertSame(0, $code);
+        $staggered = json_decode($out, true);
+        $this->assertSame(300, $staggered['window_sec']);
+        $this->assertSame([2, 2, 2, 2, 2, 2, 2, 1], array_column($staggered['routes'], 'planned_window_requests'));
+        mkdir($this->dir . '/b/rung-01', 0777, true);
+        file_put_contents($this->dir . '/b/rung-01/plan.json', $out);
+        [, $table] = self::tool('ladder.php', ['table', '--dir=' . $this->dir . '/b']);
+        $this->assertMatchesRegularExpression('/^1\s+0\.05\s+300s\s+8x1\/160s\s+15\s+15\.0\s+\+0\.0% within 5%/m', $table);
+    }
+
+    /** @return array{0: array<string, mixed>, 1: string} the summarize-run output for a plan of the given discarded start, and its path */
+    private function summarizeWith(int $warmup, array $k6Extra): array
+    {
+        [, $plan] = self::tool('make-plan.php', ['--routes=' . $this->routeList(), '--mix=even', '--rps=1', '--duration=' . (300 + $warmup), '--warmup=' . $warmup]);
+        file_put_contents($this->dir . '/plan.json', $plan);
+        file_put_contents($this->dir . '/k6.json', json_encode($k6Extra + [
+            'scenario_start_ms' => 1_000_000_000_000, 'measure_requests' => 300, 'measure_failed' => 0, 'dropped_iterations' => 0, 'per_route' => [],
+        ]));
+        $db = '';
+        for ($t = 999_999_990; $t <= 1_000_000_000 + 300 + $warmup + 40; $t += 5) {
+            $db .= $t . ' ' . (($t - 999_999_990) * 1_000_000) . "\n";
+        }
+        file_put_contents($this->dir . '/cpu.txt', $db);
+        [$code, $out] = self::tool('summarize-run.php', ['--plan=' . $this->dir . '/plan.json', '--k6-summary=' . $this->dir . '/k6.json', '--samples=' . $this->dir . '/cpu.txt']);
+        $this->assertSame(0, $code);
+        file_put_contents($this->dir . '/run.json', $out);
+
+        return [json_decode($out, true), $this->dir . '/run.json'];
+    }
+
+    public function test_the_requests_running_at_the_edges_of_the_window_go_from_the_load_tool_to_the_step_record_with_the_layer_and_the_discarded_start(): void
+    {
+        $start = ['GET /r1' => 2, 'GET /r2' => 0];
+        $end = ['GET /r1' => 12, 'GET /r2' => 0];
+        [$run, $path] = $this->summarizeWith(300, ['running_at_window_start' => $start, 'running_at_window_end' => $end, 'running_counted_by' => 'k6 sending side']);
+        $this->assertSame(300, $run['warmup_sec']);
+        $this->assertSame(300, $run['window_sec']);
+        $this->assertSame(['at_window_start' => $start, 'at_window_end' => $end, 'counted_by' => 'k6 sending side'], $run['running_requests']);
+
+        $r = self::tool('ladder.php', [
+            'record', '--scenario=t-4', '--rung=3', '--summary=' . $path,
+            '--started=2026-11-21T10:00:00+09:00', '--ended=2026-11-21T10:10:00+09:00',
+            '--prediction-file=poc/lab/predictions/p.json', '--prediction-commit=abc123', '--prediction-time=2026-11-21T09:00:00+09:00',
+        ]);
+        $record = json_decode($r[1], true);
+        $this->assertSame(300, $record['warmup_sec']);
+        $this->assertSame($run['running_requests'], $record['running_requests']);
+        // a reading only: the same step with other counts gets the same verdict
+        $this->assertSame($record['decision'], json_decode(self::tool('ladder.php', [
+            'record', '--scenario=t-4', '--rung=3', '--summary=' . $this->summarizeWith(300, ['running_at_window_start' => ['GET /r1' => 99], 'running_at_window_end' => ['GET /r1' => 99]])[1],
+            '--started=2026-11-21T10:00:00+09:00', '--ended=2026-11-21T10:10:00+09:00',
+        ])[1], true)['decision']);
+    }
+
+    public function test_a_summary_from_a_load_tool_that_did_not_count_the_running_requests_gives_a_record_with_null_there_and_the_start_of_60_s(): void
+    {
+        [$run, $path] = $this->summarizeWith(60, []);
+        $this->assertArrayNotHasKey('running_requests', $run);
+        $this->assertSame(60, $run['warmup_sec']);
+        $record = json_decode(self::tool('ladder.php', [
+            'record', '--scenario=t-4', '--rung=3', '--summary=' . $path,
+            '--started=2026-11-21T10:00:00+09:00', '--ended=2026-11-21T10:06:00+09:00',
+        ])[1], true);
+        $this->assertNull($record['running_requests']);
+        $this->assertSame(60, $record['warmup_sec']);
+    }
 }

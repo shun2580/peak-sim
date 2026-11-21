@@ -35,21 +35,27 @@ final class LadderShape
     }
 
     /**
-     * The length of the step and of its discarded start for a scheme at a total rps.
+     * The length of the step and of its discarded start for a scheme at a total rps. The discarded start is 60 s unless the caller
+     * gives it (section 7.4.5: the prediction file states it for each step); the window does not depend on it, so a longer start
+     * makes a longer step and the kept window is the same.
      *
      * @return array{duration_sec: int, warmup_sec: int}
      *
-     * @throws \InvalidArgumentException an unknown scheme or a non-positive rps
+     * @throws \InvalidArgumentException an unknown scheme, a non-positive rps, or a discarded start under 60 s
      */
-    public static function shape(string $scheme, float $rps): array
+    public static function shape(string $scheme, float $rps, ?int $warmupSec = null): array
     {
         self::assertScheme($scheme);
         if (!is_finite($rps) || $rps <= 0.0) {
             throw new \InvalidArgumentException('rps must be a positive number');
         }
+        $warmup = $warmupSec ?? Ladder::WARMUP_SEC;
+        if ($warmup < Ladder::WARMUP_SEC) {
+            throw new \InvalidArgumentException(sprintf('the discarded start must be at least %d s (got %d)', Ladder::WARMUP_SEC, $warmup));
+        }
         $window = $scheme === self::B ? self::multipleWindow($rps) : self::MIN_WINDOW_SEC;
 
-        return ['duration_sec' => Ladder::WARMUP_SEC + $window, 'warmup_sec' => Ladder::WARMUP_SEC];
+        return ['duration_sec' => $warmup + $window, 'warmup_sec' => $warmup];
     }
 
     /**

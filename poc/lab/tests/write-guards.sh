@@ -186,7 +186,9 @@ git -C "$grepo" init -q . && git -C "$grepo" config user.email t@example.invalid
 python3 - "$grepo/poc/lab/predictions" <<'PY'
 import json, os, sys
 d = sys.argv[1]
-def scen(i, n): return {"id": i, "tables": {"entities": n, "images": n, "references": n}}
+# every stage states its preparation (section 7.4.5): a measurement stops before any container without it
+STAGES = [{"rps_total": r, "warmup_sec": 60, "warmup_basis": {"GET /x": 1.0}} for r in (0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0)]
+def scen(i, n): return {"id": i, "tables": {"entities": n, "images": n, "references": n}, "stages": STAGES}
 json.dump({"scenarios": [scen("r-1", 50000), scen("r-2", 50000), scen("r-3", 200000), scen("r-4", 200000), scen("r-5", 200000)]}, open(os.path.join(d, "recheck.json"), "w"))
 json.dump({"scenarios": [scen("t-1", 30000), scen("t-2", 100000), scen("t-4", 10000)]}, open(os.path.join(d, "first.json"), "w"))
 PY

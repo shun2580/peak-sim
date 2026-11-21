@@ -169,4 +169,29 @@ final class LadderShapeTest extends TestCase
         $this->assertSame(2, LadderShape::countIn(0.0, 160.0, 60, 360));   // 160, 320
         $this->assertSame(1, LadderShape::countIn(40.0, 160.0, 60, 360));  // 40 is before the window, 200 is in, 360 is the end
     }
+
+    public function test_the_discarded_start_is_the_one_given_and_the_window_does_not_change_with_it(): void
+    {
+        // section 7.4.5: the prediction file states the preparation of each step; a longer one lengthens the step, not the kept window
+        $this->assertSame(['duration_sec' => 600, 'warmup_sec' => 300], LadderShape::shape(LadderShape::SPEC, 0.05, 300));
+        $this->assertSame(['duration_sec' => 1100, 'warmup_sec' => 300], LadderShape::shape(LadderShape::B, 0.05, 300));
+        foreach ([LadderShape::SPEC, LadderShape::A, LadderShape::B] as $scheme) {
+            foreach (Ladder::RUNGS_S as $rps) {
+                $plain = LadderShape::shape($scheme, $rps);
+                $long = LadderShape::shape($scheme, $rps, 420);
+                $this->assertSame($plain['duration_sec'] - $plain['warmup_sec'], $long['duration_sec'] - $long['warmup_sec'], "$scheme $rps: the kept window is the same");
+                $this->assertSame(420, $long['warmup_sec']);
+            }
+        }
+        // 60 is the default and is the same as giving 60; nothing under 60 is taken
+        $this->assertSame(LadderShape::shape(LadderShape::B, 0.7), LadderShape::shape(LadderShape::B, 0.7, 60));
+        foreach ([59, 0, -5] as $bad) {
+            try {
+                LadderShape::shape(LadderShape::SPEC, 1.0, $bad);
+                $this->fail("expected a refusal for $bad");
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
 }

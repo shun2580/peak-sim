@@ -58,7 +58,9 @@ python3 - "$pred" <<'PY'
 import json, sys
 table = {"t-1": 30000, "t-2": 100000, "t-3": 100000, "t-4": 10000, "t-5": 100000, "r-1": 50000, "r-3": 200000,
          "s-1": 300000, "s-2": 300000, "s-3": 300000, "s-4": 300000, "s-5": 300000}
-json.dump({"v": 1, "scenarios": [{"id": k, "tables": {t: n for t in ("entities", "images", "references")}} for k, n in table.items()]}, open(sys.argv[1], "w"))
+# every stage states its preparation (section 7.4.5): a measurement stops before any container without it
+stages = [{"rps_total": r, "warmup_sec": 60, "warmup_basis": {"GET /x": 1.0}} for r in (0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0)]
+json.dump({"v": 1, "scenarios": [{"id": k, "tables": {t: n for t in ("entities", "images", "references")}, "stages": stages} for k, n in table.items()]}, open(sys.argv[1], "w"))
 PY
 gate "$pred"; expect_code "2 never committed: closed" 12 $?
 grep -q 'not tracked' "$work/gate.out" && pass "2b it says why" || fail "2b it says why"
@@ -200,9 +202,10 @@ expect_code "34 --trial=s-1: refused" 2 $rc
 mkpred() {  # mkpred <name> <json of the scenarios list>
   printf '{"v":4,"scenarios":%s}\n' "$2" >"$repo/poc/lab/predictions/$1.json"
 }
+WSTAGES='[{"rps_total":0.05,"warmup_sec":60,"warmup_basis":{"GET /x":1.0}}]'   # one stage that states its preparation (section 7.4.5)
 sc_of() {  # sc_of <count> <id>...: the scenarios list, every table at <count>
   local n="$1"; shift; local out="" id
-  for id in "$@"; do out="$out{\"id\":\"$id\",\"tables\":{\"entities\":$n,\"images\":$n,\"references\":$n}},"; done
+  for id in "$@"; do out="$out{\"id\":\"$id\",\"tables\":{\"entities\":$n,\"images\":$n,\"references\":$n},\"stages\":$WSTAGES},"; done
   printf '[%s]' "${out%,}"
 }
 mkpred b90k "$(sc_of 90000 s-1 s-2 s-3 s-4 s-5)"

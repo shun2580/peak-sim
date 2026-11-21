@@ -160,7 +160,7 @@ docker run --rm --pull=never --network none --cpuset-cpus="$cpuset" -u "$(id -u)
 check "7a phase: k6 ran phase.js to the end (exit 0)" test "$?" = 0
 check "7b phase: before the window's start is warmup, from the start up to the last millisecond of the window is measure" eq phase '[d["first"], d["before_edge"], d["at_start"], d["middle"], d["last_in"]]' '["warmup", "warmup", "measure", "measure", "measure"]'
 check "7c phase: a request sent at the window's end or later is after, not measure" eq phase '[d["at_end"], d["past_end"], d["long_after"]]' '["after", "after", "after"]'
-check "7d scenario.js decides the phase of a request with phaseAt of phase.js" grep -q "phaseAt(Date.now() - started, plan.warmup_sec, plan.duration_sec)" "$lab/load/scenario.js"
+check "7d scenario.js decides the phase of a request with phaseAt of phase.js" grep -q "phaseAt(sentAt - started, plan.warmup_sec, plan.duration_sec)" "$lab/load/scenario.js"
 
 echo
 echo "sent-count tests: $passed passed, $failed failed, $skipped skipped"

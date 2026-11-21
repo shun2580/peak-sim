@@ -19,7 +19,9 @@ declare(strict_types=1);
  *                                                 still printed, the mismatches go to stderr, exit 4): unlimited = max_execution_time 0,
  *                                                 request_terminate_timeout 0, fastcgi_read_timeout >= --k6-timeout; limited =
  *                                                 max_execution_time 30
- *   php ladder.php shape --scheme=<spec|A|B> --rps=<n>   "<duration> <warmup>" in seconds of a step under the scheme
+ *   php ladder.php shape --scheme=<spec|A|B> --rps=<n> [--warmup=<s>]   "<duration> <warmup>" in seconds of a step under the scheme
+ *                                                 (--warmup: the discarded start the prediction file states for the step, a whole number of seconds,
+ *                                                 60 or more; without it 60. The kept window is the same either way)
  *   php ladder.php stagger --scheme=<spec|A|B> <plan.json>   the plan with each route's start time and planned count (JSON)
  *   php ladder.php preview <plan.json>            what the plan would count in the kept window if the requests arrived evenly (JSON)
  *   php ladder.php table --dir=<dir of rung-NN-<rps>/plan.json>
@@ -154,8 +156,11 @@ switch ($command) {
         exit(0);
 
     case 'shape':
+        if (isset($opts['warmup']) && preg_match('/^[1-9][0-9]{0,5}$/', $opts['warmup']) !== 1) {
+            fail('--warmup must be a whole number of seconds (got "' . $opts['warmup'] . '")');
+        }
         try {
-            $shape = LadderShape::shape($opts['scheme'] ?? LadderShape::SPEC, (float) ($opts['rps'] ?? 0));
+            $shape = LadderShape::shape($opts['scheme'] ?? LadderShape::SPEC, (float) ($opts['rps'] ?? 0), isset($opts['warmup']) ? (int) $opts['warmup'] : null);
         } catch (InvalidArgumentException $e) {
             fail($e->getMessage());
         }
