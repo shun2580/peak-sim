@@ -1,0 +1,6 @@
+s-1: 15 stages, warmup_sec [573], basis ['GET /books/{bookSlug}/export/zip'], dropped ['GET /books/{slug}']
+s-2: 15 stages, warmup_sec [573], basis ['GET /books/{bookSlug}/export/zip'], dropped ['GET /books/{slug}']
+s-3: 15 stages, warmup_sec [573], basis ['GET /books/{bookSlug}/export/zip'], dropped ['GET /books/{slug}']
+s-4: 15 stages, warmup_sec [573], basis ['GET /books/{bookSlug}/export/zip'], dropped ['GET /books/{slug}']
+s-5: 15 stages, warmup_sec [573], basis ['GET /books/{bookSlug}/export/zip'], dropped ['GET /books/{slug}']
+612 checks ok, 0 failed

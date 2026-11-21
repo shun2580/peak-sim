@@ -1,0 +1,6 @@
+# the prediction tool was run twice on the same inputs (same estimate commit, same scenario file, same flags); the two outputs compared with cmp
+run1 start: 2026-11-21T20:22:49+09:00
+run2 start: 2026-11-21T20:22:49+09:00
+sha256 run1: be0076be321139ebe87b762e971b621875d14c0f1be0130d39e6be64eaab3808
+sha256 run2: be0076be321139ebe87b762e971b621875d14c0f1be0130d39e6be64eaab3808
+cmp exit=0

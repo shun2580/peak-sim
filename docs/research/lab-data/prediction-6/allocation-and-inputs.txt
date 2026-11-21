@@ -1,0 +1,16 @@
+# checks made on the prediction file before it was committed (read from the file; no part of it was compared with a measurement)
+estimate_commit 9fe817abe810bfc2f0a2d3448ebeb099c47bc3ee | expected 9fe817a | is_expected True
+estimate.json sha256 in file b58fa619899fe456b77ad9e17328d5912c1f364294d99e3307dfab20ce9634ca | committed file b58fa619899fe456b77ad9e17328d5912c1f364294d99e3307dfab20ce9634ca | equal True
+estimates_for_marks [('main', 180000, '9fe817a')]
+allocation enabled True | half request timeout s 900.0
+s-1 dropped ['GET /books/{slug}'] reasons [['placeholders']] | longest GET /books/{bookSlug}/export/zip 572.68 s (<= 900: True ) | groups_changed 1 | warmup_sec [573] | stages 15
+s-2 dropped ['GET /books/{slug}'] reasons [['placeholders']] | longest GET /books/{bookSlug}/export/zip 572.68 s (<= 900: True ) | groups_changed 1 | warmup_sec [573] | stages 15
+s-3 dropped ['GET /books/{slug}'] reasons [['placeholders']] | longest GET /books/{bookSlug}/export/zip 572.68 s (<= 900: True ) | groups_changed 1 | warmup_sec [573] | stages 15
+s-4 dropped ['GET /books/{slug}'] reasons [['placeholders']] | longest GET /books/{bookSlug}/export/zip 572.68 s (<= 900: True ) | groups_changed 1 | warmup_sec [573] | stages 15
+s-5 dropped ['GET /books/{slug}'] reasons [['placeholders']] | longest GET /books/{bookSlug}/export/zip 572.68 s (<= 900: True ) | groups_changed 1 | warmup_sec [573] | stages 15
+top-level warmup block {"enabled": true, "minimum_sec": 60, "rule": "the warm-up (the discarded start) of a stage is the largest, over the routes in the stage's mix after the allocati
+s-1 limit_rps point/safe/naive 0.1782 0.1781 2.1964 | first stage over 0.8 (point): 7 rps 0.2
+s-2 limit_rps point/safe/naive 0.0955 0.0954 2.1964 | first stage over 0.8 (point): 5 rps 0.1
+s-3 limit_rps point/safe/naive 0.3816 0.3815 2.1964 | first stage over 0.8 (point): 9 rps 0.45
+s-4 limit_rps point/safe/naive 0.1273 0.1272 2.1964 | first stage over 0.8 (point): 6 rps 0.15
+s-5 limit_rps point/safe/naive 0.5088 0.5087 2.1964 | first stage over 0.8 (point): 10 rps 0.7
