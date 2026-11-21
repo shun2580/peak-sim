@@ -2717,26 +2717,26 @@ D235 は、A(240,000 件)の 3 つの測りの終わりに、道具が自前の 
   - **いま残っている本番の DB**:ラボの `peak-lab-dbdata`(B の 170,000 件)、切れた 1 回目の BookStack の DB(コンテナ `peak-t5a-bs-measure-db-1` とその匿名 volume `30334340cea5…`)。どちらも、最終報告が受け入れられるまで消さない。切れた 1 回目の DB は匿名 volume で、新しい守り(名前付き volume のラベルで探す)には見えない。**受け入れまで、project `peak-t5a-bs` で `bin/stack up` も `bin/stack down --purge` も打たぬこと**(`--purge` を明示した道ゆえ、その匿名 volume も消える)。
   - **このため、A の BookStack の重い値 4 本の原因は、同じ DB ではもう調べられない**。D235 の重い値 4 本(`GET /books/{slug}/references` 168,207・`GET /shelves/{slug}/references` 324,204・`PUT /shelves/{slug}` 504,226・`PUT …/revisions/{revId}/restore` 324,245。いずれも各ルートの 4 つの冷えた値のうち、繰り返しの 3 周目の 1 回だけに出た)は、その値を出した DB(project `peak-t5a-var-a4var240k-db1`)が消えたため、同じ DB で測り直すことができない。切れた 1 回目の DB は別の DB で、「同じ DB」ではない。原因は調べておらず、不明のまま残る。A の記録の README(`docs/research/extrapolation-data-4/measured-240000/README.md`)にも同じことを書いた。
 
-#### 2. 履歴の内部語:書き換えは 3664c75 以降の 7 本だけ(2 件目の裁定。文面 08:50・受けたのは 08:48)
+#### 2. 履歴の内部語:書き換えは b5b5f12 の後の 7 本だけ(2 件目の裁定。文面 08:50・受けたのは 08:48)
 
-- **経緯**:1 件目の裁定は、push の前に 3664c75 以降の履歴を書き換え、内部語の検索が全 commit で 0 になること、予測の commit f52f692 の中身が変わらぬことを確かめよ、と定めていた。書き換えの前の下調べで、内部語は f52f692 とその先祖にも、f52f692 と 3664c75 の間にも、広く当たることが分かった(最初の commit から入っている)。「全 commit で 0」は「f52f692 より前は書き換えない」と両立しない。止まってメンテナーに伺ったところ、**1 件目の「全 commit で 0」はメンテナーの書き方の誤りであり、2 件目で次のとおり改める**と裁定された。
+- **経緯**:1 件目の裁定は、push の前に b5b5f12 の後の履歴を書き換え、内部語の検索が全 commit で 0 になること、予測の commit f52f692 の中身が変わらぬことを確かめよ、と定めていた。書き換えの前の下調べで、内部語は f52f692 とその先祖にも、f52f692 と、b5b5f12 の後の 7 本の間にも、広く当たることが分かった(最初の commit から入っている)。「全 commit で 0」は「f52f692 より前は書き換えない」と両立しない。止まってメンテナーに伺ったところ、**1 件目の「全 commit で 0」はメンテナーの書き方の誤りであり、2 件目で次のとおり改める**と裁定された。
 - **裁定の内容と実施**
-  1. 履歴を書き換えたのは **3664c75 以降の 7 本だけ**(3664c75・1bddff5・170a28b・14c31ba・1c35955・fea297d・ec17206)。確かめは「その 7 本の追加行とメッセージに内部語の当たり 0」とした。
-  2. **a513080 とそれより前は書き換えていない**。a513080 を書き換えれば、a513080 自身の hash が変わり、a513080 と 3664c75 の間の commit(b5b5f12)の hash も変わって、文書がその hash を名指す所が切れるため。
-  3. 書き換えの前の main を指す印として、枝 `backup/before-rewrite-20261121`(= ec17206)を残した。実在を照合した(`git rev-parse` が ec17206 の全桁を返す)。ほかに残る枝も、**どれも push せぬ**:`rewrite/main-20261121`(1 回目の書き換え。下の漏れがある)・`rewrite/main-20261121b`(2 回目の書き換え。今の main の元で、先端は a95a5a0)・`fix/teardown-keep-volumes`(道具の直しの元)。いずれも消していない。
+  1. 履歴を書き換えたのは **b5b5f12 の後の 7 本だけ**(下の表の 7 本)。確かめは「その 7 本の追加行とメッセージに内部語の当たり 0」とした。
+  2. **a513080 とそれより前は書き換えていない**。a513080 を書き換えれば、a513080 自身の hash が変わり、a513080 の子 b5b5f12 の hash も変わって、文書がその hash を名指す所が切れるため。
+  3. 書き換えの前の main を指す印として、枝 `backup/before-rewrite-20261121`を残した。実在を `git rev-parse` で照合した。ほかに残る枝も、**どれも push せぬ**:`rewrite/main-20261121`(1 回目の書き換え。下の漏れがある)・`rewrite/main-20261121b`(2 回目の書き換え。今の main の元で、先端は a95a5a0)・`fix/teardown-keep-volumes`(道具の直しの元)。いずれも消していない。
   4. **1 回目の書き換えには漏れがあった**。命の番号を下線の無い綴りで書いた路(run_scripts の名など)を、確かめの型が拾わず、追加行に当たりが残った。そのため 7 本を**元から作り直した**(2 回目)。確かめの型は、下線の有無を問わず命の番号を拾う形に広げた(追加行・メッセージとも、大文字小文字を問わない)。
-  5. 書き換えの後、repo の文書・記録が名指す commit の hash がどれも今の履歴にあり、main から辿れること(`git cat-file -e` と `git merge-base --is-ancestor`)を確かめた。書き換えた 7 本が互いを名指す所は、新しい hash に直した(下の対応表)。**この表の左の列(書き換え前の hash)だけは、新しい履歴の先祖でなく、名指す目的で書いている**。
-  6. 書き換えの前後の対応(作者と作成者の名前・メール・日時、メッセージの全文は 7 本とも同一。書き換えの前の 7 本は `backup/before-rewrite-20261121` から辿れる):
+  5. 書き換えの後、repo の文書・記録が名指す commit の hash がどれも今の履歴にあり、main から辿れること(`git cat-file -e` と `git merge-base --is-ancestor`)を確かめた。書き換えた 7 本が互いを名指す所は、新しい hash に直した(下の表)。**書き換え前の hash は、この文書にも repo の木のどこにも書かない**(印の枝が指す hash も書かない。書けば、push の後は在らぬ commit を指すため)。書き換え前の hash と書き換え後の hash の対応表は、repo の外の記録に置いてある(repo には入れない)。
+  6. 書き換えた後の 7 本(作者と作成者の名前・メール・日時、メッセージの全文は、書き換えの前の 7 本と同一。下の表の日時は、元と同じ日時である。書き換えの前の 7 本は `backup/before-rewrite-20261121` から辿れる):
 
-     | 書き換え前 | 書き換え後 | author と committer の日時 | 件名 |
-     |---|---|---|---|
-     | 3664c75 | 0c8fc47 | 2026-11-21T03:05:57+09:00 | docs: record the measured outputs of test A at 240,000 rows |
-     | 1bddff5 | da357c5 | 2026-11-21T03:08:12+09:00 | docs: record how B at 170,000 rows and A at 240,000 rows were measured as D233 |
-     | 170a28b | cc4cf4e | 2026-11-21T03:08:48+09:00 | docs: add the tool-copy diff to D233 and drop internal terms from it |
-     | 14c31ba | f1ba9ee | 2026-11-21T03:17:59+09:00 | docs: mask internal names in the test A records at 240,000 rows |
-     | 1c35955 | 438dbe7 | 2026-11-21T03:20:58+09:00 | docs: record the verdict of test A at 240,000 rows as D235 |
-     | fea297d | 921c20a | 2026-11-21T03:20:58+09:00 | docs: add the result of test A at 240,000 rows |
-     | ec17206 | b245767 | 2026-11-21T03:24:54+09:00 | docs: add the verdict outputs of test A at 240,000 rows |
+     | 書き換え後 | author と committer の日時 | 件名 |
+     |---|---|---|
+     | 0c8fc47 | 2026-11-21T03:05:57+09:00 | docs: record the measured outputs of test A at 240,000 rows |
+     | da357c5 | 2026-11-21T03:08:12+09:00 | docs: record how B at 170,000 rows and A at 240,000 rows were measured as D233 |
+     | cc4cf4e | 2026-11-21T03:08:48+09:00 | docs: add the tool-copy diff to D233 and drop internal terms from it |
+     | f1ba9ee | 2026-11-21T03:17:59+09:00 | docs: mask internal names in the test A records at 240,000 rows |
+     | 438dbe7 | 2026-11-21T03:20:58+09:00 | docs: record the verdict of test A at 240,000 rows as D235 |
+     | 921c20a | 2026-11-21T03:20:58+09:00 | docs: add the result of test A at 240,000 rows |
+     | b245767 | 2026-11-21T03:24:54+09:00 | docs: add the verdict outputs of test A at 240,000 rows |
 
      書き換えた 7 本は a513080 の子 b5b5f12 の上に、この順で一直線に並ぶ。その上に道具の直しの 3 本(09514cd・2935949・a95a5a0)が載る。
   7. **f52f692 の hash は変わっていない。予測 4 ファイルの blob の SHA-256 も変わっていない**:`poc/lab/predictions/extrapolation-4-fixtures-estimate.json` = `27b5109546920e38008d1224b7288b4377c245800532dd17c720aa073a345335`・`…-fixtures-marked.json` = `4b96cfcd034204c1948ebaacef866d1b57d4de72cce8230438c70fcf8290eaef`・`…-bookstack-estimate.json` = `8c6f11dcf28b2a6ef6c6a3207aa0b53397e0ca3650bb17f4dbd6c29bddda6d10`・`…-bookstack-marked.json` = `63cb2e67ceef2b44c7cefe5ea907dcc02ead47fc0c19d82ee62edca0c32f7000`。f52f692 と a513080 は今の main の先祖である。予測が測りより前、の時刻の証拠(f52f692 は 2026-11-19 17:40:41・最初の要求は 2026-11-20 06:46:30)は崩れていない。
@@ -2752,7 +2752,7 @@ D235 は、A(240,000 件)の 3 つの測りの終わりに、道具が自前の 
 
 #### 3. 判定の出力の置き場(D235 を補う。D235 は書き換えない)
 
-D235 の末尾は、判定の出力(`a-verdict`・`compare`・`order`)の SHA-256 を結果の文書 §4.1 に書いたとする。それらの置き場は `docs/research/extrapolation-data-4/compare/` で、commit は `b245767`(書き換えの前の hash は ec17206)。D235 の記録欄が commit の hash を書いていないので、ここで補う。
+D235 の末尾は、判定の出力(`a-verdict`・`compare`・`order`)の SHA-256 を結果の文書 §4.1 に書いたとする。それらの置き場は `docs/research/extrapolation-data-4/compare/` で、commit は `b245767`。D235 の記録欄が commit の hash を書いていないので、ここで補う。
 
 #### 変わらないもの
 
