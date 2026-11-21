@@ -1,0 +1,17 @@
+== 2026-11-21T23:57:04+09:00 use-db 180000
+peak-b180k-tools: PASS positive login:measure                logged in as the measurement user
+peak-b180k-tools: PREFLIGHT OK
+PASS peak-b180k-web: 1.1.1.1:443 is unreachable
+PASS peak-b180k-web: 8.8.8.8:53 is unreachable
+PASS peak-b180k-web: http://example.com is unreachable
+PASS peak-b180k-web: the app (lab-app:9000) (positive control)
+PASS peak-b180k-k6: 1.1.1.1:443 is unreachable
+PASS peak-b180k-k6: 8.8.8.8:53 is unreachable
+PASS peak-b180k-k6: http://example.com is unreachable
+PASS peak-b180k-k6: the web server (/__lab/health) (positive control)
+PASS peak-b180k-db: 1.1.1.1:443 is unreachable
+PASS peak-b180k-db: 8.8.8.8:53 is unreachable
+PASS peak-b180k-db: the name example.com is unreachable
+PASS peak-b180k-db: its own port (3306) (positive control)
+PREFLIGHT OK
+rc=0
