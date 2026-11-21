@@ -18,3 +18,7 @@ EXPLAIN (36 routes have an estimate; `GET /oidc/callback` has no entry in the EX
 
 Files: `sha256.txt` (all inputs and outputs of the run), `order_record.txt` (the tools started, with times), `fixtures/`, `bookstack/`.
 How it was made is in D202.
+
+## Changes to the copies
+
+- After the first commit the copies in this directory were changed again, to take the names of the working environment out. The sha256 given here is of each file as it was committed before this change, so these files no longer have the bytes the tools wrote. The home directory of the working machine is written `<home>`; in directory, volume and label names the short word that named the operator's task before a number is written `run-` (the number and the rest of the name are kept, so one place has one name in every file, for example `run-281t6b`, `run-277t6`, `run-277_recapture2`); these names differ from the paths the runs really used. Only the `*.wall.txt` files of `measured/` held such names (the directory of the tool copy under the trials' `_scratch/`). The same names are written the same way in `../extrapolation-data-4/measured-240000/`. sha256 before, and the number of lines changed: `measured/bookstack.wall.txt` 28878b14ccffad5ea9ecffbd6734eed94070bc428a70be26453186559bb5608b (1 line); `measured/fixtures.wall.txt` 9ac56222076ba3d1220b75e99cf8047c7c4593696a2ee8c859bef1fa319e5b08 (1 line); `measured/repeat.wall.txt` 8145209c7d1d11b75c32cb37712c6c1b6935cdb8cc8f1e3fb03e8f7b75b9bbb4 (1 line).
