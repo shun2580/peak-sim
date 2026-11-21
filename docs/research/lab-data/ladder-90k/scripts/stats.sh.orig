@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # read-only: innodb_table_stats of the scale's DB, with a time and a label -> appended to $2
 set -uo pipefail
-source /home/nishikawa/projects/peak-sim/poc/lab/bin/_lab.sh
+source <home>/projects/peak-sim/poc/lab/bin/_lab.sh
 scale="$1"; file="$2"; label="$3"
 name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
 now="$(date '+%F %T')"

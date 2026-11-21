@@ -12,7 +12,7 @@ if [ "${3:-}" = "before-s-5" ]; then
     echo "$(date -Is) RESUME-s-5 found, continuing to s-5" >> "$glog"
   fi
 fi
-source /home/nishikawa/projects/peak-sim/poc/lab/bin/_lab.sh
+source <home>/projects/peak-sim/poc/lab/bin/_lab.sh
 scale="$1"; file="$2"; label="$3"
 name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
 now="$(date '+%F %T')"
