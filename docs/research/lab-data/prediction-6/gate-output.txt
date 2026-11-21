@@ -1,0 +1,11 @@
+# output of poc/lab/bin/prediction-gate on poc/lab/predictions/ladder-prediction-6-b180k.json, run right after the prediction's commit
+gate run at: 2026-11-21T20:24:36+09:00 (date -Is just before the run)
+git log -1 --format='%H %cI' of the commit: 79e38f2944ba2d62ab5694d91534a1f88d49d430 2026-11-21T20:24:36+09:00
+sha256 of the file: be0076be321139ebe87b762e971b621875d14c0f1be0130d39e6be64eaab3808
+estimate commit (E): 9fe817abe810bfc2f0a2d3448ebeb099c47bc3ee 2026-11-21T20:22:41+09:00
+
+gate output:
+PREDICTION OK poc/lab/predictions/ladder-prediction-6-b180k.json 79e38f2944ba2d62ab5694d91534a1f88d49d430 2026-11-21T20:24:36+09:00
+
+the same gate in the run copy (the prediction cherry-picked there), tool tree equal to the original but for the names (reverse replacement diff empty):
+PREDICTION OK poc/lab/predictions/ladder-prediction-6-b180k.json d5aa06710f888c6d3cc6fb0cb8dc23bb6408f572 2026-11-21T20:24:47+09:00
