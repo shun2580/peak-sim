@@ -48,7 +48,7 @@ final class LabSettings
     /** The PHP limit of the mark, in seconds (the lab's default, left as it is for the mark; docs/simulator-spec.md section 6.4). */
     public const LIMITED_PHP_SECONDS = 30;
 
-    /** The PHP memory limit B is measured with (2026-11-16 lord's ruling, spec 7.4.2, D206/D208): 4G, so that a heavy route is not cut at 512M. */
+    /** The PHP memory limit B is measured with (2026-11-16 maintainer's ruling, spec 7.4.2, D206/D208): 4G, so that a heavy route is not cut at 512M. */
     public const UNLIMITED_MEMORY_BYTES = 4 * 1024 * 1024 * 1024;
 
     /** The PHP memory limit of the lab by default, left as it is for the mark (spec 7.4.2): 512M. */

@@ -53,7 +53,7 @@ return [
             'assumptions' => [],
             'events_found' => '>=1',
         ],
-        // The relation was not loaded with the model (nothing, or another relation): the lazy load is still found. (cmd_248 INV2)
+        // The relation was not loaded with the model (nothing, or another relation): the lazy load is still found. (real-app trial, INV2)
         '/promoted-lazy' => [
             'query' => 'O(N)',
             'memory' => 'O(N)',

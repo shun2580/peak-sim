@@ -8,7 +8,7 @@ use PeakSim\Binding\ProviderBindingTable;
 use PeakSim\Model\EventKind;
 use PeakSim\Model\GapCode;
 
-/** How the engine follows what BindingTable returns (karo relay: QC ruling on PB). */
+/** How the engine follows what BindingTable returns (operator relay: QC ruling on PB). */
 final class BindingChainTest extends EngineCase
 {
     private const ACT = "<?php\nnamespace App;\nclass Act\n{\n    public function __construct(private readonly A \$a) {}\n    public function run()\n    {\n        return \$this->a->all();\n    }\n}\n";

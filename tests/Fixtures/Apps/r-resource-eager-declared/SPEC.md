@@ -4,7 +4,7 @@
 constructor argument it also hands to `parent::__construct()`) reads that very model. When the model came from a query that
 loaded the relation (`Order::with('customer')`), `$this->order->customer` runs no query. The tool used to read the property by
 its declared type alone, which made a fresh model without the loaded relations, and reported a lazy load per element that does
-not exist (found by cmd_248 REM2 on a real app). The lazy loads that do exist must stay found: this case holds both sides.
+not exist (found by the real-app trial, REM2, on a real app). The lazy loads that do exist must stay found: this case holds both sides.
 
 Read `../_kit/SPEC.md` first (shared layout, standard models, rules). Only the differences are listed here.
 The standard `app/Models/Order.php` is used as is (no `owner()` accessor).

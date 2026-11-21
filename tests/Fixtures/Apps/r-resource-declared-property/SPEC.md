@@ -2,7 +2,7 @@
 
 **Purpose.** A JsonResource that keeps the model in its own property (promoted or declared) and reads a relation from it
 lazy-loads once per element, exactly like `$this->customer` or `$this->resource->customer`. The tool used to report
-`O(1)`, confidence high, no gap and no lazy-load event for every `$this->order->customer` form (found by cmd_248 INV2).
+`O(1)`, confidence high, no gap and no lazy-load event for every `$this->order->customer` form (found by the real-app trial, INV2).
 
 Read `../_kit/SPEC.md` first (shared layout, standard models, rules). Only the differences are listed here.
 

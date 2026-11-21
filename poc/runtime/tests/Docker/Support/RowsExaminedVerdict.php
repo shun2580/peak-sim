@@ -9,7 +9,7 @@ namespace PeakSim\Runtime\Tests\Docker\Support;
  * can bind it with hand-written expectations.
  *
  * A route is accepted ('ok') only when all of these hold, and the first one that does not is named:
- *   1. no scan statement reads more than the fixed cap above the server's count (the Lord's ruling: a statement over
+ *   1. no scan statement reads more than the fixed cap above the server's count (the maintainer's ruling: a statement over
  *      the cap fails the test, whatever the route's total looks like);
  *   2. the figure is fully accounted for by the statements the tap saw (nothing is left over);
  *   3. the total is within the limit of the server's count on the statements that are still compared (a difference of

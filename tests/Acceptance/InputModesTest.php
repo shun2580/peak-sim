@@ -47,7 +47,7 @@ final class InputModesTest extends TestCase
     private function stubCommand(): string
     {
         $stub = MiniAppWorkspace::projectRoot() . '/tests/Support/artisan-stub/artisan';
-        $this->assertFileExists($stub, 'the stub artisan (足軽6号 H2) is not there yet');
+        $this->assertFileExists($stub, 'the stub artisan (worker H2) is not there yet');
 
         return escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($stub);
     }

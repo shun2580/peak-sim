@@ -1,6 +1,6 @@
 # r-resource-plaint-property-gap
 
-**Purpose.** Guards for the D21 rule around the declared-property fix (cmd_248 FIX3): a property read on a value that is
+**Purpose.** Guards for the D21 rule around the declared-property fix (real-app trial, FIX3): a property read on a value that is
 not an object the tool knows (a column value, a property with no declared type) is a gap and makes the axes unknown; it is
 never passed through silently. A call the tool cannot follow (a vendor object held in a promoted property) stays a gap too.
 

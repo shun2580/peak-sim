@@ -1,4 +1,4 @@
-# ng-deep test log (subtask_243_T2_ng_deep). Env info scrubbed: <scrubbed>
+# ng-deep test log (T2 ng-deep). Env info scrubbed: <scrubbed>
 # command: docker compose -p peak-sim-<name> exec -T php-dev sh -c 'cd fixtures/laravel-app && php artisan test --no-ansi --filter "Tests.Feature.Ng.Deep"'
 PHP 8.3.36 (cli) (built: Oct 28 2026 01:26:49) (NTS)
 Laravel Framework 13.39.0

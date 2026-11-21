@@ -12,9 +12,6 @@
 # Local work area (scratch Laravel projects, etc.)
 .work/
 
-# Local shogun working files (never committed)
-.shogun/
-
 # Logs and caches
 *.log
 !docs/research/fixture-measurements/*.log
