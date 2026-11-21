@@ -1,0 +1,14 @@
+tool_head=20a127abdc836c17751f090bb8e08b6ddc332995 (git archive poc/runtime poc/lab/bin merge_inputs.py)
+estimate_tool_last_touch=09514cd (teardown volume only); last change to Estimate/Explain/EstimateFormulas/estimate/marked-routes = bf39716 (git diff bf39716 HEAD over those paths is empty)
+now=2026-11-21T20:16:47+09:00
+decision=2026-11-21T20:16:47+09:00 small-scale of the EXPLAIN comparison for B = one tenth of the target = 18,000 at 180,000 (as 17,000 at 170,000 in the fifth round, D201 practice); fixed before any EXPLAIN of this count was taken
+start_explain_b=2026-11-21T20:16:47+09:00 capture=<home>/projects/peak-sim-trials/_out/run-277_recapture2/bookstack capture_sha=69f08fcad32bdd31367747d8231dab69df32596a837876253169eda88807d839 tasks_sha=2dd8145996fc89e35a2af7d938f5b57597683fbbc9c542f68feaed4cdbd7f815
+end_explain_b=2026-11-21T20:19:46+09:00 exit=0
+start_predict=2026-11-21T20:19:59+09:00
+end_predict=2026-11-21T20:19:59+09:00
+start_estimate_1=2026-11-21T20:19:59+09:00
+end_estimate_1=2026-11-21T20:20:00+09:00
+start_estimate_2=2026-11-21T20:20:00+09:00
+end_estimate_2=2026-11-21T20:20:01+09:00
+start_marked=2026-11-21T20:20:01+09:00
+end_marked=2026-11-21T20:20:01+09:00
