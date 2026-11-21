@@ -25,7 +25,7 @@ check-limits limited rc=0
 }
 (empty above = compose files at default)
 == stop stack (volume kept) 2026-11-19T03:00:25+09:00 ==
-open /home/nishikawa/projects/peak-sim/poc/lab/compose/compose.yaml: no such file or directory
+open <home>/projects/peak-sim/poc/lab/compose/compose.yaml: no such file or directory
 peak-lab-web Up 13 seconds
 peak-lab-app Up 13 seconds
 peak-lab-tools Up 2 hours

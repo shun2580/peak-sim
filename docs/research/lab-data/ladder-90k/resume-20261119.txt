@@ -52,7 +52,7 @@ COMMIT d4c350f 2026-11-17 09:21:47 +0900 docs: record the mark measurement at 15
  .../lab-data/mark-150k/web-log-after-mark.txt      |    0
  20 files changed, 1957 insertions(+)
 -- 4 RESUME-s-5 / stats.sh sha
-ls: cannot access '/home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5': No such file or directory
+ls: cannot access '<home>/.cache/peak-lab/out/run-284t5b/RESUME-s-5': No such file or directory
 a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
 a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
 -- 5 chain process

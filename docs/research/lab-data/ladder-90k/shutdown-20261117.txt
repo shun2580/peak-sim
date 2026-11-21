@@ -18,11 +18,11 @@ peak-lab-db	Exited (137) 4 seconds ago
 2026-11-17T20:14:25+09:00 END s-4 exit=0
 2026-11-17T20:14:26+09:00 RECREATE app/web before s-5 (use-db 90000)
 2026-11-17T20:14:42+09:00 recreated and checked before s-5
-2026-11-17T20:14:42+09:00 PAUSED before s-5 (maintainer's request): waiting for /home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5
+2026-11-17T20:14:42+09:00 PAUSED before s-5 (maintainer's request): waiting for <home>/.cache/peak-lab/out/run-284t5b/RESUME-s-5
 2026-11-17T20:15:42+09:00 PAUSED by the maintainer's order at 20:05 (end-of-day shutdown): s-4 done, chain is held at the before-s-5 guard; stopping the stack with volumes kept
 2026-11-17T20:15:46+09:00 stack stopped (docker compose stop, volume kept)
 -- 5 RESUME-s-5
-ls: cannot access '/home/nishikawa/.cache/peak-lab/out/cmd284t5b/RESUME-s-5': No such file or directory
+ls: cannot access '<home>/.cache/peak-lab/out/run-284t5b/RESUME-s-5': No such file or directory
 -- 6 stats.sh sha256
 a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh
 a808f07f230c1b226ac601d1ddee7f2ffd1b83b9908de8b828440880b3aab1d5  scripts/stats.sh

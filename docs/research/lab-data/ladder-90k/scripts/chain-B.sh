@@ -2,9 +2,9 @@
 # B (limits off: max_execution_time 0, memory_limit 4G, request timeout 600s) at 90,000 rows, scenarios s-1 .. s-5 in one chain.
 # The app and web containers are recreated (bin/use-db 90000) before s-2 .. s-5, after the app and web logs were copied.
 cd "$HOME/projects/peak-sim" || exit 1
-W=$HOME/.cache/peak-lab/out/cmd284t5b
+W=$HOME/.cache/peak-lab/out/run-284t5b
 export PEAK_LAB_OUT_DIR=$HOME/.cache/peak-lab/out PEAK_LAB_SCALE=90000
-CAP=$HOME/projects/peak-sim-trials/_out/cmd277_recapture2/bookstack/capture.json
+CAP=$HOME/projects/peak-sim-trials/_out/run-277_recapture2/bookstack/capture.json
 PRED=poc/lab/predictions/ladder-prediction-4-b90k.json
 # (a line that sent a note to another process of the working environment was here; replaced by this comment)
 snap() { # $1 = label: app / web logs, read-only copies
