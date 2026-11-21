@@ -1,0 +1,3 @@
+tool commit: 20a127abdc836c17751f090bb8e08b6ddc332995
+last commit that changed the builder files (poc/runtime/bin/inner/build-db.php, poc/runtime/src/Data/, poc/runtime/src/Measure/): 32d3640 (2026-11-19T12:20:31+09:00)
+git diff 20a127a HEAD over those paths: empty (0 lines)

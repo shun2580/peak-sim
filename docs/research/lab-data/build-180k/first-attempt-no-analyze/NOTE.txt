@@ -1,0 +1,1 @@
+The first ANALYZE attempt ran docker exec without -i, so the SQL never reached the server: analyze-output.txt is empty and last_update of every table is unchanged (the build's time). 0 ANALYZE TABLE statements ran. The files here are that attempt, kept.
