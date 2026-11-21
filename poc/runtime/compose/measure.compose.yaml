@@ -15,6 +15,9 @@ networks:
   measure-internal:
     internal: true
 
+volumes:
+  measure-dbdata: {}
+
 services:
   measure-db:
     image: mysql:8.4.7
@@ -27,6 +30,9 @@ services:
     volumes:
       - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-init:/docker-entrypoint-initdb.d:ro
       - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-conf:/etc/mysql/conf.d:ro
+      # A named volume (compose names it <project>_measure-dbdata), so a kept database can be found by its project label.
+      # bin/stack down keeps it; only down --purge removes it.
+      - measure-dbdata:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 3s

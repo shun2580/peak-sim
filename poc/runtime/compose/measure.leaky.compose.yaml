@@ -7,6 +7,9 @@ networks:
   measure-leaky:
     driver: bridge
 
+volumes:
+  measure-dbdata: {}
+
 services:
   measure-db:
     image: mysql:8.4.7
@@ -17,6 +20,7 @@ services:
       MYSQL_PASSWORD: ${PEAK_MEASURE_DB_PASSWORD:?set by bin/_stack.sh}
     volumes:
       - ${PEAK_REPO_ROOT:?set by bin/_stack.sh}/poc/runtime/compose/mysql-init:/docker-entrypoint-initdb.d:ro
+      - measure-dbdata:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 3s

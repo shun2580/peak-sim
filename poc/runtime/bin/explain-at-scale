@@ -58,7 +58,9 @@ usage: bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=
   --php-image=<name>     run the stack in this already built PHP image (never built or pulled here)
   --project-prefix=<p>   compose project prefix (default peak-eas; PEAK_COMPOSE_PROJECT in the environment names the project itself)
   --keep-db              do not drop each database after its plans are taken
-  --keep-stack           leave the stack up afterwards (tear it down with PEAK_COMPOSE_PROJECT=<project> bin/stack down)
+  --keep-stack           leave the stack up afterwards (tear it down with PEAK_COMPOSE_PROJECT=<project> bin/stack down, add --purge to drop the volume)
+  --purge                also remove the database volume when the run ends (without it the volume is kept: <project>_measure-dbdata);
+                         not with --keep-stack
   --help                 this text
 record, <out>/<label>/:
   run.txt  run.log  inputs/capture.json  inputs/tasks.json  plan.json  plan.groups  plan.profile  plan.data
@@ -81,7 +83,7 @@ fail_usage() {
   exit 2
 }
 
-capture="" tasks="" app="" scale="" small=10000 out="" label="explain" profile="" data="" base="" ntables="" image="" prefix="peak-eas" keep_db=0 keep=0
+capture="" tasks="" app="" scale="" small=10000 out="" label="explain" profile="" data="" base="" ntables="" image="" prefix="peak-eas" keep_db=0 keep=0 purge=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -100,10 +102,12 @@ for arg in "$@"; do
     --project-prefix=*) prefix="${arg#--project-prefix=}" ;;
     --keep-db) keep_db=1 ;;
     --keep-stack) keep=1 ;;
+    --purge) purge=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
   esac
 done
 
+[ "$keep" = 1 ] && [ "$purge" = 1 ] && fail_usage "--purge cannot be combined with --keep-stack (--keep-stack leaves the whole stack up)"
 [ -n "$capture" ] || fail_usage "--capture is required"
 [ -n "$tasks" ] || fail_usage "--tasks is required"
 [ -n "$app" ] || fail_usage "--app is required"
@@ -160,9 +164,12 @@ export PEAK_MEASURE_RUN_ID="$run_id"
 source "$here/_stack.sh"
 export PEAK_MEASURE_APP_KEY="$(peak_app_key_for_run "$run_id")"   # passed by name below: on no command line, never printed
 
+# Before the output goes to the record (a refusal is for the person at the terminal), and before the clean-up trap is set.
+refuse_if_kept_volume || { echo "finished=$(now_iso) exit=2" >> "$run_root/run.txt"; exit 2; }
+
 exec > >(tee -a "$run_root/run.log") 2>&1
 
-teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+teardown() { [ "$keep" = 1 ] || stack_down "$purge" >/dev/null 2>&1; }
 trap teardown EXIT
 
 mysql_root() { MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" compose exec -T -e MYSQL_PWD measure-db mysql -uroot -N -B "$@"; }

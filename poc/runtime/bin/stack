@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# up | down | ps | exec <args...> | build-image <name>
-#   Brings the measurement stack up or tears it down (volumes included).
+# up | down [--purge] | ps | exec <args...> | build-image <name>
+#   Brings the measurement stack up or tears it down. down removes the containers and the network and KEEPS the database
+#   volume (<project>_measure-dbdata); down --purge removes the volume as well. up refuses while that volume is still there.
 #   PEAK_PHP_IMAGE=<name> up   runs the stack in that PHP image (it must exist; nothing is built or pulled).
 #   PEAK_PHP_EXTENSIONS=gd,xsl build-image peak-measure-php-<app>:8.3
 #                              builds the measurement PHP image with those extensions under that name (PHP_VERSION,
@@ -24,10 +25,18 @@ build_image() {
 }
 
 case "${1:-}" in
-  up)   compose up -d --build --wait ;;
-  down) compose down -v --remove-orphans ;;
+  up)   refuse_if_kept_volume; compose up -d --build --wait ;;
+  down) shift
+        purge=0
+        for a in "$@"; do
+          case "$a" in
+            --purge) purge=1 ;;
+            *) echo "usage: bin/stack down [--purge]" >&2; exit 2 ;;
+          esac
+        done
+        stack_down "$purge" ;;
   ps)   compose ps ;;
   exec) shift; in_php "$@" ;;
   build-image) shift; build_image "${1:-}" ;;
-  *)    echo "usage: bin/stack up|down|ps|exec <php args...>|build-image <name>" >&2; exit 2 ;;
+  *)    echo "usage: bin/stack up|down [--purge]|ps|exec <php args...>|build-image <name>" >&2; exit 2 ;;
 esac

@@ -78,7 +78,9 @@ usage: bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [
   --watch-idle-seconds=N        no database statement and no output this long is said (default 1800)
   --source-commit=<hash> the commit the copy of the measurer was made from (recorded; default: git HEAD of the copy, or unknown; without it a tree with uncommitted changes is refused)
   --project-prefix=<p>   compose project prefix (default peak-var)
-  --keep-stack           leave the stacks up afterwards (tear them down with PEAK_COMPOSE_PROJECT=<project> bin/stack down)
+  --keep-stack           leave the stacks up afterwards (tear them down with PEAK_COMPOSE_PROJECT=<project> bin/stack down, add --purge to drop the volume)
+  --purge                also remove the database volume when the run ends (without it the volume is kept: <project>_measure-dbdata);
+                         not with --keep-stack
   --help                 this text
 record of one database, <out>/<label>/db<k>/:
   run.log  watch.log  alerts.log  plan.json  tasks.json
@@ -109,7 +111,7 @@ fail_usage() {
 
 app="" tasks="" scale="" out="" label="variance" routes="$T1_ROUTES" dbs=2 laps=3 parallel=0 image="" profile="bookstack"
 data="generator" base="" req_timeout=600 tap=on analyze=none notify="" w_interval=30 w_stmt=900 w_idle=1800 source_commit=""
-prefix="peak-var" keep=0 stats_auto=keep stats_tables="$T1_STATS_TABLES"
+prefix="peak-var" keep=0 purge=0 stats_auto=keep stats_tables="$T1_STATS_TABLES"
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -138,10 +140,12 @@ for arg in "$@"; do
     --source-commit=*) source_commit="${arg#--source-commit=}" ;;
     --project-prefix=*) prefix="${arg#--project-prefix=}" ;;
     --keep-stack) keep=1 ;;
+    --purge) purge=1 ;;
     *) fail_usage "unknown argument: $arg" ;;
   esac
 done
 
+[ "$keep" = 1 ] && [ "$purge" = 1 ] && fail_usage "--purge cannot be combined with --keep-stack (--keep-stack leaves the whole stack up)"
 [ -n "$app" ] || fail_usage "--app is required"
 [ -n "$tasks" ] || fail_usage "--tasks is required"
 [ -n "$scale" ] || fail_usage "--scale is required"
@@ -244,7 +248,8 @@ run_db() {
   [ "$profile" != none ] && profile_arg=("--profile=$profile")
   [ -n "$base" ] && base_arg=("--base=$base")
 
-  teardown() { [ "$keep" = 1 ] || compose down -v --remove-orphans >/dev/null 2>&1; }
+  refuse_if_kept_volume || return 2
+  teardown() { [ "$keep" = 1 ] || stack_down "$purge" >/dev/null 2>&1; }
   trap teardown EXIT
 
   echo "[$(now_iso)] db$k: project $project, run id $run_id"
