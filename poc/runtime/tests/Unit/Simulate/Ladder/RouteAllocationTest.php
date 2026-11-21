@@ -304,6 +304,106 @@ final class RouteAllocationTest extends TestCase
         }
     }
 
+    /* the warm-up of section 7.4.5 ------------------------------------------------------------------------------------------------------ */
+
+    /** @return array{int, string, string, \PeakSim\Runtime\Tests\Unit\Simulate\Load\RecordingIo} */
+    private static function runWarmupStep(string $yaml, ?float $timeout, bool $warmup): array
+    {
+        $io = Fixtures::io($yaml);
+        $out = fopen('php://memory', 'w+');
+        $err = fopen('php://memory', 'w+');
+        $next = new LadderStage('/est', Fixtures::SCENARIO_PATH, $out, $err, 'abc123', 'argument', $io, [], false, null, 1000, $timeout, $warmup);
+        $code = (new SimulateCommand($out, $err, $io, $next))->run(['--estimate=/est', '--scenario=' . Fixtures::SCENARIO_PATH, '--out=/out']);
+        rewind($err);
+
+        return [$code, '', (string) stream_get_contents($err), $io];
+    }
+
+    /** @return array<string, mixed> */
+    private static function warmupReport(string $yaml, ?float $timeout, bool $warmup): array
+    {
+        [$code, , $stderr, $io] = self::runWarmupStep($yaml, $timeout, $warmup);
+        self::assertSame(0, $code, $stderr);
+
+        return json_decode($io->files['/out/ladder-prediction.json'], true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    public function testWithTheWarmupFlagEveryStageHasTheWarmupOfTheRoutesThatStayInTheMix(): void
+    {
+        // GET /a is taken out (memory side); the limit of the app is far above any bound, so the report lists every route's bound
+        $limits = "  app_memory_limit: 10000\n  db_placeholder_limit: 65535\n  app_cpu_time_limit: 1000000\n";
+        $report = self::warmupReport(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }'], $limits), 1800.0, true);
+
+        $s = $report['scenarios'][0];
+        $this->assertSame(['GET /a'], array_column($s['allocation']['dropped_routes'], 'route'));
+        $bounds = array_column($s['app_limit_risk']['routes'], 'php_cpu_bound_s', 'route');
+        $kept = array_intersect_key($bounds, array_flip(array_keys($s['stages'][0]['rps'])));
+        $this->assertSame(['GET /axisless', 'POST /m'], array_keys($kept), 'the route taken out is not among those that count');
+        $this->assertCount(13, $s['stages']);
+        foreach ($s['stages'] as $row) {
+            $this->assertIsInt($row['warmup_sec']);
+            $this->assertSame(max(60, (int) ceil(max($kept))), $row['warmup_sec']);
+            $this->assertSame(array_search(max($kept), $kept, true), $row['warmup_basis']['route']);
+            $this->assertEqualsWithDelta(max($kept), $row['warmup_basis']['upper_bound_sec'], 1e-12);
+        }
+        $this->assertTrue($report['warmup']['enabled']);
+        $this->assertSame(60, $report['warmup']['minimum_sec']);
+        $this->assertSame(['rps_total', 'rps', 'utilization', 'naive', 'over_threshold', 'warmup_sec', 'warmup_basis'], array_keys($s['stages'][0]));
+    }
+
+    public function testTheMadeUpRoutesAreUnderSixtySecondsSoTheWarmupIsSixty(): void
+    {
+        $report = self::warmupReport(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']), 1800.0, true);
+
+        foreach ($report['scenarios'][0]['stages'] as $row) {
+            $this->assertSame(60, $row['warmup_sec']);
+            $this->assertNotNull($row['warmup_basis']['route']);
+        }
+    }
+
+    public function testWithoutTheWarmupFlagTheOutputIsTheOneOfTheAllocationAlone(): void
+    {
+        $yaml = self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']);
+        $without = self::warmupReport($yaml, 1800.0, false);
+        $with = self::warmupReport($yaml, 1800.0, true);
+
+        $this->assertArrayNotHasKey('warmup', $without);
+        $this->assertArrayNotHasKey('warmup_sec', $without['scenarios'][0]['stages'][0]);
+        unset($with['warmup']);
+        foreach ($with['scenarios'][0]['stages'] as &$row) {
+            unset($row['warmup_sec'], $row['warmup_basis']);
+        }
+        unset($row);
+        $this->assertSame($without, $with, 'the flag adds the warm-up and changes nothing else');
+    }
+
+    public function testTheWarmupIsDecidedFromThePredictionAloneAndNoObservationIsRead(): void
+    {
+        // the target's `observed` is never loaded, and the warm-up is the same whatever the calibration's observed utilisations are
+        $a = self::warmupReport(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']), 1800.0, true);
+        $yaml = str_replace('observed: { db_cpu_utilization: 0.194 }', 'observed: { db_cpu_utilization: 0.2 }', self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']));
+        $b = self::warmupReport($yaml, 1800.0, true);
+
+        $this->assertSame(array_column($a['scenarios'][0]['stages'], 'warmup_sec'), array_column($b['scenarios'][0]['stages'], 'warmup_sec'));
+    }
+
+    public function testARequestOverNineHundredSecondsStillStopsTheWarmupRunWithExit39(): void
+    {
+        [$code, , $stderr, $io] = self::runWarmupStep(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']), 0.02, true);
+
+        $this->assertSame(39, $code);
+        $this->assertStringContainsString('more than half of the request timeout', $stderr);
+        $this->assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
+    public function testTheWarmupNeedsTheAllocation(): void
+    {
+        [$code, , , $io] = self::runWarmupStep(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']), null, true);
+
+        $this->assertNotSame(0, $code);
+        $this->assertArrayNotHasKey('/out/ladder-prediction.json', $io->files);
+    }
+
     public function testTheLoadedInputIsNotTouchedByTheAllocation(): void
     {
         $io = Fixtures::io(self::yaml(['t-1' => '{ "GET /a": 4.0, "GET /axisless": 4.0, "POST /m": 2.0 }']));

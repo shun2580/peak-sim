@@ -67,14 +67,19 @@ final class LadderPrediction
      *                                                                                                                                 seconds; the routes the placeholder side or the memory side marks are taken out of every target's mix and their
      *                                                                                                                                 share is given to the rest of their group ({@see RouteAllocation}), and the run stops if a group is left empty or a
      *                                                                                                                                 request is predicted to take more than half of that timeout
+     * @param bool                                                                                                                $warmup      true (only with `$requestTimeoutS`): every stage gets `warmup_sec` and `warmup_basis` by {@see StepWarmup}
+     *                                                                                                                                 (simulator-spec.md section 7.4.5); false: the output has no trace of them
      *
      * @return array<string, mixed>
      *
      * @throws \InvalidArgumentException when there is no target scenario, no calibration scenario at `$naiveCount`, or the calibration cannot be made from the loaded input
      * @throws AllocationStop             with `$requestTimeoutS`: a limit it needs is not given, a group is left with no route, or a request is too long
      */
-    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, ?array $stages = null, ?float $requestTimeoutS = null): array
+    public static function build(array $loaded, CalibrationResult $calibration, array $inputs, int $naiveCount, ?array $stages = null, ?float $requestTimeoutS = null, bool $warmup = false): array
     {
+        if ($warmup && $requestTimeoutS === null) {
+            throw new \InvalidArgumentException('the warm-up is decided from the routes that stay in the mix after the allocation, so it needs the allocation (the request timeout of B)');
+        }
         $stages ??= self::stagesFor($loaded);
         $resources = (array) $loaded['resources'];
         $cores = (float) $resources['cores'];
@@ -144,7 +149,7 @@ final class LadderPrediction
                     $used = $made['scenario'];
                     $allocation = $made['record'] + ['longest_request' => RouteAllocation::longestRequest(array_values((array) $s['routes']), $pointCoefficients, $half)];
                 }
-                $made = self::scenario($used, $calibration, $width, $naiveBasis, $cores, $threshold, $stages);
+                $made = self::scenario($used, $calibration, $width, $naiveBasis, $cores, $threshold, $stages, $warmup && $pointCoefficients !== null ? StepWarmup::bounds(array_values((array) $used['routes']), $pointCoefficients) : null);
                 if ($coefficients !== null && $appLimit !== null) {
                     $made['app_limit_risk'] = AppLimitRisk::evaluate(array_values((array) $s['routes']), $coefficients, $appLimit);
                 }
@@ -201,6 +206,10 @@ final class LadderPrediction
             'half_request_timeout_s' => $half,
             'drop_rule' => RouteAllocation::DROP_RULE,
             'stop_rule' => RouteAllocation::STOP_RULE,
+        ]] : []) + ($warmup ? ['warmup' => [
+            'enabled' => true,
+            'minimum_sec' => StepWarmup::MINIMUM_SEC,
+            'rule' => StepWarmup::RULE,
         ]] : []);
     }
 
@@ -302,10 +311,11 @@ final class LadderPrediction
      * @param array<string, mixed>                                                      $scenario
      * @param list<array{id: string, rps_total: float, utilization: float}>             $naiveBasis
      * @param list<float>                                                               $stages
+     * @param array<string, float>|null                                                 $warmupBounds the CPU-time mark's bound of each route in the mix ({@see StepWarmup::bounds}); null: no warm-up is written
      *
      * @return array<string, mixed>
      */
-    private static function scenario(array $scenario, CalibrationResult $calibration, CalibrationWidth $width, array $naiveBasis, float $cores, float $threshold, array $stages): array
+    private static function scenario(array $scenario, CalibrationResult $calibration, CalibrationWidth $width, array $naiveBasis, float $cores, float $threshold, array $stages, ?array $warmupBounds = null): array
     {
         $own = self::rpsTotal($scenario);
         $ownPrediction = ScenarioPredictor::predict($scenario, $calibration, $cores, $threshold, null, $width);
@@ -334,7 +344,7 @@ final class LadderPrediction
                     'upper' => LimitSearch::exceeds($upper, $threshold),
                     'naive' => LimitSearch::exceeds($naive, $threshold),
                 ],
-            ];
+            ] + ($warmupBounds === null ? [] : StepWarmup::forStage($warmupBounds, $rps));
         }
 
         $marked = [];

@@ -78,6 +78,8 @@ final class LadderStage
      * @param string|null $expectedEstimateCommit the commit (or its start) the main estimate should come from; the output says whether it does
      * @param int|null    $naiveCount N_0: the count of rows the naive estimate is chosen at (calibration scenarios at exactly this count only); null stops with 37
      * @param float|null  $requestTimeoutS null: the mix is used as the file gives it. A number of seconds (B's request timeout, 1,800): take the marked routes out of the mixes (see above)
+     * @param bool        $warmup true (the flag `--warmup-from-marks`, only with `requestTimeoutS`): each stage of the prediction gets `warmup_sec` and `warmup_basis` ({@see StepWarmup},
+     *                    simulator-spec.md section 7.4.5); the stop 39 above is the stop of section 7.4.4 for a request over 900 s. Off: the output is byte for byte what it was
      */
     public function __construct(
         private readonly string $estimateDir,
@@ -92,6 +94,7 @@ final class LadderStage
         private readonly ?string $expectedEstimateCommit = null,
         private readonly ?int $naiveCount = null,
         private readonly ?float $requestTimeoutS = null,
+        private readonly bool $warmup = false,
     ) {
     }
 
@@ -179,7 +182,7 @@ final class LadderStage
             'scenario_sha256' => hash('sha256', $io->read($this->scenarioPath)),
         ];
         try {
-            $report = LadderPrediction::build($loaded, $calibration, $inputs, $this->naiveCount, null, $this->requestTimeoutS);
+            $report = LadderPrediction::build($loaded, $calibration, $inputs, $this->naiveCount, null, $this->requestTimeoutS, $this->warmup);
         } catch (AllocationStop $e) {
             fwrite($this->stderr, "predict-ladder: stop and report (no prediction is written):\n" . $e->getMessage() . "\n");
 

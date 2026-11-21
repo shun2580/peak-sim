@@ -5,7 +5,7 @@
 #
 #   poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows>
 #       [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>]
-#       [--drop-marked-routes [--request-timeout-s=<seconds>]]
+#       [--drop-marked-routes [--request-timeout-s=<seconds>] [--warmup-from-marks]]
 #
 # --naive-count=<rows> is N_0, the count of rows the naive estimate (section 7.3) is chosen at, e.g. --naive-count=10000: only the calibration
 # scenarios at exactly that count are candidates (cal-4, cal-5 and any other count are not). It is required and has no default: without it, or with
@@ -27,6 +27,12 @@
 # in the output says which routes were taken out, why, and the rps before and after. It stops with no prediction (exit 38) when a group is left with no
 # route, (39) when the php CPU time the model gives for one request of any route is above half of --request-timeout-s (default 1800, so over 900 s;
 # exactly 900 passes), or (40) when a limit it needs is not in the scenario file.
+# --warmup-from-marks (off by default; only with --drop-marked-routes, else exit 2; without it the output is byte for byte what it was) is the length of the discarded
+# start of a step of the sixth B (simulator-spec.md section 7.4.5): every stage of every scenario gets `warmup_sec` (a whole number of seconds, at least 60) and
+# `warmup_basis` (`route` and `upper_bound_sec`): the largest, over the routes that stay in the mix after the allocation, of the upper bound of one request's time that the
+# CPU-time mark gives (php_cpu_over_db x the larger of the point and the safe reading of the database time of one request), rounded up. It is worked out from the
+# prediction alone. A bound over 900 s (half of the request timeout) stops the run with exit 39 and no prediction, as in section 7.4.4. The top of the output
+# has a `warmup` block with the rule.
 # Uses the PHP on this machine if there is one; otherwise a throwaway container of the already built PHP image, no network, the inputs
 # mounted read-only and only the output directory writable. The image is never pulled.
 # exit codes: 0 done / 2 wrong usage / 3 an estimate is not committed and unchanged (and no --estimate-commit for the main one) / 11 no PHP and
@@ -38,10 +44,10 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/../../runtime" && pwd)"
-usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>] [--drop-marked-routes [--request-timeout-s=<seconds>]]"
+usage="usage: poc/lab/bin/predict-ladder --estimate=<estimate dir> --scenario=<scenario.yaml> --out=<output dir> --naive-count=<rows> [--safe-estimate=<estimate dir> ...] [--estimate-commit=<hash>] [--expect-estimate-commit=<hash>] [--drop-marked-routes [--request-timeout-s=<seconds>] [--warmup-from-marks]]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,36p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,42p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -53,6 +59,7 @@ expected="7c40774"
 naive_count=""
 drop=0
 timeout_s=""
+warmup=0
 safe=()
 for arg in "$@"; do
   case "$arg" in
@@ -63,6 +70,7 @@ for arg in "$@"; do
     --out=*) out="${arg#--out=}" ;;
     --naive-count=*) naive_count="${arg#--naive-count=}" ;;
     --drop-marked-routes) drop=1 ;;
+    --warmup-from-marks) warmup=1 ;;
     --request-timeout-s=*) timeout_s="${arg#--request-timeout-s=}" ;;
     --estimate-commit=*) commit="${arg#--estimate-commit=}" ;;
     *) echo "predict-ladder: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
@@ -73,8 +81,9 @@ if [ ! -f "$scenario" ]; then echo "predict-ladder: --scenario is not a readable
 if [ -z "$out" ]; then echo "predict-ladder: --out is required" >&2; echo "$usage" >&2; exit 2; fi
 if ! [[ "$naive_count" =~ ^[1-9][0-9]*$ ]]; then echo "predict-ladder: --naive-count=<rows> (N_0) is required, a positive whole number" >&2; echo "$usage" >&2; exit 2; fi
 if [ -n "$timeout_s" ] && [ "$drop" != 1 ]; then echo "predict-ladder: --request-timeout-s is for --drop-marked-routes only" >&2; echo "$usage" >&2; exit 2; fi
+if [ "$warmup" = 1 ] && [ "$drop" != 1 ]; then echo "predict-ladder: --warmup-from-marks is for --drop-marked-routes only" >&2; echo "$usage" >&2; exit 2; fi
 drop_opts=()
-if [ "$drop" = 1 ]; then drop_opts+=(--drop-marked-routes); [ -z "$timeout_s" ] || drop_opts+=("--request-timeout-s=$timeout_s"); fi
+if [ "$drop" = 1 ]; then drop_opts+=(--drop-marked-routes); [ -z "$timeout_s" ] || drop_opts+=("--request-timeout-s=$timeout_s"); [ "$warmup" != 1 ] || drop_opts+=(--warmup-from-marks); fi
 mkdir -p "$out"
 estimate="$(cd "$estimate" && pwd)"
 scenario="$(cd "$(dirname "$scenario")" && pwd)/$(basename "$scenario")"

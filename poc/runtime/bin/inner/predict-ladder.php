@@ -15,6 +15,8 @@ declare(strict_types=1);
 //                                      at it) the step stops with exit 37 and writes no prediction
 //   --drop-marked-routes               take the routes that the placeholder side or the memory side marks out of every target's mix and give their share to the
 //                                      rest of their group (simulator-spec.md section 7.4.4); off unless given. Stops (38, 39, 40) as LadderStage says
+//   --warmup-from-marks                with --drop-marked-routes: write `warmup_sec` and `warmup_basis` on every stage (the length of the discarded start from the
+//                                      CPU-time mark's bound of the routes that stay in the mix, at least 60 s; simulator-spec.md section 7.4.5); off unless given
 //   --request-timeout-s=<seconds>      with --drop-marked-routes: the request timeout of B (default 1800); a request predicted over half of it stops the step
 
 use PeakSim\Runtime\Simulate\Ladder\LadderStage;
@@ -34,6 +36,7 @@ $expected = null;
 $naiveCount = null;
 $drop = false;
 $timeout = null;
+$warmup = false;
 foreach (array_slice($argv, 1) as $arg) {
     if (str_starts_with($arg, '--safe-estimate=')) {
         $parts = explode('::', substr($arg, strlen('--safe-estimate=')));
@@ -44,6 +47,8 @@ foreach (array_slice($argv, 1) as $arg) {
         $safe[] = ['dir' => $parts[0], 'commit' => $parts[1] === '' ? null : $parts[1], 'commit_source' => $parts[2] === '' ? null : $parts[2]];
     } elseif ($arg === '--drop-marked-routes') {
         $drop = true;
+    } elseif ($arg === '--warmup-from-marks') {
+        $warmup = true;
     } elseif (str_starts_with($arg, '--request-timeout-s=')) {
         $given = substr($arg, strlen('--request-timeout-s='));
         if (preg_match('/^[1-9][0-9]*(\.[0-9]+)?$/', $given) !== 1) {
@@ -87,6 +92,10 @@ if ($timeout !== null && !$drop) {
     fwrite(STDERR, "predict-ladder: --request-timeout-s is for --drop-marked-routes only\n");
     exit(2);
 }
+if ($warmup && !$drop) {
+    fwrite(STDERR, "predict-ladder: --warmup-from-marks is for --drop-marked-routes only (the warm-up is read off the routes that stay in the mix)\n");
+    exit(2);
+}
 $requestTimeout = $drop ? ($timeout ?? RouteAllocation::DEFAULT_REQUEST_TIMEOUT_S) : null;
 
-exit((new SimulateCommand(STDOUT, STDERR, null, new LadderStage($estimateDir, $scenarioPath, STDOUT, STDERR, $commit, $source, null, $safe, $requireMarks, $expected, $naiveCount, $requestTimeout)))->run($args));
+exit((new SimulateCommand(STDOUT, STDERR, null, new LadderStage($estimateDir, $scenarioPath, STDOUT, STDERR, $commit, $source, null, $safe, $requireMarks, $expected, $naiveCount, $requestTimeout, $warmup)))->run($args));

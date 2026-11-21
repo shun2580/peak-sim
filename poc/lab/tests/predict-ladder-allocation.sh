@@ -15,6 +15,9 @@
 #  6. a group left with no route (the marked route alone at its rps) stops with exit 38 and writes no prediction
 #  7. a request timeout under which a request is predicted over half of it stops with exit 39 and writes no prediction
 #  8. a scenario file with no placeholder limit (or no memory limit) stops with exit 40 and writes no prediction
+#  9. --warmup-from-marks (section 7.4.5): refused without --drop-marked-routes (2); with it every stage has warmup_sec (a whole number, at least 60, the largest CPU-time
+#     bound of the routes that stay, rounded up) and warmup_basis, nothing else in the output changes, a request over half of the timeout still stops (39), the same input
+#     gives the same bytes, and the committed predictions have no warmup_sec
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -113,6 +116,37 @@ predict "$work/e40a" "$est150" "$work/no-ph.yaml" --drop-marked-routes; expect_c
 grep -v 'app_memory_limit' "$in150" >"$work/no-mem.yaml"
 predict "$work/e40b" "$est150" "$work/no-mem.yaml" --drop-marked-routes; expect_code "8b no memory limit: exit 40" 40 $?
 [ ! -e "$work/e40a/ladder-prediction.json" ] && [ ! -e "$work/e40b/ladder-prediction.json" ] && pass "8c ... and no prediction is written" || fail "8c ... and no prediction is written"
+
+# 9: --warmup-from-marks (simulator-spec.md section 7.4.5)
+predict "$work/w0" "$est150" "$in150" --warmup-from-marks; expect_code "9a --warmup-from-marks without --drop-marked-routes is refused (2)" 2 $?
+[ ! -e "$work/w0/ladder-prediction.json" ] && pass "9b ... and nothing is written" || fail "9b ... and nothing is written"
+predict "$work/w1" "$est150" "$in150" --drop-marked-routes --warmup-from-marks; expect_code "9c flag at 150,000 rows: exit 0" 0 $?
+python3 - "$work/f150/ladder-prediction.json" "$work/w1/ladder-prediction.json" <<'PY' && pass "9d every stage has warmup_sec = max(60, ceil(largest CPU-time bound of the routes that stay)), and nothing else changed" || fail "9d the warm-up is not as the rule says"
+import json, math, sys
+plain, w = (json.load(open(p)) for p in sys.argv[1:3])
+top = w.pop("warmup")
+assert top["enabled"] is True and top["minimum_sec"] == 60 and top["rule"], top
+for ws in w["scenarios"]:
+    dropped = {d["route"] for d in ws["allocation"]["dropped_routes"]}
+    assert dropped, "nothing was taken out at 150,000 rows"
+    longest = ws["allocation"]["longest_request"]
+    for st in ws["stages"]:
+        assert isinstance(st["warmup_sec"], int) and st["warmup_sec"] >= 60
+        b = st["warmup_basis"]
+        assert b["route"] in st["rps"] and b["route"] not in dropped, "the basis is not a route of the stage"
+        assert st["warmup_sec"] == max(60, math.ceil(b["upper_bound_sec"]))
+        assert b["upper_bound_sec"] <= longest["php_cpu_bound_s"] + 1e-9, "a bound above the longest request of the file"
+    assert len({(st["warmup_sec"], st["warmup_basis"]["route"]) for st in ws["stages"]}) == 1, "the bound of a request does not depend on the stage"
+    for st in ws["stages"]:
+        st.pop("warmup_sec"); st.pop("warmup_basis")
+assert plain == w, "the flag changed something besides the warm-up"
+PY
+predict "$work/w2" "$est150" "$in150" --drop-marked-routes --warmup-from-marks --request-timeout-s=100; expect_code "9e a request over half of the timeout still stops (39)" 39 $?
+[ ! -e "$work/w2/ladder-prediction.json" ] && pass "9f ... and no prediction is written" || fail "9f ... and no prediction is written"
+predict "$work/w3" "$est150" "$in150" --drop-marked-routes --warmup-from-marks; cmp -s "$work/w1/ladder-prediction.json" "$work/w3/ladder-prediction.json" && pass "9g the same input gives the same bytes" || fail "9g the same input gave different bytes"
+for old in "$lab"/predictions/ladder-prediction*.json; do
+  if grep -q '"warmup_sec"' "$old"; then fail "9h $(basename "$old") has a warmup_sec (the committed predictions are not rewritten)"; else pass "9h $(basename "$old") has no warmup_sec (not rewritten)"; fi
+done
 
 echo
 echo "predict-ladder allocation tests: $passed passed, $failed failed, $skipped skipped"
