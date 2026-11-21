@@ -2757,3 +2757,13 @@ D235 の末尾は、判定の出力(`a-verdict`・`compare`・`order`)の SHA-25
 #### 変わらないもの
 
 予測(f52f692)・見積もり・較正・式・印の規則・合格線・許す誤差・判定の規則・段・窓・これまでの記録と合否(D234・D235 の合否を含む)。D233〜D235 の本文は書き換えていない。
+
+#### 4. push の前に、今の木の 4 行のホームの路を伏せた(追記。2026-11-21 12:05 のメンテナーの裁定)
+
+2026-11-21 12:05 のメンテナーの裁定で、push の前に、今の木に残っていた作業機の利用者名を含む 4 行を伏せた。上の「今の木に残る当たり」の A のうち、sha256 で名指しされた記録のため触れぬとしていた 4 行である。
+
+- **伏せたもの**:次の 4 ファイルの `source` の行の、ホームの路の部分を `<home>` に置き換えた(1 ファイル 1 行。行は足さず消さず、行番号は変わらない。他の行は 1 字も変えていない)。`docs/research/lab-data/ladder-90k/scripts/stats.sh`(15 行目)・`docs/research/lab-data/ladder-90k/scripts/stats.sh.orig`(4 行目)・`docs/research/lab-data/ladder-300k/scripts/stats.sh.orig-T6B2`(4 行目)・`docs/research/lab-data/recheck-ladder-b/stats.sh`(4 行目)。実施は commit `5a7c926`。
+- **直す前の sha256 は各 README に書いた**。3 つのディレクトリの README の「Changes to the copies」に、伏せたこと・直す前の sha256・「sha256 を名指す記録が名指すのは直す前の版である」ことを足した。
+- **sha256 を名指す記録は書き換えていない**。`docs/research/lab-data/ladder-90k/` の `guard-sha256.txt`・`shutdown-20261117.txt`・`resume-20261119.txt` が名指すのは、伏せる前の版である。この記録を自動で照らす試験や script は、リポジトリの中に無いことを確かめた。
+- **残した 2 行(利用者名ではない)**:命の番号の名が入った路の 2 行、すなわち `docs/research/lab-data/ladder-90k/scripts/stats.sh` の 5 行目と `docs/research/lab-data/recheck-mark/mark-200000/context.json` の 4 行目は、今は残す。これは公開の前の判断に含める。したがって、上の A の「6 行」は、今の木では、この 2 行だけになる。
+- **履歴には触れていない**:今回は木だけを伏せた。f52f692 より前の、まだ push していない commit(b395f0e・9a9371a・2c5599d など)には、利用者名が履歴として残る。履歴の書き換え・ref の削除はしていない。この扱いは、メンテナーが公開の前に決める。
