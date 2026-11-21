@@ -17,5 +17,5 @@ ladder/r-2-50000	rung-06-0.3	none
 ladder/r-2-50000	rung-07-0.45	{('499', 'GET /books/{n}/export/zip'): 1}
 ladder/r-2-50000	rung-08-0.7	{('499', 'GET /oidc/callback'): 4, ('499', 'GET /books/{n}/page/{n}/references'): 9, ('499', 'GET /books/{n}'): 11, ('499', 'GET /books/{n}/chapter/{n}/references'): 5, ('499', 'GET /books/{n}/export/zip'): 12, ('499', 'GET /images/edit/{n}'): 2, ('499', 'GET /shelves/{n}'): 4}
 ladder/r-3-200000	rung-01-0.05	{('500', 'GET /books/{n}'): 5, ('499', 'GET /books/{n}/export/zip'): 1}
-cmd277t6/interrupted-r-2-50000-0713	rung-01-0.05	none
-cmd277t6/interrupted-r-2-50000-0713	rung-02-0.07	none
+run-277t6/interrupted-r-2-50000-0713	rung-01-0.05	none
+run-277t6/interrupted-r-2-50000-0713	rung-02-0.07	none

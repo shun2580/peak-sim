@@ -1,6 +1,6 @@
 r-5 (200000) 500 log copy, taken 2026-11-15 17:19:26 (read only; chain B2 finished 17:19:14, settings not yet restored)
 - r-5 stopped after rung 8: db_utilization_at_or_above_80_percent, rps_not_reached
 - 500 per rung (ladder.json): 2,2,2,4,4,6,8,11 = 39; nginx access.log in r-5 windows: 43 x 500 (+8 other non-200/302, 499); all-route breakdown not taken here
-- app docker log cumulative since 05:27Z: 224 lines "Allowed memory size of 536870912 bytes exhausted" (= 112 falls by the 2-lines-per-fall reading given by karo); 0x "Maximum execution time"
+- app docker log cumulative since 05:27Z: 224 lines "Allowed memory size of 536870912 bytes exhausted" (= 112 falls by the 2-lines-per-fall reading given by the operator); 0x "Maximum execution time"
 - nginx docker log: 0 lines
 - files: app-docker-log.snap4.txt web-docker-log.snap4.txt laravel.log.snap4.txt non2xx-r5-snap4.txt

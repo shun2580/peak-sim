@@ -1,7 +1,7 @@
 {
  "scale": 50000,
  "database": "peak_sim_measure_d60189cad0bc_lab_50000",
- "label": "cmd277 T6 mark 50000",
+ "label": "run-277 T6 mark 50000",
  "routes": [
   "GET /books/{bookSlug}/chapter/{chapterSlug}/references",
   "GET /books/{bookSlug}/export/zip",
