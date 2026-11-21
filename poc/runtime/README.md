@@ -29,11 +29,12 @@ into it) and the static analysis of it (`peak-sim analyze <app> --format=json`) 
 
 ```bash
 bin/measure --app=<app dir> --static=<analysis.json> [--expected=<expected.json>] [--data=generator|seeder] \
-            [--scales=100,1000,10000] [--only=/ok/,/ng/] [--profile=<name>] [--out=<dir>] [--keep-stack]
+            [--scales=100,1000,10000] [--only=/ok/,/ng/] [--profile=<name>] [--out=<dir>] [--keep-stack | --purge]
 ```
 
 It brings the sealed stack up, requires `bin/preflight` to pass (exit 11 otherwise, nothing is measured), runs the driver
-inside the container, and tears the stack down. The driver:
+inside the container, and removes the stack's containers and network (the database volume stays unless `--purge` is given,
+see [What a run leaves behind](#what-a-run-leaves-behind)). The driver:
 
 1. builds a small database, starts the app on it and turns each route of the analysis into a task: the URI with its
    `{parameters}` filled from the first row of the right table, the login (the first row of the guard's user model), and
@@ -93,6 +94,21 @@ it. The tool sets `APP_ENV=local`, calls each route once without a query string,
 and does not run queued listeners, so a branch that depends on any of these is not measured. A flat count on a path that
 never read the scaled tables, or whose largest response equals the empty system's, is `no_info`, not O(1).
 
+### What a run leaves behind
+
+When a run ends (normally, on a failure, or when interrupted), `bin/measure`, `bin/capture`, `bin/explain-at-scale` and
+`bin/variance-run` remove the stack's containers and network but **keep the database volume**, so a database that took hours
+to build is never lost by a clean-up. The volume is named `<project>_measure-dbdata`; find it with
+`docker volume ls --filter label=com.docker.compose.project=<project>`.
+
+To remove it, say so: add `--purge` to the run, or run `PEAK_COMPOSE_PROJECT=<project> bin/stack down --purge` afterwards.
+`--purge` cannot be combined with `--keep-stack` (which leaves the whole stack up). A project whose volume is still there is
+not started again: `bin/stack up` and the runs refuse (exit 2), because the kept database was made with other throwaway
+passwords. Purge it, or use another `PEAK_COMPOSE_PROJECT`. No environment variable removes the volume; only the flag does.
+
+Keep the database volumes built for a production measurement run until the final report is accepted, so that the cause of an
+outlier can be examined later. Purge them after that, not before.
+
 ## The maintenance state of the databases (a precondition of every estimate)
 
 Some apps keep a table by a process of their own (a rebuild or an aggregate run from the app's maintenance page or console), and the
@@ -147,7 +163,7 @@ known, and asks the server for the plan (`EXPLAIN FORMAT=JSON`) of the represent
 
 ```bash
 bin/explain-at-scale --capture=<capture.json> --tasks=<tasks.json> --app=<app dir> --scale=100000 --out=<dir> \
-                     [--small-scale=10000] [--label=<name>] [--profile=<name>] [--php-image=<name>] [--keep-db] [--keep-stack]
+                     [--small-scale=10000] [--label=<name>] [--profile=<name>] [--php-image=<name>] [--keep-db] [--keep-stack | --purge]
 ```
 
 For each data plan the routes need: build the database, `ANALYZE TABLE` on every table, `STATS_AUTO_RECALC=0` on the tables the
@@ -198,7 +214,7 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | `src/Simulate/` | `Load/` (the scenario file and the estimate's formulas; `TwoStage` keeps the order of the two stages), `Calibrate/` (section 5: `Calibrator::calibrate` fits the two coefficients by non-negative least squares from `CalibrationPoint`s and returns a `CalibrationResult` with the values, the range, the residual and the warnings), `Predict/` (section 6: utilization, the limit multiplier, the range, dominant routes, sensitivity, the PHP memory line, the output), `Yaml/` (a small YAML reader that needs no package) |
 | `src/Backtest/` | the naive estimate, the comparison and the report of `bin/backtest`, and the reader that keeps the target's `observed` back until the prediction is written |
 | `src/Selfcheck/` | `EstimateSeal` (the order, kept in code), `SelfcheckJudge` (the comparison of the extrapolation test on the user's app), `SelfcheckCommand` and `SelfcheckReport` (the PHP half of `bin/selfcheck`: seal, gate, marked, judge) |
-| `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `build-image` makes a PHP image with extra extensions |
+| `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `down` keeps the database volume, `down --purge` removes it; `build-image` makes a PHP image with extra extensions |
 | `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
 | `tests/Unit/` | no Docker, no database |
 | `tests/Docker/` | needs Docker; `run.sh` starts a driver container and runs them |
@@ -244,6 +260,13 @@ bash poc/runtime/tests/Docker/run.sh --stage=2       # only the tests inside the
 
 The unit tests of the simulator are in `tests/Unit/Simulate/` (reading, calibration, prediction), `tests/Unit/Backtest/` (the naive estimate, the comparison, the order) and `tests/Unit/Selfcheck/`.
 `SelfcheckScriptOrderTest` runs `bin/selfcheck` itself with stand-in parts (no Docker needed; PHP and bash are).
+
+The Docker tests only touch projects whose name starts with `peak-measure-dev` (they fail otherwise, and `run.sh` refuses any
+other `PEAK_COMPOSE_PROJECT`), because they pass `--purge` to remove the volumes of their own throwaway projects.
+`StackTeardownTest` (no Docker needed) keeps every teardown from removing a volume without `--purge`, and fails if a script
+gains another way to remove one. Its list of exceptions names three scripts of the repository's own development and test stack
+(`scripts/e2e-live.sh`, `scripts/measure-timing.sh`, `scripts/run-tests-logged.sh`): that stack holds throwaway test data, never
+a measurement's database, and each of them removes only its own project.
 
 The ordinary suite (`phpunit.xml`) never runs these; `tests/Unit/PocIsolationTest.php` keeps the PoC out of the
 official tool.
