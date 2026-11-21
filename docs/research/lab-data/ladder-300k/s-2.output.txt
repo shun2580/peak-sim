@@ -20,4 +20,4 @@ WRITES SAME after a step scale 300000: 59 write counters
 RUNG END s-2 rung 4 rps decided 0.07 achieved 0.0648 (invalid) db 69.5% app 37.0% dropped 0 | 200x27 302x2 500x8 | STOP (rps_not_reached)
 the scenario s-2 stops after rung 4
 TABLES SAME after the load scale 300000: entities 300000 3337948901;images 300000 3570979659;references 300000 2002746891; (59 write counters)
-ladder record: /home/nishikawa/.cache/peak-lab/out/ladder/s-2-300000/ladder.json
+ladder record: <home>/.cache/peak-lab/out/ladder/s-2-300000/ladder.json

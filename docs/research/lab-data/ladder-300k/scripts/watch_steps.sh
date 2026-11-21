@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # reads the table stats after each finished step (ended_at.txt) and the max statement time; tells the lead when a step's output stands still for 30 min
-W=$HOME/.cache/peak-lab/out/cmd281t6b
+W=$HOME/.cache/peak-lab/out/run-281t6b
 # (line left out of this copy: it sent a note to another process)
 source "$HOME/projects/peak-sim/poc/lab/bin/_lab.sh"
 seen=$W/watch.seen; touch $seen; last_alert=0

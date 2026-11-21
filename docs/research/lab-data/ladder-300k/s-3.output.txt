@@ -40,4 +40,4 @@ WRITES SAME after a step scale 300000: 59 write counters
 RUNG END s-3 rung 9 rps decided 0.45 achieved 0.4298 (valid) db 86.1% app 49.7% dropped 0 | 200x114 302x32 500x7 | STOP (db_utilization_at_or_above_80_percent)
 the scenario s-3 stops after rung 9
 TABLES SAME after the load scale 300000: entities 300000 3337948901;images 300000 3570979659;references 300000 2002746891; (59 write counters)
-ladder record: /home/nishikawa/.cache/peak-lab/out/ladder/s-3-300000/ladder.json
+ladder record: <home>/.cache/peak-lab/out/ladder/s-3-300000/ladder.json

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # B (limits off: max_execution_time 0, memory_limit 4G), scenarios s-1 .. s-4; stops there so that s-5 waits for the lead's reply.
 cd "$HOME/projects/peak-sim" || exit 1
-W=$HOME/.cache/peak-lab/out/cmd281t6b
+W=$HOME/.cache/peak-lab/out/run-281t6b
 export PEAK_LAB_OUT_DIR=$HOME/.cache/peak-lab/out
-CAP=$HOME/projects/peak-sim-trials/_out/cmd277_recapture2/bookstack/capture.json
+CAP=$HOME/projects/peak-sim-trials/_out/run-277_recapture2/bookstack/capture.json
 PRED=poc/lab/predictions/ladder-prediction-3.json
 # (line left out of this copy: it sent a note to another process)
 # (line left out of this copy: it sent a note to another process)
