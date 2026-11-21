@@ -1,0 +1,22 @@
+== 2026-11-21T20:05:52+09:00 restore B (copy)
+B OFF: ladder-b-1800s.diff reversed at 2026-11-21T20:05:52+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE default
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+== use-db 30000
+PREFLIGHT OK
+== check-limits
+LIMITS OK (require limited): { "php_max_execution_time": "30", "php_memory_limit": "512M", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "120s", "k6_request_timeout": null, "k6_request_timeout_note": "not given: the load tool used its own default (60 s for k6 2.3.0)" } 
+== git status of the copy
+== 2026-11-21T20:06:07+09:00 stop (no down)
+error while interpolating x-lab-env.PEAK_MEASURE_APP_KEY: required variable PEAK_MEASURE_APP_KEY is missing a value: set by poc/lab/bin/_lab.sh
+== 2026-11-21T20:06:13+09:00 stop via compose (no down)
+ Container peak-dryrun22-tools Stopped 
+ Container peak-dryrun22-web Stopped 
+ Container peak-dryrun22-app Stopping 
+ Container peak-dryrun22-app Stopped 
+ Container peak-dryrun22-db Stopping 
+ Container peak-dryrun22-db Stopped 

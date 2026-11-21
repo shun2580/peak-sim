@@ -1,0 +1,15 @@
+{
+  "dropped": [],
+  "rps_after": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.2,
+    "GET /books/{bookSlug}/export/zip": 0.2,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 0.2,
+    "GET /books/{slug}": 0.05,
+    "GET /books/{slug}/references": 0.2,
+    "GET /images/edit/{id}": 0.05,
+    "GET /oidc/callback": 0.05,
+    "GET /shelves/{slug}": 0.05
+  },
+  "scenario": "s-4",
+  "source": "~/projects/peak-sim-trials/_scratch/dryrun22/repo/poc/lab/predictions/ladder-prediction-dryrun22-b30k.json"
+}

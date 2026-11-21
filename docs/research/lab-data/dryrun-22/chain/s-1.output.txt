@@ -1,0 +1,18 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-dryrun22-b30k.json 5d122f8071b90bf687d9c9aa794a3f4961fffade 2026-11-21T15:42:47+09:00
+SCALE s-1 30000 rows (the count of the prediction file)
+ALLOCATION s-1: 8 routes sent, 0 not sent (none); the shares are the prediction's rps_after, not the mix's
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+WARMUP s-1: the discarded start of each step is read from the prediction file (section 7.4.5): 0.025=101s 0.035=101s 0.05=101s 0.07=101s 0.1=101s 0.15=101s 0.2=101s 0.3=101s 0.45=101s 0.7=101s 1=101s 1.5=101s 2.2=101s 3.3=101s 5=101s 
+TABLES BASELINE scale 30000: entities 30000 2704260852;images 30000 2658365592;references 30000 1455818882; (41 write counters)
+OOM BASELINE peak-dryrun22-app: oom_killed=false restart_count=0 started_at=2026-11-21T06:45:51.26030618Z cgroup_oom=0 cgroup_oom_kill=0
+RUNG SETTINGS s-1 rung 1: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-1 rung 1 of 15 rps 0.025 scale 30000 mix even scheme B at 2026-11-21T15:46:22+09:00 (28 min 21 s, the first 101 s discarded)
+WRITES SAME after a step scale 30000: 41 write counters
+RUNG END s-1 rung 1 rps decided 0.025 achieved 0.0250 (valid) db 2.8% app 1.0% dropped 0 | 200x35 302x5 | continue
+RUNG SETTINGS s-1 rung 2: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-1 rung 2 of 15 rps 0.035 scale 30000 mix even scheme B at 2026-11-21T16:15:47+09:00 (20 min 43 s, the first 101 s discarded)
+WRITES SAME after a step scale 30000: 41 write counters
+RUNG END s-1 rung 2 rps decided 0.035 achieved 0.0350 (valid) db 3.5% app 1.3% dropped 0 | 200x35 302x5 | continue
+MAX-STEPS s-1: stopped after rung 2 (--max-steps=2, a rehearsal setting; this is not the stopping rule)
+TABLES SAME after the load scale 30000: entities 30000 2704260852;images 30000 2658365592;references 30000 1455818882; (41 write counters)
+ladder record: ~/.cache/peak-dryrun22/out/ladder/s-1-30000/ladder.json

@@ -1,0 +1,11 @@
+scenario	step	at_window_start_total	at_window_end_total	routes_listed	counted_by
+s-1	1	0	0	8	k6 sending side
+s-1	2	0	0	8	k6 sending side
+s-2	1	0	0	8	k6 sending side
+s-2	2	0	0	8	k6 sending side
+s-3	1	0	0	8	k6 sending side
+s-3	2	0	0	8	k6 sending side
+s-4	1	0	0	8	k6 sending side
+s-4	2	0	0	8	k6 sending side
+s-5	1	0	0	8	k6 sending side
+s-5	2	0	0	8	k6 sending side

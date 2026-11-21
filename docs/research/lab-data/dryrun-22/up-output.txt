@@ -1,0 +1,128 @@
+up-start 2026-11-21T15:34:18+09:00
+ Image peak-lab-php:8.3 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 679B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.fpm
+#2 transferring dockerfile: 805B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/php:8.3-fpm
+#3 DONE 0.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/3] FROM docker.io/library/php:8.3-fpm@sha256:03af352853b05e35ee15ab898a2755532573684c7d1120b246dbd4e3c90f5007
+#5 resolve docker.io/library/php:8.3-fpm@sha256:03af352853b05e35ee15ab898a2755532573684c7d1120b246dbd4e3c90f5007 0.0s done
+#5 DONE 0.0s
+
+#6 [2/3] RUN apt-get update  && apt-get install -y --no-install-recommends libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev  && docker-php-ext-configure gd --with-jpeg --with-freetype  && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd  && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/3] WORKDIR /peak-sim
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers 0.0s done
+#8 exporting manifest sha256:3fd92fdde278d3cfdcbf96396c3f21ab512f33bc568e65477a13b7188e915682 0.0s done
+#8 exporting config sha256:e84f5e558cd4b562ee553283714c39631a4f10743cca8f67723399bbae8bae7d
+#8 exporting config sha256:e84f5e558cd4b562ee553283714c39631a4f10743cca8f67723399bbae8bae7d 0.0s done
+#8 exporting attestation manifest sha256:60fc4965bebbf9c621d619e62cfdbdf27ee5bc952e5684c708d733f210b648a9 0.0s done
+#8 exporting manifest list sha256:1ef868022e1a8d6aa3b39b6752d342e3b7bda92f0f92ecf3924b95e4a9e19b33 0.0s done
+#8 naming to docker.io/library/peak-lab-php:8.3 done
+#8 unpacking to docker.io/library/peak-lab-php:8.3 0.0s done
+#8 DONE 0.2s
+
+#9 resolving provenance for metadata file
+#9 DONE 0.0s
+ Image peak-lab-php:8.3 Built 
+ Network peak-dryrun22_lab-internal Creating 
+ Network peak-dryrun22_lab-internal Created 
+ Volume peak-dryrun22-dbdata Creating 
+ Volume peak-dryrun22-dbdata Created 
+ Container peak-dryrun22-db Creating 
+ Container peak-dryrun22-db Created 
+ Container peak-dryrun22-app Creating 
+ Container peak-dryrun22-app Created 
+ Container peak-dryrun22-tools Creating 
+ Container peak-dryrun22-web Creating 
+ Container peak-dryrun22-tools Created 
+ Container peak-dryrun22-web Created 
+ Container peak-dryrun22-k6 Creating 
+ Container peak-dryrun22-k6 Created 
+ Container peak-dryrun22-db Starting 
+ Container peak-dryrun22-db Started 
+ Container peak-dryrun22-db Waiting 
+ Container peak-dryrun22-db Healthy 
+ Container peak-dryrun22-app Starting 
+ Container peak-dryrun22-app Started 
+ Container peak-dryrun22-db Waiting 
+ Container peak-dryrun22-web Starting 
+ Container peak-dryrun22-web Started 
+ Container peak-dryrun22-k6 Starting 
+ Container peak-dryrun22-k6 Started 
+ Container peak-dryrun22-db Healthy 
+ Container peak-dryrun22-tools Starting 
+ Container peak-dryrun22-tools Started 
+ Container peak-dryrun22-k6 Waiting 
+ Container peak-dryrun22-tools Waiting 
+ Container peak-dryrun22-db Waiting 
+ Container peak-dryrun22-app Waiting 
+ Container peak-dryrun22-web Waiting 
+ Container peak-dryrun22-db Healthy 
+ Container peak-dryrun22-k6 Healthy 
+ Container peak-dryrun22-tools Healthy 
+ Container peak-dryrun22-app Healthy 
+ Container peak-dryrun22-web Healthy 
+PASS container: peak-dryrun22-db is running
+PASS container: peak-dryrun22-app is running
+PASS container: peak-dryrun22-web is running
+PASS container: peak-dryrun22-k6 is running
+PASS container: peak-dryrun22-tools is running
+PASS network: peak-dryrun22_lab-internal internal=true
+PASS peak-dryrun22-db: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-db: no published port
+PASS peak-dryrun22-app: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-app: no published port
+PASS peak-dryrun22-web: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-web: no published port
+PASS peak-dryrun22-k6: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-k6: no published port
+PASS peak-dryrun22-tools: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-tools: no published port
+peak-dryrun22-app: PASS negative dns:example.com              did not resolve
+peak-dryrun22-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun22-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun22-app: PASS negative http:example.com             no response
+peak-dryrun22-app: PASS negative default-route                no default route
+peak-dryrun22-app: PASS positive tcp:measure-db:3306          connected
+peak-dryrun22-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-dryrun22-app: PASS positive login:measure                logged in as the measurement user
+peak-dryrun22-app: PREFLIGHT OK
+peak-dryrun22-tools: PASS negative dns:example.com              did not resolve
+peak-dryrun22-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun22-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun22-tools: PASS negative http:example.com             no response
+peak-dryrun22-tools: PASS negative default-route                no default route
+peak-dryrun22-tools: PASS positive tcp:measure-db:3306          connected
+peak-dryrun22-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-dryrun22-tools: PASS positive login:measure                logged in as the measurement user
+peak-dryrun22-tools: PREFLIGHT OK
+PASS peak-dryrun22-web: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-web: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-web: http://example.com is unreachable
+PASS peak-dryrun22-web: the app (lab-app:9000) (positive control)
+PASS peak-dryrun22-k6: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-k6: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-k6: http://example.com is unreachable
+PASS peak-dryrun22-k6: the web server (/__lab/health) (positive control)
+PASS peak-dryrun22-db: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-db: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-db: the name example.com is unreachable
+PASS peak-dryrun22-db: its own port (3306) (positive control)
+PREFLIGHT OK
+lab is up and sealed. scale=10000  web (from inside the network only): http://lab-web:8080
+exit=0 2026-11-21T15:34:48+09:00

@@ -1,0 +1,9 @@
+date: 2026-11-21T15:33:38+09:00
+volume_count_before: 22
+dryrun22_volumes_before: 0
+dryrun22_compose_before: 0
+dryrun22_containers_before: 0
+running_containers: 0
+running_containers_using_cpuset_0-11: 0 (none running; checked docker inspect HostConfig.CpusetCpus on each running id)
+peak-sim HEAD: 7b64c188277dc9d9ccd2f625c4f3607ae7bb9d40
+peak-lab-php:8.3 image id before: sha256:e409f41dccbbda1c9385fb898d6cdc89e422162fa975f3b22d3da137b1ded765

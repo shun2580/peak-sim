@@ -1,0 +1,55 @@
+ Container peak-dryrun22-app Recreate 
+ Container peak-dryrun22-app Recreated 
+ Container peak-dryrun22-web Recreate 
+ Container peak-dryrun22-web Recreated 
+ Container peak-dryrun22-app Starting 
+ Container peak-dryrun22-app Started 
+ Container peak-dryrun22-web Starting 
+ Container peak-dryrun22-web Started 
+PASS container: peak-dryrun22-db is running
+PASS container: peak-dryrun22-app is running
+PASS container: peak-dryrun22-web is running
+PASS container: peak-dryrun22-k6 is running
+PASS container: peak-dryrun22-tools is running
+PASS network: peak-dryrun22_lab-internal internal=true
+PASS peak-dryrun22-db: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-db: no published port
+PASS peak-dryrun22-app: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-app: no published port
+PASS peak-dryrun22-web: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-web: no published port
+PASS peak-dryrun22-k6: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-k6: no published port
+PASS peak-dryrun22-tools: network mode peak-dryrun22_lab-internal
+PASS peak-dryrun22-tools: no published port
+peak-dryrun22-app: PASS negative dns:example.com              did not resolve
+peak-dryrun22-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun22-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun22-app: PASS negative http:example.com             no response
+peak-dryrun22-app: PASS negative default-route                no default route
+peak-dryrun22-app: PASS positive tcp:measure-db:3306          connected
+peak-dryrun22-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-dryrun22-app: PASS positive login:measure                logged in as the measurement user
+peak-dryrun22-app: PREFLIGHT OK
+peak-dryrun22-tools: PASS negative dns:example.com              did not resolve
+peak-dryrun22-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun22-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun22-tools: PASS negative http:example.com             no response
+peak-dryrun22-tools: PASS negative default-route                no default route
+peak-dryrun22-tools: PASS positive tcp:measure-db:3306          connected
+peak-dryrun22-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-dryrun22-tools: PASS positive login:measure                logged in as the measurement user
+peak-dryrun22-tools: PREFLIGHT OK
+PASS peak-dryrun22-web: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-web: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-web: http://example.com is unreachable
+PASS peak-dryrun22-web: the app (lab-app:9000) (positive control)
+PASS peak-dryrun22-k6: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-k6: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-k6: http://example.com is unreachable
+PASS peak-dryrun22-k6: the web server (/__lab/health) (positive control)
+PASS peak-dryrun22-db: 1.1.1.1:443 is unreachable
+PASS peak-dryrun22-db: 8.8.8.8:53 is unreachable
+PASS peak-dryrun22-db: the name example.com is unreachable
+PASS peak-dryrun22-db: its own port (3306) (positive control)
+PREFLIGHT OK

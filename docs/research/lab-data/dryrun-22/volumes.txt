@@ -1,0 +1,5 @@
+volumes before: 22; sha256 of the sorted name list: 53ead817967fea53127ebd824af8fed91d8aa17cec30a9c1633fdd04511d706c
+volumes after up: 23; after the chain and stop: 23; sha256 of the sorted name list: 9f6af2eea67d0d33958d96b6703e4f91964ae71b0d9a96a74f0aedc8141e127a
+names added (diff before -> after): peak-dryrun22-dbdata
+names removed: 0
+the 22 earlier names are not listed here; only their count and the hash of the sorted list
