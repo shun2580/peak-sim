@@ -1,0 +1,16 @@
+{
+  "dropped": [
+    "GET /books/{slug}"
+  ],
+  "rps_after": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0.14285714285714285,
+    "GET /books/{bookSlug}/export/zip": 0.14285714285714285,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 0.14285714285714285,
+    "GET /books/{slug}/references": 0.14285714285714285,
+    "GET /images/edit/{id}": 0.14285714285714285,
+    "GET /oidc/callback": 0.14285714285714285,
+    "GET /shelves/{slug}": 0.14285714285714285
+  },
+  "scenario": "s-1",
+  "source": "~/.cache/peak-b180k/repo/poc/lab/predictions/ladder-prediction-6-b180k.json"
+}
