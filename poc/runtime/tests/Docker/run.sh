@@ -19,6 +19,10 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/../../../.." && pwd)"
 php="${PHP_VERSION:-8.3}"
 project="${PEAK_COMPOSE_PROJECT:-peak-measure-dev}"
+case "$project" in
+  peak-measure-dev*) ;;
+  *) echo "run.sh: PEAK_COMPOSE_PROJECT must start with peak-measure-dev (these tests remove the database volumes of their projects): $project" >&2; exit 2 ;;
+esac
 evidence="${PEAK_EVIDENCE_DIR:-$HOME/projects/peak-sim-trials/_out/runtime/evidence}"
 out="${PEAK_OUT_DIR:-$HOME/projects/peak-sim-trials/_out/runtime/out-$project}"
 mkdir -p "$evidence" "$out"
@@ -55,7 +59,7 @@ fi
 if [ "$stage" = "2" ] || [ "$stage" = "all" ]; then
   (
     export PEAK_COMPOSE_PROJECT="$project-in" PEAK_OUT_DIR="$out" PEAK_REPO_ROOT="$repo" PHP_VERSION="$php"
-    trap 'bash "$repo/poc/runtime/bin/stack" down >/dev/null 2>&1' EXIT
+    trap 'bash "$repo/poc/runtime/bin/stack" down --purge >/dev/null 2>&1' EXIT
     bash "$repo/poc/runtime/bin/stack" up >/dev/null
     bash "$repo/poc/runtime/bin/stack" exec /peak-sim/vendor/bin/phpunit -c /peak-sim/poc/runtime/phpunit.runtime.xml --testsuite RuntimeDocker --group in-stack
   ) || status=$?

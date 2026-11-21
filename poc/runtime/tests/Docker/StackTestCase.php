@@ -26,6 +26,20 @@ abstract class StackTestCase extends TestCase
 
     protected static string $project = '';
 
+    /** Every project these tests start, and every volume they purge, must live under this prefix: never a measurement's own. */
+    protected const DEV_PROJECT_PREFIX = 'peak-measure-dev';
+
+    /**
+     * Fails the test unless $project is one of the throwaway projects of this suite. Call it before a test starts or purges a
+     * stack, so that a PEAK_COMPOSE_PROJECT pointing at a real measurement's project can never get its database volume removed.
+     */
+    protected static function devProject(string $project): string
+    {
+        self::assertStringStartsWith(self::DEV_PROJECT_PREFIX, $project, 'the Docker tests only touch projects that start with ' . self::DEV_PROJECT_PREFIX);
+
+        return $project;
+    }
+
     public static function runtimeDir(): string
     {
         return dirname(__DIR__, 2);
@@ -139,7 +153,7 @@ abstract class StackTestCase extends TestCase
     {
         self::requireDocker();
         static::$composeFile = $composeFile;
-        static::$project = ((string) (getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev')) . $projectSuffix;
+        static::$project = self::devProject(((string) (getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX)) . $projectSuffix);
         static::$stackEnv = [
             'PEAK_COMPOSE_PROJECT' => static::$project,
             'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/' . $composeFile,
@@ -155,7 +169,8 @@ abstract class StackTestCase extends TestCase
     protected static function tearDownStack(): void
     {
         if (static::$project !== '') {
-            self::bin('stack', ['down']);
+            self::devProject(static::$project);
+            self::bin('stack', ['down', '--purge']);
         }
     }
 

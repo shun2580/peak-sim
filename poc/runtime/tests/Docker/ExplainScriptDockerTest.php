@@ -82,7 +82,7 @@ final class ExplainScriptDockerTest extends StackTestCase
     private static function stack(string $suffix): array
     {
         return [
-            'PEAK_COMPOSE_PROJECT' => ((string) (getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev')) . $suffix,
+            'PEAK_COMPOSE_PROJECT' => self::devProject(((string) (getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX)) . $suffix),
             'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/measure.compose.yaml',
             'PEAK_MEASURE_DB_ROOT_PASSWORD' => self::randomHex(12),
             'PEAK_MEASURE_DB_PASSWORD' => self::randomHex(12),

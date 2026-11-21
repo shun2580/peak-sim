@@ -59,7 +59,7 @@ final class VarianceRunDockerTest extends StackTestCase
         $result = self::bin('variance-run', [
             '--app=' . self::$repo . '/fixtures/laravel-app', '--tasks=' . self::$work . '/tasks.json', '--scale=20', '--out=' . self::$work,
             '--label=' . $label, '--source-commit=test', '--data=seeder', '--profile=none', '--tap=off', '--routes=' . self::ROUTE, '--watch-interval=2',
-            '--project-prefix=' . ((string) getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev') . '-var', ...$options,
+            '--project-prefix=' . self::devProject(((string) getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX) . '-var'), '--purge', ...$options,
         ]);
         self::evidence('variance', $label . '.txt', self::transcript('bin/variance-run ' . implode(' ', $options), [$result[0], substr($result[1], -2000), substr($result[2], -2000)]) . self::tail(self::$work . '/' . $label . '/db1/run.log'));
 

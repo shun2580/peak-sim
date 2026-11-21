@@ -54,13 +54,13 @@ final class MeasureScriptDockerTest extends StackTestCase
 
     public function testItMeasuresInsideTheSealedStackAndTearsItDown(): void
     {
-        $project = ((string) getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev') . '-script';
+        $project = self::devProject(((string) getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX) . '-script');
         $out = self::$work . '/run';
         $result = self::exec(
-            ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager,/ng/n-plus-one'],
+            ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager,/ng/n-plus-one', '--purge'],
             ['PEAK_COMPOSE_PROJECT' => $project, 'PEAK_OUT_DIR' => $out, 'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/measure.compose.yaml'],
         );
-        self::evidence('measure', 'bin-measure-run.txt', self::transcript('bin/measure --data=seeder --scales=5,10,20 --only=/ok/eager,/ng/n-plus-one', [$result[0], substr($result[1], -3000), substr($result[2], -1500)]));
+        self::evidence('measure', 'bin-measure-run.txt', self::transcript('bin/measure --data=seeder --scales=5,10,20 --only=/ok/eager,/ng/n-plus-one --purge', [$result[0], substr($result[1], -3000), substr($result[2], -1500)]));
 
         $this->assertSame(0, $result[0], $result[1] . $result[2]);
         $this->assertStringContainsString('PREFLIGHT OK', $result[1]);
@@ -74,14 +74,51 @@ final class MeasureScriptDockerTest extends StackTestCase
 
         [, $left] = self::exec(['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' . $project]);
         $this->assertSame('', trim($left), 'the stack is torn down after the run');
+        $this->assertSame('', self::volumesOf($project), '--purge removes the database volume');
+    }
+
+    /** The names of the volumes that belong to a compose project, one per line. */
+    private static function volumesOf(string $project): string
+    {
+        [, $volumes] = self::exec(['docker', 'volume', 'ls', '-q', '--filter', 'label=com.docker.compose.project=' . $project]);
+
+        return trim($volumes);
+    }
+
+    public function testWithoutPurgeTheDatabaseVolumeStaysAndOnlyPurgeRemovesIt(): void
+    {
+        $project = self::devProject(((string) getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX) . '-script-keep');
+        $out = self::$work . '/keep';
+        $env = ['PEAK_COMPOSE_PROJECT' => $project, 'PEAK_OUT_DIR' => $out, 'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/measure.compose.yaml'];
+        try {
+            $result = self::exec(
+                ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager'],
+                $env,
+            );
+            self::evidence('measure', 'bin-measure-keeps-volume.txt', self::transcript('bin/measure (no --purge)', [$result[0], substr($result[1], -1500), substr($result[2], -1500)]));
+            $this->assertSame(0, $result[0], $result[1] . $result[2]);
+
+            [, $left] = self::exec(['docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' . $project]);
+            $this->assertSame('', trim($left), 'the containers are removed');
+            $this->assertSame($project . '_measure-dbdata', self::volumesOf($project), 'the database volume is kept, under a name that tells its project');
+
+            $again = self::exec(['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out . '-again', '--data=seeder', '--scales=5,10,20', '--only=/ok/eager'], $env);
+            $this->assertSame(2, $again[0], 'a project whose volume is still there is not started again');
+            $this->assertStringContainsString('--purge', $again[2]);
+            $this->assertSame($project . '_measure-dbdata', self::volumesOf($project), 'the refused run left the volume alone');
+        } finally {
+            self::devProject($project);
+            self::exec(['bash', self::runtimeDir() . '/bin/stack', 'down', '--purge'], $env);
+        }
+        $this->assertSame('', self::volumesOf($project), 'bin/stack down --purge removes the volume');
     }
 
     public function testItRefusesToMeasureWhenTheContainerCanLeaveTheNetwork(): void
     {
-        $project = ((string) getenv('PEAK_COMPOSE_PROJECT') ?: 'peak-measure-dev') . '-leakyrun';
+        $project = self::devProject(((string) getenv('PEAK_COMPOSE_PROJECT') ?: self::DEV_PROJECT_PREFIX) . '-leakyrun');
         $out = self::$work . '/leaky';
         $result = self::exec(
-            ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager'],
+            ['bash', self::runtimeDir() . '/bin/measure', ...self::analysis(), '--out=' . $out, '--data=seeder', '--scales=5,10,20', '--only=/ok/eager', '--purge'],
             ['PEAK_COMPOSE_PROJECT' => $project, 'PEAK_OUT_DIR' => $out, 'PEAK_COMPOSE_FILE' => self::runtimeDir() . '/compose/measure.leaky.compose.yaml'],
         );
         self::evidence('measure', 'bin-measure-refused-leaky.txt', self::transcript('bin/measure (leaky stack)', [$result[0], substr($result[1], -3000), substr($result[2], -1500)]));
