@@ -1,0 +1,82 @@
+{
+ "captured_max": 30000,
+ "condition_1b": {
+  "item1_smaller_than_naive": true,
+  "item2_excess_points_over_5": 0.0,
+  "item3_agree": 37,
+  "item3_short": 0,
+  "item3_valid_stages": 37,
+  "item4_scenarios_with_limit": 5,
+  "item4_short_goal": 0,
+  "item4_short_minimum": 0,
+  "item4_within_goal": 5,
+  "item4_within_minimum": 5
+ },
+ "condition_1b_counted": true,
+ "condition_1b_not_counted_because": [],
+ "counts": {
+  "scenarios": 5,
+  "scenarios_with_limit": 5,
+  "stages_measured": 37,
+  "usable_stages": 29,
+  "valid_stages": 37
+ },
+ "goal_met": true,
+ "items": {
+  "1": {
+   "mean_points": 0.8656825156478772,
+   "mean_points_naive": 33.35110248898786,
+   "minimum": true,
+   "name": "mean absolute difference of the prediction is smaller than that of the naive estimate",
+   "target": true
+  },
+  "2": {
+   "line_minimum_points": 15,
+   "line_target_points": 5,
+   "mean_points": 0.8656825156478772,
+   "minimum": true,
+   "name": "mean absolute difference (points)",
+   "target": true
+  },
+  "3": {
+   "agree": 37,
+   "minimum": true,
+   "name": "agreement on \"exceeded the threshold\" over all valid stages",
+   "share": 1,
+   "share_naive": 0.8648648648648649,
+   "target": true,
+   "valid_stages": 37
+  },
+  "4": {
+   "minimum": true,
+   "naive_used_for_the_verdict": false,
+   "naive_within_minimum": 0,
+   "naive_within_target": 0,
+   "name": "predicted limit rps (point) within the tolerance of the measured one, over scenarios whose limit was measured",
+   "safe_within_minimum": 5,
+   "safe_within_target": 5,
+   "scenarios_with_limit": 5,
+   "target": true,
+   "tolerance_minimum": 0.2,
+   "tolerance_target": 0.1,
+   "within_minimum": 5,
+   "within_target": 5
+  }
+ },
+ "ladders": [
+  "s-1-180000/ladder.json",
+  "s-2-180000/ladder.json",
+  "s-3-180000/ladder.json",
+  "s-4-180000/ladder.json",
+  "s-5-180000/ladder.json"
+ ],
+ "minimum_met": true,
+ "multiple_of_capture": 6.0,
+ "prediction_file": "poc/lab/predictions/ladder-prediction-6-b180k.json",
+ "rows": 180000,
+ "seen_state": "not seen",
+ "tool_and_script_agree_on_undecidable": true,
+ "undecidable": false,
+ "undecidable_reasons": [],
+ "verdict": "pass"
+}

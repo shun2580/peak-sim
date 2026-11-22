@@ -1,0 +1,104 @@
+{
+ "condition_1a": {
+  "bookstack": {
+   "numbers": {
+    "goal_unmarked_queries": {
+     "denominator": 15,
+     "inside": 15,
+     "needed": 12,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 15,
+     "inside": 13,
+     "needed": 12,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 34,
+     "inside": 34,
+     "needed": 28,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 34,
+     "inside": 29,
+     "needed": 28,
+     "short": 0
+    }
+   },
+   "state": "met",
+   "verdict": "pass"
+  },
+  "fixtures": {
+   "numbers": {
+    "goal_unmarked_queries": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 21,
+     "inside": 21,
+     "needed": 17,
+     "short": 0
+    }
+   },
+   "state": "met",
+   "verdict": "pass"
+  }
+ },
+ "condition_1b": {
+  "counted_as_met": true,
+  "multiple_of_capture": 6.0,
+  "not_counted_because": [],
+  "numbers": {
+   "item1_smaller_than_naive": true,
+   "item2_excess_points_over_5": 0.0,
+   "item3_agree": 37,
+   "item3_short": 0,
+   "item3_valid_stages": 37,
+   "item4_scenarios_with_limit": 5,
+   "item4_short_goal": 0,
+   "item4_short_minimum": 0,
+   "item4_within_goal": 5,
+   "item4_within_minimum": 5
+  },
+  "rows": 180000,
+  "verdict": "pass"
+ },
+ "condition_2": "not measured",
+ "condition_3": {
+  "bookstack": {
+   "cause_identified": 0,
+   "marked": 8,
+   "misses": 10,
+   "no_estimate": 1,
+   "not_measured": 1,
+   "remaining": 10,
+   "unmarked": 2
+  },
+  "fixtures": {
+   "cause_identified": 0,
+   "marked": 0,
+   "misses": 0,
+   "no_estimate": 2,
+   "not_measured": 1,
+   "remaining": 0,
+   "unmarked": 0
+  }
+ }
+}
