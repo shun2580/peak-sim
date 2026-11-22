@@ -1,0 +1,4 @@
+2026-11-22T14:56:52+09:00 after the run: the tree of poc/lab at HEAD of the run's copy (names replaced), reverse-substituted (peak-b180k -> peak-lab), compared with git archive 79e38f2 poc/lab
+diff -r: 0 differences
+the copy's git status (B restored): 0 lines
+chain, watchdog: 0 processes (the watchdog ended by itself)
