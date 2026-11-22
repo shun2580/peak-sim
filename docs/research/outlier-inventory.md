@@ -2,7 +2,7 @@
 
 Status: **This is a record made from existing records. Nothing was measured for it. Bagisto has not been measured, and its outliers are not in this inventory. This inventory does not meet condition 3 of section 0 of `docs/simulator-spec.md`; it counts how many outliers are left, and why, before Bagisto is measured (D242).**
 
-The part that lists the outliers and counts them (sections 1 to 7 and 9) is written. The part that proposes how to strengthen the marks (section 8) is not written yet.
+The part that lists the outliers and counts them (sections 1 to 7 and 9) and the part that proposes how to strengthen the marks (section 8) are written.
 
 Condition 3 asks that every outlier left after conditions 1 and 2 is met has a cause that is identified one route at a time, and that the tool can say "this may not hold" at prediction time. An outlier whose cause is not known keeps version 1.0 back. Conditions 1 and 2 are not both met yet (condition 2 is the third application, Bagisto, and it is not measured), so any count of condition 3 stays provisional (D241, D242). This file looks at the two latest tests only and gives the count as it stands in the records.
 
@@ -73,7 +73,7 @@ Bagisto is not measured and is not in this table.
 | Counted apart (outside the denominator, not counted above) | 5 routes | 1 route | 6 |
 
 - **Causes not identified: 10** (unknown 7, guessed 3). This is the same number as the "remaining 10 (provisional)" of D241.
-- Which way to count the routes with no mark (2 or 10) depends on whether the list of marked routes of A is read as a mark in the sense of condition 3. **The count waits for the maintainer's decision.**
+- Which way to count the routes with no mark (2 or 10) depends on whether the list of marked routes of A is read as a mark in the sense of condition 3. **The count waits for the maintainer's decision** (both readings, with the counts, are in section 8.2).
 - By rows instead of routes, the classes of the 11 rows are: guessed 4, unknown 7.
 
 ## 5. A at 240,000 rows: BookStack
@@ -186,7 +186,152 @@ For B, "identified" has a limit that is worth stating. This route was not run at
 
 ## 8. Proposals to strengthen the marks
 
-To be added.
+Three things hold for everything in this section.
+
+1. **These are proposals only.** The tool, the predictions, the rules and the earlier records were not changed, and nothing was measured.
+2. **Every "how many it would catch" number was counted on the same records after the outliers were seen.** It is a fit, not a test. A proposal can only be checked on records not yet seen (for example Bagisto).
+3. **The choices below are the maintainer's and have not been made.**
+
+B has no outlier, so there is no proposal for B. All proposals are about the 10 BookStack routes of A at 240,000 rows. The numbers are counted from the estimate files of A at `f52f692` (`poc/lab/predictions/extrapolation-4-{bookstack,fixtures}-estimate.json`) and from the raw records of the measurement (`extrapolation-data-4/measured-240000/bookstack/attempts.jsonl` and `extrapolation-data-4/measured-240000/variance/bookstack/a4var240k/`).
+
+### 8.1 The four groups
+
+The 10 routes fall into four groups by what the records show. The row numbers are those of section 5.1.
+
+| Group | Routes (row numbers of section 5.1) | Mark at `f52f692` | Cause class | Direction of the measurement |
+| --- | --- | --- | --- | --- |
+| **Heavy on one lap only** | 1 `GET /shelves/{slug}/references`; 3 `PUT /shelves/{slug}`; 4 `GET /books/{slug}/references`; 8 `PUT …/revisions/{revId}/restore` | yes, `plan_changes_at_scale` | unknown | above the estimate, on the third lap only |
+| **Estimate too high** | 2 `GET /books/{bookSlug}/page/{pageSlug}`; 5 `GET /shelves/{slug}`; 6 `DELETE /books/{id}` | yes (rows 2 and 5 `plan_unstable`; row 6 `plan_changes_at_scale`) | guessed 2, unknown 1 | below the estimate |
+| **Always heavier than the estimate** | 9 `POST /settings/maintenance/regenerate-references` | yes, `plan_changes_at_scale` | unknown | above the estimate (also in the second and third runs of A) |
+| **No mark** | 7 `POST /books/{bookSlug}/draft/{pageId}`; 10 `DELETE /settings/maintenance/cleanup-images` | **no** | unknown 1, guessed 1 | above the estimate |
+
+### 8.2 The question that comes first: does the list of marked routes count as a mark for condition 3?
+
+Condition 3 says the tool can say "this may not hold" at prediction time. The list of marked routes of A is in the prediction's output. Whether being on that list is enough is a matter of reading the spec, and it is **the maintainer's to decide** (section 4 says the count depends on it; section 9 lists it among what cannot be said). Both readings are given here.
+
+**Read as "it counts":**
+
+- The spec's wording is only that the tool "can say" so at prediction time. The list is in the output, and the meaning of each mark (the plan changes at scale; the plan is unstable) is given with it.
+- The test of the marks (spec 7.4.1) puts the pass line at "no miss" and says the number of false alarms is always reported. The same practice can be applied here: the false alarms are counted and shown, and are not a reason to set the marks aside.
+
+**Read as "it does not count":**
+
+- The list marks 19 of the 34 BookStack routes, and 11 of those 19 were inside the goal (11 false alarms). A mark on more than half of the routes says little to a user about which route is at risk.
+- The marks of rows 2 and 5 are on the statement `sf034e6d815` only. `extrapolation-test-3-causes.md` section 5 wrote, for the 300,000-row run, that on the same route the marked statement is not the one that gave the error. So a mark can be right while its reason is not.
+- A mark says "may not hold" and does not say in which direction or by how much. The three routes of the "estimate too high" group were measured below the estimate, and the upper side (`rows_examined_upper`) points only upward.
+
+**What changes in the counts** (A at 240,000 rows, BookStack, rule B):
+
+| Reading | Outliers with a mark | Outliers with no mark | False alarms (marked, inside the goal) |
+| --- | ---: | ---: | ---: |
+| It counts | 8 | **2** | 11 |
+| It does not count | 0 | **10** | not applicable |
+
+For reference, not counted: the 19 marked routes carry an upper side as well as the point. Of the 8 marked outliers, 5 (the four of "heavy on one lap only" and the one of "always heavier than the estimate") have a measured value inside [point − 10%, upper side]. The 3 of "estimate too high" are below the point − 10%. The upper side is wide, from 1.02 to 24.3 times the point (for example, `GET /books/{slug}/references` has point 84,217 and upper side 2,043,810), so it is not narrow enough to use for capacity planning.
+
+### 8.3 Heavy on one lap only (rows 1, 3, 4, 8)
+
+**(a) Mark proposal.**
+
+- All four already have a `plan_changes_at_scale` mark (so they had a mark if the list counts).
+- A stronger form: add one line to the mark of such a route saying that the same request can read very different numbers of rows from one run to another. What to look at and what threshold to use cannot be set while the cause is not known.
+- How many it would catch: **cannot be counted**, because the records have no quantity, available at prediction time, that separates the lap that turns heavy. For all four, the other three runs are within 0.01% to 0.24% of the estimate, and only the heavy run is outside.
+
+**(b) Measurement proposal.**
+
+- What: run the 21 routes for three laps in the order of the last part of the third lap of the 240,000-row repeat (trials 57 to 60 of that record), with the per-statement row counts (the tap) switched on, to see whether a heavy run appears and, if it does, which statement grows. The record at 240,000 rows had the tap off (`tap=off` in its `run.txt`) and no ANALYZE (`analyze=none`). ANALYZE is not run here, to keep the conditions the same.
+- On which database: a development size of 70,000 rows is recommended. It is not a size used for a test, so it is not used up. 240,000 rows is a size already seen, and its database no longer exists (D236).
+- Time: the 240,000-row repeat (one database, three laps, 21 routes) took 4 hours 21 minutes from building the database, a value read from the record (`extrapolation-data-4/measured-240000/variance/bookstack/a4var240k/run.txt`: `started=2026-11-20T06:47:35+0900`, `finished=2026-11-20T11:08:47+0900`). The time for 70,000 rows with the tap on is not in any record: the smaller size makes it shorter and the tap makes it longer. **The expectation that it would not exceed 4 hours 21 minutes is conditional and is not a measured value.**
+- Limit: if the heavy run does not appear at 70,000 rows, the cause stays unknown (it may be something that happens only at 240,000 rows).
+
+### 8.4 Estimate too high (rows 2, 5, 6)
+
+**(a) Mark proposal.**
+
+- All three have a mark. The present mark gives a range upward only, so the stronger form is to say also that the point may be too high, and to add the range below to the output of a marked route.
+- How many it would catch: **cannot be counted**, because there is no way yet to make the range below and the prediction file has no value for it.
+
+**(b) Measurement proposal.**
+
+- Row 2, `GET /books/{bookSlug}/page/{pageSlug}`: check the difference named in section 10.3 of `extrapolation-test-3-causes.md`. The database used for the capture and the EXPLAIN had ANALYZE run; the database of the repeat did not. On a database of 70,000 rows, take the tap both without and with ANALYZE, and see the rows of statement `s7ff3e12408` (2.6·N or 0.2·N). It is one request at a time, so it should be short (conditional, not a measured value).
+- Row 5, `GET /shelves/{slug}`: the route reads 236 rows at every size. One tap run at any size shows which statement carries the 47.75 rows of difference, and the real counts of the two statements whose count is 1.43876 (`sa8fffb0b26` and `sde990ad951`). It is the cheapest measurement here.
+- Row 6, `DELETE /books/{id}`: the rows vary from lap to lap, 1,248,500 to 1,860,501. At 70,000 rows, take the tap for each lap and compare the rows scanned and the rows read of statement `sad4efc33ee` (this checks the premise of the point rule P1). It goes into the same run as the heavy-on-one-lap measurement.
+
+### 8.5 Always heavier than the estimate (row 9)
+
+**(a) Mark proposal.**
+
+- The route already has a mark. It was above the estimate in the second, third and fourth runs of A, but "it missed in the same direction in an earlier test" is not information a new application has, so it is not made into a proposal.
+- How many it would catch: **cannot be counted**.
+
+**(b) Measurement proposal.**
+
+- Take the tap at 70,000 rows and see which of the two statements that make up 99.9% of the estimate (`s55d8c74b35` and `sc6102fdbc3`) is short. The route gives the same value (370,678,285) in all four runs, so one run should be enough (conditional, not a measured value).
+
+### 8.6 No mark (rows 7 and 10): the core of the hole in condition 3
+
+**Row 10, `DELETE /settings/maintenance/cleanup-images` (guessed: reading in chunks by offset grows with the square of the row count).**
+
+**(a) Mark proposal.**
+
+- What to look at: the share of the estimate's rows read that comes from statements with an `OFFSET`.
+- Threshold: set it from records already seen only. The numbers below are a fit made after the outliers were seen, and they must not be used as material to set the threshold.
+- Which mark to strengthen: whether it is a new mark, or an addition to the meaning of `plan_changes_at_scale`, is to be decided at implementation.
+- How many it would catch, for A at 240,000 rows with the threshold set at 0.5 (**0.5 is a provisional value used only to count, and is not a value that is recommended**):
+  - BookStack: one route would be marked, `DELETE …/cleanup-images` (share 0.889): 1 hit, 0 misses, 0 false alarms. The share for `GET /shelves/{slug}` is 0.083, below the threshold.
+  - Verification app: `GET /ok/chunk` and `GET /ok/lazy` (share 1.000) would be marked, and both are inside the goal (1.83%), so 2 false alarms.
+- Weakness: the same offset-chunk reading is estimated correctly for the two verification routes. "It uses an offset" alone does not separate the routes that miss. The threshold cannot be set until it is found why, for cleanup, both the estimated count (236.55) and the rows of one run (105,133) came out low.
+
+**(b) Measurement proposal.**
+
+- Take the tap at 70,000 rows and at the captured sizes (100 to 30,000), and line up the count and the rows per run of statement `sdf9dc81d9e` by size. If it grows with the square, compare with the power the fitted formula chose.
+- Reading the application's code for the chunk size (is it 1,000?) can firm up the guess without any measurement. It is a read-only check, so it is best done first.
+
+**Row 7, `POST /books/{bookSlug}/draft/{pageId}` (unknown).**
+
+**(a) Mark proposal.**
+
+- There is no proposal with a basis. The measurement is 120,893 rows above the estimate. The estimate is almost entirely two statements on `max(priority)` (`sc26304c1f7` and `s68a46df765`, neither marked), and the record does not say which of the two is short.
+- Counting "has a statement with an offset" would mark this route too, but the share of the estimate that comes from offset statements is 0.000, so there is no ground connecting it to the miss. That would be a hit by chance, and it is not counted as a proposal.
+- How many it would catch: **cannot be counted**, because the cause is not known.
+
+**(b) Measurement proposal.**
+
+- The route read 3.2·N + 544 rows at 300,000 rows as well. Take the tap at 70,000 rows and look at the rows of the two statements to see which is outside the estimate (conditional, not a measured value).
+
+### 8.7 The measurements together
+
+If the maintainer decides to make them, they can be put in one run:
+
+- Build one database of 70,000 rows (no ANALYZE) and run the heavy-on-one-lap order of three laps with the tap on. Then take the six routes of the other three groups one at a time with the tap, and last run ANALYZE and take row 2 again.
+- 70,000 rows is not a size used for a test, so no unseen size is used up. It uses a database other than the one for building Bagisto and can go on alongside it.
+- On time, the three laps are expected not to exceed the 4 hours 21 minutes of the 240,000-row repeat, and the other three groups are one request at a time. **Both are conditional expectations and not measured values.**
+- Only the causes that the tap can settle to a statement (the groups "estimate too high", "always heavier than the estimate" and "no mark") can be identified, as expected. "Heavy on one lap only" stays unknown if the heavy run does not appear again.
+
+### 8.8 Open choices for the maintainer
+
+The recommendations below are recommendations and not decisions.
+
+**Choice 1. Does the list of marked routes of A count as a mark for condition 3?** (Section 8.2.)
+
+- (1) It counts. Outliers with no mark: 2. The number of false alarms is shown every time.
+- (2) It does not count. Outliers with no mark: 10. Condition 3 then needs a new mark.
+- (3) It counts, except where the reason of the mark differs from the reason of the miss (the `views` statement of rows 2 and 5). Outliers with no counted mark: 4 (the 2 unmarked and rows 2 and 5).
+- **Recommended: (1)**, because it fits the spec's wording ("can say") and the practice of the test of the marks (no miss; the number of false alarms is reported), and because the count does not move afterwards. (3) cannot be fully counted now, because the records at 240,000 rows do not say which statement gave the error.
+
+**Choice 2. How to strengthen the marks for the two routes with no mark (rows 7 and 10).**
+
+- (1) First read the application's code for the chunk size of cleanup (no measurement), and work the offset-share mark into a form whose threshold can be set from records already seen. The draft route waits for the result of the measurement.
+- (2) Mark any route that has a statement with an offset. This catches both routes in A, but the draft route would be a hit by chance, and it adds 1 new false alarm in BookStack (`PUT /books/{slug}`) and 3 in the verification app (chunk, lazy and paginate).
+- (3) Do not strengthen now; decide together after Bagisto.
+- **Recommended: (1)**, because (2) is a hit made after the outliers were seen, and it counts a hit that has no ground.
+
+**Choice 3. Whether and when to make the measurements of section 8.7.**
+
+- (1) Make them, alongside the preparation for Bagisto, at 70,000 rows (a size that is not used up).
+- (2) Make them after Bagisto, together with the outliers of Bagisto (the order of the spec's course, step 3 then step 4).
+- (3) Do not make them (the 10 routes stay with unknown causes and version 1.0 is not reached).
+- **Recommended: (1)**, because it does not use a size reserved for tests, it can go alongside Bagisto on a different database, and the six routes of the three groups need one request each. The maintainer should be told first that "heavy on one lap only" may not be identified.
 
 ## 9. What cannot be said
 
