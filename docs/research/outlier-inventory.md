@@ -19,7 +19,7 @@ Condition 3 asks that every outlier left after conditions 1 and 2 is met has a c
 
 The records of the two latest tests were read again, and every route or step outside the goal was listed with its numbers, whether the prediction carried a mark when it was fixed, and what the records say about the cause. This is a look ahead at condition 3 of section 0 of the spec. **It is a record only: no measurement was made, no database was built, no container was started, and no estimate, rule, tool, earlier record or lab data was changed.** The measured numbers are copied from the earlier records and are not rounded again.
 
-Two readers rebuilt the table of A without seeing each other's work, and a third read both and checked the raw records. They agreed on every number, every mark and 9 of the 11 rows' causes. The two rows on which they differed were decided under the rule "when in doubt, take the lower class" (section 3.3); both are marked in section 5.3. B was rebuilt from the raw records by one reader and checked by another, and the two agree.
+Two readers rebuilt the table of A without seeing each other's work, and a third read both and checked the raw records. They agreed on every number, every mark and 9 of the 11 rows' causes. The two rows on which they differed were decided by the third reader against the records: one by taking the lower class (row 5a), one by checking the arithmetic of the guess (row 10). Both are marked in section 5.3. B was rebuilt from the raw records by one reader and checked by another, and the two agree.
 
 ## 2. What is counted
 
@@ -44,7 +44,7 @@ The definition is that of section 7.4 of the spec. It is not new.
 ### 3.2 The columns of a row
 
 1. Test, application, route (for B, scenario and step) and quantity.
-2. Predicted (rule B), measured, ratio (measured divided by predicted), relative error (|predicted − measured| divided by measured), and band (outside the goal only, or outside the lowest standard).
+2. Predicted (the estimate's point), measured (rule B: for a marked route, the largest of its four cold values), ratio (measured divided by predicted), relative error (|predicted − measured| divided by measured), and band (outside the goal only, or outside the lowest standard).
 3. **The mark at prediction time**: present or absent; if present, its name and the file it was read from at the commit of the prediction. The mark was judged **only from the output committed with the prediction** (`f52f692` for A, `79e38f2` for B). A reason found afterwards does not turn "absent" into "present".
 4. **The cause**, in one of three classes (section 3.3).
 
@@ -82,7 +82,7 @@ The verification app has no outlier. The numbers that show it: 21 routes in the 
 
 ### 5.1 The 10 routes (11 rows)
 
-Ratio is measured divided by predicted. The relative error is |predicted − measured| divided by measured. The predicted value is that of rule B.
+Ratio is measured divided by predicted. The relative error is |predicted − measured| divided by measured. The predicted value is the estimate's point, and the measured value is that of rule B (for a marked route, the largest of its four cold values).
 
 | # | Route | Quantity | Predicted | Measured | Ratio | Relative error | Band |
 | ---: | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -136,11 +136,11 @@ Classes follow section 3.3. "Record" is a path under `docs/research/` unless it 
 | 4 | rows examined | unknown | As row 1. The repeat laps read 84,210, 84,210 and 168,207. |
 | 5a | rows examined | unknown | The estimate is 47.75 rows above the measured 236. The record does not say which statement is high or why. (The two readers differed here: one wrote guessed, one wrote unknown. The restatement "the estimate is higher by 47.75 rows" says no mechanism, so unknown is taken.) |
 | 5b | queries | guessed | The counts of two statements are not whole numbers (1.43876 each), and 16 + 2 × 1.43876 = 18.8775, which matches the estimate 18.878. The record is the estimate at `f52f692` (`poc/lab/predictions/extrapolation-4-bookstack-estimate.json`). |
-| 6 | rows examined | guessed | The point rule P1 takes the rows of a scan as the rows read. D225 (ruling 1) records an error in the same direction at 200,000 rows. The laps of the repeat differ (1,860,501, 1,248,500, 1,248,500) and the reason for that was not examined. `extrapolation-test-3-causes.md` end of section 3 |
+| 6 | rows examined | guessed | A guess: the point rule P1 takes the rows of a scan as the rows read. D225 (ruling 1) records an error in the same direction at 200,000 rows. The laps of the repeat differ (1,860,501, 1,248,500, 1,248,500) and the reason for that was not examined. `extrapolation-test-3-causes.md` end of section 3 |
 | 7 | rows examined | unknown | The record has no investigation. The route read 3.2·N + 544 rows at 300,000 rows as well. |
 | 8 | rows examined | unknown | As row 1. The repeat laps read 276,246, 276,246 and 324,245. |
 | 9 | rows examined | unknown | The record has no investigation. In the second, third and fourth runs of A the estimate for this route is below the measurement. |
-| 10 | rows examined | guessed | The route reads the table in chunks of 1,000 rows by offset, 241 times, which grows with the square of the row count. Measured 32,280,434 less two counting statements that use `LIKE` (240,000 × 5 and 240,000 × 8 rows, 3,120,000 together) is 29,160,434, against 1,000 × (1 + … + 240) + 240,000 = 29,160,000: the same to 434 rows. The chunk size of 1,000 was not checked in the application's code, so this is not raised to identified. Records: the measured attempts of BookStack at 240,000 rows (`extrapolation-data-4/measured-240000/bookstack/attempts.jsonl`) and the estimate at `f52f692` |
+| 10 | rows examined | guessed | A guess that fits the recorded rows: the route reads the table in chunks of 1,000 rows by offset, 241 times, which would grow with the square of the row count. Measured 32,280,434 less two counting statements that use `LIKE` (240,000 × 5 and 240,000 × 8 rows, 3,120,000 together) is 29,160,434, against 1,000 × (1 + … + 240) + 240,000 = 29,160,000: the same to 434 rows. The chunk size of 1,000 was not checked in the application's code, so this is not raised to identified. Records: the measured attempts of BookStack at 240,000 rows (`extrapolation-data-4/measured-240000/bookstack/attempts.jsonl`) and the estimate at `f52f692` |
 
 Counts by route (a route with two rows takes the lower class): identified 0; guessed 3 (`GET /books/{bookSlug}/page/{pageSlug}`, `DELETE /books/{id}`, `DELETE /settings/maintenance/cleanup-images`); unknown 7 (`GET /shelves/{slug}/references`, `PUT /shelves/{slug}`, `GET /books/{slug}/references`, `GET /shelves/{slug}`, `POST /books/{bookSlug}/draft/{pageId}`, `PUT …/revisions/{revId}/restore`, `POST /settings/maintenance/regenerate-references`).
 
