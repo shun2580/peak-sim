@@ -115,7 +115,7 @@ The details are in `docs/research/lab-data/ladder-180k/README.md` and `PAUSE-202
 
 Counted by the load tool's sending side: requests sent before the instant and not answered until at or after it, timed by the load tool and not by php-fpm (`running_requests` in each step's `record.json`). They are a material for reading; they are not used for any item of the verdict.
 
-- **Routes.** At the start and at the end of the windows of all 37 steps, only `GET /books/{bookSlug}/export/zip` had requests running. The seven other routes had none, at any step, at either instant.
+- **Routes.** At the start and at the end of the windows of all 37 steps, only `GET /books/{bookSlug}/export/zip` had requests running. The six other routes listed in each `record.json` (seven routes in all, ZIP included) had none, at any step, at either instant.
 - **Count.** At the start: 0 to 7 requests; at the end: 0 to 8. The steps with the highest counts are the last steps of the scenarios: s-1 step 7 (4 at the start, 5 at the end), s-2 step 5 (4, 4), s-3 step 9 (5, 5), s-4 step 6 (5, 5) and s-5 step 10 (7, 8). The steps at 0.025 to 0.07 rps have 0 to 2.
 - **Start against end.** The count at the end minus the count at the start is 0 at 30 steps, +1 at 6 steps and −1 at 1 step. So at no step does the window lose or gain more than one request in flight across its edges. In the fifth round, with a 60 s warm-up, this was not recorded.
 - **Size of one request at the edge.** One ZIP request in flight carries database work of about half a core for its whole length (D237 gave 0.47 to 0.49 core at three row counts; this round did not measure it). Over about 133 s that is about 65 core-seconds, against 2 × 343 = 686 core-seconds of capacity in the shortest window. This is arithmetic from those two figures, and an upper bound for the share of one request that falls on the wrong side of an edge: the request's work is only partly outside the window.
@@ -245,7 +245,7 @@ The prediction was committed before the first measurement, by git and by the rec
 
 - It says nothing about a count never seen, and 180,000 is now a count that has been measured: it cannot be used again as a test of anything repaired afterwards (spec 7.5).
 - It does not say why a difference remains where one does, beyond the reading of section 6, which is consistent with the sharing of cores and does not prove it.
-- It is not a statement about the other test of this round (A) or about another application.
+- It is not a statement about the extrapolation test (A), which was not run this round, or about another application.
 
 ## 10. What the lab cannot say
 
