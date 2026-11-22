@@ -1,0 +1,11 @@
+ Container peak-b180k-k6 Stopping 
+ Container peak-b180k-tools Stopping 
+ Container peak-b180k-k6 Stopped 
+ Container peak-b180k-web Stopping 
+ Container peak-b180k-tools Stopped 
+ Container peak-b180k-web Stopped 
+ Container peak-b180k-app Stopping 
+ Container peak-b180k-app Stopped 
+ Container peak-b180k-db Stopping 
+ Container peak-b180k-db Stopped 
+exit=0

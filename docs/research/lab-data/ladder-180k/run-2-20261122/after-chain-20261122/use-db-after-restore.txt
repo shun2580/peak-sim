@@ -1,0 +1,6 @@
+2026-11-22T14:47:05+09:00
+PASS peak-b180k-db: 8.8.8.8:53 is unreachable
+PASS peak-b180k-db: the name example.com is unreachable
+PASS peak-b180k-db: its own port (3306) (positive control)
+PREFLIGHT OK
+rc=0

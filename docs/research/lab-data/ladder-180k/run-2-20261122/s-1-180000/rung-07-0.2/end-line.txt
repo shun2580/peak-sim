@@ -1,0 +1,1 @@
+RUNG END s-1 rung 7 rps decided 0.2 achieved 0.2000 (valid) db 86.1% app 35.3% dropped 0 | 200x69 302x11 | STOP (db_utilization_at_or_above_80_percent)

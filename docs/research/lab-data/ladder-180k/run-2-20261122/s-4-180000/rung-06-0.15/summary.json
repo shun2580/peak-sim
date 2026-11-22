@@ -1,0 +1,82 @@
+{
+  "scenario_start_ms": 1795311931030.4546,
+  "measure_requests": 80,
+  "measure_sent": 80,
+  "sent_after_window": 0,
+  "finished_after_window": 5,
+  "longest_after_window_ms": 133750.58447265625,
+  "graceful_stop": "1800s",
+  "measure_failed": 5,
+  "measure_ok": 75,
+  "dropped_iterations": 0,
+  "http_status": {
+    "200": 75,
+    "302": 5
+  },
+  "http_status_by_route": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": {
+      "200": 16
+    },
+    "GET /books/{bookSlug}/export/zip": {
+      "200": 16
+    },
+    "GET /books/{bookSlug}/page/{pageSlug}/references": {
+      "200": 16
+    },
+    "GET /books/{slug}/references": {
+      "200": 16
+    },
+    "GET /images/edit/{id}": {
+      "200": 6
+    },
+    "GET /oidc/callback": {
+      "302": 5
+    },
+    "GET /shelves/{slug}": {
+      "200": 5
+    }
+  },
+  "request_timeout": "1800s",
+  "duration_ms": {
+    "avg": 34203.00525207499,
+    "p95": 174644.49000005,
+    "max": 175047.072015
+  },
+  "per_route": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 16,
+    "GET /books/{bookSlug}/export/zip": 16,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 16,
+    "GET /books/{slug}/references": 16,
+    "GET /images/edit/{id}": 6,
+    "GET /oidc/callback": 5,
+    "GET /shelves/{slug}": 5
+  },
+  "per_route_sent": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 16,
+    "GET /books/{bookSlug}/export/zip": 16,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 16,
+    "GET /books/{slug}/references": 16,
+    "GET /images/edit/{id}": 6,
+    "GET /oidc/callback": 5,
+    "GET /shelves/{slug}": 5
+  },
+  "running_at_window_start": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0,
+    "GET /books/{bookSlug}/export/zip": 5,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 0,
+    "GET /books/{slug}/references": 0,
+    "GET /images/edit/{id}": 0,
+    "GET /oidc/callback": 0,
+    "GET /shelves/{slug}": 0
+  },
+  "running_at_window_end": {
+    "GET /books/{bookSlug}/chapter/{chapterSlug}/references": 0,
+    "GET /books/{bookSlug}/export/zip": 5,
+    "GET /books/{bookSlug}/page/{pageSlug}/references": 0,
+    "GET /books/{slug}/references": 0,
+    "GET /images/edit/{id}": 0,
+    "GET /oidc/callback": 0,
+    "GET /shelves/{slug}": 0
+  },
+  "running_counted_by": "k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)"
+}

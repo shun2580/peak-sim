@@ -1,0 +1,1 @@
+db log: stop after s-1

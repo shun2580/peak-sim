@@ -1,0 +1,46 @@
+PREDICTION OK poc/lab/predictions/ladder-prediction-6-b180k.json d5aa06710f888c6d3cc6fb0cb8dc23bb6408f572 2026-11-21T20:24:47+09:00
+SCALE s-3 180000 rows (the count of the prediction file)
+ALLOCATION s-3: 7 routes sent, 1 not sent (GET /books/{slug}); the shares are the prediction's rps_after, not the mix's
+WRITE CHECK OK 8 routes, 76 statement types, every write is to views only (insert views in GET /shelves/{slug}, update views in GET /books/{slug}); record sha256 69f08fcad32bdd31
+WARMUP s-3: the discarded start of each step is read from the prediction file (section 7.4.5): 0.025=573s 0.035=573s 0.05=573s 0.07=573s 0.1=573s 0.15=573s 0.2=573s 0.3=573s 0.45=573s 0.7=573s 1=573s 1.5=573s 2.2=573s 3.3=573s 5=573s 
+TABLES BASELINE scale 180000: entities 180000 3169663894;images 180000 1908525454;references 180000 1468974778; (19 write counters)
+OOM BASELINE peak-b180k-app: oom_killed=false restart_count=0 started_at=2026-11-21T20:11:32.61808928Z cgroup_oom=0 cgroup_oom_kill=0
+RUNG SETTINGS s-3 rung 1: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 1 of 15 rps 0.025 scale 180000 mix last80 scheme B at 2026-11-22T05:12:03+09:00 (36 min 13 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 1 rps decided 0.025 achieved 0.0250 (valid) db 6.6% app 2.4% dropped 0 | 200x32 302x8 | continue
+RUNG SETTINGS s-3 rung 2: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 2 of 15 rps 0.035 scale 180000 mix last80 scheme B at 2026-11-22T05:49:20+09:00 (28 min 35 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 2 rps decided 0.035 achieved 0.0350 (valid) db 8.8% app 3.4% dropped 0 | 200x32 302x8 | continue
+RUNG SETTINGS s-3 rung 3: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 3 of 15 rps 0.05 scale 180000 mix last80 scheme B at 2026-11-22T06:18:57+09:00 (22 min 53 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 3 rps decided 0.05 achieved 0.0500 (valid) db 11.4% app 4.5% dropped 0 | 200x32 302x8 | continue
+RUNG SETTINGS s-3 rung 4: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 4 of 15 rps 0.07 scale 180000 mix last80 scheme B at 2026-11-22T06:42:55+09:00 (19 min 4 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 4 rps decided 0.07 achieved 0.0701 (valid) db 14.5% app 5.7% dropped 0 | 200x32 302x8 | continue
+RUNG SETTINGS s-3 rung 5: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 5 of 15 rps 0.1 scale 180000 mix last80 scheme B at 2026-11-22T07:03:07+09:00 (16 min 13 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 5 rps decided 0.1 achieved 0.1000 (valid) db 20.7% app 8.4% dropped 0 | 200x32 302x8 | continue
+RUNG SETTINGS s-3 rung 6: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 6 of 15 rps 0.15 scale 180000 mix last80 scheme B at 2026-11-22T07:20:49+09:00 (18 min 26 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 6 rps decided 0.15 achieved 0.1501 (valid) db 31.6% app 12.8% dropped 0 | 200x64 302x16 | continue
+RUNG SETTINGS s-3 rung 7: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 7 of 15 rps 0.2 scale 180000 mix last80 scheme B at 2026-11-22T07:40:28+09:00 (16 min 13 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 7 rps decided 0.2 achieved 0.2000 (valid) db 43.5% app 17.8% dropped 0 | 200x64 302x16 | continue
+RUNG SETTINGS s-3 rung 8: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 8 of 15 rps 0.3 scale 180000 mix last80 scheme B at 2026-11-22T07:58:14+09:00 (16 min 13 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 8 rps decided 0.3 achieved 0.3000 (valid) db 63.1% app 26.0% dropped 0 | 200x96 302x24 | continue
+RUNG SETTINGS s-3 rung 9: { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+RUNG START s-3 rung 9 of 15 rps 0.45 scale 180000 mix last80 scheme B at 2026-11-22T08:16:27+09:00 (15 min 29 s, the first 573 s discarded)
+WRITES SAME after a step scale 180000: 19 write counters
+RUNG END s-3 rung 9 rps decided 0.45 achieved 0.4494 (valid) db 90.0% app 37.1% dropped 0 | 200x128 302x32 | STOP (db_utilization_at_or_above_80_percent)
+the scenario s-3 stops after rung 9
+TABLES SAME after the load scale 180000: entities 180000 3169663894;images 180000 1908525454;references 180000 1468974778; (19 write counters)
+ladder record: ~/.cache/peak-b180k/out/ladder/s-3-180000/ladder.json

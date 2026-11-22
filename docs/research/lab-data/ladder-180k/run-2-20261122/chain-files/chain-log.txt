@@ -1,0 +1,30 @@
+2026-11-22T00:08:12+09:00 CHAIN START scale=180000 scenarios='s-1' request_timeout=1800s stop_mark=~/.cache/peak-b180k/out/chain/STOP require_allocation=1
+2026-11-22T00:08:12+09:00 RECREATE app/web before s-1 (use-db 180000)
+2026-11-22T00:08:28+09:00 recreated and checked before s-1
+2026-11-22T00:08:29+09:00 START s-1 scale=180000 request_timeout=1800s
+2026-11-22T02:58:24+09:00 END s-1 exit=0
+2026-11-22T02:58:25+09:00 CHAIN DONE (s-1)
+2026-11-22T02:58:25+09:00 CHAIN START scale=180000 scenarios='s-2' request_timeout=1800s stop_mark=~/.cache/peak-b180k/out/chain/STOP require_allocation=1
+2026-11-22T02:58:26+09:00 RECREATE app/web before s-2 (use-db 180000)
+2026-11-22T02:58:41+09:00 recreated and checked before s-2
+2026-11-22T02:58:42+09:00 START s-2 scale=180000 request_timeout=1800s
+2026-11-22T05:11:29+09:00 END s-2 exit=0
+2026-11-22T05:11:29+09:00 CHAIN DONE (s-2)
+2026-11-22T05:11:30+09:00 CHAIN START scale=180000 scenarios='s-3' request_timeout=1800s stop_mark=~/.cache/peak-b180k/out/chain/STOP require_allocation=1
+2026-11-22T05:11:30+09:00 RECREATE app/web before s-3 (use-db 180000)
+2026-11-22T05:11:46+09:00 recreated and checked before s-3
+2026-11-22T05:11:46+09:00 START s-3 scale=180000 request_timeout=1800s
+2026-11-22T08:34:21+09:00 END s-3 exit=0
+2026-11-22T08:34:22+09:00 CHAIN DONE (s-3)
+2026-11-22T08:34:22+09:00 CHAIN START scale=180000 scenarios='s-4' request_timeout=1800s stop_mark=~/.cache/peak-b180k/out/chain/STOP require_allocation=1
+2026-11-22T08:34:22+09:00 RECREATE app/web before s-4 (use-db 180000)
+2026-11-22T08:34:38+09:00 recreated and checked before s-4
+2026-11-22T08:34:39+09:00 START s-4 scale=180000 request_timeout=1800s
+2026-11-22T11:06:13+09:00 END s-4 exit=0
+2026-11-22T11:06:13+09:00 CHAIN DONE (s-4)
+2026-11-22T11:06:14+09:00 CHAIN START scale=180000 scenarios='s-5' request_timeout=1800s stop_mark=~/.cache/peak-b180k/out/chain/STOP require_allocation=1
+2026-11-22T11:06:14+09:00 RECREATE app/web before s-5 (use-db 180000)
+2026-11-22T11:06:30+09:00 recreated and checked before s-5
+2026-11-22T11:06:30+09:00 START s-5 scale=180000 request_timeout=1800s
+2026-11-22T14:46:19+09:00 END s-5 exit=0
+2026-11-22T14:46:20+09:00 CHAIN DONE (s-5)

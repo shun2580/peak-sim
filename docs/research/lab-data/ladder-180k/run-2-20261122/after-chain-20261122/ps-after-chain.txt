@@ -1,0 +1,5 @@
+peak-b180k-web Up 4 hours
+peak-b180k-app Up 4 hours
+peak-b180k-tools Up 15 hours
+peak-b180k-k6 Up 15 hours
+peak-b180k-db Up 15 hours (healthy)

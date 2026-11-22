@@ -1,0 +1,55 @@
+ Container peak-b180k-app Recreate 
+ Container peak-b180k-app Recreated 
+ Container peak-b180k-web Recreate 
+ Container peak-b180k-web Recreated 
+ Container peak-b180k-app Starting 
+ Container peak-b180k-app Started 
+ Container peak-b180k-web Starting 
+ Container peak-b180k-web Started 
+PASS container: peak-b180k-db is running
+PASS container: peak-b180k-app is running
+PASS container: peak-b180k-web is running
+PASS container: peak-b180k-k6 is running
+PASS container: peak-b180k-tools is running
+PASS network: peak-b180k_lab-internal internal=true
+PASS peak-b180k-db: network mode peak-b180k_lab-internal
+PASS peak-b180k-db: no published port
+PASS peak-b180k-app: network mode peak-b180k_lab-internal
+PASS peak-b180k-app: no published port
+PASS peak-b180k-web: network mode peak-b180k_lab-internal
+PASS peak-b180k-web: no published port
+PASS peak-b180k-k6: network mode peak-b180k_lab-internal
+PASS peak-b180k-k6: no published port
+PASS peak-b180k-tools: network mode peak-b180k_lab-internal
+PASS peak-b180k-tools: no published port
+peak-b180k-app: PASS negative dns:example.com              did not resolve
+peak-b180k-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-b180k-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-b180k-app: PASS negative http:example.com             no response
+peak-b180k-app: PASS negative default-route                no default route
+peak-b180k-app: PASS positive tcp:measure-db:3306          connected
+peak-b180k-app: PASS positive dns:measure-db               resolved to 172.25.0.2
+peak-b180k-app: PASS positive login:measure                logged in as the measurement user
+peak-b180k-app: PREFLIGHT OK
+peak-b180k-tools: PASS negative dns:example.com              did not resolve
+peak-b180k-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-b180k-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-b180k-tools: PASS negative http:example.com             no response
+peak-b180k-tools: PASS negative default-route                no default route
+peak-b180k-tools: PASS positive tcp:measure-db:3306          connected
+peak-b180k-tools: PASS positive dns:measure-db               resolved to 172.25.0.2
+peak-b180k-tools: PASS positive login:measure                logged in as the measurement user
+peak-b180k-tools: PREFLIGHT OK
+PASS peak-b180k-web: 1.1.1.1:443 is unreachable
+PASS peak-b180k-web: 8.8.8.8:53 is unreachable
+PASS peak-b180k-web: http://example.com is unreachable
+PASS peak-b180k-web: the app (lab-app:9000) (positive control)
+PASS peak-b180k-k6: 1.1.1.1:443 is unreachable
+PASS peak-b180k-k6: 8.8.8.8:53 is unreachable
+PASS peak-b180k-k6: http://example.com is unreachable
+PASS peak-b180k-k6: the web server (/__lab/health) (positive control)
+PASS peak-b180k-db: 1.1.1.1:443 is unreachable
+PASS peak-b180k-db: 8.8.8.8:53 is unreachable
+PASS peak-b180k-db: the name example.com is unreachable
+PASS peak-b180k-db: its own port (3306) (positive control)
+PREFLIGHT OK
