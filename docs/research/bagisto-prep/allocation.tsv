@@ -1,8 +1,8 @@
 group	methods	routes_in_group	drawn	how
-storefront	DELETE	9	7	proportional by method
-storefront	GET	66	49	proportional by method
+storefront	DELETE	9	6	proportional by method
+storefront	GET	73	48	proportional by method
 storefront	PATCH	1	1	proportional by method
-storefront	POST	29	21	proportional by method
+storefront	POST	35	23	proportional by method
 storefront	PUT	3	2	proportional by method
 admin	DELETE	42	4	proportional by method
 admin	GET	183	20	proportional by method

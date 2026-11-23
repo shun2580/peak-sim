@@ -117,9 +117,14 @@ changed after one. `select-routes.py` applies the rule to `routes-all.txt` (the 
 `d04395480720`; HEAD dropped) and writes the files below. Running it again gives the same files, and shuffling the input does not change them.
 An earlier draft of this list was never committed and was replaced by this rule before the capture was taken again.
 
+**One correction to this rule, made before the capture and before any result of it.** The first committed version of the rule left out all 26 payment-gateway routes.
+That was a misreading of the rule it was meant to apply, which left out the *return* routes of a payment (the page a gateway sends the buyer back to), not every
+route of a gateway. Before the capture was taken, and before any result of it existed, the rule was changed to leave out only the 13 return routes (the last path segment is `success`, `cancel`, `failure`, `fail` or `callback`), and the list was drawn again with the same seed and the same
+procedure. The earlier commit is kept as it was; this one replaces it. The 13 routes that came back into the population are the 6 gateway `redirect` routes, the 2 PayPal `create-order` and `capture-order` calls, and the 5 `webhook` and `ipn` routes.
+
 **Rule.**
 
-1. Left out before the draw, and only these: routes of development packages, `/install`, the payment-gateway routes, the forms of the login, register and contact
+1. Left out before the draw, and only these: routes of development packages, `/install`, the payment-gateway return routes (the page a gateway sends the buyer back to), the forms of the login, register and contact
    kind, and the pages that show an empty state (the kinds `reach-list.md` leaves out of the data reach). Every route left out is in `excluded.tsv` with its reason. A route is never left out
    for another reason, and none is left out because of what a capture showed.
 2. Two groups: the admin area (the URI is `/admin` or starts with `/admin/`) and the storefront and customer side (all others). The storefront and customer side gets 80 slots and the admin area 40, 120 in all.
@@ -132,32 +137,37 @@ An earlier draft of this list was never committed and was replaced by this rule 
 A route here is one entry of the analysis (a URI with the method it answers): 543 entries. The 7 framework routes the analysis skips (`/up`, `/storage/{path}`, `/sanctum/csrf-cookie` and
 four others) are not in the 543 and are not touched by the rule.
 
-**Left out before the draw: 61 of 543.**
+**Left out before the draw: 48 of 543.**
 
 | Reason | Routes |
 | --- | ---: |
-| Payment-gateway routes (`payglocal` 4, `paypal` 6, `payu` 5, `phonepe` 4, `razorpay` 3, `stripe` 4) | 26 |
+| Payment-gateway return routes (`payglocal` 2, `paypal` 2, `payu` 3, `phonepe` 2, `razorpay` 2, `stripe` 2: the last path segment is `success`, `cancel`, `failure`, `fail` or `callback`) | 13 |
 | Forms of the login, register and contact kind (customer and admin: login, register, contact, forgot or reset password) | 17 |
 | Pages or calls that show the visitor's own cart, compare list or checkout step (GET only) | 8 |
 | Development package (`/_debugbar/*`) | 5 |
 | Installer (`/install`, `/install/api/*`) | 5 |
 
-Two readings are the preparer's and are written here so that they can be checked. The "forms" are named by URI in `select-routes.py` (`FORM_URIS`); verification, social-login and logout routes are not counted as forms, and the
-admin login, forgot-password and reset-password routes are counted like their customer twins. The "empty state" kind covers the API calls that read the same cart and compare state as the pages (`/api/checkout/cart`, `/api/compare-items` and others, GET only), for the same
-reason as the pages; the calls that change the cart are not left out. The other kinds `reach-list.md` mentions (routes that answer with a redirect or a file, pages whose rows come only from an ajax datagrid call) are **not** applied: they stay in the list.
+Three readings are the preparer's and are written here so that they can be checked. The "forms" are named by URI in `select-routes.py` (`FORM_URIS`); verification, social-login and logout routes are not counted as forms, and the
+admin login, forgot-password and reset-password routes are counted like their customer twins. The "empty state" kind covers four API calls that read the same cart and compare state as the pages (GET only); the calls that change the cart are not left out.
+Why each of the four is in the kind, one line each (Bagisto `v2.5.2`):
+
+- `GET /api/checkout/cart`: answers `data: null` when the visitor has no cart (`packages/Webkul/Shop/src/Http/Controllers/API/CartController.php:33`), and a visitor of the capture has none.
+- `GET /api/checkout/cart/cross-sell`: answers an empty `data` list when the visitor has no cart (`CartController.php:319`); the products it would list come from the items of that cart.
+- `GET /api/checkout/onepage/summary`: renders the visitor's own cart (`packages/Webkul/Shop/src/Http/Controllers/API/OnepageController.php:34`), so with no cart it has no rows.
+- `GET /api/compare-items`: a visitor who is not logged in gets only the products whose ids are sent in `product_ids`, and none are sent (`packages/Webkul/Shop/src/Http/Controllers/API/CompareController.php:29`). The same route reads the compare list of a logged-in customer (`CompareController.php:34`), so this reading holds for the route as it is called, without a login. The other kinds `reach-list.md` mentions (routes that answer with a redirect or a file, pages whose rows come only from an ajax datagrid call) are **not** applied: they stay in the list.
 
 **Groups and slots.**
 
 | Group | Routes after the leaving out | Slots | Drawn |
 | --- | ---: | ---: | ---: |
-| Storefront and customer side | 108 | 80 | 80 |
+| Storefront and customer side | 121 | 80 | 80 |
 | Admin area | 374 | 40 | 40 |
 
 | Group | Method | Routes | Drawn |
 | --- | --- | ---: | ---: |
-| Storefront and customer | GET | 66 | 49 |
-| | POST | 29 | 21 |
-| | DELETE | 9 | 7 |
+| Storefront and customer | GET | 73 | 48 |
+| | POST | 35 | 23 |
+| | DELETE | 9 | 6 |
 | | PUT | 3 | 2 |
 | | PATCH | 1 | 1 |
 | Admin | GET | 183 | 20 |

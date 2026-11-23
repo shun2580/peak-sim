@@ -16,8 +16,11 @@ Output : excluded.tsv       the routes left out before the draw, one reason each
 
 Steps (fixed):
 1. Leave out, before the draw, only: the development-package routes, /install,
-   the payment-gateway routes, the forms of the login/register/contact kind, and
-   the pages that show an empty state. Nothing else is left out (EXCLUDE_RULES).
+   the payment-gateway return routes (the page the gateway sends the buyer back to:
+   success, cancel, failure, fail, callback), the forms of the login/register/contact
+   kind, and the pages that show an empty state. Nothing else is left out. In
+   particular the gateway's redirect, create-order, capture-order, webhook and IPN
+   routes are not return routes and stay in the population.
 2. Two groups: the admin area (URI is /admin or starts with /admin/) and the
    storefront and customer side (all the rest). The slots are 80 and 40.
 3. A group with no more routes than its slots is taken whole. The unused slots
@@ -39,6 +42,8 @@ SEED = 20261124
 SLOTS = {"storefront": 80, "admin": 40}
 
 PAYMENT_PREFIXES = ("payglocal", "paypal", "payu", "phonepe", "razorpay", "stripe")
+# The last path segment of a route the payment gateway sends the buyer back to.
+PAYMENT_RETURN_SEGMENTS = {"success", "cancel", "failure", "fail", "callback"}
 
 FORM_URIS = {
     "/customer/login", "/api/customer/login", "/customer/register",
@@ -61,8 +66,8 @@ def exclusion_reason(methods, uri):
         return "development package route (debugbar)"
     if uri == "/install" or uri.startswith("/install/"):
         return "installer route"
-    if first in PAYMENT_PREFIXES:
-        return "payment gateway route (" + first + ")"
+    if first in PAYMENT_PREFIXES and uri.rstrip("/").rsplit("/", 1)[-1] in PAYMENT_RETURN_SEGMENTS:
+        return "payment gateway return route (" + first + ")"
     if uri in FORM_URIS:
         return "form of the login, register or contact kind"
     if methods == "GET" and uri in EMPTY_STATE_GET_URIS:
@@ -127,6 +132,7 @@ def main(argv):
             uris = sorted(by_method[m], key=lambda u: rank_key(m, u))[: take[m]]
             drawn.extend((g, m, u) for u in uris)
 
+    excluded.sort(key=lambda r: (r[1], r[0]))
     with open(f"{out}/excluded.tsv", "w", encoding="utf-8") as f:
         f.write("methods\turi\treason\n")
         for methods, uri, why in excluded:
