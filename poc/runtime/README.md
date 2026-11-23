@@ -209,6 +209,8 @@ The rule (`src/Estimate/OffsetChunkFit.php`), per route:
 4. The route's score is S = the sum, over the counted statements, of (the statement's rows at N / the route's rows at N) x |e|.
 5. S at or above 0.10 marks the route. 0.10 is the rows goal of the tool's own test (rows read within 10%); no number was chosen for this rule.
 
+A route whose estimate is not complete (it has a type with no figure, `unavailable`, or the type of its `offset` statement is not in the estimate) has no denominator for the shares, so none of its statements is counted (`not_counted_because: route_incomplete`), no S is given (it stays 0), and the route is not marked; no mark on such a route does not mean safe.
+
 Limits, which go with every use of the mark: the left-out step is 3 times the size (10,000 to 30,000) where the estimate of the 240,000-row test goes 8 times, so `e` comes out smaller than
 the error of the real estimate and the score leans low, and no mark does not mean safe; `e` shows only how badly the formula fits inside the captured sizes, so a bend above the largest captured
 size is not seen. The form of the rule was chosen after the outliers it is meant to explain were known, its limit to statements run twice or more was added after its first results were seen, the
