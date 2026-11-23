@@ -217,6 +217,8 @@ size is not seen. The form of the rule was chosen after the outliers it is meant
 "2 routes marked, 2 hits, 0 false alarms" it gives on the 240,000-row BookStack records is a fit to records already seen and not a test, and whether it works can be shown only on an application
 that has not been seen (Bagisto).
 
+The mark fits the left-out coefficients unrounded, where the estimate rounds them to 12 significant digits (`CostFit::sig`) before putting them at a size; on the 9 BookStack routes with an `offset` statement the largest difference in e was 1.2e-12 and no S or mark changed, so a mark could differ only where S lies within about 1e-11 of 0.10.
+
 ## Layout (this part)
 
 | Path | Role |

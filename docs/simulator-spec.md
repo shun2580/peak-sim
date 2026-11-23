@@ -177,6 +177,7 @@ scenarios:
 - 見積もりが完結しないルート(見積もりの数が出ない型 `unavailable` を一つでも持つ、または offset の文の型が見積もりに載っていないルート)は、割合の分母が決まらないので、その文をすべて数えず(`not_counted_because: route_incomplete`)、S は出さず(0 のまま)、印も付けない。このとき印が無いことは安全を意味しない
 - 出し方:`bin/estimate --candidate=H1_RANGE` の出力の各ルートの `offset_chunk_fit`(`marked`・`score`・文ごとの `share`・`held_out_error`・`counted`)と、`bin/marked-routes --estimate` の一覧。`offset` を含む文の無いルートには項目を付けず、見積もりの数と他の印は変えない。シミュレーターの出力(§6.4)・限界の値・使用率はこの版では変えない
 - 印の形は外れを知った後に選んだものであり、「回数 2 以上」の限定も結果を見た後に足したものであり、240,000 件の BookStack に当てた「印 2・当たり 2・空振り 0」は既に見た記録への当てはめで試験ではなく、効き目はまだ見ていないアプリ(Bagisto)でしか確かめられない。限り:取り置きの外挿は 3 倍(10,000→30,000)だが 240,000 件の見積もりは 8 倍の外挿ゆえ、e は実の外れより小さく出て S は低めに出る。印が無いことは安全を意味しない。式の折れが捕捉の最大より上にあるアプリの外れは見えない
+- The mark fits the left-out coefficients unrounded, where the estimate rounds them to 12 significant digits (`CostFit::sig`) before putting them at a size; on the 9 BookStack routes with an `offset` statement the largest difference in e was 1.2e-12 and no S or mark changed, so a mark could differ only where S lies within about 1e-11 of 0.10.
 
 ### 4.4 統計による実行計画の揺れ(D107)
 
