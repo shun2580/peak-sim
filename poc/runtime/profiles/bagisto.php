@@ -61,7 +61,27 @@ $profile = [
     'arguments' => [
         'id' => ['value' => 1, 'why' => 'a bare {id} names no table; the generated rows are numbered from 1, so row 1 exists in every table (products, orders, addresses, return requests)'],
         'review_id' => ['value' => 1, 'why' => 'a review is looked up by its number inside the product (packages/Webkul/Shop/src/Http/Controllers/API/ReviewController.php:109)'],
+        'attribute_id' => ['value' => 24, 'why' => 'the options route reads the options of the attribute it is given (packages/Webkul/Shop/src/Http/Controllers/API/CategoryController.php:94-104) and answers a fixed list for a boolean one; row 24 is `color`, a select attribute (the fixup `attributes_are_the_defined_ones` puts it there), whose options the generator spreads round the attributes'],
         'slug' => ['value' => 'page-1', 'why' => 'a CMS page is found by its url key in the current locale (packages/Webkul/Shop/src/Http/Controllers/PageController.php:30-33); the fixup `cms_page_translations_are_english_with_a_url_key` makes the key of page n `page-n`'],
+    ],
+
+    // The login of the back office is the one administrator row above (`admins` = 1, row 1). The storefront customer is the
+    // first generated customer: the profile names no `user`, so the tool logs in as the first row of the customers table.
+    'admin' => ['id' => 1],
+
+    // Middleware the app wrote for itself whose names the tool does not know as a login gate. A route that carries one
+    // needs a login: a storefront route that carries the customer gate is entered as the customer on the `customer` guard
+    // (packages/Webkul/Shop/src/Http/Middleware/AuthenticateCustomer.php), a back-office route that carries the user gate as the
+    // administrator on the `admin` guard (packages/Webkul/User/src/Http/Middleware/Bouncer.php). Without them these routes
+    // were called without a login and were left unmeasured as `unauthenticated`.
+    'auth_gates' => [
+        'storefront_customer' => ['middleware' => ['AuthenticateCustomer'], 'guard' => 'customer', 'as' => 'user'],
+        'back_office_user' => ['middleware' => ['Bouncer'], 'guard' => 'admin', 'as' => 'admin'],
+    ],
+
+    // A GET route whose handler reads rows only when it is given a search term.
+    'request_query' => [
+        'search_term' => ['routes' => ['uri_prefix' => ['search']], 'query' => ['query' => 'Product'], 'why' => 'the search page looks the term up in the search terms and asks for suggestions only when a `query` is given (packages/Webkul/Shop/src/Http/Controllers/SearchController.php:29-50)'],
     ],
 
     // Tables built by the fixups below instead of by the generator, and `currency_exchange_rates`: the shop has one
@@ -108,6 +128,46 @@ $profile = [
             'name' => 'products_are_in_the_default_family',
             'why' => 'a product\'s attributes are the ones of its family; the generated family numbers point at the one family row (packages/Webkul/Installer/src/Database/Seeders/Attribute/AttributeFamilyTableSeeder.php:25)',
             'sql' => "UPDATE products SET type = 'simple', parent_id = NULL, attribute_family_id = 1",
+        ],
+        [
+            'name' => 'reviews_are_approved_reviews_of_the_first_product',
+            'why' => 'the reviews route lists the approved reviews of one product, paginated (packages/Webkul/Shop/src/Http/Controllers/API/ReviewController.php:38-44, status `approved` at :23, Product/src/Models/Product.php:156); the generator gives each review its own product and a made-up status, so the first product would have none. All reviews are put on product 1, as the generator puts every chapter of a book in the first book in the BookStack profile',
+            'sql' => "UPDATE product_reviews SET product_id = 1, status = 'approved'",
+        ],
+        [
+            'name' => 'related_products_are_of_the_first_product',
+            'why' => 'the related-products route reads the products linked to the one it is given (packages/Webkul/Shop/src/Http/Controllers/API/ProductController.php:120-129, Product/src/Models/Product.php:266); the generator links each product to itself, so product 1 would have one. The first product becomes the parent of every link (the child numbers are all different)',
+            'sql' => 'UPDATE product_relations SET parent_id = 1',
+        ],
+        [
+            'name' => 'up_sells_are_of_the_first_product',
+            'why' => 'the up-sell route reads the products linked to the one it is given (packages/Webkul/Shop/src/Http/Controllers/API/ProductController.php:136-145, Product/src/Models/Product.php:274); same as the related products',
+            'sql' => 'UPDATE product_up_sells SET parent_id = 1',
+        ],
+        [
+            'name' => 'customer_addresses_orders_and_wishlist_are_of_the_first_customer',
+            'why' => 'the logged-in customer is the first generated customer (the tool logs in as the first row of the customers table when the profile names no user); the address list reads `customer->addresses` (packages/Webkul/Customer/src/Models/Customer.php:179, rows of `addresses` with address_type `customer` and that customer_id: CustomerAddress.php:19,35), the wishlist reads the customer\'s items of the current channel (packages/Webkul/Shop/src/Http/Controllers/API/WishlistController.php:28-37, table `wishlist_items`: Wishlist.php:23), and the order page finds one order by (customer_id, id) (packages/Webkul/Shop/src/Http/Controllers/Customer/Account/OrderController.php:48-53). The generator gives each row its own customer and made-up words; all are put on customer 1 and the channel, as the reviews are put on the first product above',
+            'sql' => 'UPDATE wishlist_items SET customer_id = 1, channel_id = 1',
+        ],
+        [
+            'name' => 'orders_are_of_the_first_customer',
+            'why' => 'see `customer_addresses_orders_and_wishlist_are_of_the_first_customer`: the order page answers 404 unless the order of that number belongs to the logged-in customer (OrderController.php:48-53)',
+            'sql' => 'UPDATE orders SET customer_id = 1',
+        ],
+        [
+            'name' => 'order_items_and_payment_are_of_the_first_order',
+            'why' => 'the order page reads the top-level items of the order (Sales/src/Models/Order.php:169-173, parent_id null) and its payment (:250-253, shown at the method line of the view); the generator links each item to its own order and to a made-up parent. All items and payments are put on order 1 and the items made top-level',
+            'sql' => 'UPDATE order_items SET order_id = 1, parent_id = NULL',
+        ],
+        [
+            'name' => 'order_payment_is_of_the_first_order',
+            'why' => 'the order page shows the payment method of the order it reads (packages/Webkul/Sales/src/Models/Order.php:250-253, `hasOne` of order_payment); the generator links each payment to its own order, so order 1 would have the one made for it. All are put on order 1, as the items are in the fixup above',
+            'sql' => 'UPDATE order_payment SET order_id = 1',
+        ],
+        [
+            'name' => 'addresses_are_the_first_customers_and_the_first_orders',
+            'why' => 'one table (`addresses`) holds the customer addresses (address_type `customer`, Customer/src/Models/CustomerAddress.php:19), and the billing and shipping addresses of an order (`order_billing`, `order_shipping`, Sales/src/Models/OrderAddress.php:28,33) that the order page reads through the order (Order.php:242-245,258-280). The generated rows are shared out by number in three: customer addresses of customer 1, billing and shipping addresses of order 1; the cart and the other order links are cleared',
+            'sql' => "UPDATE addresses SET cart_id = NULL, customer_id = IF(id % 3 = 0, 1, NULL), order_id = IF(id % 3 = 0, NULL, 1), address_type = CASE id % 3 WHEN 0 THEN 'customer' WHEN 1 THEN 'order_billing' ELSE 'order_shipping' END",
         ],
         [
             'name' => 'product_values_sku',
