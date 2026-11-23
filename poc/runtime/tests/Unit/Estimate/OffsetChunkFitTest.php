@@ -8,6 +8,7 @@ use PeakSim\Runtime\Estimate\MarkedRoutes;
 use PeakSim\Runtime\Estimate\MarkedRoutesCommand;
 use PeakSim\Runtime\Estimate\OffsetChunkFit;
 use PeakSim\Runtime\Estimate\RowEstimator;
+use PeakSim\Runtime\Judge\CostFit;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -149,6 +150,54 @@ final class OffsetChunkFitTest extends TestCase
     public function test_a_captured_product_of_zero_gives_no_error(): void
     {
         $this->assertNull(OffsetChunkFit::heldOutError(self::type('z', self::CHUNK, [3, 3, 3, 0])['per_scale']));
+    }
+
+    /**
+     * @param array<int, array{0: int, 1: int|float}> $points size => [runs, rows per run]; a size with no runs read has rows per run 0 and every run unread
+     *
+     * @return array<string, mixed>
+     */
+    private static function perScaleOf(array $points): array
+    {
+        $perScale = [];
+        foreach ($points as $scale => [$count, $perExec]) {
+            $perScale[(string) $scale] = ['count' => $count, 'texts' => 1, 'rows_sum' => $count * $perExec, 'rows_min' => 0, 'rows_max' => 0, 'unread' => $perExec === 0 ? $count : 0];
+        }
+
+        return $perScale;
+    }
+
+    public function test_a_size_where_no_run_was_read_is_left_out_of_the_rows_per_run_fit_as_the_estimate_leaves_it_out(): void
+    {
+        // Five sizes. At 100 the statement did not run (count 0, so no rows per run: the size is not there for the rows). Rows per run at 1,000 / 10,000 / 30,000 /
+        // 60,000 are a flat 500: the three before the last give a flat 500, put at 60,000 it is 500 again, so the rows factor is exactly 1.
+        // The count is 0 at 100 and 10 at the four sizes after it; the count is fitted on all five sizes, as the estimate fits it (a size with no runs has a count of 0).
+        $perScale = self::perScaleOf([100 => [0, 0], 1000 => [10, 500], 10000 => [10, 500], 30000 => [10, 500], 60000 => [10, 500]]);
+        $countFit = CostFit::fit([100, 1000, 10000, 30000], [0.0, 10.0, 10.0, 10.0]);
+        $putCount = CostFit::evaluate($countFit['a'], $countFit['b'], $countFit['k'], 60000);
+        // product put = putCount x 500; captured = 10 x 500: e = putCount / 10 - 1
+        $e = OffsetChunkFit::heldOutError($perScale);
+        $this->assertEqualsWithDelta($putCount / 10 - 1, $e, 1e-9);
+        // with a rows per run of 0 put in for the size where nothing ran (what the first version did) the rows fit is another formula and e is another figure
+        $zeroFit = CostFit::fit([100, 1000, 10000, 30000], [0.0, 500.0, 500.0, 500.0]);
+        $withZero = (CostFit::evaluate($countFit['a'], $countFit['b'], $countFit['k'], 60000) * CostFit::evaluate($zeroFit['a'], $zeroFit['b'], $zeroFit['k'], 60000) - 5000.0) / 5000.0;
+        $this->assertGreaterThan(0.01, abs($withZero - $e), 'the two ways give different figures on this statement, so the test tells them apart');
+    }
+
+    public function test_the_rows_per_run_stand_on_fewer_than_four_sizes_when_runs_that_read_nothing_are_left_out(): void
+    {
+        // The count is on five sizes; rows per run exist at three of them (100 and 1,000 read nothing): three points, no held-out error, whatever the count does.
+        $perScale = self::perScaleOf([100 => [4, 0], 1000 => [4, 0], 10000 => [10, 20000], 30000 => [10, 60000], 60000 => [10, 120000]]);
+        $this->assertNull(OffsetChunkFit::heldOutError($perScale));
+        $route = ['route' => 'GET /few', 'statement_types' => [['id' => 'chunk', 'kind' => 'select', 'pattern' => self::CHUNK, 'representative' => null, 'per_scale' => $perScale]]];
+        $mark = OffsetChunkFit::ofRoute($route, [self::est('chunk', 4.0, 100.0)]);
+        $this->assertSame('captured_at_fewer_than_four_sizes', $mark['statements'][0]['not_counted_because']);
+        $this->assertFalse($mark['marked']);
+    }
+
+    public function test_nothing_read_at_the_last_size_gives_no_error(): void
+    {
+        $this->assertNull(OffsetChunkFit::heldOutError(self::perScaleOf([100 => [10, 5], 1000 => [10, 5], 10000 => [10, 5], 30000 => [10, 0]])));
     }
 
     /**

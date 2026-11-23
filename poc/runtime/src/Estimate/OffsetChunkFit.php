@@ -18,7 +18,8 @@ use PeakSim\Runtime\Judge\CostFit;
  *   1. Take the statements of the route whose text (the type's pattern, or the representative's SQL) holds an `offset` clause.
  *   2. For each, hold the last captured size out: fit the count and the rows per run (CostFit, as the estimate does) on the sizes before it, put both at the
  *      held-out size, and compare the product (count x rows per run) with the captured one. The relative difference is the held-out error `e`.
- *      A statement captured at fewer than four sizes has no held-out error (three free numbers on three points fit exactly) and counts for nothing.
+ *      A statement whose count, or whose rows per run, stands on fewer than four sizes has no held-out error (three free numbers on three points fit exactly)
+ *      and counts for nothing. The rows per run are fitted on the sizes where some run was read, as the estimate fits them; the count on every size.
  *   3. Only a statement the route runs twice or more at N (`count_at_n` of the estimate) counts: one run of `limit 20 offset 0` is a page, not a chunked read.
  *   4. The route's score is S = sum over the counted statements of (the statement's rows at N / the route's rows at N) x |e|.
  *   5. S >= GOAL marks the route. GOAL is the goal of the tool's own rows test (the rows read within 10%); no number was chosen for this rule.
@@ -55,39 +56,48 @@ final class OffsetChunkFit
 
     /**
      * The error of the formula at the last captured size when it is made from the sizes before it: (put - captured) / captured, on the product of the count
-     * and the rows per run. Null when the statement was captured at fewer than MIN_SCALES sizes, or the captured product is 0.
+     * and the rows per run. Null when either column has fewer than MIN_SCALES sizes, or the captured product is 0.
+     *
+     * The two columns are fitted on the points the estimate itself fits them on (RowEstimator::series and the capture's count fit): the count on every size,
+     * the rows per run only on the sizes where some run was read (a size where the statement ran but read nothing has no rows per run, and is left out).
      *
      * @param array<string, mixed> $perScale the capture's `per_scale` of the type: size => {count, rows_sum, unread}
      */
     public static function heldOutError(array $perScale): ?float
     {
-        $points = [];
+        $counts = [];
+        $rows = [];
         foreach ($perScale as $scale => $v) {
             if (!is_array($v) || !isset($v['count']) || !array_key_exists('rows_sum', $v) || $v['rows_sum'] === null) {
                 continue;
             }
-            $count = (float) $v['count'];
+            $counts[(int) $scale] = (float) $v['count'];
             $read = (int) $v['count'] - (int) ($v['unread'] ?? 0);
-            $points[(int) $scale] = ['count' => $count, 'rows' => $read > 0 ? (float) $v['rows_sum'] / $read : 0.0];
+            if ($read > 0) {
+                $rows[(int) $scale] = (float) $v['rows_sum'] / $read;
+            }
         }
-        ksort($points);
-        if (count($points) < self::MIN_SCALES) {
+        ksort($counts);
+        ksort($rows);
+        if (count($counts) < self::MIN_SCALES) {
             return null;
         }
-        $scales = array_keys($points);
-        $last = array_pop($scales);
-        $captured = $points[$last]['count'] * $points[$last]['rows'];
+        $last = array_key_last($counts);
+        if (!isset($rows[$last]) || count($rows) < self::MIN_SCALES) {
+            return null; // nothing was read at the held-out size (captured product 0), or the rows per run stand on fewer than four sizes
+        }
+        $captured = $counts[$last] * $rows[$last];
         if ($captured <= 0.0) {
             return null;
         }
-        $putAt = static function (string $field) use ($points, $scales, $last): float {
-            $values = array_map(static fn (int $s): float => $points[$s][$field], $scales);
-            $f = CostFit::fit($scales, $values);
+        $putAt = static function (array $points) use ($last): float {
+            unset($points[$last]);
+            $f = CostFit::fit(array_keys($points), array_values($points));
 
             return CostFit::evaluate($f['a'], $f['b'], $f['k'], $last);
         };
 
-        return ($putAt('count') * $putAt('rows') - $captured) / $captured;
+        return ($putAt($counts) * $putAt($rows) - $captured) / $captured;
     }
 
     /**
