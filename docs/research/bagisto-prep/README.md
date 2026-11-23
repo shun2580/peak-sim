@@ -109,6 +109,79 @@ At 100 to 30,000 rows no table failed. **At the empty point (0 rows) 22 tables f
 and the tables that depend on the channel (carts, wishlists, search terms, theme sections and others) follow. The empty system is therefore not a usable point for this application as the profile stands; the four sizes are unaffected.
 Nothing was changed after seeing this.
 
+## The routes of the capture and the measurement (fixed before the capture is taken again)
+
+This replaces the route set of the preparation capture above for the capture that is taken again after the profile was filled
+(`reach-list.md`, `poc/runtime/profiles/bagisto.php`). It is decided by a written rule, before any result of that capture exists, and is not
+changed after one. `select-routes.py` applies the rule to `routes-all.txt` (the 543 routes of the static analysis, `sha256` of `analysis.json` begins
+`d04395480720`; HEAD dropped) and writes the files below. Running it again gives the same files, and shuffling the input does not change them.
+An earlier draft of this list was never committed and was replaced by this rule before the capture was taken again.
+
+**Rule.**
+
+1. Left out before the draw, and only these: routes of development packages, `/install`, the payment-gateway routes, the forms of the login, register and contact
+   kind, and the pages that show an empty state (the kinds `reach-list.md` leaves out of the data reach). Every route left out is in `excluded.tsv` with its reason. A route is never left out
+   for another reason, and none is left out because of what a capture showed.
+2. Two groups: the admin area (the URI is `/admin` or starts with `/admin/`) and the storefront and customer side (all others). The storefront and customer side gets 80 slots and the admin area 40, 120 in all.
+   The storefront side is heavier because the load of a busy season comes mostly from the buyers.
+3. A group with no more routes than its slots is taken whole, and its unused slots are not given to the other group (neither group was that small).
+4. Otherwise the slots of a group are shared among the HTTP methods in proportion to the number of routes each method has in the group, by largest remainder: each method gets
+   `floor(slots x n_method / n_group)`; the slots still free go one each to the methods with the largest fractional part (ties: more routes first, then the method name in alphabetical order).
+5. Within a method, the routes are ordered by `sha256("20261124:<METHODS>:<URI>")` and the first *k* are taken. The seed is 20261124.
+
+A route here is one entry of the analysis (a URI with the method it answers): 543 entries. The 7 framework routes the analysis skips (`/up`, `/storage/{path}`, `/sanctum/csrf-cookie` and
+four others) are not in the 543 and are not touched by the rule.
+
+**Left out before the draw: 61 of 543.**
+
+| Reason | Routes |
+| --- | ---: |
+| Payment-gateway routes (`payglocal` 4, `paypal` 6, `payu` 5, `phonepe` 4, `razorpay` 3, `stripe` 4) | 26 |
+| Forms of the login, register and contact kind (customer and admin: login, register, contact, forgot or reset password) | 17 |
+| Pages or calls that show the visitor's own cart, compare list or checkout step (GET only) | 8 |
+| Development package (`/_debugbar/*`) | 5 |
+| Installer (`/install`, `/install/api/*`) | 5 |
+
+Two readings are the preparer's and are written here so that they can be checked. The "forms" are named by URI in `select-routes.py` (`FORM_URIS`); verification, social-login and logout routes are not counted as forms, and the
+admin login, forgot-password and reset-password routes are counted like their customer twins. The "empty state" kind covers the API calls that read the same cart and compare state as the pages (`/api/checkout/cart`, `/api/compare-items` and others, GET only), for the same
+reason as the pages; the calls that change the cart are not left out. The other kinds `reach-list.md` mentions (routes that answer with a redirect or a file, pages whose rows come only from an ajax datagrid call) are **not** applied: they stay in the list.
+
+**Groups and slots.**
+
+| Group | Routes after the leaving out | Slots | Drawn |
+| --- | ---: | ---: | ---: |
+| Storefront and customer side | 108 | 80 | 80 |
+| Admin area | 374 | 40 | 40 |
+
+| Group | Method | Routes | Drawn |
+| --- | --- | ---: | ---: |
+| Storefront and customer | GET | 66 | 49 |
+| | POST | 29 | 21 |
+| | DELETE | 9 | 7 |
+| | PUT | 3 | 2 |
+| | PATCH | 1 | 1 |
+| Admin | GET | 183 | 20 |
+| | POST | 111 | 12 |
+| | PUT | 38 | 4 |
+| | DELETE | 42 | 4 |
+
+Files: `routes-all.txt` (input), `select-routes.py` (procedure), `excluded.tsv` (left out, with reasons), `allocation.tsv` (the shares), `drawn.tsv` (the drawn routes with group and method),
+`route-set-measure.txt` (the drawn routes, `METHODS URI`, the format of `route-set.txt`). Nothing here is a capture, an estimate or a prediction.
+
+## How much the static analysis did here
+
+The static analysis was not changed to fit this application (decided before the capture was taken again). The number that shows its effect is the count of routes in which it found at least one place that reads the database (`events_found` not empty):
+
+| Application | Routes with such a place | Routes in the analysis |
+| --- | ---: | ---: |
+| Bagisto | 15 | 543 |
+| BookStack | 264 | 341 |
+
+Both counts were read again from the two `analysis.json` files kept outside the repository (`d04395480720` for Bagisto; `be65281cba06` for BookStack, taken with an earlier analyzer output schema, 0.1 against 0.2, on 2026-11-01).
+Where the routes of Bagisto stop the analysis, by gap code, is the list under "Static analysis" above. Three gaps are left as work **after version 1.0**, not fixed for this application: the repository layer
+(the model is reached through a vendor base class and a contract that the analysis cannot follow), the view names of packages (`shop::home.index` is not looked up), and the vendor helper functions and response types that are not modelled.
+Fitting the analysis to Bagisto after seeing it would weaken the condition that the application was not seen before.
+
 ## Left open
 
 - The 29 customer-area routes and the 371 `/admin` routes (the login gap).
