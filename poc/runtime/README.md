@@ -190,6 +190,31 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 `mysql` schema. The copies of the statistics are therefore read, read-only, by the DB server's root account on the host side (as
 `bin/variance-run` does).
 
+## The mark `offset_chunk_fit` (on a route of an estimate)
+
+`plan_changes_at_scale` and `plan_unstable` say that the plan of a statement may change with the size. `offset_chunk_fit` says something else, and is made from the capture and
+the estimate alone (no database, no plan, no measurement of a size above the capture's largest): the route reads a table in chunks with `limit … offset …`, and the formula the
+estimate fits for those statements does not follow their rows inside the sizes that were captured. `bin/estimate --candidate=H1_RANGE` gives each route that has such a statement an
+entry `offset_chunk_fit` (`marked`, `score`, `goal`, and per statement `share`, `held_out_error`, `counted` and, when it is not counted, `not_counted_because`); a route with no statement
+that holds an `offset` clause carries no entry, and no figure of the estimate and no other mark changes. `bin/marked-routes --explain=<explain.json> --estimate=<estimate.json>` adds
+the routes that carry the mark under `offset_chunk_fit`; without `--estimate` its output is as it was. `bin/simulate` does not read the mark.
+
+The rule (`src/Estimate/OffsetChunkFit.php`), per route:
+
+1. Take the statements whose text (the type's pattern, or the representative's SQL) holds an `offset` clause.
+2. For each, leave the last captured size out: fit the count and the rows per run (`CostFit`, as the estimate does) on the sizes before it, put both at the left-out size, and compare the
+   product (count x rows per run) with the captured one. The relative difference is the held-out error `e`. A statement captured at fewer than four sizes has none (three free numbers on
+   three points fit exactly), and gives no mark.
+3. Count only a statement the route runs twice or more at N: a single `limit 20 offset 0` is a page, not a chunked read.
+4. The route's score is S = the sum, over the counted statements, of (the statement's rows at N / the route's rows at N) x |e|.
+5. S at or above 0.10 marks the route. 0.10 is the rows goal of the tool's own test (rows read within 10%); no number was chosen for this rule.
+
+Limits, which go with every use of the mark: the left-out step is 3 times the size (10,000 to 30,000) where the estimate of the 240,000-row test goes 8 times, so `e` comes out smaller than
+the error of the real estimate and the score leans low, and no mark does not mean safe; `e` shows only how badly the formula fits inside the captured sizes, so a bend above the largest captured
+size is not seen. The form of the rule was chosen after the outliers it is meant to explain were known, its limit to statements run twice or more was added after its first results were seen, the
+"2 routes marked, 2 hits, 0 false alarms" it gives on the 240,000-row BookStack records is a fit to records already seen and not a test, and whether it works can be shown only on an application
+that has not been seen (Bagisto).
+
 ## Layout (this part)
 
 | Path | Role |
@@ -205,7 +230,7 @@ The `measure` user's privileges are not widened: its `ALL` on the measurement da
 | `bin/measure` | the entry point (above); the driver itself is `bin/inner/measure.php`, run inside the container |
 | `bin/capture` | a separate command: the statements of every route at 100 / 1,000 / 10,000 rows, by type, in `capture.json` (shape in `CAPTURE_FORMAT.md`); `bin/measure` never calls it |
 | `bin/estimate` | a separate command: the rows each route reads at a size N by the candidates H1 to H3 of `docs/research/explain-estimate.md` (a fit per statement type, and the ratio of two EXPLAIN readings); reads `capture.json` and `explain.json` only, no database. `--candidate=H1_RANGE` gives the H1 point and, for a route with a marked statement, the upper side (the value H2 gives to the marked types). H1_RANGE also moves the point of a marked statement by two rules (`docs/research/extrapolation-test-3-causes.md`, 7.1 and 7.2): P1, a statement marked `plan_changes_at_scale` whose plan at N reads one table by a full scan takes that scan's rows as its point; P2, a marked statement whose rows per run were fitted is not put below the line carried from its largest captured scale (value x N / that scale). A statement neither rule moves keeps its H1 value byte for byte, and H1, H2 and H3 are unchanged; the upper side is never below the point. `--with-formulas` adds the formulas themselves (per statement type and per route) so `bin/simulate` can evaluate them at another size; without the flag the output is as before. `--with-placeholders` adds, per statement type, the number of values the capture's representative statement was sent with (`placeholders`: the input of the placeholder side of the `app_limit_risk` mark, read when `resources.db_placeholder_limit` is given); it only adds that key |
-| `bin/marked-routes` | a separate command: the marked routes of the 200,000-row test (a route with at least one statement marked `plan_changes_at_scale` or `plan_unstable` in the EXPLAIN at that size, `docs/simulator-spec.md` section 7.1); made from `explain.json` by that rule alone, no measured value, nothing added or dropped by hand |
+| `bin/marked-routes` | a separate command: the marked routes of the 200,000-row test (a route with at least one statement marked `plan_changes_at_scale` or `plan_unstable` in the EXPLAIN at that size, `docs/simulator-spec.md` section 7.1); made from `explain.json` by that rule alone, no measured value, nothing added or dropped by hand; with `--estimate=<estimate.json>` (H1_RANGE) it also lists the routes marked `offset_chunk_fit` (the section above) under that name, and the list of the EXPLAIN marks is the same either way |
 | `bin/explain-at-scale` | a separate command: the plans of the statements of a `capture.json` on a database of the target size, in three statistics states (above); `bin/measure` never calls it. The steps run inside the container in `bin/inner/explain-at-scale.php` |
 | `src/Explain/` | the gate and the sender of the capture's statements, the fixed statistics statements, the summary and marks of plans, the report |
 | `bin/simulate` | a separate command: `bin/simulate --estimate=<dir> --scenario=<scenario.yaml> --out=<dir> [--selfcheck=<file>] [--memory-accuracy=<file>]`. Reads an estimate (made by `bin/estimate ... --with-formulas`) and a scenario file (`docs/simulator-spec.md` section 3.4), puts each scenario's own table sizes into the formulas, calibrates on the calibration scenarios, and predicts the target scenarios. Writes `loaded.json` (the first stage) and `prediction.json`, and prints a table. The prediction always carries one note: the row estimates assume a database whose optimizer statistics are up to date (`ANALYZE TABLE` run after the data was built), as the lab's databases are (`estimate_basis_note` in the JSON; a `NOTE` line in the table). A target scenario's `observed` is not read here. No database; the PHP image only (no network) if the host has no PHP |
