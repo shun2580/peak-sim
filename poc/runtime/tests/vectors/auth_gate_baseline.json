@@ -1,0 +1,3152 @@
+{
+    "(none) | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "(none) | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "(none) | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "(none) | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "(none) | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "(none) | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "(none) | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "(none) | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "(none) | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "bookstack | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "bookstack | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "bookstack | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "bookstack | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "bookstack | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "bookstack | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "bookstack | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "bookstack | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "firefly | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "firefly | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "firefly | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "firefly | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "firefly | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "firefly | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "firefly | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "firefly | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "koel | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "koel | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "koel | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "koel | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_admin | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "koel_admin | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "koel_admin | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_admin | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "koel_admin | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "koel_admin | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": true,
+            "login_id": 2,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_admin | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_admin | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_userbound | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "koel_userbound | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "koel_userbound | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_userbound | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "koel_userbound | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "koel_userbound | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "profile",
+            "admin": false,
+            "login_id": 1,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "koel_userbound | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | ": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,auth": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | api,auth:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | auth:api,web": {
+        "requirement": [
+            true,
+            "api",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "api",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | auth.basic": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | auth.session": {
+        "requirement": [
+            true,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | auth,verified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "fixtures | auth,can:update,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "update",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "update"
+        }
+    },
+    "fixtures | can:manage-users": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "manage-users",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "manage-users"
+        }
+    },
+    "fixtures | Illuminate\\Auth\\Middleware\\Authenticate:sanctum": {
+        "requirement": [
+            true,
+            "sanctum",
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | throttle:60,1,signed": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,guest": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | App\\Http\\Middleware\\RedirectIfAuthenticated": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            true
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified": {
+        "requirement": [
+            true,
+            null,
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "fixtures | Illuminate\\Auth\\Middleware\\Authorize:view,post": {
+        "requirement": [
+            true,
+            null,
+            false,
+            "view",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": null,
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "view"
+        }
+    },
+    "fixtures | web,CheckShopper": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,Vendor\\Pkg\\Http\\Middleware\\Doorman": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,auth:admin,can:edit": {
+        "requirement": [
+            true,
+            "admin",
+            false,
+            "edit",
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "admin",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": "edit"
+        }
+    },
+    "fixtures | api,auth:sanctum,verified,throttle:api": {
+        "requirement": [
+            true,
+            "sanctum",
+            true,
+            null,
+            false
+        ],
+        "plan": {
+            "login": true,
+            "guard": "sanctum",
+            "source": "generator",
+            "admin": false,
+            "login_id": null,
+            "verified": true,
+            "ability": null
+        }
+    },
+    "fixtures | web,locale,currency": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | custom.gate": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    },
+    "fixtures | web,Vendor\\Pkg\\CheckAccess:admin": {
+        "requirement": [
+            false,
+            null,
+            false,
+            null,
+            false
+        ],
+        "plan": {
+            "login": false,
+            "guard": null,
+            "source": null,
+            "admin": false,
+            "login_id": null,
+            "verified": false,
+            "ability": null
+        }
+    }
+}

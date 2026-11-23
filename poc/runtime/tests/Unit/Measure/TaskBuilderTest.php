@@ -186,6 +186,39 @@ final class TaskBuilderTest extends PlannerTestCase
         $this->assertSame(['user:sanctum'], $facts->asked);
     }
 
+    public function test_a_route_behind_a_gate_the_profile_names_is_called_as_the_user_of_the_gates_guard(): void
+    {
+        $profile = ['user' => ['id' => 3], 'admin' => ['id' => 9], 'auth_gates' => ['g' => ['middleware' => ['CheckLogin'], 'guard' => 'shopper', 'as' => 'user']]];
+        $facts = self::facts('App\\Models\\User:1');
+
+        $task = self::builder($facts, $profile)->build(self::spec('/account', [], 'GET', ['web', 'App\\Http\\Middleware\\CheckLogin']));
+
+        $this->assertNull($task->failClass);
+        $this->assertSame('App\\Models\\User:3:shopper', $task->actAs);
+        $this->assertSame(['user:shopper#3'], $facts->asked);
+    }
+
+    public function test_a_gate_that_enters_as_the_admin_asks_for_the_admin_row(): void
+    {
+        $profile = ['user' => ['id' => 3], 'admin' => ['id' => 9], 'auth_gates' => ['g' => ['middleware' => ['CheckStaff'], 'guard' => 'staff', 'as' => 'admin']]];
+        $facts = self::facts('App\\Models\\Admin:1');
+
+        $task = self::builder($facts, $profile)->build(self::spec('/office', [], 'GET', ['web', 'CheckStaff']));
+
+        $this->assertSame('App\\Models\\Admin:9:staff', $task->actAs);
+        $this->assertSame(['user:staff#9'], $facts->asked);
+    }
+
+    public function test_the_same_route_without_the_gate_in_the_profile_is_not_logged_in(): void
+    {
+        $facts = self::facts();
+
+        $task = self::builder($facts, ['user' => ['id' => 3]])->build(self::spec('/account', [], 'GET', ['web', 'CheckLogin']));
+
+        $this->assertNull($task->actAs);
+        $this->assertSame([], $facts->asked);
+    }
+
     public function test_a_route_behind_auth_with_no_user_row_is_a_reason(): void
     {
         $task = self::builder(self::facts(null))->build(self::spec('/me', [], 'GET', ['auth']));

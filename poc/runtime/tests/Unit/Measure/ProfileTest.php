@@ -244,4 +244,38 @@ final class ProfileTest extends TestCase
         $this->expectExceptionMessage('request_query');
         Profile::load('nologin', $this->dir);
     }
+
+    // ---- auth_gates --------------------------------------------------------------------------------------------
+
+    public function test_an_auth_gates_entry_is_checked_when_the_profile_is_loaded(): void
+    {
+        $this->write('gated', "<?php return ['user' => ['id' => 1], 'admin' => ['id' => 2], "
+            . "'auth_gates' => ['a' => ['middleware' => 'Gate'], 'b' => ['middleware' => ['Vendor\\\\Door', 'Other'], 'guard' => 'staff', 'as' => 'admin']]];");
+
+        $this->assertSame(['a', 'b'], array_keys(Profile::load('gated', $this->dir)['auth_gates']));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badGates(): iterable
+    {
+        yield 'not an entry' => ["'Gate'"];
+        yield 'no middleware' => ["['guard' => 'staff']"];
+        yield 'an empty list of middleware' => ["['middleware' => []]"];
+        yield 'a middleware that is not text' => ["['middleware' => [3]]"];
+        yield 'a middleware that is not a plain name' => ["['middleware' => ['a b']]"];
+        yield 'a guard that is not a plain word' => ["['middleware' => 'Gate', 'guard' => 'a b']"];
+        yield 'an as that is neither user nor admin' => ["['middleware' => 'Gate', 'as' => 'root']"];
+        yield 'an admin the profile does not have' => ["['middleware' => 'Gate', 'as' => 'admin']"];
+        yield 'a key nothing reads' => ["['middleware' => 'Gate', 'routes' => ['uri_prefix' => ['x']]]"];
+    }
+
+    #[DataProvider('badGates')]
+    public function test_a_badly_formed_auth_gates_entry_is_refused_at_load(string $entry): void
+    {
+        $this->write('badgate', "<?php return ['user' => ['id' => 1], 'auth_gates' => ['a' => $entry]];");
+
+        $this->expectException(BuildFailure::class);
+        $this->expectExceptionMessage('auth_gates');
+        Profile::load('badgate', $this->dir);
+    }
 }

@@ -119,4 +119,91 @@ final class UserProviderTest extends TestCase
         $this->assertNull(UserProvider::plan(UserProvider::requirement(['auth']), ['user' => ['role' => 'member']])['login_id']);
         $this->assertNull(UserProvider::plan(UserProvider::requirement(['web']), ['user' => ['id' => 1]])['login_id'], 'an open route logs nobody in');
     }
+
+    // ---- auth_gates: a login gate the app wrote for itself -----------------------------------------------------
+
+    /** @return array<string, array{list<string>, bool}> */
+    public static function gateMatches(): array
+    {
+        return [
+            'the name itself' => [['web', 'gate'], true],
+            'a class name that ends with it' => [['web', 'Vendor\\Http\\Middleware\\Gate'], true],
+            'a class name with an argument' => [['Vendor\\Http\\Middleware\\Gate:strict'], true],
+            'without regard to case' => [['GATE'], true],
+            'a name that only ends with the same letters is not the gate' => [['web', 'BackGate', 'Vendor\\BackGate'], false],
+            'a name that only starts with it is not the gate' => [['Gatekeeper'], false],
+            'no middleware' => [[], false],
+        ];
+    }
+
+    /** @param list<string> $middleware */
+    #[DataProvider('gateMatches')]
+    public function test_a_profiles_gate_is_found_by_the_name_or_the_end_of_the_class_name(array $middleware, bool $required): void
+    {
+        $r = UserProvider::requirement($middleware, ['auth_gates' => ['g' => ['middleware' => ['Gate']]]]);
+
+        $this->assertSame($required, $r->required);
+        $this->assertNull($r->guard);
+        $this->assertNull($r->as);
+    }
+
+    public function test_the_same_middleware_without_the_profile_is_not_a_login(): void
+    {
+        $this->assertFalse(UserProvider::requirement(['web', 'Gate'])->required);
+        $this->assertFalse(UserProvider::requirement(['web', 'Gate'], ['user' => ['id' => 1]])->required);
+    }
+
+    public function test_the_gate_says_which_guard_and_which_login(): void
+    {
+        $profile = ['auth_gates' => [
+            'shop' => ['middleware' => 'ShopLogin', 'guard' => 'shopper', 'as' => 'user'],
+            'office' => ['middleware' => ['OfficeLogin', 'Other\\Staff'], 'guard' => 'staff', 'as' => 'admin'],
+        ]];
+
+        $shop = UserProvider::requirement(['web', 'App\\Http\\Middleware\\ShopLogin'], $profile);
+        $this->assertTrue($shop->required);
+        $this->assertSame('shopper', $shop->guard);
+        $this->assertSame('user', $shop->as);
+
+        $staff = UserProvider::requirement(['web', 'Vendor\\Other\\Staff'], $profile);
+        $this->assertSame('staff', $staff->guard);
+        $this->assertSame('admin', $staff->as);
+    }
+
+    public function test_a_gate_adds_to_the_judgement_and_never_changes_what_the_names_already_say(): void
+    {
+        $profile = ['auth_gates' => ['g' => ['middleware' => ['Gate'], 'guard' => 'shopper']]];
+
+        $named = UserProvider::requirement(['auth:api', 'Gate'], $profile);
+        $this->assertSame('api', $named->guard, 'the route\'s own auth:api keeps the guard');
+
+        $verified = UserProvider::requirement(['Gate', 'verified', 'can:view'], $profile);
+        $this->assertTrue($verified->verified);
+        $this->assertSame('view', $verified->ability);
+        $this->assertSame('shopper', $verified->guard);
+
+        $this->assertFalse(UserProvider::requirement(['guest', 'Gate'], $profile)->guestOnly, 'a login is required, so the route is not guest-only');
+    }
+
+    public function test_the_plan_enters_as_the_login_the_gate_names(): void
+    {
+        $profile = [
+            'user' => ['id' => 1], 'admin' => ['id' => 2],
+            'auth_gates' => ['g' => ['middleware' => ['Gate'], 'guard' => 'staff', 'as' => 'admin'], 'h' => ['middleware' => ['Door'], 'as' => 'user']],
+        ];
+
+        $admin = UserProvider::plan(UserProvider::requirement(['Gate'], $profile), $profile);
+        $this->assertTrue($admin['login']);
+        $this->assertTrue($admin['admin']);
+        $this->assertSame(2, $admin['login_id']);
+        $this->assertSame('staff', $admin['guard']);
+
+        $user = UserProvider::plan(UserProvider::requirement(['Door'], $profile + ['login_as' => 'admin']), $profile + ['login_as' => 'admin']);
+        $this->assertFalse($user['admin'], 'as=user wins over the profile\'s login_as');
+        $this->assertSame(1, $user['login_id']);
+
+        $default = UserProvider::plan(UserProvider::requirement(['Gate'], ['user' => ['id' => 1], 'auth_gates' => ['g' => ['middleware' => ['Gate']]]]), ['user' => ['id' => 1], 'auth_gates' => ['g' => ['middleware' => ['Gate']]]]);
+        $this->assertFalse($default['admin'], 'no as: the profile\'s login_as (user) decides');
+        $this->assertSame(1, $default['login_id']);
+    }
 }
