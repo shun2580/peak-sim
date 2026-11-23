@@ -84,7 +84,8 @@ final class TaskBuilder
             return self::failed($spec, 'unfilled_param', 'the uri could not be filled');
         }
 
-        $plan = UserProvider::plan(UserProvider::requirement($spec->middleware), $this->profile === [] ? null : $this->profile);
+        $profile = $this->profile === [] ? null : $this->profile;
+        $plan = UserProvider::plan(UserProvider::requirement($spec->middleware, $profile), $profile);
         $actAs = null;
         if ($plan['login']) {
             $actAs = $this->facts->loginUser($plan['guard'], $plan['login_id']);

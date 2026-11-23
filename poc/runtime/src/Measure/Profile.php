@@ -33,6 +33,10 @@ final class Profile
      *                                  with the `route` ("METHOD uri"), the `tables` it rewrites and a `why`. They are measured after
      *                                  every other route of their database (`RouteOrder`); the repeat also ANALYZEs their tables
      *                                  between two laps (`bin/variance-run`)
+     *   auth_gates                     middleware the app wrote for itself that is a login gate the names `auth` and the like do
+     *                                  not reveal: each with the `middleware` name (or names; a class name matches by its last
+     *                                  part), and optionally the `guard` to log in on and `as` (`user` or `admin`). The login plan
+     *                                  reads them in addition to its own judgement (`Route\UserProvider::requirement`)
      *   arguments, unfillable          the argument resolver (`Route\ArgumentResolver`)
      *   request_query                  the task builder: routes whose GET carries credentials in its query
      *                                  (`Route\ProfileRoutes::querying`, `Route\RequestCredentials`)
@@ -42,7 +46,7 @@ final class Profile
      *                                  front end is not built). It must not touch the database
      *                                  (`Profile::onBoot`, called by `Run\MeasureOne`)
      */
-    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'after_generation', 'state_changing', 'on_boot'];
+    private const KEYS = ['skip', 'rows', 'values', 'user', 'admin', 'login_as', 'reference_rows', 'role_permissions', 'fixups', 'arguments', 'unfillable', 'request_query', 'auth_gates', 'after_generation', 'state_changing', 'on_boot'];
 
     /**
      * @return array<string, mixed> empty when no profile is named
@@ -84,6 +88,9 @@ final class Profile
         }
         foreach ((array) ($profile['request_query'] ?? []) as $label => $entry) {
             self::checkRequestQuery($name, (string) $label, $entry, $profile);
+        }
+        foreach ((array) ($profile['auth_gates'] ?? []) as $label => $entry) {
+            self::checkAuthGate($name, (string) $label, $entry, $profile);
         }
         $loginAs = $profile['login_as'] ?? 'user';
         if ($loginAs !== 'user' && $loginAs !== 'admin') {
@@ -201,6 +208,43 @@ final class Profile
             if (!is_array($values) || $values === [] || array_filter($values, 'is_string') !== $values) {
                 throw $fail(sprintf('needs a non-empty list of strings for %s', (string) $key));
             }
+        }
+    }
+
+    /**
+     * An `auth_gates` entry names a middleware that is a login gate: `middleware` (a name, or a non-empty list of names, each
+     * a plain class or alias name), and optionally `guard` (a plain word) and `as` (`user` or `admin`; `admin` needs the
+     * profile to have an admin to log in as).
+     *
+     * @param array<string, mixed> $profile
+     *
+     * @throws BuildFailure
+     */
+    private static function checkAuthGate(string $name, string $label, mixed $entry, array $profile): void
+    {
+        $fail = static fn (string $why): BuildFailure => new BuildFailure(sprintf('profile "%s": auth_gates "%s" %s', $name, $label, $why));
+        if (!is_array($entry)) {
+            throw $fail('is not an entry');
+        }
+        foreach (array_keys($entry) as $key) {
+            if (!in_array($key, ['middleware', 'guard', 'as'], true)) {
+                throw $fail(sprintf('has a key nothing reads: %s', (string) $key));
+            }
+        }
+        $names = $entry['middleware'] ?? null;
+        $names = is_string($names) ? [$names] : $names;
+        if (!is_array($names) || $names === [] || array_filter($names, static fn ($n): bool => is_string($n) && preg_match('/^[A-Za-z0-9_.\\\\-]{1,200}$/D', $n) === 1) !== $names) {
+            throw $fail('needs a middleware: a name, or a non-empty list of names (letters, digits, _ . - and \\)');
+        }
+        if (array_key_exists('guard', $entry) && !(is_string($entry['guard']) && preg_match('/^[A-Za-z0-9_.-]{1,40}$/D', $entry['guard']) === 1)) {
+            throw $fail('has a guard that is not a plain word');
+        }
+        $as = $entry['as'] ?? null;
+        if ($as !== null && $as !== 'user' && $as !== 'admin') {
+            throw $fail('has an "as" that is neither user nor admin');
+        }
+        if ($as === 'admin' && !isset($profile['admin'])) {
+            throw $fail('enters as the admin and the profile has no admin to log in as');
         }
     }
 
