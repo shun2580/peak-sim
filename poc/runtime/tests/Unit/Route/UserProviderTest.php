@@ -185,6 +185,36 @@ final class UserProviderTest extends TestCase
         $this->assertFalse(UserProvider::requirement(['guest', 'Gate'], $profile)->guestOnly, 'a login is required, so the route is not guest-only');
     }
 
+    /** @return array<string, array{list<string>}> */
+    public static function gateAndAuthOrders(): array
+    {
+        return [
+            'the gate first' => [['Gate', 'auth:api']],
+            'the gate last' => [['auth:api', 'Gate']],
+            'the gate between' => [['web', 'Gate', 'auth:api', 'verified']],
+        ];
+    }
+
+    /** @param list<string> $middleware */
+    #[DataProvider('gateAndAuthOrders')]
+    public function test_the_guard_the_route_names_wins_wherever_the_gate_stands(array $middleware): void
+    {
+        $profile = ['auth_gates' => ['g' => ['middleware' => ['Gate'], 'guard' => 'shopper']]];
+
+        $r = UserProvider::requirement($middleware, $profile);
+
+        $this->assertTrue($r->required);
+        $this->assertSame('api', $r->guard);
+    }
+
+    public function test_a_name_with_a_backslash_matches_from_the_middle_of_the_class_name(): void
+    {
+        $profile = ['auth_gates' => ['g' => ['middleware' => ['Middleware\\Gate']]]];
+
+        $this->assertTrue(UserProvider::requirement(['Vendor\\Http\\Middleware\\Gate'], $profile)->required);
+        $this->assertFalse(UserProvider::requirement(['Vendor\\Http\\Gate'], $profile)->required);
+    }
+
     public function test_the_plan_enters_as_the_login_the_gate_names(): void
     {
         $profile = [

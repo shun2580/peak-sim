@@ -28,6 +28,7 @@ final class UserProvider
         $ability = null;
         $guestOnly = false;
         $as = null;
+        $gateGuard = null;
         $gates = self::gates($profile);
 
         foreach ($middleware as $entry) {
@@ -55,17 +56,19 @@ final class UserProvider
                     break;
             }
 
-            // A gate the profile names is added to the judgement above, never taken from it: a middleware the names
-            // already explained keeps what they said (the guard of `auth:api` stays), and the gate fills in what is left.
+            // A gate the profile names is added to the judgement above, never taken from it. Its guard is only
+            // kept aside here: a guard the route's own middleware names (`auth:api`) wins wherever it stands in the list.
             foreach ($gates as $gate) {
                 if (self::gateMatches($gate['middleware'], $name)) {
                     $required = true;
-                    $guard ??= $gate['guard'];
+                    $gateGuard ??= $gate['guard'];
                     $as ??= $gate['as'];
                     break;
                 }
             }
         }
+
+        $guard ??= $gateGuard;
 
         return new AuthRequirement($required, $guard, $verified, $ability, $guestOnly && ! $required, $as);
     }
@@ -76,7 +79,8 @@ final class UserProvider
      *
      *   middleware   a name, or a list of names; a middleware matches when its name (the part before any `:argument`)
      *                is that name, or is a class name whose last part is that name (`Vendor\Http\Middleware\Gate`
-     *                matches `Gate`), compared without regard to case
+     *                matches `Gate`), compared without regard to case. A name that itself holds a `\` matches the
+     *                end of the class name the same way, so `Middleware\Gate` matches `Vendor\Http\Middleware\Gate`
      *   guard        optional: the guard to log in on, used when the route's own middleware names none
      *   as           optional: `user` or `admin`, the login of the profile to enter as (default the profile's `login_as`)
      *
