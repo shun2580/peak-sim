@@ -58,8 +58,9 @@ final class OffsetChunkFit
      * The error of the formula at the last captured size when it is made from the sizes before it: (put - captured) / captured, on the product of the count
      * and the rows per run. Null when either column has fewer than MIN_SCALES sizes, or the captured product is 0.
      *
-     * The two columns are fitted on the points the estimate itself fits them on (RowEstimator::series and the capture's count fit): the count on every size,
-     * the rows per run only on the sizes where some run was read (a size where the statement ran but read nothing has no rows per run, and is left out).
+     * The two columns are fitted on the points the estimate itself fits them on (RowEstimator::series and the capture's count fit): the count on every size
+     * (also a size where the rows could not be read: the count is still known), the rows per run only on the sizes where some run was read (a size where the
+     * statement ran but read nothing, or whose rows could not be read, has no rows per run, and is left out).
      *
      * @param array<string, mixed> $perScale the capture's `per_scale` of the type: size => {count, rows_sum, unread}
      */
@@ -68,12 +69,12 @@ final class OffsetChunkFit
         $counts = [];
         $rows = [];
         foreach ($perScale as $scale => $v) {
-            if (!is_array($v) || !isset($v['count']) || !array_key_exists('rows_sum', $v) || $v['rows_sum'] === null) {
+            if (!is_array($v) || !isset($v['count'])) {
                 continue;
             }
             $counts[(int) $scale] = (float) $v['count'];
             $read = (int) $v['count'] - (int) ($v['unread'] ?? 0);
-            if ($read > 0) {
+            if (($v['rows_sum'] ?? null) !== null && $read > 0) {
                 $rows[(int) $scale] = (float) $v['rows_sum'] / $read;
             }
         }

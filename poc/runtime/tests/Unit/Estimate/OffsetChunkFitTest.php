@@ -184,6 +184,24 @@ final class OffsetChunkFitTest extends TestCase
         $this->assertGreaterThan(0.01, abs($withZero - $e), 'the two ways give different figures on this statement, so the test tells them apart');
     }
 
+    public function test_a_size_where_the_rows_could_not_be_read_still_gives_its_count_to_the_count_fit_as_the_estimate_does(): void
+    {
+        // Five sizes. At 100 the statement ran 4 times but its rows could not be read (rows_sum null): the count is known, the rows per run are not.
+        // The rows per run at the four sizes after it are a flat 500 (the rows factor is exactly 1). The count is 4 at 100 and 10 at the four after it; the count
+        // is fitted on all five sizes, as the capture's count fit does, so it is fitted on 4 / 10 / 10 / 10 before the last size.
+        $perScale = self::perScaleOf([100 => [4, 0], 1000 => [10, 500], 10000 => [10, 500], 30000 => [10, 500], 60000 => [10, 500]]);
+        $perScale['100']['rows_sum'] = null;
+        $perScale['100']['unread'] = 0;
+        $countFit = CostFit::fit([100, 1000, 10000, 30000], [4.0, 10.0, 10.0, 10.0]);
+        $putCount = CostFit::evaluate($countFit['a'], $countFit['b'], $countFit['k'], 60000);
+        // product put = putCount x 500; captured = 10 x 500: e = putCount / 10 - 1
+        $e = OffsetChunkFit::heldOutError($perScale);
+        $this->assertNotNull($e);
+        $this->assertEqualsWithDelta($putCount / 10 - 1, $e, 1e-9);
+        // with the size left out of the count fit too (what the first version did) the count is a flat 10, put at 60,000 it is 10, and e is 0: another figure
+        $this->assertGreaterThan(0.01, abs($e), 'the two ways give different figures on this statement, so the test tells them apart');
+    }
+
     public function test_the_rows_per_run_stand_on_fewer_than_four_sizes_when_runs_that_read_nothing_are_left_out(): void
     {
         // The count is on five sizes; rows per run exist at three of them (100 and 1,000 read nothing): three points, no held-out error, whatever the count does.
