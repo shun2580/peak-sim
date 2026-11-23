@@ -1,16 +1,16 @@
 # Inventory of the remaining outliers: a look ahead at condition 3
 
-Status: **This is a record made from existing records. Nothing was measured for it. Bagisto has not been measured, and its outliers are not in this inventory. This inventory does not meet condition 3 of section 0 of `docs/simulator-spec.md`; it counts how many outliers are left, and why, before Bagisto is measured (D242). Marks are counted as D243 rules: the list of marked routes of A counts as a mark, and every count of marks is shown beside the false alarms and the doubt about rows 2 and 5.** Revised after the first version: the cause of row 10 was raised to identified by reading the application's code (section 5.3), and the share counts of section 8.6 were corrected (an earlier version read the estimate's statement text, which is cut at 160 characters, and missed an offset).
+Status: **This is a record made from existing records, with one section (5.4) that records a measurement of the causes at 70,000 rows made afterwards. Bagisto has not been measured, and its outliers are not in this inventory. This inventory does not meet condition 3 of section 0 of `docs/simulator-spec.md`; it counts how many outliers are left, and why, before Bagisto is measured (D242). Marks are counted as D243 rules: the list of marked routes of A counts as a mark, and every count of marks is shown beside the false alarms and the doubt about rows 2 and 5.** Revised after the first version: the cause of row 10 was raised to identified by reading the application's code (section 5.3); the share counts of section 8.6 were corrected (an earlier version read the estimate's statement text, which is cut at 160 characters, and missed an offset); and the causes of rows 1 to 9 were sorted again after the measurement at 70,000 rows (section 5.4), which moved 7 rows from unknown to guessed and raised none to identified.
 
 The part that lists the outliers and counts them (sections 1 to 7 and 9) and the part that proposes how to strengthen the marks (section 8) are written.
 
-Condition 3 asks that every outlier left after conditions 1 and 2 is met has a cause that is identified one route at a time, and that the tool can say "this may not hold" at prediction time. An outlier whose cause is not known keeps version 1.0 back. Conditions 1 and 2 are not both met yet (condition 2 is the third application, Bagisto, and it is not measured), so any count of condition 3 stays provisional (D241, D242). This file looks at the two latest tests only and gives the count as it stands in the records.
+Condition 3 asks that every outlier left after conditions 1 and 2 is met has a cause that is identified one route at a time, and that the tool can say "this may not hold" at prediction time. An outlier whose cause is not known keeps version 1.0 back. Conditions 1 and 2 are not both met yet (condition 2 is the third application, Bagisto, and it is not measured), so any count of condition 3 stays provisional (D241, D242). This file looks at the two latest tests only and gives the count as it stands in the records; the measurement at 70,000 rows (section 5.4) is not a counted test.
 
 **In brief:**
 
 1. **Outliers: 10.** All 10 are BookStack routes in the fourth run of A at 240,000 rows (11 rows, because one route is outside the goal on two quantities). The verification app has none. B at 180,000 rows has none.
 2. **Outside the lowest standard: 5** of the 10. Each of the 5 had a mark at prediction time (counted as D243 rules; see the caveat in item 4).
-3. **Causes: identified 1, guessed 2, unknown 7.** So **9 outliers have no identified cause**, which is what condition 3 asks for and what is missing. The one identified is row 10 (`DELETE /settings/maintenance/cleanup-images`), read in the application's code (section 5.3).
+3. **Causes: identified 1, guessed 9, unknown 0.** So **9 outliers have no identified cause**, which is what condition 3 asks for and what is missing. The one identified is row 10 (`DELETE /settings/maintenance/cleanup-images`), read in the application's code (section 5.3) and seen directly at 70,000 rows (section 5.4). The 9 guessed rows have a statement, a plan or a number that fits, none shown at 240,000 rows; the four that were heavy on one lap only (rows 1, 3, 4, 8) were heavy again at 70,000 rows, and why is not established (section 5.4). Before the measurement the counts were guessed 2 and unknown 7.
 4. **Marks at prediction time: 8 of the 10 had one, 2 did not** (`POST /books/{bookSlug}/draft/{pageId}` and `DELETE /settings/maintenance/cleanup-images`). The 8 are on the list of marked routes of A (`plan_changes_at_scale` 6, `plan_unstable` 2). The maintainer ruled that this list counts as the mark of condition 3, counted by route as in the test of the marks (spec 7.4.1), so the count of routes with **no** mark is **2** (D243, judgement 1).
    **Caveat, set beside every count of marks (D243):** (a) of the 19 BookStack routes that carry a mark in A at 240,000 rows, **11 were inside the goal** (11 false alarms); (b) for rows 2 and 5 the marked statement may not be the one that gave the error (`extrapolation-test-3-causes.md` section 5, 300,000-row run), so a mark can be right while its reason is not. Raising the precision of the marks is a task for after version 1.0.
 5. **Counted apart: 6 routes** (A 5, B 1) that could not be measured or whose estimate is not complete. They are not outliers and are not in the counts above.
@@ -18,7 +18,7 @@ Condition 3 asks that every outlier left after conditions 1 and 2 is met has a c
 
 ## 1. What was done
 
-The records of the two latest tests were read again, and every route or step outside the goal was listed with its numbers, whether the prediction carried a mark when it was fixed, and what the records say about the cause. This is a look ahead at condition 3 of section 0 of the spec. **It is a record only: no measurement was made, no database was built, no container was started, and no estimate, rule, tool, earlier record or lab data was changed.** The measured numbers are copied from the earlier records and are not rounded again.
+The records of the two latest tests were read again, and every route or step outside the goal was listed with its numbers, whether the prediction carried a mark when it was fixed, and what the records say about the cause. This is a look ahead at condition 3 of section 0 of the spec. **For sections 1 to 5.3 it is a record only: no measurement was made for them, and no estimate, rule, tool, earlier record or lab data was changed.** The measured numbers are copied from the earlier records and are not rounded again. Section 5.4 records the measurement of the causes at 70,000 rows that D243 ruled, made afterwards; it changed no estimate, rule, tool, earlier record or lab data either.
 
 Two readers rebuilt the table of A without seeing each other's work, and a third read both and checked the raw records. They agreed on every number, every mark and 9 of the 11 rows' causes. The two rows on which they differed were decided by the third reader against the records: one by taking the lower class (row 5a), one by checking the arithmetic of the guess (row 10). Both are marked in section 5.3. B was rebuilt from the raw records by one reader and checked by another, and the two agree.
 
@@ -68,15 +68,15 @@ Bagisto is not measured and is not in this table.
 | Outliers (routes; for B, scenarios or steps) | **10** (BookStack 10, verification app 0; 11 rows) | **0** | **10** |
 | Of these, outside the lowest standard | 5 (all 5 with a mark) | 0 | 5 |
 | Cause identified | 1 | 0 | **1** |
-| Cause guessed | 2 | 0 | 2 |
-| Cause unknown | 7 | 0 | 7 |
+| Cause guessed | 9 | 0 | 9 |
+| Cause unknown | 0 | 0 | 0 |
 | No mark at prediction time | **2** (the list of marked routes of A counts as a mark, D243) | 0 | **2** |
 | Counted apart (outside the denominator, not counted above) | 5 routes | 1 route | 6 |
 
-- **Causes not identified: 9** (unknown 7, guessed 2). The first version of this file said 10 (unknown 7, guessed 3, the same number as the "remaining 10 (provisional)" of D241); row 10 was raised from guessed to identified afterwards (section 5.3). The number of outliers stays 10.
+- **Causes not identified: 9** (guessed 9, unknown 0). The first version of this file said 10 (unknown 7, guessed 3, the same number as the "remaining 10 (provisional)" of D241); row 10 was raised from guessed to identified afterwards (section 5.3), and after the measurement at 70,000 rows 7 rows moved from unknown to guessed (section 5.4; a row is guessed, not identified, when no mechanism is shown at 240,000 rows). The number of outliers stays 10.
 - The routes with no mark are counted as **2**, because the maintainer ruled that the list of marked routes of A is a mark in the sense of condition 3 (D243, judgement 1; the other reading, which would give 10, is kept in section 8.2 as a record and was not taken).
 - **Caveat, set beside every count of marks (D243):** of the 19 BookStack routes that carry a mark in A at 240,000 rows, **11 were inside the goal** (11 false alarms); and for rows 2 and 5 the marked statement may not be the one that gave the error (`extrapolation-test-3-causes.md` section 5, 300,000-row run), so a mark can be right while its reason is not. Raising the precision of the marks is a task for after version 1.0. The "all 5 with a mark" of the table is a count of this kind, and rows 2 and 5a are two of those 5.
-- By rows instead of routes, the classes of the 11 rows are: identified 1, guessed 3, unknown 7.
+- By rows instead of routes, the classes of the 11 rows are: identified 1, guessed 10, unknown 0.
 
 ## 5. A at 240,000 rows: BookStack
 
@@ -132,21 +132,143 @@ Classes follow section 3.3. "Record" is a path under `docs/research/` unless it 
 
 | # | Quantity | Class | One line, and the record it comes from |
 | ---: | --- | --- | --- |
-| 1 | rows examined | unknown | The heavy value 324,204 appears in one lap of the repeat only: the repeat laps read 84,210, 84,210 and 324,204, and the first cold run read 84,210. The database was removed afterwards (D236), so it could not be examined. The record has no investigation of why. `extrapolation-test-4.md` section 4.6 |
-| 2 | rows examined | guessed | The measured rows follow 4.2·N + 237, the same line as at 200,000 and 300,000 rows. The estimate is higher. An arithmetic reading that fits: if statement `s7ff3e12408` read 0.2·N rows instead of 2.6·N, the sum would match. This is arithmetic only, and D225 records that the cause is not established. `extrapolation-test-3-causes.md` sections 6 and 10.3 |
-| 3 | rows examined | unknown | As row 1. The repeat laps read 276,232, 276,232 and 504,226. |
-| 4 | rows examined | unknown | As row 1. The repeat laps read 84,210, 84,210 and 168,207. |
-| 5a | rows examined | unknown | The estimate is 47.75 rows above the measured 236. The record does not say which statement is high or why. (The two readers differed here: one wrote guessed, one wrote unknown. The restatement "the estimate is higher by 47.75 rows" says no mechanism, so unknown is taken.) |
+| 1 | rows examined | guessed | The heavy value 324,204 appears in one lap of the repeat only: the repeat laps read 84,210, 84,210 and 324,204, and the first cold run read 84,210. The database was removed afterwards (D236), so it could not be examined (`extrapolation-test-4.md` section 4.6). **At 70,000 rows the heavy run appeared again in the last four trials of the third lap:** one statement (`sc40f193985`) grew from 8 to 70,002 rows, its plan changed from `range` to `index`, and the statistic of the `references` table had fallen to 0.2·N and below. That the fall caused the change of plan is consistent with the records but not shown, and why the statistic falls, and whether the same happened at 240,000 rows, is not established. Section 5.4 |
+| 2 | rows examined | guessed | The measured rows follow 4.2·N + 237, the same line as at 200,000 and 300,000 rows. The estimate is higher. An arithmetic reading that fit: if statement `s7ff3e12408` read 0.2·N rows instead of 2.6·N, the sum would match (D225 records that the cause is not established; `extrapolation-test-3-causes.md` sections 6 and 10.3). **At 70,000 rows** the route reads 2.2·N + 239 without ANALYZE and 6.6·N + 248 after it, the estimate has the shape of the analyzed state, and `s7ff3e12408` reads 0.60·N without ANALYZE (not 0.2·N; `s976b7c7275` is also low). So the guess is now that the repeat's database had no ANALYZE; which state it was in at 240,000 rows is not established. Section 5.4 |
+| 3 | rows examined | guessed | As row 1. The repeat laps read 276,232, 276,232 and 504,226. At 70,000 rows the same statement as in row 1 (`sc40f193985`) grew, from 8 to 66,502 rows. Section 5.4 |
+| 4 | rows examined | guessed | As row 1. The repeat laps read 84,210, 84,210 and 168,207. At 70,000 rows `sd7799eeccf` grew from 24,501 to 48,998 rows and its plan changed from `ref` to `index_merge`. Section 5.4 |
+| 5a | rows examined | guessed | The estimate is 47.75 rows above the measured 236. In the first version the record did not say which statement is high (the two readers differed: one wrote guessed, one unknown, and unknown was taken because the restatement says no mechanism). **At 70,000 rows**, where this route reads the same 236 rows, the difference is carried by two statements estimated above what they read: `sf034e6d815` (24.17 against 2, 22.17 of the 47.75) and `s67def0f140` (23.60 against 5, 18.60). Why they are estimated so high was not examined. Section 5.4 |
 | 5b | queries | guessed | The counts of two statements are not whole numbers (1.43876 each), and 16 + 2 × 1.43876 = 18.8775, which matches the estimate 18.878. The record is the estimate at `f52f692` (`poc/lab/predictions/extrapolation-4-bookstack-estimate.json`). |
-| 6 | rows examined | guessed | A guess: the point rule P1 takes the rows of a scan as the rows read. D225 (ruling 1) records an error in the same direction at 200,000 rows. The laps of the repeat differ (1,860,501, 1,248,500, 1,248,500) and the reason for that was not examined. `extrapolation-test-3-causes.md` end of section 3 |
-| 7 | rows examined | unknown | The record has no investigation. The route read 3.2·N + 544 rows at 300,000 rows as well. |
-| 8 | rows examined | unknown | As row 1. The repeat laps read 276,246, 276,246 and 324,245. |
-| 9 | rows examined | unknown | The record has no investigation. In the second, third and fourth runs of A the estimate for this route is below the measurement. |
-| 10 | rows examined | identified | **Established (read in the code, and the numbers agree):** the route reads the `images` table of type `gallery` or `drawio` with `chunk(1000, …)` (`app/Uploads/ImageService.php:183-184` in the BookStack copy used for the tests, commit `045c6a9`; route `routes/web.php:233`, controller `app/Settings/MaintenanceController.php:36-59`, body `ImageService.php:178-207`). The framework's `chunk` reads by offset: `$offset = (($page - 1) * $count) + $skip`, the next page while a page returns a full chunk (`vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:40-80`, Laravel v13.35.0). So the offset grows by 1,000 on each read, the number of reads is floor(M/1,000) + 1 (M is the number of rows of those types) and the rows read grow with the square of M. The capture records the same statement with `limit 1000 offset 30000`. At 240,000 rows: 241 reads and 1,000 × (1 + … + 240) + 240,000 = 29,160,000 rows. The measured 32,280,434 less the two counting statements that use `LIKE` (240,000 × 5 and 240,000 × 8 rows, 3,120,000 together) is 29,160,434: the same to 434 rows (0.0015%). **Established (why the estimate came out low):** the rows per read of this statement are N up to 1,000 rows and about N/2 + 1,000 above, so the curve bends at the chunk size, and the estimate's formula `a + b·N^k` cannot follow a bend. Fitted to the four captured sizes (100, 1,000, 10,000, 30,000) with the tool's own fit (`poc/runtime/src/Judge/CostFit.php`), the exponent for rows per read is 0.91 and for the count 0.99, both bending downward, and the fit gives a count of 236.55 and 105,133 rows per read, the same as the estimate file at `f52f692` in every digit shown (the sums for the runs at 200,000 and 300,000 rows reproduce in the same way). Against the code's 241 and 120,996, the count is 1.9% low, the rows per read 13.1% low and the chunk rows 14.7% low; that one statement accounts for almost all of the 13.29% of the route. **Consistent with the records but not shown:** that M equals N (the number of images equals the number of generated rows). The captured counts (1, 2, 11, 31) would be the same for any M in [N, N + 999], and the number of rows of those types at 240,000 rows is not recorded; the sum above agrees to 0.0015%, which supports it. **Not established:** what the remaining 434 rows (against the code's formula) and 234 rows (the rest of the estimate) come from; they are other statements and were not measured. Records: `extrapolation-data-4/measured-240000/bookstack/attempts.jsonl`, the capture of the fourth run (`capture.json` of the 31 routes; checksum in `extrapolation-data-4/bookstack/sha256.txt`; not in the repository), `poc/runtime/profiles/bookstack.php:66-68` (every image is made type `gallery`), and the estimate at `f52f692`. This does not change any rule or estimate. Whether the estimate's formula should be able to bend is a change of rule and is not proposed here. |
+| 6 | rows examined | guessed | A guess: the point rule P1 takes the rows of a scan as the rows read. D225 (ruling 1) records an error in the same direction at 200,000 rows. The laps of the repeat differ (1,860,501, 1,248,500, 1,248,500) (`extrapolation-test-3-causes.md` end of section 3). At 70,000 rows the laps differ too (543,001, 490,431, 543,032), through one statement (`sad4efc33ee`, 5 runs per lap, 17,501 to 66,504 rows per run); why was not measured. Section 5.4 |
+| 7 | rows examined | guessed | The route read 3.2·N + 544 rows at 300,000 rows as well. **At 70,000 rows** two statements are 99% of the rows, and after ANALYZE the route reads 3.2·N + 547, the same shape. One of them, `s68a46df765`, reads 0.80·N against 0.27·N in the estimate; at 240,000 rows that is 126,345 rows more, near the miss of 120,893. This is arithmetic that assumes the 0.80·N shape holds at 240,000 rows; no tap exists there. Section 5.4 |
+| 8 | rows examined | guessed | As row 1. The repeat laps read 276,246, 276,246 and 324,245. At 70,000 rows `sd7799eeccf` grew from 10,501 to 24,500 rows. Section 5.4 |
+| 9 | rows examined | guessed | In the second, third and fourth runs of A the estimate for this route is below the measurement. **At 70,000 rows** two statements are 99.8% of the rows. A call of `s55d8c74b35` reads 0.61·N rows against 0.48·N in the estimate, and a call of `sc6102fdbc3` 0.70·N against 0.68·N. That `s55d8c74b35` is the short one is consistent with the records but not shown (no per-statement value at 240,000 rows). Section 5.4 |
+| 10 | rows examined | identified | **Established (read in the code, and the numbers agree):** the route reads the `images` table of type `gallery` or `drawio` with `chunk(1000, …)` (`app/Uploads/ImageService.php:183-184` in the BookStack copy used for the tests, commit `045c6a9`; route `routes/web.php:233`, controller `app/Settings/MaintenanceController.php:36-59`, body `ImageService.php:178-207`). The framework's `chunk` reads by offset: `$offset = (($page - 1) * $count) + $skip`, the next page while a page returns a full chunk (`vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:40-80`, Laravel v13.35.0). So the offset grows by 1,000 on each read, the number of reads is floor(M/1,000) + 1 (M is the number of rows of those types) and the rows read grow with the square of M. The capture records the same statement with `limit 1000 offset 30000`. At 240,000 rows: 241 reads and 1,000 × (1 + … + 240) + 240,000 = 29,160,000 rows. The measured 32,280,434 less the two counting statements that use `LIKE` (240,000 × 5 and 240,000 × 8 rows, 3,120,000 together) is 29,160,434: the same to 434 rows (0.0015%). **Established (why the estimate came out low):** the rows per read of this statement are N up to 1,000 rows and about N/2 + 1,000 above, so the curve bends at the chunk size, and the estimate's formula `a + b·N^k` cannot follow a bend. Fitted to the four captured sizes (100, 1,000, 10,000, 30,000) with the tool's own fit (`poc/runtime/src/Judge/CostFit.php`), the exponent for rows per read is 0.91 and for the count 0.99, both bending downward, and the fit gives a count of 236.55 and 105,133 rows per read, the same as the estimate file at `f52f692` in every digit shown (the sums for the runs at 200,000 and 300,000 rows reproduce in the same way). Against the code's 241 and 120,996, the count is 1.9% low, the rows per read 13.1% low and the chunk rows 14.7% low; that one statement accounts for almost all of the 13.29% of the route. **Consistent with the records but not shown:** that M equals N (the number of images equals the number of generated rows). The captured counts (1, 2, 11, 31) would be the same for any M in [N, N + 999], and the number of rows of those types at 240,000 rows is not recorded; the sum above agrees to 0.0015%, which supports it. **Not established:** what the remaining 434 rows (against the code's formula) and 234 rows (the rest of the estimate) come from; they are other statements and were not measured. Records: `extrapolation-data-4/measured-240000/bookstack/attempts.jsonl`, the capture of the fourth run (`capture.json` of the 31 routes; checksum in `extrapolation-data-4/bookstack/sha256.txt`; not in the repository), `poc/runtime/profiles/bookstack.php:66-68` (every image is made type `gallery`), and the estimate at `f52f692`. This does not change any rule or estimate. Whether the estimate's formula should be able to bend is a change of rule and is not proposed here. **At 70,000 rows (section 5.4)** the calls are N/1,000 + 1 at five sizes and the rows read follow the square to within 72 rows. |
 
-Counts by route (a route with two rows takes the lower class): identified 1 (`DELETE /settings/maintenance/cleanup-images`); guessed 2 (`GET /books/{bookSlug}/page/{pageSlug}`, `DELETE /books/{id}`); unknown 7 (`GET /shelves/{slug}/references`, `PUT /shelves/{slug}`, `GET /books/{slug}/references`, `GET /shelves/{slug}`, `POST /books/{bookSlug}/draft/{pageId}`, `PUT …/revisions/{revId}/restore`, `POST /settings/maintenance/regenerate-references`).
+Counts by route (a route with two rows takes the lower class): identified 1 (`DELETE /settings/maintenance/cleanup-images`); guessed 9 (`GET /shelves/{slug}/references`, `GET /books/{bookSlug}/page/{pageSlug}`, `PUT /shelves/{slug}`, `GET /books/{slug}/references`, `GET /shelves/{slug}`, `DELETE /books/{id}`, `POST /books/{bookSlug}/draft/{pageId}`, `PUT …/revisions/{revId}/restore`, `POST /settings/maintenance/regenerate-references`); unknown 0. Before the measurement at 70,000 rows the counts were guessed 2 and unknown 7; the 7 that moved are rows 1, 3, 4, 5a, 7, 8 and 9 (section 5.4).
 
 The second row on which the two readers differed is row 10. One wrote unknown; the other wrote guessed, because the guess is a mechanism that was checked against the recorded row counts. The third reader checked the arithmetic and took guessed, since the chunk size of 1,000 had not been checked in the application's code. That was later checked (the row above), and the row is now identified. The "guessed 3" and "identified 0" of the first version are therefore corrected to guessed 2 and identified 1.
+
+### 5.4 The cause measurement at 70,000 rows
+
+D243 (judgement 3) ruled that the causes are measured at 70,000 rows, a development size that is not used for a test, alongside the preparation for Bagisto. **This section records that measurement. It is not a counted test, it does not change the number of outliers, and it changes no estimate, mark rule, tool, earlier record or lab data.** A claim about the 240,000-row records is said to be so; every other number is from the 70,000-row records.
+
+**What was run.** The same task list, the same BookStack copy (`045c6a9`) and the same copy of the tool as the repeat at 240,000 rows (commit `7a4cf32`), with `--stats-auto-recalc=keep` and a request limit of 600 seconds. Two things differ from that repeat: the size (70,000 rows) and the per-statement tap, which is on here (`--tap=on`; the repeat had it off).
+
+| Step | What | Time (2026-11-24, start and end of the script) | Trials |
+| --- | --- | --- | ---: |
+| Laps | the 21 routes of the repeat in the same order and the same four groups, 3 laps, one database per group, no ANALYZE | 02:16:17 to 04:15:15 (1 h 59 min) | 63 |
+| One at a time | rows 2, 5, 9, 7 and 10, once without ANALYZE and once after `ANALYZE TABLE` on every table, 2 groups, databases other than those of the laps | 02:16:18 to 02:28:23 (12 min) | 10 |
+| Row 10 by size | `DELETE /settings/maintenance/cleanup-images` at 100, 1,000, 10,000 and 30,000 rows (the captured sizes), ANALYZE before, as in the capture | 02:30:44 to 02:35:34 (5 min for the four) | 4 |
+
+- All 77 trials ended with exit 0. A tap exists for 74. The 3 trials of `POST /books/{bookSlug}/copy` (one per lap) were cut at the request limit (606 to 607 seconds, status 500) and have none; in the repeat at 240,000 rows the same route ran past 600 seconds in all four runs.
+- The copy of the tool at `7a4cf32` is older than the current one: it removes the database volumes when it ends (`09514cd` later made the teardown keep them unless `--purge` is given). So it was run with `--keep-stack`, and each database container was stopped with `docker stop -t 180` and exited with code 0. The list of volumes taken before and after each step shows none gone.
+- Statement ids are those of the estimate and the capture: the first ten digits of the sha1 of the statement's type text as `StatementShape::pattern` makes it (literals and the length of `in (…)` lists taken out, case kept). A count of rows is the sum of `rows_sum` over the statements of the id.
+- The laps and the one-at-a-time step are two databases built from the same recipe. They have the same number of rows in all 41 tables measured. The checksums of 4 tables (`role_permissions`, `roles`, `settings`, `users`) differ, and why was not examined. A value from one step is not carried to the other without saying so.
+- The records are in `docs/research/outlier-causes-data/`.
+
+**Heavy on one lap only (rows 1, 3, 4, 8).** Rows read in the window, lap 1, lap 2, lap 3 (the order of the trial in the third lap is in brackets):
+
+| Row | Route | Lap 1 | Lap 2 | Lap 3 | The statement that grew (rows read, lap 1, 2, 3) |
+| ---: | --- | ---: | ---: | ---: | --- |
+| 1 | `GET /shelves/{slug}/references` (60) | 24,710 | 24,710 | **94,704** | `sc40f193985`, `select distinct from_type from references`: 8, 8, 70,002 |
+| 3 | `PUT /shelves/{slug}` (59) | 80,732 | 80,732 | **147,226** | `sc40f193985`: 8, 8, 66,502 |
+| 4 | `GET /books/{slug}/references` (58) | 24,710 | 24,710 | **49,207** | `sd7799eeccf`, `select * from references where to_type = ? and to_id = ? …`: 24,501, 24,501, 48,998 |
+| 8 | `PUT …/revisions/{revId}/restore` (57) | 80,746 | 80,746 | **94,745** | `sd7799eeccf`: 10,501, 10,501, 24,500 |
+
+- **Established:** the heavy run appeared again. The same four routes, in the last four trials of the third lap, as in the repeat at 240,000 rows; so it is not something that happens only at the larger size. Laps 1 and 2 read the same rows. In each route one statement is the only one whose count or rows changed between lap 1 and lap 3.
+- **Established:** the plan of that statement changed in the heavy lap (the tap's EXPLAIN of its first run). `sc40f193985`: `range` on `references_from_type_index` (estimated rows 4) in lap 1, `range` (2) in lap 2, `index` (1) in lap 3. `sd7799eeccf`: `ref` on `references_to_id_index` (27,086) in lap 1, `ref` (17,474) in lap 2, `index_merge` of `references_to_id_index` and `references_to_type_index` (1,737) in lap 3.
+- **Established:** the statistic of the `references` table fell in the same period. Its PRIMARY cardinality was first read as 69,948 (after order 40) and then fell by 7,000 after every PUT trial: 62,948 after order 41, then 55,948, 48,948, 41,948, 34,948, 27,948, 20,948, 13,948, 6,948 and 0 after order 59. The stored `innodb_table_stats` row of the table stayed at 69,948 (last update 18:43:05). The first heavy run (order 57) ran with 13,948 before it (about 0.2·N); orders 58, 59 and 60 ran with 6,948, 6,948 and 0. The statistic alone does not draw the line: order 56, another route (`GET /books/{bookSlug}/page/{pageSlug}/references`), also ran with 13,948 and read the same rows as in laps 1 and 2.
+- **Established:** no other route of the 21 is heavy in lap 3 alone. The six routes of the first group (the deletes and the recycle bin) read between 364,438 and 595,484 rows from lap to lap without a fixed order.
+- **Consistent with the records but not shown:** that the heavy run follows from the fall of the statistic and the change of plan with it (the plan changed in the heavy runs, and the statistic was lowest then); and that the fall is tied to repeating PUT on the same database and not to the number of rows (it falls by the same 7,000 at each PUT, and the heavy runs are in the third lap). Neither reading was tested, for example by changing the number of laps.
+- **Not established:** why a PUT lowers the statistic; the real number of rows of the table (it was not counted: the 70,002 and 66,502 rows read agree with about 70,000 rows, which is not a count); whether the heavy laps at 240,000 rows had the same statement, plan and statistic (that repeat had the tap off and no EXPLAIN, and its database no longer exists, D236); where between 13,948 and 0 the plan changes; whether the heavy run moves when the number of laps or the order changes. **The cause of rows 1, 3, 4 and 8 at 240,000 rows is not established.** They are guessed, not identified.
+- **Beside the marks (D243):** for rows 4 and 8 the statement that grew (`sd7799eeccf`) is a marked statement of the route. For rows 1 and 3 it is not: the marks of row 1 are on `sd7799eeccf`, and those of row 3 on `sd7799eeccf` and `s1a3fa8aa3c`, and neither changed between laps; the statement that grew is `sc40f193985`.
+
+**Estimate too high (rows 2, 5, 6).**
+
+Row 2, `GET /books/{bookSlug}/page/{pageSlug}`, rows read:
+
+| State | `s976b7c7275` (`select name, id, slug, … from entities left join entity_page_data …`) | `s7ff3e12408` (`select * from entities left join entity_container_data …`) | Window |
+| --- | ---: | ---: | ---: |
+| 70,000 rows, one at a time, without ANALYZE | 111,997 (1.60·N) | 42,001 (0.60·N) | 154,239 |
+| 70,000 rows, one at a time, after ANALYZE | 280,000 (4.00·N) | 181,999 (2.60·N) | 462,248 |
+| 70,000 rows, in the laps (no ANALYZE; lap 1, 2, 3) | | | 462,247, 462,247, 462,246 |
+| Estimate at 240,000 rows (`f52f692`) | 978,390 (4.08·N) | 629,913 (2.62·N) | 1,608,578 |
+
+- **Established:** ANALYZE changes the rows of this route 3.0 times (154,239 to 462,248), and the two statements above carry 308,001 of the 308,009 rows of the difference. They are the same two statements as the estimate's (ids by the capture's rule).
+- **Established:** after ANALYZE the two statements have the shape of the estimate (4.00·N and 2.60·N against 4.08·N and 2.62·N); without ANALYZE they are far below it (1.60·N and 0.60·N).
+- **Established:** in the laps the route read the value of the analyzed state in all three laps, because the automatic update of the statistic of `entities` (`n_rows` 69,673 to 71,811, at the end of order 20, 18:30:31) came before the route ran in order 21. The one-at-a-time run without ANALYZE ran on the earlier statistic.
+- **Established, from the 240,000-row record:** the route read 1,008,237 = 4.2·N + 237 there. At 70,000 rows it reads 2.2·N + 239 without ANALYZE and 6.6·N + 248 with it. The 240,000-row value lies between the two states.
+- **Consistent with the records but not shown:** that the miss comes from the repeat's database having no ANALYZE while the database of the capture had one. This is the direction of `extrapolation-test-3-causes.md` section 10.3, and the estimate has the shape of the analyzed state.
+- **Not established:** which statistic state the repeat's database had when the route ran at 240,000 rows (4.2·N is neither state); how much of the miss the missing ANALYZE explains (the 240,000-row value without ANALYZE was not measured). The earlier arithmetic reading, that `s7ff3e12408` read 0.2·N instead of 2.6·N, is not what the unanalyzed state gives here: it reads 0.60·N, and `s976b7c7275` is also low (1.60·N against 4.08·N). **The row stays guessed, with a changed guess.**
+- **Beside the marks (D243):** the marked statement of row 2 is `sf034e6d815` (`select * from views …`). At 70,000 rows it differs from the estimate by 14.00 rows (16 against 2) without ANALYZE and 13.00 after it. The difference between the estimate and the tap is carried by `s976b7c7275` and `s7ff3e12408`, which are not marked. This was measured at 70,000 rows, not 240,000, so it bears on the doubt of D243 and does not settle it.
+
+Row 5, `GET /shelves/{slug}`. The route reads 236 rows at 70,000 rows without ANALYZE, 238 after it (the laps: 237, 237, 236), and 236 at 240,000 rows, so its rows do not depend on N and the tap can be set against the estimate at 240,000 rows. Statement by statement, estimate (count times rows per call) against the tap without ANALYZE:
+
+| Statement | Estimate | Read at 70,000 rows | Difference |
+| --- | ---: | ---: | ---: |
+| `sf034e6d815`, `select * from views …` (the marked statement) | 24.17 | 2 (3 after ANALYZE) | 22.17 |
+| `s67def0f140`, `select * from activities …` | 23.60 | 5 | 18.60 |
+| `sae79dbbc2c`, `select count(*) from references …` | 10.77 | 8 | 2.77 |
+| `s6a6174c841`, `select exists(select * from favourites …)` | 3.35 | 2 (3 after ANALYZE) | 1.35 |
+| `sa8fffb0b26` | 2.88 (1.43876 × 2) | 2 | 0.88 |
+| `s933461e5b8` | 3.80 | 3 | 0.80 |
+| the other 10 statements together | | | 1.18 |
+| The route | 283.75 | 236 | 47.75 |
+
+- **Established (5a):** the 47.75 rows of difference are carried mostly by two statements estimated above what they read: `sf034e6d815` (22.17, 46%) and `s67def0f140` (18.60, 39%); the difference between the 236 and the 238 rows is one row of `sf034e6d815` and one of `s6a6174c841` (each 2 rows without ANALYZE, 3 after).
+- **Established (5b):** the route runs 18 queries at 70,000 rows, as it did at 240,000. `sa8fffb0b26` and `sde990ad951` run once each, where the estimate has 1.43876 each; 16 + 2 × 1.43876 = 18.8775, which is the estimate's 18.878.
+- **Not established:** why the estimate has 24.17 rows for `views` and 23.60 for `activities` (this was not examined), and why the counts of the two statements are fitted to 1.43876 instead of 1. **Row 5a moves from unknown to guessed** (the statements are measured, the reason is not); 5b stays guessed.
+- **Beside the marks (D243):** the marked statement of row 5, `sf034e6d815`, is the largest single part of the difference (46%), and an unmarked statement, `s67def0f140`, is the second (39%). The mark is on a statement that is part of the error and not the whole of it. Same limit: 70,000 rows, a route whose rows do not depend on N.
+
+Row 6, `DELETE /books/{id}`:
+
+- **Established:** the statement that moves between laps is `sad4efc33ee` (`delete from deletions where deletable_type = ? and deletable_id = ? …`). It runs 5 times in every lap and reads 262,503, 210,000 and 262,503 rows (windows 543,001, 490,431, 543,032). Per run it reads from 17,501 to 66,504 rows (lap 1 and 3) and from 14,001 to 63,004 (lap 2). The other statements of the route read the same in the three laps. The repeat at 240,000 rows read 1,860,501, 1,248,500 and 1,248,500 on its three laps.
+- **Not established:** why the rows of one run range so widely (it was not measured whether it depends on the position of the target in `deletions`); whether the premise of the point rule P1, that the rows of a scan are the rows read, holds here (the tap has the rows read per run, not the rows scanned); why the laps differ. **The row stays guessed.**
+
+**Always heavier than the estimate (row 9),** `POST /settings/maintenance/regenerate-references`, rows read:
+
+| Statement | Calls and rows, without ANALYZE | Calls and rows, after ANALYZE | Estimate at 240,000 rows: calls, rows per call |
+| --- | ---: | ---: | ---: |
+| `s55d8c74b35` (`select id, description_html from entities left join entity_container_data …`) | 423; 17,948,623 | 423; 18,017,023 | 1,416; 114,361 (0.48·N) |
+| `sc6102fdbc3` (`select id, html from entities left join entity_page_data …`) | 281; 13,866,721 | 281; 13,866,721 | 943; 163,920 (0.68·N) |
+| Window | 31,886,239 | 31,954,647 | |
+
+- **Established:** the two statements are 99.8% of the window. Of the 68,408 rows between the two states, 68,400 are `s55d8c74b35`; the other 8 are one statement on `webhooks`. The laps read 31,954,647 in all three laps. At 70,000 rows a call of `s55d8c74b35` reads 42,432 rows on average (0.61·N) and a call of `sc6102fdbc3` 49,348 (0.70·N).
+- **Consistent with the records but not shown:** that the statement short in the estimate is `s55d8c74b35` (0.48·N in the estimate against 0.61·N here), and not `sc6102fdbc3` (0.68·N against 0.70·N).
+- **Not established:** whether the rows of a call are proportional to N (the chunks advance by offset, so it depends on the position), because the 240,000-row records have no value per statement. **Row 9 moves from unknown to guessed.**
+
+**No mark (rows 7 and 10).**
+
+Row 7, `POST /books/{bookSlug}/draft/{pageId}`, rows read:
+
+| Statement | Without ANALYZE | After ANALYZE | Estimate at 240,000 rows |
+| --- | ---: | ---: | ---: |
+| `s68a46df765` (`select max(priority) … left join entity_page_data …`) | 55,999 (0.80·N) | 55,999 (0.80·N) | 65,655 (0.27·N) |
+| `sc26304c1f7` (`select max(priority) … left join entity_container_data …`) | 28,001 (0.40·N) | 167,999 (2.40·N) | 581,439 (2.42·N) |
+| Window | 84,540 | 224,547 (3.2·N + 547) | 647,651 |
+
+- **Established:** the two statements are 99.4% of the window without ANALYZE and 99.8% after it. `s68a46df765` does not change with ANALYZE; `sc26304c1f7` reads 6 times more after it. The analyzed window has the shape of the 240,000-row measurement (768,544 = 3.2·N + 544).
+- **Consistent with the records but not shown:** that the miss at 240,000 rows comes from `s68a46df765`. `sc26304c1f7` agrees with the estimate (2.40·N against 2.42·N); `s68a46df765` is 0.80·N here against 0.27·N in the estimate, which at 240,000 rows is 126,345 rows more than the estimate, the same order as the miss of 120,893 rows. This is arithmetic that takes the 0.80·N shape to hold at 240,000 rows.
+- **Not established:** which of the two statements gave the miss at 240,000 rows (no tap there); whether the rows of a call are proportional to N. **Row 7 moves from unknown to guessed.** The offset-share mark gives no ground for this route (it has no offset statement); no mark rule for it is proposed here, and the choice stays with the maintainer.
+
+Row 10, `DELETE /settings/maintenance/cleanup-images`, by size (`sdf9dc81d9e` is `select * from images where type in (?, ?) order by images.id asc limit ? offset ?`):
+
+| N | Calls of `sdf9dc81d9e` | Rows read | Rows / N | Window | Seconds |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 100 | 1 | 102 | 1.020 | 1,602 | 1 |
+| 1,000 | 2 | 2,003 | 2.003 | 15,203 | 3 |
+| 10,000 | 11 | 65,012 | 6.501 | 195,212 | 30 |
+| 30,000 | 31 | 495,032 | 16.501 | 885,232 | 88 |
+| 70,000 | 71 | 2,555,072 | 36.501 | 3,465,264 | 204 |
+
+- **Established:** the number of calls is N/1,000 + 1 at all five sizes, and the rows read follow 500·m·(m+1) + N (m = N/1,000, rounded down) to within 72 rows at every size, the largest difference being 0.003% at 70,000 rows. This is the square read in the application's code (section 5.3), seen directly. After ANALYZE the 70,000-row window is 3,465,272 (8 rows more) and `sdf9dc81d9e` is unchanged: this route does not depend on ANALYZE. At 70,000 rows `sdf9dc81d9e` is 73.7% of the window; the two `LIKE` counts (8 and 5 rows per image, N calls each, 560,000 and 350,000 rows) are 16.2% and 10.1%.
+- The class stays identified. The "Not established" part of section 5.3 (the 434 and 234 rows) is not touched by this measurement.
+
+**What the measurement changes in the causes.** Before it, 7 of the 11 rows had no investigation (unknown). After it, each of rows 1, 3, 4, 8 (statement, plan and statistic recorded), 5a, 7 and 9 (statements measured) has an investigation and a stated reading, and none is shown at 240,000 rows, so each moves from unknown to **guessed**. No row is raised to identified. Rows 2, 5b and 6 stay guessed and row 10 stays identified. Counts by route: identified 1, guessed 9, unknown 0 (section 4). **A reader who wants a mechanism shown before a row counts as guessed would put some of these rows back to unknown (section 9).**
+
+**Beside the counts of marks (D243), unchanged by this measurement:** of the 19 BookStack routes that carry a mark in A at 240,000 rows, 11 were inside the goal (11 false alarms), and routes with no mark are 2. The doubt that a mark can be right while its statement is not the one that gave the error is not removed: at 70,000 rows, for row 2 the difference is carried by unmarked statements; for row 5 the marked statement is 46% of it; for rows 1 and 3 the statement that grew is not a marked one. These are measurements at another size, and the 240,000-row records still have no statement list for the error. Raising the precision of the marks is a task for after version 1.0.
+
+**Limits.** This is 70,000 rows. A comparison with 240,000 rows is a comparison of the shape of statements, except for rows 5 and 10 where it is stated why it holds. Bagisto is not measured, so this section does not say that condition 3 is met with these 10 routes. The offset-share mark of section 8.6 and the treatment of static analysis stay with the maintainer.
 
 ## 6. B at 180,000 rows
 
@@ -190,7 +312,7 @@ For B, "identified" has a limit that is worth stating. This route was not run at
 
 Three things hold for everything in this section.
 
-1. **These are proposals only.** The tool, the predictions, the rules and the earlier records were not changed, and nothing was measured.
+1. **These are proposals only.** The tool, the predictions, the rules and the earlier records were not changed, and nothing was measured for them. The proposals were written before the measurement at 70,000 rows; its result is in section 5.4.
 2. **Every "how many it would catch" number was counted on the same records after the outliers were seen.** It is a fit, not a test. A proposal can only be checked on records not yet seen (for example Bagisto).
 3. **The choices below were the maintainer's.** They have since been made in D243 (section 8.8 gives each ruling). Nothing was changed or measured for this file by those rulings.
 
@@ -198,14 +320,14 @@ B has no outlier, so there is no proposal for B. All proposals are about the 10 
 
 ### 8.1 The four groups
 
-The 10 routes fall into four groups by what the records show. The row numbers are those of section 5.1.
+The 10 routes fall into four groups by what the records show. The row numbers are those of section 5.1. The cause classes are those after the measurement at 70,000 rows (section 5.4).
 
 | Group | Routes (row numbers of section 5.1) | Mark at `f52f692` | Cause class | Direction of the measurement |
 | --- | --- | --- | --- | --- |
-| **Heavy on one lap only** | 1 `GET /shelves/{slug}/references`; 3 `PUT /shelves/{slug}`; 4 `GET /books/{slug}/references`; 8 `PUT …/revisions/{revId}/restore` | yes, `plan_changes_at_scale` | unknown | above the estimate, on the third lap only |
-| **Estimate too high** | 2 `GET /books/{bookSlug}/page/{pageSlug}`; 5 `GET /shelves/{slug}`; 6 `DELETE /books/{id}` | yes (rows 2 and 5 `plan_unstable`; row 6 `plan_changes_at_scale`) | guessed 2, unknown 1 | below the estimate |
-| **Always heavier than the estimate** | 9 `POST /settings/maintenance/regenerate-references` | yes, `plan_changes_at_scale` | unknown | above the estimate (also in the second and third runs of A) |
-| **No mark** | 7 `POST /books/{bookSlug}/draft/{pageId}`; 10 `DELETE /settings/maintenance/cleanup-images` | **no** | unknown 1, identified 1 | above the estimate |
+| **Heavy on one lap only** | 1 `GET /shelves/{slug}/references`; 3 `PUT /shelves/{slug}`; 4 `GET /books/{slug}/references`; 8 `PUT …/revisions/{revId}/restore` | yes, `plan_changes_at_scale` | guessed | above the estimate, on the third lap only |
+| **Estimate too high** | 2 `GET /books/{bookSlug}/page/{pageSlug}`; 5 `GET /shelves/{slug}`; 6 `DELETE /books/{id}` | yes (rows 2 and 5 `plan_unstable`; row 6 `plan_changes_at_scale`) | guessed 3 | below the estimate |
+| **Always heavier than the estimate** | 9 `POST /settings/maintenance/regenerate-references` | yes, `plan_changes_at_scale` | guessed | above the estimate (also in the second and third runs of A) |
+| **No mark** | 7 `POST /books/{bookSlug}/draft/{pageId}`; 10 `DELETE /settings/maintenance/cleanup-images` | **no** | guessed 1, identified 1 | above the estimate |
 
 ### 8.2 The question that came first: does the list of marked routes count as a mark for condition 3?
 
@@ -292,11 +414,11 @@ For reference, not counted: the 19 marked routes carry an upper side as well as 
 
 - Reading the application's code for the chunk size is done (1,000; section 5.3). What is left for this route is to take the tap at 70,000 rows and at the captured sizes (100 to 30,000) and line up the count and the rows per run of statement `sdf9dc81d9e` by size, to see the square directly. Most of what that would show is already seen in the reproduction of the fit (section 5.3), so it is not needed to establish the cause.
 
-**Row 7, `POST /books/{bookSlug}/draft/{pageId}` (unknown).**
+**Row 7, `POST /books/{bookSlug}/draft/{pageId}` (guessed after the measurement at 70,000 rows, section 5.4; it was unknown when the text below was written).**
 
 **(a) Mark proposal.**
 
-- There is no proposal with a basis. The measurement is 120,893 rows above the estimate. The estimate is almost entirely two statements on `max(priority)` (`sc26304c1f7` and `s68a46df765`, neither marked), and the record does not say which of the two is short.
+- There is no proposal with a basis, and the measurement at 70,000 rows (section 5.4) does not give one. The measurement is 120,893 rows above the estimate. The estimate is almost entirely two statements on `max(priority)` (`sc26304c1f7` and `s68a46df765`, neither marked), and the record does not say which of the two is short.
 - Counting "has a statement with an offset" would mark this route too, but the share of the estimate that comes from offset statements is 0.000, so there is no ground connecting it to the miss. That would be a hit by chance, and it is not counted as a proposal.
 - How many it would catch: **cannot be counted**, because the cause is not known.
 
@@ -306,12 +428,12 @@ For reference, not counted: the 19 marked routes carry an upper side as well as 
 
 ### 8.7 The measurements together
 
-The maintainer ruled that they are made (D243, judgement 3). They can be put in one run:
+The maintainer ruled that they are made (D243, judgement 3). **They were made at 70,000 rows; the result is in section 5.4.** The text below is the plan as it was put to the maintainer. They can be put in one run:
 
 - Build one database of 70,000 rows (no ANALYZE) and run the heavy-on-one-lap order of three laps with the tap on. Then take the six routes of the other three groups one at a time with the tap, and last run ANALYZE and take row 2 again.
 - 70,000 rows is not a size used for a test, so no unseen size is used up. It uses a database other than the one for building Bagisto and can go on alongside it.
 - On time, the three laps are expected not to exceed the 4 hours 21 minutes of the 240,000-row repeat, and the other three groups are one request at a time. **Both are conditional expectations and not measured values.**
-- Only the causes that the tap can settle to a statement (the groups "estimate too high", "always heavier than the estimate" and "no mark") can be identified, as expected. "Heavy on one lap only" stays unknown if the heavy run does not appear again.
+- Only the causes that the tap can settle to a statement (the groups "estimate too high", "always heavier than the estimate" and "no mark") can be identified, as expected. "Heavy on one lap only" stays unknown if the heavy run does not appear again. **Result:** the heavy run appeared again, so that group did not stay unobserved, and its cause is still not established; the statements were named for rows 5a, 7 and 9 but no row was raised to identified (section 5.4).
 
 ### 8.8 Choices put to the maintainer, and the rulings (D243)
 
@@ -344,8 +466,8 @@ The recommendations below were recommendations. The maintainer has ruled on all 
 ## 9. What cannot be said
 
 - **Bagisto is not measured.** Its outliers are not here. This inventory does not meet condition 3, and the number 10 is the count of the two latest tests only; it will change when Bagisto is added.
-- **The causes were sorted from the records; none was measured for this file.** Of the 11 rows, 1 is identified (row 10, by reading the application's code and agreeing with the record's numbers), and the 3 guessed rows are guesses made from numbers in the records, not findings. The heavy values of rows 1, 3, 4 and 8 cannot be investigated because the database of that run no longer exists (D236).
-- **The classes were sorted by taking the lower one when in doubt.** The count "identified 1" rests on this. A different reader could place a row one class higher.
+- **The causes were sorted from the records and from the measurement at 70,000 rows (section 5.4), which is a measurement at another size.** Of the 11 rows, 1 is identified (row 10, by reading the application's code, agreeing with the record's numbers and seen directly at 70,000 rows), and the 10 guessed rows are readings that fit numbers, not findings at 240,000 rows. The heavy values of rows 1, 3, 4 and 8 themselves cannot be investigated, because the database of that run no longer exists (D236); the heavy run was seen again at 70,000 rows and its cause is not established.
+- **The classes were sorted by taking the lower one when in doubt.** The count "identified 1" rests on this. A different reader could place a row one class higher. The move of 7 rows from unknown to guessed rests on the definition of section 3.3 (the records now hold an investigation of each, and a stated reading): a reader who wants a mechanism shown before a row counts as guessed would put some of them back to unknown, and the count of causes not identified (9) would not change.
 - **Which marks count is ruled (D243), and the count has two doubts that always go with it.** The 8 marked routes carry the names of the list of marked routes of A, and the maintainer ruled that a name on that list is a mark, so routes without a mark are **2**. But 11 of the 19 marked routes were inside the goal (false alarms), and for rows 2 and 5 the marked statement may not be the one that gave the error, so the mark may be right for another reason. The precision of the marks is a task for after version 1.0, and this file does not claim that condition 3 is met.
 - **The marks were judged only from the output committed with each prediction.** A mark that could be given today, or a reason found after the result, is not counted.
 - **The counts are for rule B, the goal, and the two tests named in section 2.** Rule A, older tests, and any other size are outside them. Under rule A, four of the routes (rows 1, 3, 4 and 8) are inside the goal; they are outliers here because the spec's rule B gives the verdict, and the cause of the heavy laps cannot be examined (D236; `extrapolation-test-4.md` section 4.6).
