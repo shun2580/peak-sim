@@ -1,0 +1,7 @@
+# at 2026-11-24T02:02:53+0900 step laps
+volumes before 26 after 26
+gone: none
+added:
+               total        used        free      shared  buff/cache   available
+Mem:              15           5           4           0           6          10
+Swap:              4           0           4

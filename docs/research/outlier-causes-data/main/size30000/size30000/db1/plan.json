@@ -1,0 +1,32 @@
+[
+    {
+        "key": "t7d53bc:30000",
+        "tag": "t7d53bc",
+        "scale": 30000,
+        "build_args": [
+            "--scale=30000",
+            "--mode=generator",
+            "--recipe-json={\"mode\":\"targeted\",\"n_tables\":[\"images\"],\"m_table\":null,\"m_per\":null,\"n\":30000,\"m\":0,\"base\":5}",
+            "--profile=bookstack"
+        ],
+        "routes": [
+            {
+                "route": "/settings/maintenance/cleanup-images",
+                "method": "DELETE",
+                "uri": "/settings/maintenance/cleanup-images",
+                "measure_args": [
+                    "--scale=30000",
+                    "--uri=/settings/maintenance/cleanup-images",
+                    "--method=DELETE",
+                    "--route=/settings/maintenance/cleanup-images",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=BookStack\\Users\\Models\\User:1",
+                    "--phases=warmup,cold"
+                ]
+            }
+        ],
+        "restore_tables": []
+    }
+]

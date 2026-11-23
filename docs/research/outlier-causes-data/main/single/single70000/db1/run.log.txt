@@ -1,0 +1,46 @@
+[2026-11-24T02:16:18+0900] db1: project peak-cause70k-single70000-db1, run id 3630620eb0cc
+ Network peak-cause70k-single70000-db1_measure-internal Creating 
+ Network peak-cause70k-single70000-db1_measure-internal Created 
+ Container peak-cause70k-single70000-db1-measure-db-1 Creating 
+ Container peak-cause70k-single70000-db1-measure-db-1 Created 
+ Container peak-cause70k-single70000-db1-measure-php-1 Creating 
+ Container peak-cause70k-single70000-db1-measure-php-1 Created 
+ Container peak-cause70k-single70000-db1-measure-db-1 Starting 
+ Container peak-cause70k-single70000-db1-measure-db-1 Started 
+ Container peak-cause70k-single70000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-single70000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-single70000-db1-measure-php-1 Starting 
+ Container peak-cause70k-single70000-db1-measure-php-1 Started 
+ Container peak-cause70k-single70000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-single70000-db1-measure-php-1 Waiting 
+ Container peak-cause70k-single70000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-single70000-db1-measure-php-1 Healthy 
+network peak-cause70k-single70000-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T02:16:33+0900] db1 g1: building t35c980:70000 as peak_sim_measure_3630620eb0cc_t35c980_70000
+[2026-11-24T02:17:27+0900] db1 g1: built in 52 s; content digest ba26cb18c6430c0d69f050c66f04fb2999bea4b4288584470bc4d99140a4b11f
+[2026-11-24T02:17:32+0900] db1 g1 plain lap1 #1 POST /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 4 s, tap present
+[2026-11-24T02:17:52+0900] db1 g1 plain lap1 #2 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 20 s, tap present
+[2026-11-24T02:17:59+0900] db1 g1 plain lap1 #3 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 6 s, tap present
+[2026-11-24T02:19:21+0900] db1 g1 plain lap1 #4 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 81 s, tap present
+[2026-11-24T02:19:21+0900] db1 g1: ANALYZE TABLE on references after plain lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T02:19:22+0900] db1 g1: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:19:24+0900] db1 g1 analyzed lap1 #5 POST /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T02:19:42+0900] db1 g1 analyzed lap1 #6 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 18 s, tap present
+[2026-11-24T02:19:45+0900] db1 g1 analyzed lap1 #7 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T02:21:02+0900] db1 g1 analyzed lap1 #8 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 76 s, tap present
+[2026-11-24T02:21:02+0900] db1 g1: ANALYZE TABLE on references after analyzed lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T02:21:06+0900] db1 g2: building t7d53bc:70000 as peak_sim_measure_3630620eb0cc_t7d53bc_70000
+[2026-11-24T02:21:20+0900] db1 g2: built in 14 s; content digest 3e3ef81eda79ac3f25167a7b494c24d9ab8898928b30b80d36b69f019d5a3c49
+[2026-11-24T02:24:45+0900] db1 g2 plain lap1 #9 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 204 s, tap present
+[2026-11-24T02:24:46+0900] db1 g2: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:28:15+0900] db1 g2 analyzed lap1 #10 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 208 s, tap present
+[2026-11-24T02:28:17+0900] db1: finished with exit 0

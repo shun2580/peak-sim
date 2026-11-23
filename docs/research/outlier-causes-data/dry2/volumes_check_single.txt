@@ -1,0 +1,9 @@
+# at 2026-11-24T02:07:58+0900 step single
+volumes before 27 after 29
+gone: none
+added:
+a584f4982b3860da6ea7ffe8dca57a4aeea3c053f9997a9b183d4280657bbc3b
+peak-bagisto-cap1_measure-dbdata
+               total        used        free      shared  buff/cache   available
+Mem:              15           6           2           0           7           9
+Swap:              4           0           4

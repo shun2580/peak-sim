@@ -1,0 +1,8 @@
+# at 2026-11-24T02:28:23+0900 step single
+volumes before 32 after 33
+gone: none
+added:
+1adeaf9f97a7cb2762425e6fc77350b0cee16de998a35d8bc884d8de023f4808
+               total        used        free      shared  buff/cache   available
+Mem:              15           7           1           0           7           8
+Swap:              4           0           3

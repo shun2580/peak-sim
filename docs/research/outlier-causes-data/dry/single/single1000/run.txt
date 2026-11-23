@@ -1,0 +1,7 @@
+label=single1000
+started=2026-11-24T01:59:28+0900
+source_commit=7a4cf32d24e64e23acbfa842fc35ab81eade4d10
+scale=1000 dbs=1 laps=1 parallel=0 tap=on analyze=rerun data=generator profile=bookstack request_timeout=600
+routes=GET /books/{bookSlug}/page/{pageSlug},GET /shelves/{slug},POST /settings/maintenance/regenerate-references,POST /books/{bookSlug}/draft/{pageId},DELETE /settings/maintenance/cleanup-images
+php_image=peak-measure-php-bookstack:8.3
+finished=2026-11-24T02:00:32+0900 exit=0

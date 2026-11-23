@@ -1,0 +1,9 @@
+# at 2026-11-24T02:33:12+0900 step size10000
+volumes before 35 after 37
+gone: none
+added:
+4535300cfaee7616f9cb1f2595dcd463cb79cd45423fbb21068bfcc58c7fcd1e
+peak-bagisto-cap_measure-dbdata
+               total        used        free      shared  buff/cache   available
+Mem:              15           6           1           0           7           9
+Swap:              4           0           3

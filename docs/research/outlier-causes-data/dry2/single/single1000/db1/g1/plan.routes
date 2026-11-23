@@ -1,0 +1,4 @@
+1	POST	/books/{bookSlug}/draft/{pageId}	/books/1/draft/4	POST__books__bookSlug__draft__pageId_
+2	GET	/books/{bookSlug}/page/{pageSlug}	/books/1/page/3	GET__books__bookSlug__page__pageSlug_
+3	GET	/shelves/{slug}	/shelves/1	GET__shelves__slug_
+4	POST	/settings/maintenance/regenerate-references	/settings/maintenance/regenerate-references	POST__settings_maintenance_regenerate_references

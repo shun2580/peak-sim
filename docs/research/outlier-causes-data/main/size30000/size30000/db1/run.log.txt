@@ -1,0 +1,32 @@
+[2026-11-24T02:33:12+0900] db1: project peak-cause70k-size30000-db1, run id 117e4b141fad
+ Network peak-cause70k-size30000-db1_measure-internal Creating 
+ Network peak-cause70k-size30000-db1_measure-internal Created 
+ Container peak-cause70k-size30000-db1-measure-db-1 Creating 
+ Container peak-cause70k-size30000-db1-measure-db-1 Created 
+ Container peak-cause70k-size30000-db1-measure-php-1 Creating 
+ Container peak-cause70k-size30000-db1-measure-php-1 Created 
+ Container peak-cause70k-size30000-db1-measure-db-1 Starting 
+ Container peak-cause70k-size30000-db1-measure-db-1 Started 
+ Container peak-cause70k-size30000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-size30000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-size30000-db1-measure-php-1 Starting 
+ Container peak-cause70k-size30000-db1-measure-php-1 Started 
+ Container peak-cause70k-size30000-db1-measure-php-1 Waiting 
+ Container peak-cause70k-size30000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-size30000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-size30000-db1-measure-php-1 Healthy 
+network peak-cause70k-size30000-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.80.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T02:33:42+0900] db1 g1: building t7d53bc:30000 as peak_sim_measure_117e4b141fad_t7d53bc_30000
+[2026-11-24T02:33:56+0900] db1 g1: built in 13 s; content digest 91a257bcaada3324d6c6737d2b95a4a065eb1e5e1db84e921f40b87ff2330b3b
+[2026-11-24T02:33:56+0900] db1 g1: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:35:25+0900] db1 g1 analyzed lap1 #1 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 88 s, tap present
+[2026-11-24T02:35:29+0900] db1: finished with exit 0

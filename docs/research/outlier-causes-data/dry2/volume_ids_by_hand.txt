@@ -1,0 +1,10 @@
+project peak-cause70k-dry2-laps1000-db1 (written by hand after the run)
+bind  /etc/mysql/conf.d
+bind  /docker-entrypoint-initdb.d
+volume 2be9b42c1ca00a44ba48a25b1d2434b696f983a38e88d286ad88b3083fb46c35 /var/lib/mysql
+
+project peak-cause70k-dry2-single1000-db1 (written by hand after the run)
+bind  /docker-entrypoint-initdb.d
+volume a584f4982b3860da6ea7ffe8dca57a4aeea3c053f9997a9b183d4280657bbc3b /var/lib/mysql
+bind  /etc/mysql/conf.d
+

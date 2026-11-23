@@ -1,0 +1,4 @@
+2026-11-24T02:33:43+0900 longest=0s counters/bytes-changed=yes bytes_files=140118/11
+2026-11-24T02:34:13+0900 longest=0s counters/bytes-changed=yes bytes_files=193227/22
+2026-11-24T02:34:43+0900 longest=0s counters/bytes-changed=yes bytes_files=193821/22
+2026-11-24T02:35:14+0900 longest=0s counters/bytes-changed=yes bytes_files=193821/22

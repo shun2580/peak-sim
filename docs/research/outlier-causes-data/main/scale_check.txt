@@ -1,0 +1,6 @@
+# scale check (read-only, from the tool's own build records), 2026-11-24 02:49
+Each group builds only the tables its routes need ("generation.scope": targeted:*), so a group builds in 13-52 s even at 70,000.
+laps g1 (te7dbd5, scope targeted:deletions): deletions=70000 (all other scaled tables 5 rows)   build 13 s
+single g1 (t35c980, scope targeted:entities): entities=70000 activities=70000 entity_permissions=70000 favourites=70000 references=70000 search_terms=70000 slug_history=70000 tags=70000 views=70000 watches=70000 joint_permissions=630000 entity_container_data=42000 entity_page_data=28000   build 52 s
+single g2 (t7d53bc, scope targeted:images):   images=70000   build 14 s
+build.json "scale": 70000 in every group; source: <group>/build.json and <group>/content.tsv

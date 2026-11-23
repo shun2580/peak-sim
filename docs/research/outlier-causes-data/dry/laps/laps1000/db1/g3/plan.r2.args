@@ -1,0 +1,7 @@
+--scale=1000
+--uri=/books/1/chapter/2/references
+--method=GET
+--route=/books/{bookSlug}/chapter/{chapterSlug}/references
+--axis=N
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

@@ -1,0 +1,6 @@
+start=2026-11-24T02:03:50+0900 scale=1000 laps=1
+start=2026-11-24T02:03:52+0900 scale=1000 step=single
+end=2026-11-24T02:07:58+0900 exit=0 step=single
+end=2026-11-24T02:10:09+0900 exit=0 step=laps
+start=2026-11-24T02:10:49+0900 scale=100 step=size
+end=2026-11-24T02:11:30+0900 exit=0 step=size100

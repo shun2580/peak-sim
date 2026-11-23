@@ -1,0 +1,46 @@
+[2026-11-24T01:59:28+0900] db1: project peak-cause70k-dry-single1000-db1, run id e9ebe22947d4
+ Network peak-cause70k-dry-single1000-db1_measure-internal Creating 
+ Network peak-cause70k-dry-single1000-db1_measure-internal Created 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Creating 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Created 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Creating 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Created 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Starting 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Started 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Starting 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Started 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Waiting 
+ Container peak-cause70k-dry-single1000-db1-measure-php-1 Healthy 
+ Container peak-cause70k-dry-single1000-db1-measure-db-1 Healthy 
+network peak-cause70k-dry-single1000-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.28.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T01:59:43+0900] db1 g1: building t35c980:1000 as peak_sim_measure_e9ebe22947d4_t35c980_1000
+[2026-11-24T01:59:57+0900] db1 g1: built in 14 s; content digest 81318a17389638dcbc0c1ed0e5855e2142586b037fae379980b265b314cebc9f
+[2026-11-24T01:59:58+0900] db1 g1 plain lap1 #1 POST /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:00+0900] db1 g1 plain lap1 #2 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T02:00:00+0900] db1 g1 plain lap1 #3 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:01+0900] db1 g1 plain lap1 #4 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:01+0900] db1 g1: ANALYZE TABLE on references after plain lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T02:00:02+0900] db1 g1: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:00:03+0900] db1 g1 analyzed lap1 #5 POST /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:04+0900] db1 g1 analyzed lap1 #6 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:05+0900] db1 g1 analyzed lap1 #7 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:06+0900] db1 g1 analyzed lap1 #8 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T02:00:06+0900] db1 g1: ANALYZE TABLE on references after analyzed lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T02:00:08+0900] db1 g2: building t7d53bc:1000 as peak_sim_measure_e9ebe22947d4_t7d53bc_1000
+[2026-11-24T02:00:20+0900] db1 g2: built in 12 s; content digest c63731b85ba2722ad870ef7921b16a4d27f27c674f21759a04c7629a3ebda1a3
+[2026-11-24T02:00:24+0900] db1 g2 plain lap1 #9 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 3 s, tap present
+[2026-11-24T02:00:24+0900] db1 g2: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:00:28+0900] db1 g2 analyzed lap1 #10 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 3 s, tap present
+[2026-11-24T02:00:29+0900] db1: finished with exit 0

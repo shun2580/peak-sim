@@ -1,0 +1,1 @@
+1	POST	/books/{bookSlug}/copy	/books/1/copy	POST__books__bookSlug__copy

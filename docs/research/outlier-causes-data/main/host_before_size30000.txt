@@ -1,0 +1,14 @@
+# at 2026-11-24T02:33:12+0900 step size30000
+               total        used        free      shared  buff/cache   available
+Mem:              15           6           1           0           7           9
+Swap:              4           0           3
+               total        used        free      shared  buff/cache   available
+Mem:           15936        6351        1979           3        7851        9584
+Swap:           4096           4        4091
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   66G  891G   7% /
+peak-bagisto-cap-measure-php-1 Up 34 seconds
+peak-bagisto-cap-measure-db-1 Up 47 seconds (healthy)
+peak-cause70k-laps70000-db1-measure-php-1 Up 16 minutes
+peak-cause70k-laps70000-db1-measure-db-1 Up 16 minutes (healthy)
+volumes before: 37

@@ -1,0 +1,10 @@
+db1	g1	plain	1	1	POST /books/{bookSlug}/draft/{pageId}	0	2/2	db1/g1/plain_lap1/01_POST__books__bookSlug__draft__pageId_
+db1	g1	plain	1	2	GET /books/{bookSlug}/page/{pageSlug}	0	2/2	db1/g1/plain_lap1/02_GET__books__bookSlug__page__pageSlug_
+db1	g1	plain	1	3	GET /shelves/{slug}	0	2/2	db1/g1/plain_lap1/03_GET__shelves__slug_
+db1	g1	plain	1	4	POST /settings/maintenance/regenerate-references	0	2/2	db1/g1/plain_lap1/04_POST__settings_maintenance_regenerate_references
+db1	g1	analyzed	1	5	POST /books/{bookSlug}/draft/{pageId}	0	2/2	db1/g1/analyzed_lap1/05_POST__books__bookSlug__draft__pageId_
+db1	g1	analyzed	1	6	GET /books/{bookSlug}/page/{pageSlug}	0	2/2	db1/g1/analyzed_lap1/06_GET__books__bookSlug__page__pageSlug_
+db1	g1	analyzed	1	7	GET /shelves/{slug}	0	2/2	db1/g1/analyzed_lap1/07_GET__shelves__slug_
+db1	g1	analyzed	1	8	POST /settings/maintenance/regenerate-references	0	2/2	db1/g1/analyzed_lap1/08_POST__settings_maintenance_regenerate_references
+db1	g2	plain	1	9	DELETE /settings/maintenance/cleanup-images	0	2/2	db1/g2/plain_lap1/09_DELETE__settings_maintenance_cleanup_images
+db1	g2	analyzed	1	10	DELETE /settings/maintenance/cleanup-images	0	2/2	db1/g2/analyzed_lap1/10_DELETE__settings_maintenance_cleanup_images

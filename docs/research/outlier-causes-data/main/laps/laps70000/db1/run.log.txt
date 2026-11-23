@@ -1,0 +1,102 @@
+[2026-11-24T02:16:17+0900] db1: project peak-cause70k-laps70000-db1, run id e7493b5e507f
+ Network peak-cause70k-laps70000-db1_measure-internal Creating 
+ Network peak-cause70k-laps70000-db1_measure-internal Created 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Creating 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Created 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Creating 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Created 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Starting 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Started 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Starting 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Started 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Waiting 
+ Container peak-cause70k-laps70000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-laps70000-db1-measure-php-1 Healthy 
+network peak-cause70k-laps70000-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.31.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T02:16:32+0900] db1 g1: building te7dbd5:70000 as peak_sim_measure_e7493b5e507f_te7dbd5_70000
+[2026-11-24T02:16:46+0900] db1 g1: built in 13 s; content digest 6e1e081820d19388a7dd7f525f85c2eb3be27807b7056abea4e7103d4d6f8cd3
+[2026-11-24T02:21:00+0900] db1 g1 plain lap1 #1 DELETE /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 254 s, tap present
+[2026-11-24T02:25:04+0900] db1 g1 plain lap1 #2 DELETE /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 243 s, tap present
+[2026-11-24T02:29:05+0900] db1 g1 plain lap1 #3 DELETE /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 240 s, tap present
+[2026-11-24T02:32:59+0900] db1 g1 plain lap1 #4 DELETE /books/{id}: exit 0, 2 attempts (2 ok), 234 s, tap present
+[2026-11-24T02:36:57+0900] db1 g1 plain lap1 #5 POST /settings/recycle-bin/empty: exit 0, 2 attempts (2 ok), 238 s, tap present
+[2026-11-24T02:40:50+0900] db1 g1 plain lap1 #6 DELETE /shelves/{slug}: exit 0, 2 attempts (2 ok), 233 s, tap present
+[2026-11-24T02:44:44+0900] db1 g1 plain lap2 #7 DELETE /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 233 s, tap present
+[2026-11-24T02:48:39+0900] db1 g1 plain lap2 #8 DELETE /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 234 s, tap present
+[2026-11-24T02:52:29+0900] db1 g1 plain lap2 #9 DELETE /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 230 s, tap present
+[2026-11-24T02:56:16+0900] db1 g1 plain lap2 #10 DELETE /books/{id}: exit 0, 2 attempts (2 ok), 226 s, tap present
+[2026-11-24T03:00:19+0900] db1 g1 plain lap2 #11 POST /settings/recycle-bin/empty: exit 0, 2 attempts (2 ok), 242 s, tap present
+[2026-11-24T03:04:16+0900] db1 g1 plain lap2 #12 DELETE /shelves/{slug}: exit 0, 2 attempts (2 ok), 237 s, tap present
+[2026-11-24T03:08:13+0900] db1 g1 plain lap3 #13 DELETE /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 236 s, tap present
+[2026-11-24T03:12:05+0900] db1 g1 plain lap3 #14 DELETE /books/{bookSlug}/draft/{pageId}: exit 0, 2 attempts (2 ok), 231 s, tap present
+[2026-11-24T03:15:53+0900] db1 g1 plain lap3 #15 DELETE /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 228 s, tap present
+[2026-11-24T03:19:47+0900] db1 g1 plain lap3 #16 DELETE /books/{id}: exit 0, 2 attempts (2 ok), 234 s, tap present
+[2026-11-24T03:23:42+0900] db1 g1 plain lap3 #17 POST /settings/recycle-bin/empty: exit 0, 2 attempts (2 ok), 235 s, tap present
+[2026-11-24T03:27:36+0900] db1 g1 plain lap3 #18 DELETE /shelves/{slug}: exit 0, 2 attempts (2 ok), 234 s, tap present
+[2026-11-24T03:27:36+0900] db1 g2: building t35c980:70000 as peak_sim_measure_e7493b5e507f_t35c980_70000
+[2026-11-24T03:28:23+0900] db1 g2: built in 45 s; content digest 0bf37c0b4a8255a17dd9fc87576553f79380eac9f3083c46571f101f4623faf7
+[2026-11-24T03:28:41+0900] db1 g2 plain lap1 #19 GET /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 18 s, tap present
+[2026-11-24T03:31:13+0900] db1 g2 plain lap1 #20 GET /books/{bookSlug}/export/zip: exit 0, 2 attempts (2 ok), 152 s, tap present
+[2026-11-24T03:31:30+0900] db1 g2 plain lap1 #21 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 17 s, tap present
+[2026-11-24T03:31:52+0900] db1 g2 plain lap1 #22 GET /books/{slug}: exit 0, 2 attempts (2 ok), 21 s, tap present
+[2026-11-24T03:31:54+0900] db1 g2 plain lap1 #23 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:33:10+0900] db1 g2 plain lap1 #24 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 74 s, tap present
+[2026-11-24T03:33:10+0900] db1 g2: ANALYZE TABLE on references after plain lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T03:33:29+0900] db1 g2 plain lap2 #25 GET /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 18 s, tap present
+[2026-11-24T03:36:11+0900] db1 g2 plain lap2 #26 GET /books/{bookSlug}/export/zip: exit 0, 2 attempts (2 ok), 162 s, tap present
+[2026-11-24T03:36:29+0900] db1 g2 plain lap2 #27 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 18 s, tap present
+[2026-11-24T03:36:51+0900] db1 g2 plain lap2 #28 GET /books/{slug}: exit 0, 2 attempts (2 ok), 21 s, tap present
+[2026-11-24T03:36:53+0900] db1 g2 plain lap2 #29 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:37:52+0900] db1 g2 plain lap2 #30 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 58 s, tap present
+[2026-11-24T03:37:52+0900] db1 g2: ANALYZE TABLE on references after plain lap 2 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T03:38:10+0900] db1 g2 plain lap3 #31 GET /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 17 s, tap present
+[2026-11-24T03:40:47+0900] db1 g2 plain lap3 #32 GET /books/{bookSlug}/export/zip: exit 0, 2 attempts (2 ok), 156 s, tap present
+[2026-11-24T03:41:05+0900] db1 g2 plain lap3 #33 GET /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 17 s, tap present
+[2026-11-24T03:41:27+0900] db1 g2 plain lap3 #34 GET /books/{slug}: exit 0, 2 attempts (2 ok), 21 s, tap present
+[2026-11-24T03:41:29+0900] db1 g2 plain lap3 #35 GET /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:42:41+0900] db1 g2 plain lap3 #36 POST /settings/maintenance/regenerate-references: exit 0, 2 attempts (2 ok), 71 s, tap present
+[2026-11-24T03:42:42+0900] db1 g2: ANALYZE TABLE on references after plain lap 3 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T03:42:45+0900] db1 g3: building te52a32:70000 as peak_sim_measure_e7493b5e507f_te52a32_70000
+[2026-11-24T03:42:57+0900] db1 g3: built in 10 s; content digest 82f97ec67ee0947152f81f1bd31d0e586f38c1089530075333c9103fb2e15863
+[2026-11-24T03:42:58+0900] db1 g3 plain lap1 #37 PUT /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:01+0900] db1 g3 plain lap1 #38 GET /books/{bookSlug}/chapter/{chapterSlug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:03+0900] db1 g3 plain lap1 #39 PUT /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:06+0900] db1 g3 plain lap1 #40 GET /books/{bookSlug}/page/{pageSlug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:08+0900] db1 g3 plain lap1 #41 PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:11+0900] db1 g3 plain lap1 #42 GET /books/{slug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:13+0900] db1 g3 plain lap1 #43 PUT /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:16+0900] db1 g3 plain lap1 #44 GET /shelves/{slug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:18+0900] db1 g3 plain lap2 #45 PUT /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:21+0900] db1 g3 plain lap2 #46 GET /books/{bookSlug}/chapter/{chapterSlug}/references: exit 0, 2 attempts (2 ok), 3 s, tap present
+[2026-11-24T03:43:22+0900] db1 g3 plain lap2 #47 PUT /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:25+0900] db1 g3 plain lap2 #48 GET /books/{bookSlug}/page/{pageSlug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:27+0900] db1 g3 plain lap2 #49 PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:30+0900] db1 g3 plain lap2 #50 GET /books/{slug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:32+0900] db1 g3 plain lap2 #51 PUT /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:35+0900] db1 g3 plain lap2 #52 GET /shelves/{slug}/references: exit 0, 2 attempts (2 ok), 3 s, tap present
+[2026-11-24T03:43:36+0900] db1 g3 plain lap3 #53 PUT /books/{bookSlug}/chapter/{chapterSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:39+0900] db1 g3 plain lap3 #54 GET /books/{bookSlug}/chapter/{chapterSlug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:41+0900] db1 g3 plain lap3 #55 PUT /books/{bookSlug}/page/{pageSlug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:44+0900] db1 g3 plain lap3 #56 GET /books/{bookSlug}/page/{pageSlug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:45+0900] db1 g3 plain lap3 #57 PUT /books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore: exit 0, 2 attempts (2 ok), 0 s, tap present
+[2026-11-24T03:43:48+0900] db1 g3 plain lap3 #58 GET /books/{slug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:50+0900] db1 g3 plain lap3 #59 PUT /shelves/{slug}: exit 0, 2 attempts (2 ok), 1 s, tap present
+[2026-11-24T03:43:53+0900] db1 g3 plain lap3 #60 GET /shelves/{slug}/references: exit 0, 2 attempts (2 ok), 2 s, tap present
+[2026-11-24T03:43:56+0900] db1 g4: building ted677c:70000 as peak_sim_measure_e7493b5e507f_ted677c_70000
+[2026-11-24T03:44:46+0900] db1 g4: built in 47 s; content digest 66062ef8c68405265bef3e59ca946b64447252ffb94270242cadbb963bc6d8ab
+[2026-11-24T03:54:53+0900] db1 g4 plain lap1 #61 POST /books/{bookSlug}/copy: exit 0, 1 attempts (0 ok), 606 s, tap absent
+[2026-11-24T04:05:01+0900] db1 g4 plain lap2 #62 POST /books/{bookSlug}/copy: exit 0, 1 attempts (0 ok), 607 s, tap absent
+[2026-11-24T04:15:08+0900] db1 g4 plain lap3 #63 POST /books/{bookSlug}/copy: exit 0, 1 attempts (0 ok), 606 s, tap absent
+[2026-11-24T04:15:10+0900] db1: finished with exit 0

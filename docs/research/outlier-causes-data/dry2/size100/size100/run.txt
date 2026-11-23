@@ -1,0 +1,7 @@
+label=size100
+started=2026-11-24T02:10:49+0900
+source_commit=7a4cf32d24e64e23acbfa842fc35ab81eade4d10
+scale=100 dbs=1 laps=1 parallel=0 tap=on analyze=before data=generator profile=bookstack request_timeout=600
+routes=DELETE /settings/maintenance/cleanup-images
+php_image=peak-measure-php-bookstack:8.3
+finished=2026-11-24T02:11:25+0900 exit=0

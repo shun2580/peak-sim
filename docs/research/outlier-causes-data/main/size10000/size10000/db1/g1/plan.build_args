@@ -1,0 +1,4 @@
+--scale=10000
+--mode=generator
+--recipe-json={"mode":"targeted","n_tables":["images"],"m_table":null,"m_per":null,"n":10000,"m":0,"base":5}
+--profile=bookstack

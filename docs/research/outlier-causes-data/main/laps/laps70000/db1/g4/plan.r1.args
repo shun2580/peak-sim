@@ -1,0 +1,9 @@
+--scale=70000
+--uri=/books/1/copy
+--method=POST
+--route=/books/{bookSlug}/copy
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

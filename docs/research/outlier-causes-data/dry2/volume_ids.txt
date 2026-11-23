@@ -1,0 +1,6 @@
+project peak-cause70k-dry2-size100-db1
+bind  /docker-entrypoint-initdb.d
+bind  /etc/mysql/conf.d
+volume c0a5ca4a510f570e62f97a5c673aadb9ec5daf9274f58463958df9f7310fb7ec /var/lib/mysql
+
+project peak-cause70k-dry2-size100-db1 database container stopped, exit code 0

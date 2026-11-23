@@ -1,0 +1,32 @@
+[2026-11-24T02:31:32+0900] db1: project peak-cause70k-size1000-db1, run id 90a98d695862
+ Network peak-cause70k-size1000-db1_measure-internal Creating 
+ Network peak-cause70k-size1000-db1_measure-internal Created 
+ Container peak-cause70k-size1000-db1-measure-db-1 Creating 
+ Container peak-cause70k-size1000-db1-measure-db-1 Created 
+ Container peak-cause70k-size1000-db1-measure-php-1 Creating 
+ Container peak-cause70k-size1000-db1-measure-php-1 Created 
+ Container peak-cause70k-size1000-db1-measure-db-1 Starting 
+ Container peak-cause70k-size1000-db1-measure-db-1 Started 
+ Container peak-cause70k-size1000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-size1000-db1-measure-db-1 Healthy 
+ Container peak-cause70k-size1000-db1-measure-php-1 Starting 
+ Container peak-cause70k-size1000-db1-measure-php-1 Started 
+ Container peak-cause70k-size1000-db1-measure-php-1 Waiting 
+ Container peak-cause70k-size1000-db1-measure-db-1 Waiting 
+ Container peak-cause70k-size1000-db1-measure-php-1 Healthy 
+ Container peak-cause70k-size1000-db1-measure-db-1 Healthy 
+network peak-cause70k-size1000-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 172.29.0.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T02:31:46+0900] db1 g1: building t7d53bc:1000 as peak_sim_measure_90a98d695862_t7d53bc_1000
+[2026-11-24T02:31:56+0900] db1 g1: built in 10 s; content digest f699304cdfe31736252da1fbcd3e4bd2dcfa4c1589d5a004e1029b9bdd3b6498
+[2026-11-24T02:31:56+0900] db1 g1: ANALYZE TABLE (once, outside any request)
+[2026-11-24T02:32:00+0900] db1 g1 analyzed lap1 #1 DELETE /settings/maintenance/cleanup-images: exit 0, 2 attempts (2 ok), 3 s, tap present
+[2026-11-24T02:32:01+0900] db1: finished with exit 0

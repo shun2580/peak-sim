@@ -1,0 +1,9 @@
+--scale=30000
+--uri=/settings/maintenance/cleanup-images
+--method=DELETE
+--route=/settings/maintenance/cleanup-images
+--axis=N
+--body-json={}
+--csrf
+--act-as=BookStack\Users\Models\User:1
+--phases=warmup,cold

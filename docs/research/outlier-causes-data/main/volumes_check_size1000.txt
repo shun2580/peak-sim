@@ -1,0 +1,8 @@
+# at 2026-11-24T02:32:06+0900 step size1000
+volumes before 34 after 35
+gone: none
+added:
+95b3e6f8a0f2679b825c4d0db5dcf45150d2caa7ec5bcf90d87fbc043cd97343
+               total        used        free      shared  buff/cache   available
+Mem:              15           6           2           0           7           9
+Swap:              4           0           3
