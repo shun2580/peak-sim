@@ -3,7 +3,10 @@
 # the EXPLAIN at the target size (simulator-spec.md section 7.1). Made by that rule alone; no measured value goes in and nothing is added
 # or dropped by hand.
 #
-#   bin/marked-routes --explain=<explain.json of bin/explain-at-scale at N> > marked-routes.json
+#   bin/marked-routes --explain=<explain.json of bin/explain-at-scale at N> [--estimate=<estimate.json of bin/estimate --candidate=H1_RANGE>] > marked-routes.json
+#
+# With --estimate it also lists, under `offset_chunk_fit`, the routes the estimate marks `offset_chunk_fit` (reads in chunks by `offset` and the formula
+# does not follow its rows inside the captured sizes); without it the output is as it was.
 #
 # Reads the file only; touches no database and no app; the same input always gives the same output. Uses the PHP on this machine if
 # there is one; otherwise a throwaway container of the already built PHP image, with no network and the input mounted read-only.
@@ -13,10 +16,10 @@ set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 runtime="$(cd "$here/.." && pwd)"
-usage="usage: bin/marked-routes --explain=<explain.json>"
+usage="usage: bin/marked-routes --explain=<explain.json> [--estimate=<estimate.json>]"
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  sed -n '2,10p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -25,14 +28,24 @@ if command -v php >/dev/null 2>&1; then
 fi
 
 explain=""
+estimate=""
 for arg in "$@"; do
   case "$arg" in
     --explain=*) explain="${arg#--explain=}" ;;
+    --estimate=*) estimate="${arg#--estimate=}" ;;
     *) echo "bin/marked-routes: unknown argument: $arg" >&2; echo "$usage" >&2; exit 2 ;;
   esac
 done
 if [ ! -f "$explain" ]; then echo "bin/marked-routes: --explain is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
 explain="$(cd "$(dirname "$explain")" && pwd)/$(basename "$explain")"
+estimate_mount=()
+estimate_arg=()
+if [ -n "$estimate" ]; then
+  if [ ! -f "$estimate" ]; then echo "bin/marked-routes: --estimate is not a readable file" >&2; echo "$usage" >&2; exit 2; fi
+  estimate="$(cd "$(dirname "$estimate")" && pwd)/$(basename "$estimate")"
+  estimate_mount=(-v "$estimate:/input/estimate.json:ro")
+  estimate_arg=(--estimate=/input/estimate.json)
+fi
 
 image="${PEAK_PHP_IMAGE:-peak-measure-php:${PHP_VERSION:-8.3}}"
 if ! docker image inspect "$image" >/dev/null 2>&1; then
@@ -40,5 +53,5 @@ if ! docker image inspect "$image" >/dev/null 2>&1; then
   exit 11
 fi
 exec docker run --rm --pull=never --network none --read-only \
-  -v "$runtime:/runtime:ro" -v "$explain:/input/explain.json:ro" \
-  "$image" php /runtime/bin/inner/marked-routes.php --explain=/input/explain.json
+  -v "$runtime:/runtime:ro" -v "$explain:/input/explain.json:ro" "${estimate_mount[@]}" \
+  "$image" php /runtime/bin/inner/marked-routes.php --explain=/input/explain.json "${estimate_arg[@]}"

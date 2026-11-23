@@ -23,6 +23,9 @@ use PeakSim\Runtime\Judge\CostFit;
  *       with no marked statement in its EXPLAIN has no upper side (`rows_examined_upper` is null); the point is H1 for every route. The
  *       marked routes are those of `MarkedRoutes` (section 7.1), taken from every statement of the route's EXPLAIN.
  *
+ * H1_RANGE also gives a route that reads in chunks by `offset` its mark `offset_chunk_fit` (`OffsetChunkFit`): made from the capture and these figures, it
+ * changes none of them, and a route with no `offset` statement carries no entry.
+ *
  * H1_RANGE also carries the two rules of `docs/research/extrapolation-test-3-causes.md` (sections 7.1 and 7.2), written from the records of the
  * sizes already seen. Both change the point of a marked type and nothing else; H1, H2 and H3 are left as they were defined.
  *
@@ -294,6 +297,11 @@ final class RowEstimator
             }
             // the upper side exists for a marked route only; a marked route whose statements are not all available has an incomplete upper side, like its point
             $out['rows_examined_upper'] = ($out['marked'] || $held) ? $upper : null;
+            // the mark of a route that reads in chunks by `offset` (OffsetChunkFit): a route with no such statement carries no entry, so its output is as it was
+            $offsetFit = OffsetChunkFit::ofRoute($cr, $out['types']);
+            if ($offsetFit !== null) {
+                $out[OffsetChunkFit::MARK] = $offsetFit;
+            }
         }
 
         return $out;

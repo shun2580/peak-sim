@@ -29,6 +29,47 @@ final class MarkedRoutes
     }
 
     /**
+     * The routes of an estimate marked `offset_chunk_fit` (OffsetChunkFit), in the order of the estimate. The estimate is the H1_RANGE one; another candidate carries
+     * no such entry and gives an empty list. A separate list from {@see list()}: this mark needs the capture's figures, which the list of the EXPLAIN marks never reads.
+     *
+     * @param array<string, mixed> $estimate the decoded estimate of `bin/estimate --candidate=H1_RANGE`
+     *
+     * @return array<string, mixed>
+     */
+    public static function offsetChunkFit(array $estimate): array
+    {
+        $routes = [];
+        $evaluated = 0;
+        foreach ((array) ($estimate['routes'] ?? []) as $r) {
+            $m = is_array($r) ? ($r[OffsetChunkFit::MARK] ?? null) : null;
+            if (!is_array($m)) {
+                continue;
+            }
+            $evaluated++;
+            if (($m['marked'] ?? false) !== true) {
+                continue;
+            }
+            $counted = [];
+            foreach ((array) ($m['statements'] ?? []) as $s) {
+                if (is_array($s) && ($s['counted'] ?? false) === true) {
+                    $counted[] = (string) $s['id'];
+                }
+            }
+            $routes[] = ['route' => (string) $r['route'], 'score' => $m['score'], 'statements' => $counted];
+        }
+        usort($routes, static fn (array $a, array $b): int => strcmp($a['route'], $b['route']));
+
+        return [
+            'mark' => OffsetChunkFit::MARK,
+            'rule' => 'a route whose statements with an offset clause, run twice or more and captured at four sizes or more, hold a score of at least ' . OffsetChunkFit::GOAL . ' (share of the route\'s rows x error of the formula at the last captured size when it is made from the sizes before it)',
+            'at' => (int) ($estimate['at'] ?? 0),
+            'routes_with_offset_statements' => $evaluated,
+            'marked_count' => count($routes),
+            'routes' => $routes,
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $explain the decoded explain.json of the database of the target size
      *
      * @return array<string, mixed>

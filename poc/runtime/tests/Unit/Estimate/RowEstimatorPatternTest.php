@@ -98,7 +98,8 @@ final class RowEstimatorPatternTest extends TestCase
     public function test_no_figure_of_the_estimate_depends_on_how_long_the_pattern_is(string $candidate): void
     {
         [$capture, $explain] = PointRuleFixtures::fixture();
-        $short = RowEstimator::estimate($capture, $explain, $candidate, null, null, true);
+        // the two texts end the same way (so the same statements hold an offset clause) and differ in length only
+        $short = RowEstimator::estimate(self::withPatterns($capture, static fn (string $id): string => 'select ' . $id . self::TAIL), $explain, $candidate, null, null, true);
         $long = RowEstimator::estimate(self::withPatterns($capture, self::longText(...)), $explain, $candidate, null, null, true);
         $this->assertNotSame($short, $long, 'the texts themselves differ');
         // everything else (counts, rows per run, formulas, marks, totals) is the same value to the last digit

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace PeakSim\Runtime\Estimate;
 
 /**
- * bin/marked-routes --explain=<explain.json> prints the marked routes (MarkedRoutes) on standard output.
+ * bin/marked-routes --explain=<explain.json> prints the marked routes (MarkedRoutes) on standard output. With --estimate=<estimate.json> (the H1_RANGE estimate) it adds,
+ * under `offset_chunk_fit`, the routes that carry that mark (MarkedRoutes::offsetChunkFit); without it the output is as it was.
  * Exit codes: 0 done; 2 wrong usage or an unreadable input.
  */
 final class MarkedRoutesCommand
 {
-    private const USAGE = 'usage: bin/marked-routes --explain=<explain.json> > marked-routes.json';
+    private const USAGE = 'usage: bin/marked-routes --explain=<explain.json> [--estimate=<estimate.json>] > marked-routes.json';
 
     /**
      * @param resource $out
@@ -24,11 +25,15 @@ final class MarkedRoutesCommand
     public function run(array $args): int
     {
         $path = null;
+        $estimatePath = null;
         foreach ($args as $arg) {
-            if (!str_starts_with($arg, '--explain=')) {
+            if (str_starts_with($arg, '--estimate=')) {
+                $estimatePath = substr($arg, strlen('--estimate='));
+            } elseif (str_starts_with($arg, '--explain=')) {
+                $path = substr($arg, strlen('--explain='));
+            } else {
                 return $this->usage('unknown argument: ' . $arg);
             }
-            $path = substr($arg, strlen('--explain='));
         }
         if ($path === null || $path === '') {
             return $this->usage('--explain is required');
@@ -45,7 +50,23 @@ final class MarkedRoutesCommand
         if (!is_array($explain)) {
             return $this->usage('--explain is not a JSON object');
         }
-        fwrite($this->out, json_encode(MarkedRoutes::list($explain), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
+        $out = MarkedRoutes::list($explain);
+        if ($estimatePath !== null) {
+            $rawEstimate = $estimatePath !== '' && is_file($estimatePath) ? file_get_contents($estimatePath) : false;
+            if ($rawEstimate === false) {
+                return $this->usage('--estimate is not a readable file');
+            }
+            try {
+                $estimate = json_decode($rawEstimate, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                return $this->usage('--estimate is not JSON: ' . $e->getMessage());
+            }
+            if (!is_array($estimate)) {
+                return $this->usage('--estimate is not a JSON object');
+            }
+            $out['offset_chunk_fit'] = MarkedRoutes::offsetChunkFit($estimate);
+        }
+        fwrite($this->out, json_encode($out, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
 
         return 0;
     }
