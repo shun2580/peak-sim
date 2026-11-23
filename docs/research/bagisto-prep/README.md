@@ -83,3 +83,34 @@ all 152 tables, no table failed at any size. The driver stops a build after 7,20
 | 30,000 | 18.0 | 134.0 | 154.2 | 30,000 | 180,000 |
 
 The generator's time grows about linearly with N (about 4.5 ms per N at 30,000); the migrations take 17 to 18 seconds on an idle machine (the 49.5 seconds at 10,000 was on a busy one). The largest build is far under the limit.
+
+## The capture (100 / 1,000 / 10,000 / 30,000 rows)
+
+`bin/capture --profile=bagisto --scales=100,1000,10000,30000 --request-timeout=300 --analyze-after-build=on`, with the 98 routes of `route-set.txt` and the 123 tables of
+`n-tables.txt` as `--n-tables`, in its own sealed stack (internal network, preflight passed), PHP 8.4. Run time 17 minutes. The record (`capture.json`, `tasks.json`,
+`routes.jsonl`, `report.md`, `summary.json`) is kept outside the repository; sha256 of `capture.json` begins `e79216acff6c`, of `tasks.json` `86d79fe171f6`.
+The database volume of the run is kept.
+
+| | routes |
+| --- | ---: |
+| In the set | 98 |
+| Tried | 83 |
+| Measured (`measured_O1`) | 29 |
+| `no_info` (the route did not read the scaled tables, or answered an empty page) | 17 |
+| Not measured | 52 |
+| Captured into `capture.json` | 46 routes, 129 statement types |
+
+Why 52 were not measured: `unauthenticated` 29 (the login gap above), `unfilled_param` 12 (a token, uuid, provider, e-mail or template that the application makes itself),
+`not_in_runtime` 3 (`/_debugbar/*`, which the booted application does not have), `exception` 3 (a cart or a booking product is needed), `forbidden` 3, `client_error` 1, `not_found` 1.
+The report lists 36 routes with `data may not have arrived`; most are payment-gateway redirects, forms and empty-state pages.
+
+Database builds in the capture (seconds, migrations plus generator and profile): 0 rows 48.4, 100 rows 19.4, 1,000 rows 46.4, 10,000 rows 93.5, 30,000 rows 142.6. Measuring the routes at 30,000 rows took 409 seconds.
+At 100 to 30,000 rows no table failed. **At the empty point (0 rows) 22 tables failed**: the one channel points at root category 1, which does not exist when every table has 0 rows (`channels_root_category_id` foreign key),
+and the tables that depend on the channel (carts, wishlists, search terms, theme sections and others) follow. The empty system is therefore not a usable point for this application as the profile stands; the four sizes are unaffected.
+Nothing was changed after seeing this.
+
+## Left open
+
+- The 29 customer-area routes and the 371 `/admin` routes (the login gap).
+- The empty point (0 rows), as above.
+- No estimate, EXPLAIN at a target size, prediction or test size was made.
