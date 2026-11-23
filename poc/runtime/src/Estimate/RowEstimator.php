@@ -307,7 +307,7 @@ final class RowEstimator
      */
     private static function type(array $ty, ?array $explained, string $candidate, int $n, int $representative, bool $withFormulas = false): array
     {
-        $rec = ['id' => (string) ($ty['id'] ?? ''), 'kind' => (string) ($ty['kind'] ?? ''), 'pattern' => substr((string) ($ty['pattern'] ?? ''), 0, 160)];
+        $rec = ['id' => (string) ($ty['id'] ?? ''), 'kind' => (string) ($ty['kind'] ?? ''), 'pattern' => (string) ($ty['pattern'] ?? '')];
         $fit = (array) ($ty['count_fit'] ?? []);
         if (($fit['fit_status'] ?? null) !== CostFit::OK || !isset($fit['a'], $fit['b'], $fit['k'])) {
             return $rec + ['unavailable' => 'count_formula:' . (string) ($fit['fit_status'] ?? 'missing')];
