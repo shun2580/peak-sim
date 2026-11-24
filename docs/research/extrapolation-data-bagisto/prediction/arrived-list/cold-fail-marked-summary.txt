@@ -1,0 +1,12 @@
+marked routes: 41; cold try ok: 34; cold try failed (listed): 7; no record at 240000 rows: 0
+listed (7):
+  DELETE /api/customer/wishlist/{id}  [500; written: exception 500; in repeated list: yes]
+  GET /admin/catalog/products/edit/{id}  [500; written: exception 500; in repeated list: yes]
+  GET /admin/customers/view/{id}  [other:runner_failed; written: runner_failed None; in repeated list: no]
+  GET /admin/marketing/promotions/cart-rules/edit/{id}  [500; written: exception 500; in repeated list: yes]
+  GET /api/customer/wishlist  [500; written: exception 500; in repeated list: yes]
+  GET /api/products/{id}/related  [500; written: exception 500; in repeated list: yes]
+  GET /api/products/{id}/up-sell  [500; written: exception 500; in repeated list: yes]
+variance records rewritten for (a): 1 (directories: 1)
+compare_test2.py sha256: 95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b
+script sha256: 17f5cbfa79a54978571472d7eaa7450f33e694bce2eba63fdd20b08c43d551bf

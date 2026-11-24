@@ -1,0 +1,8 @@
+route	class_by_comparison_tool	class_as_written	status_as_written	detail_as_written	in_repeated_list	file_read
+DELETE /api/customer/wishlist/{id}	500	exception	500		yes	attempts.jsonl
+GET /admin/catalog/products/edit/{id}	500	exception	500		yes	attempts.jsonl
+GET /admin/customers/view/{id}	other:runner_failed	runner_failed	None	exit 9: ayStore","session_driver":"array","mail":"Illuminate\\Support\\Testing\\Fakes\\MailFake","notification":"Illumin	no	attempts.jsonl
+GET /admin/marketing/promotions/cart-rules/edit/{id}	500	exception	500		yes	attempts.jsonl
+GET /api/customer/wishlist	500	exception	500		yes	attempts.jsonl
+GET /api/products/{id}/related	500	exception	500		yes	attempts.jsonl
+GET /api/products/{id}/up-sell	500	exception	500		yes	attempts.jsonl
