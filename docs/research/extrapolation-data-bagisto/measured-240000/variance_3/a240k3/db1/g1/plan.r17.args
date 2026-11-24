@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/sales/rma/rules/delete/1
+--method=DELETE
+--route=/admin/sales/rma/rules/delete/{id}
+--axis=N
+--body-json={}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

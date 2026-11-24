@@ -1,0 +1,63 @@
+# preflight (third database, preparation; nothing started) at 2026-11-25T00:46:24+09:00
+               total        used        free      shared  buff/cache   available
+Mem:           15936        3888        9029           3        3264       12047
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   72G  884G   8% /
+running peak containers: 0
+volumes: 51
+networks: 31 lines incl. header; 192.168.0.0/16 used 13 of 16 /20 slots (0,16,32,48,80,96,112,128,144,160,176,192,240) -> free 3 (64,208,224), need 1
+gate: PREDICTION OK x2 at 207911e (13:04:39), re-run 2026-11-25T00:46:24+09:00; tool copy HEAD=207911e diff 0; cap sha256 afcd8276...a4f1
+routes: 40 (41 -> 40, drop GET /admin/customers/view/{id}), comma-joined sha256=09a4ada06e2e268653ef352a276e5d9862b61f1fb523664f51bbbcce2ea57ff6, marked.json sha256=f8d432f9...
+windows update: PauseUpdatesExpiryTime=2026-11-28T15:02:20Z (=2026-11-29 00:02:20 JST), PauseQuality/Feature end same, active hours 0-18, last boot 2026-11-23T02:11:06, last 1074 2026-11-23T02:10:32 (unchanged)
+# volume names (51):
+0437c98220aec78a98d828cfce72a36bd13a40f33db2e0f9b084b69ce15f5f61
+05e2140a51dd1c27b0130d109eab13d505829b130e3bb19fb481134169962f16
+087cd249540979d7dacaa1cabdd982939b5af1b53f0299019f13312b6c15874c
+1adeaf9f97a7cb2762425e6fc77350b0cee16de998a35d8bc884d8de023f4808
+2be9b42c1ca00a44ba48a25b1d2434b696f983a38e88d286ad88b3083fb46c35
+30334340cea58e0fd617705e4101cc261442dff90db437ed64ae088dabb57032
+41f7c28bd17e45ac334af295c979aa6a1b4402785ce5025f0ab74793c1263b0d
+4535300cfaee7616f9cb1f2595dcd463cb79cd45423fbb21068bfcc58c7fcd1e
+56fc809cd4292fd081983eaa054e4c03ad94460516108f49bf1ab0ad3462018e
+5a96cdd94945d9245e0b99d53d2e1c9744da02b07e0ca58c8c36ed1c33898506
+5f1e7d21718c171a4b0c04e05d693014d7efdde62f43f59c312a5a232c0f6212
+72289437d7e1837588b14cd7e5730da37564d5556ba00a85fd467a7ab71d3f0d
+7a56729e16e610928d44b58402306bdd628ed8787b05c07c27dbc3be71464a82
+94c4ef2599944cbf276a2cac0cc777643f87ee3f87db33ed6ed3a2edbaf554af
+95b3e6f8a0f2679b825c4d0db5dcf45150d2caa7ec5bcf90d87fbc043cd97343
+a584f4982b3860da6ea7ffe8dca57a4aeea3c053f9997a9b183d4280657bbc3b
+ab370d774f4291ac049440f9408a754a490a1547aea03e98cd1bb1968ae6de8c
+b073b45002864d2ffafbfb66608dcc7187c81d25db0ba17b6f62205a35422796
+b12ca6f17f547c865f3483f13aac7e15f432b3c20b982232924049b08130793d
+b6b9fcc905426d9382686cc589c23ddf942d6b55afd96ff4cbb5da7e31beb339
+b9791cbae5d551c14a863da4f81a286aa74eac6fa56bed9fe344378f504e5862
+c0a5ca4a510f570e62f97a5c673aadb9ec5daf9274f58463958df9f7310fb7ec
+c455bddc083df8df9a007125f0541dd014966c28e05ca11b157d91d574d1e3fc
+daeba1b66cb67c560b215242f5f2c0d9a2a0f0bcfd331e86cb1bf7a542b0748a
+e43abada51c5ae4a96eb3aee1084a578fb56cc8be1fdb6338d50d2f30ac488d2
+<other volume>
+<other volume>
+<other volume>
+peak-b180k-dbdata
+peak-bagisto-a240k-eas_measure-dbdata
+peak-bagisto-a240k-ms_measure-dbdata
+peak-bagisto-cap1_measure-dbdata
+peak-bagisto-cap2_measure-dbdata
+peak-bagisto-cap3_measure-dbdata
+peak-bagisto-cap_measure-dbdata
+peak-bagisto-dbg3_measure-dbdata
+peak-bagisto-dbg4_measure-dbdata
+peak-bagisto-dry24-eas_measure-dbdata
+peak-bagisto-dry24_measure-dbdata
+peak-bagisto-dry24c_measure-dbdata
+peak-bagisto-dry24f_measure-dbdata
+peak-bga240k-var-a240k-db1_measure-dbdata
+peak-bga240k-var-a240kr-db1_measure-dbdata
+peak-bgdry24-var-dry24-db1_measure-dbdata
+peak-bgdry24f-var-dry24-db1_measure-dbdata
+peak-dryrun22-dbdata
+peak-eas180-b-n180000_measure-dbdata
+peak-lab-dbdata
+peak-sim-dev_mysql-data
+sub_check_all
+time-slot-reservation-api_mysql-data

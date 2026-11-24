@@ -1,0 +1,591 @@
+[
+    {
+        "key": "u589f83:240000",
+        "tag": "u589f83",
+        "scale": 240000,
+        "build_args": [
+            "--scale=240000",
+            "--mode=generator",
+            "--recipe-json={\"mode\":\"targeted\",\"n_tables\":[\"addresses\",\"admin_password_resets\",\"agent_conversation_messages\",\"agent_conversations\",\"attribute_group_mappings\",\"attribute_group_translations\",\"attribute_groups\",\"attribute_option_translations\",\"attribute_options\",\"attribute_translations\",\"booking_product_appointment_slots\",\"booking_product_default_slots\",\"booking_product_event_ticket_translations\",\"booking_product_event_tickets\",\"booking_product_rental_slots\",\"booking_product_table_slots\",\"booking_products\",\"bookings\",\"cart\",\"cart_item_inventories\",\"cart_items\",\"cart_payment\",\"cart_rule_channels\",\"cart_rule_coupon_usage\",\"cart_rule_coupons\",\"cart_rule_customer_groups\",\"cart_rule_customers\",\"cart_rule_translations\",\"cart_rules\",\"cart_shipping_rates\",\"catalog_rule_channels\",\"catalog_rule_customer_groups\",\"catalog_rule_product_prices\",\"catalog_rule_products\",\"catalog_rules\",\"categories\",\"category_filterable_attributes\",\"category_translations\",\"cms_page_channels\",\"cms_page_translations\",\"cms_pages\",\"compare_items\",\"core_config\",\"countries\",\"country_state_translations\",\"country_states\",\"country_translations\",\"customer_notes\",\"customer_password_resets\",\"customer_social_accounts\",\"customers\",\"datagrid_saved_filters\",\"downloadable_link_purchased\",\"eu_withdrawals\",\"gdpr_data_request\",\"import_batches\",\"imports\",\"invoice_items\",\"invoices\",\"marketing_campaigns\",\"marketing_events\",\"marketing_templates\",\"notification_reads\",\"notifications\",\"order_comments\",\"order_items\",\"order_payment\",\"order_transactions\",\"orders\",\"personal_access_tokens\",\"product_bundle_option_products\",\"product_bundle_option_translations\",\"product_bundle_options\",\"product_cross_sells\",\"product_customer_group_prices\",\"product_customizable_option_prices\",\"product_customizable_option_translations\",\"product_customizable_options\",\"product_downloadable_link_translations\",\"product_downloadable_links\",\"product_downloadable_sample_translations\",\"product_downloadable_samples\",\"product_grouped_products\",\"product_image_translations\",\"product_images\",\"product_omnibus_prices\",\"product_ordered_inventories\",\"product_relations\",\"product_review_attachments\",\"product_reviews\",\"product_super_attributes\",\"product_up_sells\",\"product_videos\",\"products\",\"refund_items\",\"refunds\",\"rma\",\"rma_additional_fields\",\"rma_custom_field_options\",\"rma_custom_fields\",\"rma_images\",\"rma_items\",\"rma_messages\",\"rma_reason_resolutions\",\"rma_reasons\",\"rma_rules\",\"rma_statuses\",\"search_synonyms\",\"search_terms\",\"shipment_items\",\"shipments\",\"sitemap_channels\",\"sitemaps\",\"subscribers_list\",\"tax_categories\",\"tax_categories_tax_rates\",\"tax_rates\",\"theme_section_translations\",\"theme_sections\",\"url_rewrites\",\"users\",\"wishlist\",\"wishlist_items\"],\"m_table\":null,\"m_per\":null,\"n\":240000,\"m\":0,\"base\":5}",
+            "--profile=bagisto"
+        ],
+        "routes": [
+            {
+                "route": "/admin/catalog/products/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/catalog/products/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/catalog/products/edit/1",
+                    "--method=GET",
+                    "--route=/admin/catalog/products/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/catalog/products/search",
+                "method": "GET",
+                "uri": "/admin/catalog/products/search",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/catalog/products/search",
+                    "--method=GET",
+                    "--route=/admin/catalog/products/search",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/configuration/{slug?}/{slug2?}",
+                "method": "GET",
+                "uri": "/admin/configuration/page-1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/configuration/page-1",
+                    "--method=GET",
+                    "--route=/admin/configuration/{slug?}/{slug2?}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/customers/gdpr/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/customers/gdpr/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/customers/gdpr/edit/1",
+                    "--method=GET",
+                    "--route=/admin/customers/gdpr/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/customers/login-as-customer/{id}",
+                "method": "GET",
+                "uri": "/admin/customers/login-as-customer/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/customers/login-as-customer/1",
+                    "--method=GET",
+                    "--route=/admin/customers/login-as-customer/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/customers/search",
+                "method": "GET",
+                "uri": "/admin/customers/search",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/customers/search",
+                    "--method=GET",
+                    "--route=/admin/customers/search",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/customers/{id}/addresses",
+                "method": "GET",
+                "uri": "/admin/customers/1/addresses",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/customers/1/addresses",
+                    "--method=GET",
+                    "--route=/admin/customers/{id}/addresses",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/marketing/communications/campaigns",
+                "method": "GET",
+                "uri": "/admin/marketing/communications/campaigns",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/marketing/communications/campaigns",
+                    "--method=GET",
+                    "--route=/admin/marketing/communications/campaigns",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/marketing/communications/campaigns/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/marketing/communications/campaigns/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/marketing/communications/campaigns/edit/1",
+                    "--method=GET",
+                    "--route=/admin/marketing/communications/campaigns/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/marketing/promotions/cart-rules/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/marketing/promotions/cart-rules/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/marketing/promotions/cart-rules/edit/1",
+                    "--method=GET",
+                    "--route=/admin/marketing/promotions/cart-rules/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/marketing/search-seo/search-synonyms/create",
+                "method": "POST",
+                "uri": "/admin/marketing/search-seo/search-synonyms/create",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/marketing/search-seo/search-synonyms/create",
+                    "--method=POST",
+                    "--route=/admin/marketing/search-seo/search-synonyms/create",
+                    "--axis=N",
+                    "--body-json={\"name\":\"x_1\",\"terms\":\"x_1\"}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/marketing/search-seo/sitemaps/edit/{id}",
+                "method": "DELETE",
+                "uri": "/admin/marketing/search-seo/sitemaps/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/marketing/search-seo/sitemaps/edit/1",
+                    "--method=DELETE",
+                    "--route=/admin/marketing/search-seo/sitemaps/edit/{id}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/eu-withdrawals/{id}/resend-confirmation",
+                "method": "POST",
+                "uri": "/admin/sales/eu-withdrawals/1/resend-confirmation",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/eu-withdrawals/1/resend-confirmation",
+                    "--method=POST",
+                    "--route=/admin/sales/eu-withdrawals/{id}/resend-confirmation",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/invoices/create/{order_id}",
+                "method": "POST",
+                "uri": "/admin/sales/invoices/create/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/invoices/create/1",
+                    "--method=POST",
+                    "--route=/admin/sales/invoices/create/{order_id}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/rma/reasons/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/sales/rma/reasons/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/rma/reasons/edit/1",
+                    "--method=GET",
+                    "--route=/admin/sales/rma/reasons/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/rma/reasons/mass-update",
+                "method": "POST",
+                "uri": "/admin/sales/rma/reasons/mass-update",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/rma/reasons/mass-update",
+                    "--method=POST",
+                    "--route=/admin/sales/rma/reasons/mass-update",
+                    "--axis=N",
+                    "--body-json={\"indices\":[1],\"value\":\"x_1\"}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/rma/rules/delete/{id}",
+                "method": "DELETE",
+                "uri": "/admin/sales/rma/rules/delete/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/rma/rules/delete/1",
+                    "--method=DELETE",
+                    "--route=/admin/sales/rma/rules/delete/{id}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/settings/currencies",
+                "method": "GET",
+                "uri": "/admin/settings/currencies",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/settings/currencies",
+                    "--method=GET",
+                    "--route=/admin/settings/currencies",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/settings/inventory-sources/edit/{id}",
+                "method": "GET",
+                "uri": "/admin/settings/inventory-sources/edit/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/settings/inventory-sources/edit/1",
+                    "--method=GET",
+                    "--route=/admin/settings/inventory-sources/edit/{id}",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/settings/roles",
+                "method": "GET",
+                "uri": "/admin/settings/roles",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/settings/roles",
+                    "--method=GET",
+                    "--route=/admin/settings/roles",
+                    "--axis=N",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/categories",
+                "method": "GET",
+                "uri": "/api/categories",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/categories",
+                    "--method=GET",
+                    "--route=/api/categories",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/categories/tree",
+                "method": "GET",
+                "uri": "/api/categories/tree",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/categories/tree",
+                    "--method=GET",
+                    "--route=/api/categories/tree",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/customer/addresses",
+                "method": "GET",
+                "uri": "/api/customer/addresses",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/customer/addresses",
+                    "--method=GET",
+                    "--route=/api/customer/addresses",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/customer/wishlist",
+                "method": "GET",
+                "uri": "/api/customer/wishlist",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/customer/wishlist",
+                    "--method=GET",
+                    "--route=/api/customer/wishlist",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/customer/wishlist/{id}",
+                "method": "DELETE",
+                "uri": "/api/customer/wishlist/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/customer/wishlist/1",
+                    "--method=DELETE",
+                    "--route=/api/customer/wishlist/{id}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/product/{id}/reviews",
+                "method": "GET",
+                "uri": "/api/product/1/reviews",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/product/1/reviews",
+                    "--method=GET",
+                    "--route=/api/product/{id}/reviews",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/products",
+                "method": "GET",
+                "uri": "/api/products",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/products",
+                    "--method=GET",
+                    "--route=/api/products",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/products/{id}/related",
+                "method": "GET",
+                "uri": "/api/products/1/related",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/products/1/related",
+                    "--method=GET",
+                    "--route=/api/products/{id}/related",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/api/products/{id}/up-sell",
+                "method": "GET",
+                "uri": "/api/products/1/up-sell",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/api/products/1/up-sell",
+                    "--method=GET",
+                    "--route=/api/products/{id}/up-sell",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account",
+                "method": "GET",
+                "uri": "/customer/account",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account",
+                    "--method=GET",
+                    "--route=/customer/account",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/addresses/create",
+                "method": "GET",
+                "uri": "/customer/account/addresses/create",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/addresses/create",
+                    "--method=GET",
+                    "--route=/customer/account/addresses/create",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/downloadable-products",
+                "method": "GET",
+                "uri": "/customer/account/downloadable-products",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/downloadable-products",
+                    "--method=GET",
+                    "--route=/customer/account/downloadable-products",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/profile/edit",
+                "method": "GET",
+                "uri": "/customer/account/profile/edit",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/profile/edit",
+                    "--method=GET",
+                    "--route=/customer/account/profile/edit",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/reviews",
+                "method": "GET",
+                "uri": "/customer/account/reviews",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/reviews",
+                    "--method=GET",
+                    "--route=/customer/account/reviews",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/rma",
+                "method": "GET",
+                "uri": "/customer/account/rma",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/rma",
+                    "--method=GET",
+                    "--route=/customer/account/rma",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/rma/get-order-items/{orderId}",
+                "method": "GET",
+                "uri": "/customer/account/rma/get-order-items/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/rma/get-order-items/1",
+                    "--method=GET",
+                    "--route=/customer/account/rma/get-order-items/{orderId}",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/wishlist",
+                "method": "GET",
+                "uri": "/customer/account/wishlist",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/wishlist",
+                    "--method=GET",
+                    "--route=/customer/account/wishlist",
+                    "--axis=N",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/sitemap.xml",
+                "method": "GET",
+                "uri": "/sitemap.xml",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/sitemap.xml",
+                    "--method=GET",
+                    "--route=/sitemap.xml",
+                    "--axis=N",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/admin/sales/rma/rma-status/mass-delete",
+                "method": "POST",
+                "uri": "/admin/sales/rma/rma-status/mass-delete",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/admin/sales/rma/rma-status/mass-delete",
+                    "--method=POST",
+                    "--route=/admin/sales/rma/rma-status/mass-delete",
+                    "--axis=N",
+                    "--body-json={\"indices\":[1]}",
+                    "--csrf",
+                    "--act-as=Webkul\\User\\Models\\Admin:1:admin",
+                    "--phases=warmup,cold"
+                ]
+            },
+            {
+                "route": "/customer/account/orders/cancel/{id}",
+                "method": "POST",
+                "uri": "/customer/account/orders/cancel/1",
+                "measure_args": [
+                    "--scale=240000",
+                    "--uri=/customer/account/orders/cancel/1",
+                    "--method=POST",
+                    "--route=/customer/account/orders/cancel/{id}",
+                    "--axis=N",
+                    "--body-json={}",
+                    "--csrf",
+                    "--act-as=Webkul\\Customer\\Models\\Customer:1:customer",
+                    "--phases=warmup,cold"
+                ]
+            }
+        ],
+        "restore_tables": [
+            "rma_statuses",
+            "order_items",
+            "product_inventory_indices"
+        ]
+    }
+]

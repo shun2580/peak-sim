@@ -1,0 +1,7 @@
+--scale=240000
+--uri=/customer/account/downloadable-products
+--method=GET
+--route=/customer/account/downloadable-products
+--axis=N
+--act-as=Webkul\Customer\Models\Customer:1:customer
+--phases=warmup,cold

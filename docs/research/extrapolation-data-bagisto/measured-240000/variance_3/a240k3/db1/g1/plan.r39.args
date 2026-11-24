@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/sales/rma/rma-status/mass-delete
+--method=POST
+--route=/admin/sales/rma/rma-status/mass-delete
+--axis=N
+--body-json={"indices":[1]}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

@@ -1,0 +1,19 @@
+source	route	phase	lap	db	group	attempts_in_record	class_as_written	status_as_written	file_read
+variance	DELETE /api/customer/wishlist/{id}	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/25_DELETE__api_customer_wishlist__id_/stderr.log
+variance	DELETE /api/customer/wishlist/{id}	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/65_DELETE__api_customer_wishlist__id_/stderr.log
+variance	DELETE /api/customer/wishlist/{id}	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/105_DELETE__api_customer_wishlist__id_/stderr.log
+variance	GET /admin/catalog/products/edit/{id}	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/01_GET__admin_catalog_products_edit__id_/stderr.log
+variance	GET /admin/catalog/products/edit/{id}	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/41_GET__admin_catalog_products_edit__id_/stderr.log
+variance	GET /admin/catalog/products/edit/{id}	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/81_GET__admin_catalog_products_edit__id_/stderr.log
+variance	GET /admin/marketing/promotions/cart-rules/edit/{id}	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/10_GET__admin_marketing_promotions_cart_rules_edit__id_/stderr.log
+variance	GET /admin/marketing/promotions/cart-rules/edit/{id}	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/50_GET__admin_marketing_promotions_cart_rules_edit__id_/stderr.log
+variance	GET /admin/marketing/promotions/cart-rules/edit/{id}	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/90_GET__admin_marketing_promotions_cart_rules_edit__id_/stderr.log
+variance	GET /api/customer/wishlist	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/24_GET__api_customer_wishlist/stderr.log
+variance	GET /api/customer/wishlist	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/64_GET__api_customer_wishlist/stderr.log
+variance	GET /api/customer/wishlist	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/104_GET__api_customer_wishlist/stderr.log
+variance	GET /api/products/{id}/related	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/28_GET__api_products__id__related/stderr.log
+variance	GET /api/products/{id}/related	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/68_GET__api_products__id__related/stderr.log
+variance	GET /api/products/{id}/related	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/108_GET__api_products__id__related/stderr.log
+variance	GET /api/products/{id}/up-sell	plain	1	1	1	1	exception	500	db1/g1/plain_lap1/29_GET__api_products__id__up_sell/stderr.log
+variance	GET /api/products/{id}/up-sell	plain	2	1	1	1	exception	500	db1/g1/plain_lap2/69_GET__api_products__id__up_sell/stderr.log
+variance	GET /api/products/{id}/up-sell	plain	3	1	1	1	exception	500	db1/g1/plain_lap3/109_GET__api_products__id__up_sell/stderr.log

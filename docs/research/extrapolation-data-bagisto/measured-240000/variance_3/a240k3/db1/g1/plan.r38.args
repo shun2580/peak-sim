@@ -1,0 +1,6 @@
+--scale=240000
+--uri=/sitemap.xml
+--method=GET
+--route=/sitemap.xml
+--axis=N
+--phases=warmup,cold

@@ -1,0 +1,8 @@
+rule: a try whose stderr.log holds "the request ran longer than 600 seconds" in even one place counts as a timeout (D126b).
+script sha256: 4927e6a57f02ae51160c7f82e2cd7ce69ea37e6b55c6ed5d5e94aab816c5a4f2
+hits: 18 (measure 0, variance 18)
+measure: 371 records in attempts.jsonl; the text is in the detail of 0 route(s).
+measure: per-try stderr files under the measure directory: 0 (bin/measure keeps none: the cold 1 of a route is read from its record only).
+measure: run-level measure.stderr.log: 0 line(s) with the text (no route can be named from it)
+measure: run-level measure.stdout.log: 0 line(s) with the text (no route can be named from it)
+variance 1: db1: 120 tries with a stderr.log, 18 hit.

@@ -1,0 +1,7 @@
+routes_measured=120 routes_repeated=41
+tool_commit=207911e167ff15897655c55c0863283b6b97378e cap_sha256=afcd82766628c0ccaaf50c554f5e056eeff66d65b9af2e7885439b81bcafa4f1
+measure_start_iso=2026-11-24T14:57:57+09:00 project=peak-bagisto-a240k-ms
+measure_exit=0 end_iso=2026-11-24T17:57:56+09:00
+repeat_start_iso=2026-11-24T17:57:56+09:00 project=peak-bga240k-var-a240k-db1
+repeat_exit=15 end_iso=2026-11-24T18:29:20+09:00
+stopped=2026-11-24T18:30:28+09:00

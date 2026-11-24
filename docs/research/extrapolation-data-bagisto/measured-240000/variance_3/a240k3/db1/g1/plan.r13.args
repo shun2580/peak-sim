@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/sales/eu-withdrawals/1/resend-confirmation
+--method=POST
+--route=/admin/sales/eu-withdrawals/{id}/resend-confirmation
+--axis=N
+--body-json={}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

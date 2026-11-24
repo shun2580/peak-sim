@@ -1,0 +1,7 @@
+--scale=240000
+--uri=/customer/account
+--method=GET
+--route=/customer/account
+--axis=N
+--act-as=Webkul\Customer\Models\Customer:1:customer
+--phases=warmup,cold

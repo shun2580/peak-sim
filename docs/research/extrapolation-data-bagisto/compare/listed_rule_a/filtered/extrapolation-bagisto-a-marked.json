@@ -1,0 +1,211 @@
+{
+ "app": "bagisto",
+ "at": 240000,
+ "filtered_to_list": "47b366f9fa412cfca34256076902570e04ea5c334db18cf11629aa6a5fefcae4",
+ "marked_count": 13,
+ "offset_chunk_fit": {
+  "at": 240000,
+  "mark": "offset_chunk_fit",
+  "marked_count": 0,
+  "routes": [],
+  "routes_with_offset_statements": 6,
+  "rule": "a route whose statements with an offset clause, run twice or more and captured at four sizes or more, hold a score of at least 0.1 (share of the route's rows x error of the formula at the last captured size when it is made from the sizes before it)"
+ },
+ "routes": [
+  {
+   "route": "GET /admin/customers/search",
+   "statements": [
+    {
+     "id": "s4979221a6f",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /admin/customers/view/{id}",
+   "statements": [
+    {
+     "id": "s777c92427e",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    },
+    {
+     "id": "s7c42e7bc88",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    },
+    {
+     "id": "s9aaa258efa",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    },
+    {
+     "id": "s4979221a6f",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+   "statements": [
+    {
+     "id": "s4979221a6f",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /admin/settings/inventory-sources/edit/{id}",
+   "statements": [
+    {
+     "id": "s4979221a6f",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /api/categories",
+   "statements": [
+    {
+     "id": "sba4b80f530",
+     "marks": [
+      "plan_unstable"
+     ]
+    },
+    {
+     "id": "s56887610a8",
+     "marks": [
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /api/categories/tree",
+   "statements": [
+    {
+     "id": "s42ba6bfd5c",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /api/customer/addresses",
+   "statements": [
+    {
+     "id": "s043ccd79ce",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /api/product/{id}/reviews",
+   "statements": [
+    {
+     "id": "sac829b33d3",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    },
+    {
+     "id": "sd1b24029dc",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /api/products",
+   "statements": [
+    {
+     "id": "s2b3721803b",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    },
+    {
+     "id": "s603c85c81e",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /customer/account/addresses/create",
+   "statements": [
+    {
+     "id": "s87fde1b853",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "GET /sitemap.xml",
+   "statements": [
+    {
+     "id": "scd7ed2cc8b",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "POST /admin/sales/invoices/create/{order_id}",
+   "statements": [
+    {
+     "id": "sb6c655d819",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    },
+    {
+     "id": "s4979221a6f",
+     "marks": [
+      "plan_changes_at_scale",
+      "plan_unstable"
+     ]
+    }
+   ]
+  },
+  {
+   "route": "POST /customer/account/orders/cancel/{id}",
+   "statements": [
+    {
+     "id": "sb6c655d819",
+     "marks": [
+      "plan_changes_at_scale"
+     ]
+    }
+   ]
+  }
+ ],
+ "routes_in_explain": 63,
+ "rule": "a route with at least one statement marked plan_changes_at_scale or plan_unstable in the EXPLAIN at the target size (simulator-spec.md section 7.1)",
+ "schema_version": "1"
+}

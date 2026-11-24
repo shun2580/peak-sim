@@ -1,0 +1,15 @@
+# digest gate (third database), peak-bga240k-var-a240k3-db1
+digest_line_seen_iso=2026-11-25T01:06:48+09:00 epoch=1795536408.314662172
+run.log line: [2026-11-25T01:06:47+0900] db1 g1: built in 947 s; content digest c413377d4c997872110fad3a22ffb3b270a51d678ff5017a460b188209599ba5
+old_content_tsv_sha256=82595976dbcd5fad2ce02941ec38a33988bd0ebe5850a70c18001f19e5984797 (expected 82595976dbcd5fad2ce02941ec38a33988bd0ebe5850a70c18001f19e5984797) new_digest=c413377d4c997872110fad3a22ffb3b270a51d678ff5017a460b188209599ba5 dbname=peak_sim_measure_81f87b7724a1_u589f83_240000
+## (a) table-by-table compare, 2026-11-25T01:06:48+09:00
+tables new rows=152 checksum=152 / old rows=152 checksum=152
+row counts: identical in all 152 tables
+checksum differs in 3 tables: ['attributes', 'product_inventory_indices', 'product_price_indices']
+RESULT PASS
+whole digest: differs (new c413377d4c997872110fad3a22ffb3b270a51d678ff5017a460b188209599ba5 / old 82595976dbcd5fad2ce02941ec38a33988bd0ebe5850a70c18001f19e5984797) - allowed only within the three tables above
+## (b) three column queries (only these), 2026-11-25T01:06:48+09:00
+query attributes: start_iso=2026-11-25T01:06:48+09:00 start_epoch=1795536408.383973109 end_iso=2026-11-25T01:06:48+09:00 end_epoch=1795536408.500500598 seconds=0.12 got=[30	2278984126] expected=[30	2278984126] MATCH
+query product_price_indices: start_iso=2026-11-25T01:06:48+09:00 start_epoch=1795536408.523966641 end_iso=2026-11-25T01:06:49+09:00 end_epoch=1795536409.268487952 seconds=0.74 got=[720000	89298733] expected=[720000	89298733] MATCH
+query product_inventory_indices: start_iso=2026-11-25T01:06:49+09:00 start_epoch=1795536409.293083334 end_iso=2026-11-25T01:06:49+09:00 end_epoch=1795536409.564915098 seconds=0.27 got=[240000	973885346] expected=[240000	973885346] MATCH
+RESULT: PASS (a)(b) all match; the run goes on. The (b) queries overlap lap1 #1 (accepted, D260); times above.

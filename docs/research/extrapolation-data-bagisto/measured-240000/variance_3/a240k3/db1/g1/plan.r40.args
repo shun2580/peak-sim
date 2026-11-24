@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/customer/account/orders/cancel/1
+--method=POST
+--route=/customer/account/orders/cancel/{id}
+--axis=N
+--body-json={}
+--csrf
+--act-as=Webkul\Customer\Models\Customer:1:customer
+--phases=warmup,cold

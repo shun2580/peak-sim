@@ -1,0 +1,24 @@
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-estimate.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-marked.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
+network peak-bagisto-a240k-ms_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.96.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+routes 120, tried 112, 10782 s; record in /out
+  measured_O1    0
+  measured_ON    0
+  measured_ONM   0
+  inconclusive   0
+  no_info        0
+  not_measured   120
+  vs static agree            0
+  vs static runtime_only     0
+  vs static static_stronger  0
+  vs static conflict         0
+  vs static not_comparable   120

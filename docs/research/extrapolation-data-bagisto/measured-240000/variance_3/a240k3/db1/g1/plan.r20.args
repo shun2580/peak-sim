@@ -1,0 +1,7 @@
+--scale=240000
+--uri=/admin/settings/roles
+--method=GET
+--route=/admin/settings/roles
+--axis=N
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

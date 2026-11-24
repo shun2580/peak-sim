@@ -1,0 +1,6 @@
+--scale=240000
+--uri=/api/products/1/related
+--method=GET
+--route=/api/products/{id}/related
+--axis=N
+--phases=warmup,cold

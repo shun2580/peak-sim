@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/sales/rma/reasons/mass-update
+--method=POST
+--route=/admin/sales/rma/reasons/mass-update
+--axis=N
+--body-json={"indices":[1],"value":"x_1"}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

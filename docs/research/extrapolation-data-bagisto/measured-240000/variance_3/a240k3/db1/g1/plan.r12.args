@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/marketing/search-seo/sitemaps/edit/1
+--method=DELETE
+--route=/admin/marketing/search-seo/sitemaps/edit/{id}
+--axis=N
+--body-json={}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

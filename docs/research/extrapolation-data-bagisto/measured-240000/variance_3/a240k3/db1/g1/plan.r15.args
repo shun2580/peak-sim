@@ -1,0 +1,7 @@
+--scale=240000
+--uri=/admin/sales/rma/reasons/edit/1
+--method=GET
+--route=/admin/sales/rma/reasons/edit/{id}
+--axis=N
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

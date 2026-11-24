@@ -1,0 +1,9 @@
+--scale=240000
+--uri=/admin/marketing/search-seo/search-synonyms/create
+--method=POST
+--route=/admin/marketing/search-seo/search-synonyms/create
+--axis=N
+--body-json={"name":"x_1","terms":"x_1"}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

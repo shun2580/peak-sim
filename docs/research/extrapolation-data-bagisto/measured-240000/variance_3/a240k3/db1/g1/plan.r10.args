@@ -1,0 +1,7 @@
+--scale=240000
+--uri=/admin/marketing/promotions/cart-rules/edit/1
+--method=GET
+--route=/admin/marketing/promotions/cart-rules/edit/{id}
+--axis=N
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

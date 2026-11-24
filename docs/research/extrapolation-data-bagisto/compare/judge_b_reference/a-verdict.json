@@ -1,0 +1,202 @@
+{
+ "apps": {
+  "bagisto": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 22,
+     "inside": 21,
+     "needed": 18,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 22,
+     "inside": 22,
+     "needed": 18,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 56,
+     "inside": 54,
+     "needed": 45,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 56,
+     "inside": 52,
+     "needed": 45,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": true,
+   "condition_3_misses": [
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.19983267071045782
+     },
+     "route": "GET /api/categories"
+    },
+    {
+     "marked": false,
+     "outside_goal": {
+      "queries": 0.3463685146720591
+     },
+     "route": "GET /api/categories/attributes/{attribute_id}/options"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "queries": 127.7621573591552,
+      "rows_examined": 31.833736683090457
+     },
+     "route": "GET /api/categories/tree"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 3.111111111111111
+     },
+     "route": "GET /customer/account/rma/get-order-items/{orderId}"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 0.505431542667956
+     },
+     "route": "POST /admin/sales/invoices/create/{order_id}"
+    },
+    {
+     "marked": true,
+     "outside_goal": {
+      "rows_examined": 1.1372067302141649
+     },
+     "route": "POST /customer/account/orders/cancel/{id}"
+    }
+   ],
+   "condition_3_misses_marked": 5,
+   "condition_3_misses_unmarked": 1,
+   "no_estimate_routes": [
+    "DELETE /api/customer/wishlist/{id}",
+    "GET /admin/catalog/products/edit/{id}",
+    "GET /admin/marketing/promotions/cart-rules/edit/{id}",
+    "GET /api/customer/wishlist",
+    "GET /api/products/{id}/related",
+    "GET /api/products/{id}/up-sell"
+   ],
+   "not_measured_with_estimate": [
+    "GET /admin/customers/view/{id}"
+   ],
+   "reasons": [
+    "queries: 54 of 56 inside +-5% (enough), needs 80%",
+    "rows_examined: 52 of 56 inside +-20% (enough), needs 80%"
+   ],
+   "rule_A_reasons": [
+    "queries: 54 of 56 inside +-5% (enough), needs 80%",
+    "rows_examined: 52 of 56 inside +-20% (enough), needs 80%"
+   ],
+   "rule_A_verdict": "pass",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 22,
+      "no_estimate": 40,
+      "routes": 63,
+      "unmeasured": 1,
+      "with_estimate": 23,
+      "within_goal": 22,
+      "within_min": 22
+     },
+     "queries": {
+      "denominator": 56,
+      "no_estimate": 6,
+      "routes": 63,
+      "unmeasured": 1,
+      "with_estimate": 57,
+      "within_goal": 54,
+      "within_min": 54
+     },
+     "rows_examined": {
+      "denominator": 56,
+      "no_estimate": 6,
+      "routes": 63,
+      "unmeasured": 1,
+      "with_estimate": 57,
+      "within_goal": 51,
+      "within_min": 52
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 18,
+      "no_estimate": 22,
+      "routes": 41,
+      "unmeasured": 1,
+      "with_estimate": 19,
+      "within_goal": 18,
+      "within_min": 18
+     },
+     "queries": {
+      "denominator": 34,
+      "no_estimate": 6,
+      "routes": 41,
+      "unmeasured": 1,
+      "with_estimate": 35,
+      "within_goal": 33,
+      "within_min": 33
+     },
+     "rows_examined": {
+      "denominator": 34,
+      "no_estimate": 6,
+      "routes": 41,
+      "unmeasured": 1,
+      "with_estimate": 35,
+      "within_goal": 29,
+      "within_min": 30
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 4,
+      "no_estimate": 18,
+      "routes": 22,
+      "unmeasured": 0,
+      "with_estimate": 4,
+      "within_goal": 4,
+      "within_min": 4
+     },
+     "queries": {
+      "denominator": 22,
+      "no_estimate": 0,
+      "routes": 22,
+      "unmeasured": 0,
+      "with_estimate": 22,
+      "within_goal": 21,
+      "within_min": 21
+     },
+     "rows_examined": {
+      "denominator": 22,
+      "no_estimate": 0,
+      "routes": 22,
+      "unmeasured": 0,
+      "with_estimate": 22,
+      "within_goal": 22,
+      "within_min": 22
+     }
+    }
+   },
+   "tool_verdict_word": "pass",
+   "verdict": "pass"
+  }
+ },
+ "both_apps_not_for_the_verdict": {
+  "reasons": [
+   "queries: 54 of 56 inside +-5% (enough), needs 80%",
+   "rows_examined: 52 of 56 inside +-20% (enough), needs 80%"
+  ],
+  "verdict": "pass"
+ },
+ "no_variance_directory_read_as_empty": [],
+ "rows": 240000,
+ "rule": "B decides, A shown (docs/simulator-spec.md 7.1)",
+ "tool_sha256": "95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b"
+}

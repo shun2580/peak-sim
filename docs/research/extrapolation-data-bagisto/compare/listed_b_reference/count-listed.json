@@ -1,0 +1,67 @@
+{
+ "condition_1a": {
+  "goal_unmarked_queries": {
+   "denominator": 6,
+   "inside": 5,
+   "needed": 5,
+   "short": 0
+  },
+  "goal_unmarked_rows_examined": {
+   "denominator": 6,
+   "inside": 6,
+   "needed": 5,
+   "short": 0
+  },
+  "minimum_all_queries": {
+   "denominator": 18,
+   "inside": 16,
+   "needed": 15,
+   "short": 0
+  },
+  "minimum_all_rows_examined": {
+   "denominator": 18,
+   "inside": 15,
+   "needed": 15,
+   "short": 0
+  }
+ },
+ "condition_3_misses": 5,
+ "line_met_on_listed_routes": true,
+ "list_routes_missing_from_estimate": [],
+ "list_routes_with_incomplete_estimate": [],
+ "list_sha256": "47b366f9fa412cfca34256076902570e04ea5c334db18cf11629aa6a5fefcae4",
+ "not_measured_with_estimate": [
+  "GET /admin/customers/view/{id}"
+ ],
+ "per_quantity": {
+  "queries": {
+   "denominator": 18,
+   "denominator_under_5": false,
+   "no_estimate": 0,
+   "routes_in_list": 19,
+   "unmeasured": 1,
+   "unmeasured_over_20_percent": false,
+   "with_estimate": 19
+  },
+  "rows_examined": {
+   "denominator": 18,
+   "denominator_under_5": false,
+   "no_estimate": 0,
+   "routes_in_list": 19,
+   "unmeasured": 1,
+   "unmeasured_over_20_percent": false,
+   "with_estimate": 19
+  }
+ },
+ "reasons": [
+  "queries: 16 of 18 inside +-5% (enough), needs 80%",
+  "rows_examined: 15 of 18 inside +-20% (enough), needs 80%"
+ ],
+ "routes_in_list": 19,
+ "rule_A_reasons": [
+  "queries: 16 of 18 inside +-5% (enough), needs 80%",
+  "rows_examined: 15 of 18 inside +-20% (enough), needs 80%"
+ ],
+ "verdict_rule_A_shown": "pass",
+ "verdict_rule_B": "pass"
+}

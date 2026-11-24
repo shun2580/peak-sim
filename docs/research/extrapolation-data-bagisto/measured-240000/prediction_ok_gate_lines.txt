@@ -1,0 +1,6 @@
+# measure (every route cold once), from measure.stdout.log
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-estimate.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-marked.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
+# third repeat, from repeat_3.stdout.log
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-estimate.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
+PREDICTION OK poc/lab/predictions/extrapolation-bagisto-a-marked.json 207911e167ff15897655c55c0863283b6b97378e 2026-11-24T13:04:39+09:00
