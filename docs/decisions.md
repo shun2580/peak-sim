@@ -3268,6 +3268,7 @@ D247 の §2 は「この時点で、Bagisto の 240,000 件の構築・見積�
 - **何を**:A の測りで、`bin/measure`・`variance-run` が作る DB は、構築の直後に ANALYZE しない(`bin/measure` には `--analyze-after-build` の口を通さない。`variance-run` は既定の `--analyze` なしのまま)。道具は変えていない。見積もりの DB だけは、指示書のとおり構築 → ANALYZE の後に作る。
 - **なぜ**:BookStack の 4 回目の A と同じ測り方にするため(§7.4.6)。その `run_scripts`(`docs/research/extrapolation-data-4/measured-240000/run_scripts/`)の `measure_bookstack_redo.sh` の測りにも `repeat_bookstack.sh` の `variance-run` にも、ANALYZE の指定が無い。統計の自動の取り直しは既定のまま(仕様 §7.1)。
 - **事実として添える**:この結果、見積もりの DB は ANALYZE 済み・測りの DB は未 ANALYZE になる。BookStack の 4 回目の A も同じ作りであり、新しい違いではない。
+- **ただし繰り返しの測りは字のとおりでない**:繰り返しの測り(`variance-run`)は、組に `state_changing` のルートがあれば、周と周の間に、そのルートが書き換える表を ANALYZE する(`bin/variance-run` の `restore_stats`・`Profile.php` の欄の定め)。決め 2 で Bagisto に `state_changing` を足したので、印のあるルートの組にそれらが入れば、その表は周の間に ANALYZE される(入るかどうかは印の一覧が出るまで分からない)。これは BookStack の 4 回目の A の繰り返しと同じ作りの前例であり(周の間の ANALYZE は、その A の予測より前の道具に入っている)、新しい違いではない。決めそのものは変わらない。
 - **変えていないもの**:見積もりの規則・測りの規則・合否。揃えるなら口を通す直しが要るが、通さない。
 
 #### 5. 決め 4:捕捉で記録が途中までしか取れなかったルート(partial)6 本の扱い
