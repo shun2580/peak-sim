@@ -19,7 +19,7 @@ All times are JST. The tool commit and the SHA-256 of the capture copy are in `o
 
 ## The first two repeats are not used
 
-The maintainer ruled both repeats invalid before their values were read (D254, D259). Their outputs are on disk but are **not opened and not copied here**; only their names and the times they stopped are written.
+The maintainer ruled both repeats invalid before any of their measured values was compared with an estimate (of the first, only the outcome of its trials had been seen) (D254, D259). Their outputs are on disk but are **not opened and not copied here**; only their names and the times they stopped are written.
 
 - **First database** (project `peak-bga240k-var-a240k-db1`, directory `variance/`): stopped at 2026-11-24 18:29:20 with exit 15. The PHP container was killed for memory at its 6 GB limit while it ran trial 7 of lap 1 (`GET /admin/customers/view/{id}`, exit 137); trials 1 to 6 of lap 1 had finished. This is why that route is not in the third repeat (D254).
 - **Second database** (project `peak-bga240k-var-a240kr-db1`, directory `variance_r/`): the run was stopped on purpose at 2026-11-24 20:57:39 (exit 15) at the planned stop of the work; 49 trials had finished (lap 1: 40, lap 2: 9) and trial 50 was running. The maintainer ruled it invalid and ordered a third database built from the start (D259). Its values were never read, never mixed with the third repeat and never compared with it.
