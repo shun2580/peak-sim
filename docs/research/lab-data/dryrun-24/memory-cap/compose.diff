@@ -1,0 +1,9 @@
+45c45
+<       context: .
+---
+>       context: ~/projects/peak-sim-trials/_scratch/dryrun24/rep/poc/runtime/compose
+51a52,55
+>     # Memory cap of the measured app's container only (never the database). A process killed for memory ends that request;
+>     # the container (sleep infinity) and the database go on. memswap_limit equal to mem_limit leaves no swap to hide it.
+>     mem_limit: ${PEAK_MEASURE_PHP_MEM:-6g}
+>     memswap_limit: ${PEAK_MEASURE_PHP_MEM:-6g}

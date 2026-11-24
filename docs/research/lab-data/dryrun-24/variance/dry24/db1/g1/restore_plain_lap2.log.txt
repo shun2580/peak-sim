@@ -1,0 +1,3 @@
+# at 2026-11-24T12:21:31+0900
+peak_sim_measure_3c7a647c203e_u589f83_30000.order_items	analyze	status	OK
+peak_sim_measure_3c7a647c203e_u589f83_30000.product_inventory_indices	analyze	status	OK

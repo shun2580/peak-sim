@@ -1,0 +1,24 @@
+PREDICTION OK poc/lab/predictions/dryrun24-bagisto-estimate.json c9b8e9f7906d75bd9883de37894dc5b122b1e7b6 2026-11-24T11:44:17+09:00
+PREDICTION OK poc/lab/predictions/dryrun24-bagisto-marked.json c9b8e9f7906d75bd9883de37894dc5b122b1e7b6 2026-11-24T11:44:17+09:00
+network peak-bagisto-dry24_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.160.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+routes 11, tried 11, 404 s; record in /out
+  measured_O1    0
+  measured_ON    0
+  measured_ONM   0
+  inconclusive   0
+  no_info        0
+  not_measured   11
+  vs static agree            0
+  vs static runtime_only     0
+  vs static static_stronger  0
+  vs static conflict         0
+  vs static not_comparable   11

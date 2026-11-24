@@ -1,0 +1,1 @@
+limit=419430400 swap=419430400 oomkilled=true restarts=0

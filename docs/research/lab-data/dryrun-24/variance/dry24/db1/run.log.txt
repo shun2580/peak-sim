@@ -1,0 +1,46 @@
+[2026-11-24T12:15:08+0900] db1: project peak-bgdry24f-var-dry24-db1, run id 3c7a647c203e
+ Network peak-bgdry24f-var-dry24-db1_measure-internal Creating 
+ Network peak-bgdry24f-var-dry24-db1_measure-internal Created 
+ Volume peak-bgdry24f-var-dry24-db1_measure-dbdata Creating 
+ Volume peak-bgdry24f-var-dry24-db1_measure-dbdata Created 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Creating 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Created 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Creating 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Created 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Starting 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Started 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Waiting 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Healthy 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Starting 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Started 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Waiting 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Waiting 
+ Container peak-bgdry24f-var-dry24-db1-measure-php-1 Healthy 
+ Container peak-bgdry24f-var-dry24-db1-measure-db-1 Healthy 
+network peak-bgdry24f-var-dry24-db1_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.224.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+[2026-11-24T12:15:23+0900] db1 g1: building u589f83:30000 as peak_sim_measure_3c7a647c203e_u589f83_30000
+[2026-11-24T12:17:51+0900] db1 g1: built in 140 s; content digest 6102c31f75a09a4a3cc2ad88646bd72a1e61afc6755cdf94c6a2f46ff5d1b4fb
+[2026-11-24T12:18:22+0900] db1 g1 plain lap1 #1 GET /admin/customers/view/{id}: exit 0, 2 attempts (2 ok), 30 s, tap absent
+[2026-11-24T12:18:30+0900] db1 g1 plain lap1 #2 POST /admin/sales/invoices/create/{order_id}: exit 0, 2 attempts (2 ok), 7 s, tap absent
+[2026-11-24T12:19:25+0900] db1 g1 plain lap1 #3 GET /api/products: exit 0, 2 attempts (2 ok), 54 s, tap absent
+[2026-11-24T12:19:31+0900] db1 g1 plain lap1 #4 GET /customer/account: exit 0, 2 attempts (2 ok), 5 s, tap absent
+[2026-11-24T12:19:37+0900] db1 g1 plain lap1 #5 GET /customer/account/wishlist: exit 0, 2 attempts (2 ok), 5 s, tap absent
+[2026-11-24T12:19:44+0900] db1 g1 plain lap1 #6 POST /customer/account/orders/cancel/{id}: exit 0, 2 attempts (2 ok), 6 s, tap absent
+[2026-11-24T12:19:44+0900] db1 g1: ANALYZE TABLE on order_items product_inventory_indices after plain lap 1 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T12:20:13+0900] db1 g1 plain lap2 #7 GET /admin/customers/view/{id}: exit 0, 2 attempts (2 ok), 28 s, tap absent
+[2026-11-24T12:20:19+0900] db1 g1 plain lap2 #8 POST /admin/sales/invoices/create/{order_id}: exit 0, 2 attempts (2 ok), 5 s, tap absent
+[2026-11-24T12:21:13+0900] db1 g1 plain lap2 #9 GET /api/products: exit 0, 2 attempts (2 ok), 53 s, tap absent
+[2026-11-24T12:21:19+0900] db1 g1 plain lap2 #10 GET /customer/account: exit 0, 2 attempts (2 ok), 5 s, tap absent
+[2026-11-24T12:21:24+0900] db1 g1 plain lap2 #11 GET /customer/account/wishlist: exit 0, 2 attempts (2 ok), 5 s, tap absent
+[2026-11-24T12:21:31+0900] db1 g1 plain lap2 #12 POST /customer/account/orders/cancel/{id}: exit 0, 2 attempts (2 ok), 6 s, tap absent
+[2026-11-24T12:21:31+0900] db1 g1: ANALYZE TABLE on order_items product_inventory_indices after plain lap 2 (the tables its state-changing routes rewrite, outside any request)
+[2026-11-24T12:21:33+0900] db1: finished with exit 0

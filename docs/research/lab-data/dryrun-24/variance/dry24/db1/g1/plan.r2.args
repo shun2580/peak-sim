@@ -1,0 +1,9 @@
+--scale=30000
+--uri=/admin/sales/invoices/create/1
+--method=POST
+--route=/admin/sales/invoices/create/{order_id}
+--axis=N
+--body-json={}
+--csrf
+--act-as=Webkul\User\Models\Admin:1:admin
+--phases=warmup,cold

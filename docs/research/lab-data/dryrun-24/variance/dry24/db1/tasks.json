@@ -1,0 +1,673 @@
+[
+    {
+        "spec": {
+            "uri": "/admin/customers/search",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "admin",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "Webkul\\Admin\\Http\\Middleware\\InspectSystemHealth",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\User\\Http\\Middleware\\Bouncer"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Admin\\Http\\Controllers\\Customers\\CustomerController@search",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/admin/customers/search",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\User\\Models\\Admin:1:admin",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/admin/customers/view/{id}",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "admin",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "Webkul\\Admin\\Http\\Middleware\\InspectSystemHealth",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\User\\Http\\Middleware\\Bouncer"
+            ],
+            "parameters": {
+                "id": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "int",
+                    "scope": null
+                }
+            },
+            "action": "Webkul\\Admin\\Http\\Controllers\\Customers\\CustomerController@show",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/admin/customers/view/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\User\\Models\\Admin:1:admin",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/admin/sales/invoices/create/{order_id}",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "admin",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "Webkul\\Admin\\Http\\Middleware\\InspectSystemHealth",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\User\\Http\\Middleware\\Bouncer"
+            ],
+            "parameters": {
+                "order_id": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": null,
+                    "scope": null
+                }
+            },
+            "action": "Webkul\\Admin\\Http\\Controllers\\Sales\\InvoiceController@store",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/admin/sales/invoices/create/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\User\\Models\\Admin:1:admin",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/admin/sales/rma/rules/delete/{id}",
+            "method": "DELETE",
+            "methods": [
+                "DELETE"
+            ],
+            "middleware": [
+                "web",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "admin",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "Webkul\\Admin\\Http\\Middleware\\InspectSystemHealth",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\User\\Http\\Middleware\\Bouncer"
+            ],
+            "parameters": {
+                "id": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": "int",
+                    "scope": null
+                }
+            },
+            "action": "Webkul\\Admin\\Http\\Controllers\\Sales\\RMA\\RulesController@destroy",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/admin/sales/rma/rules/delete/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\User\\Models\\Admin:1:admin",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/api/checkout/cart",
+            "method": "PUT",
+            "methods": [
+                "PUT"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\API\\CartController@update",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/api/checkout/cart",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": {
+            "qty": []
+        },
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/api/products",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "preview",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\PreviewImageTheme",
+                "Webkul\\Shop\\Http\\Middleware\\PreviewChannel"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\API\\ProductController@index",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/api/products",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/customer/account",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "customer",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\AuthenticateCustomer"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\Customer\\CustomerController@account",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/customer/account",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\Customer\\Models\\Customer:1:customer",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/customer/account/orders/cancel/{id}",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "customer",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\AuthenticateCustomer"
+            ],
+            "parameters": {
+                "id": {
+                    "optional": false,
+                    "where": null,
+                    "model": null,
+                    "field": null,
+                    "type": null,
+                    "scope": null
+                }
+            },
+            "action": "Webkul\\Shop\\Http\\Controllers\\Customer\\Account\\OrderController@cancel",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/customer/account/orders/cancel/1",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\Customer\\Models\\Customer:1:customer",
+        "body": [],
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/customer/account/profile/destroy",
+            "method": "POST",
+            "methods": [
+                "POST"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "customer",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\AuthenticateCustomer"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\Customer\\CustomerController@destroy",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/customer/account/profile/destroy",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\Customer\\Models\\Customer:1:customer",
+        "body": {
+            "password": "x_1"
+        },
+        "form": false,
+        "csrf": true,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/customer/account/wishlist",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "customer",
+                "Webkul\\Core\\Http\\Middleware\\NoCacheMiddleware",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\AuthenticateCustomer"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\Customer\\Account\\WishlistController@index",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/customer/account/wishlist",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": "Webkul\\Customer\\Models\\Customer:1:customer",
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": [],
+        "credentials": null
+    },
+    {
+        "spec": {
+            "uri": "/search",
+            "method": "GET",
+            "methods": [
+                "GET"
+            ],
+            "middleware": [
+                "web",
+                "shop",
+                "Webkul\\Core\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                "cache.response",
+                "App\\Http\\Middleware\\EncryptCookies",
+                "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                "Illuminate\\Session\\Middleware\\StartSession",
+                "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery",
+                "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                "Webkul\\Core\\Http\\Middleware\\PreventSessionRevival",
+                "Laravel\\Boost\\Middleware\\InjectBoost",
+                "Webkul\\Shop\\Http\\Middleware\\Theme",
+                "Webkul\\Shop\\Http\\Middleware\\Locale",
+                "Webkul\\Shop\\Http\\Middleware\\Currency",
+                "Webkul\\Checkout\\Http\\Middleware\\ResolveBuyNowCart",
+                "Webkul\\Shop\\Http\\Middleware\\CacheResponse"
+            ],
+            "parameters": [],
+            "action": "Webkul\\Shop\\Http\\Controllers\\SearchController@index",
+            "static": {
+                "query": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "memory": {
+                    "growth": "unknown",
+                    "lower_bound": null,
+                    "confidence": null
+                },
+                "n_table": null,
+                "m_table": null,
+                "m_per": null,
+                "n_table_alternatives": []
+            },
+            "in_runtime": true
+        },
+        "uri": "/search",
+        "fail_class": null,
+        "fail_detail": null,
+        "act_as": null,
+        "body": null,
+        "form": false,
+        "csrf": false,
+        "headers": [],
+        "guessed": [],
+        "query": {
+            "query": "Product"
+        },
+        "credentials": "profile:search_term: reached with the profile's credentials (query) in the query, through the route's own authentication and not a session login"
+    }
+]

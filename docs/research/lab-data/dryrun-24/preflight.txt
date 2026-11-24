@@ -1,0 +1,25 @@
+# preflight 2026-11-24T11:37:13+09:00
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           0           0          11          11
+Swap:              4           1           2
+Mem:           15936        4053         118           0       12007       11882
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   71G  885G   8% /
+--- docker ps
+--- volumes (count and sorted sha256)
+41
+a30cfee60c58c62423f78b9be7d733e1ad4e00f7f7711a4da081393ab76e2fa0  -
+--- containers (names+created, sha256)
+0f3ae5b14fc1a8c36005e6c23818fe682be1dde73c6689aed9c72ce55d44f0c5  -
+--- compose projects named dry24/bagisto-dry
+0
+--- windows
+2026-11-23T02:11:06
+
+
+PauseUpdatesExpiryTime : 2026-11-28T15:02:20Z
+ActiveHoursStart       : 0
+ActiveHoursEnd         : 18
+
+
+

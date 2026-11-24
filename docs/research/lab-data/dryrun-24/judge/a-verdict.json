@@ -1,0 +1,211 @@
+{
+ "apps": {
+  "bagisto": {
+   "condition_1a": {
+    "goal_unmarked_queries": {
+     "denominator": 5,
+     "inside": 5,
+     "needed": 4,
+     "short": 0
+    },
+    "goal_unmarked_rows_examined": {
+     "denominator": 5,
+     "inside": 4,
+     "needed": 4,
+     "short": 0
+    },
+    "minimum_all_queries": {
+     "denominator": 11,
+     "inside": 11,
+     "needed": 9,
+     "short": 0
+    },
+    "minimum_all_rows_examined": {
+     "denominator": 11,
+     "inside": 10,
+     "needed": 9,
+     "short": 0
+    }
+   },
+   "condition_1a_short_all_zero": false,
+   "condition_3_misses": [
+    {
+     "marked": false,
+     "outside_goal": {
+      "rows_examined": 0.2999656713582477
+     },
+     "route": "GET /admin/customers/search"
+    }
+   ],
+   "condition_3_misses_marked": 0,
+   "condition_3_misses_unmarked": 1,
+   "no_estimate_routes": [
+    "DELETE /api/customer/wishlist/{id}",
+    "GET /admin/catalog/products/edit/{id}",
+    "GET /admin/marketing/promotions/cart-rules/edit/{id}",
+    "GET /api/customer/wishlist",
+    "GET /api/products/{id}/related",
+    "GET /api/products/{id}/up-sell"
+   ],
+   "not_measured_with_estimate": [
+    "DELETE /admin/marketing/search-seo/sitemaps/edit/{id}",
+    "DELETE /api/checkout/cart",
+    "DELETE /customer/logout",
+    "GET /",
+    "GET /admin/catalog/products/search",
+    "GET /admin/configuration/{slug?}/{slug2?}",
+    "GET /admin/customers/gdpr/edit/{id}",
+    "GET /admin/customers/login-as-customer/{id}",
+    "GET /admin/customers/{id}/addresses",
+    "GET /admin/marketing/communications/campaigns",
+    "GET /admin/marketing/communications/campaigns/edit/{id}",
+    "GET /admin/sales/rma/reasons/edit/{id}",
+    "GET /admin/settings/currencies",
+    "GET /admin/settings/inventory-sources/edit/{id}",
+    "GET /admin/settings/roles",
+    "GET /api/categories",
+    "GET /api/categories/attributes",
+    "GET /api/categories/attributes/{attribute_id}/options",
+    "GET /api/categories/tree",
+    "GET /api/core/countries",
+    "GET /api/customer/addresses",
+    "GET /api/customer/addresses/allowed-countries",
+    "GET /api/customer/addresses/allowed-states",
+    "GET /api/product/{id}/reviews",
+    "GET /customer/account/addresses/create",
+    "GET /customer/account/downloadable-products",
+    "GET /customer/account/profile/edit",
+    "GET /customer/account/reviews",
+    "GET /customer/account/rma",
+    "GET /customer/account/rma/get-order-items/{orderId}",
+    "GET /payu/redirect",
+    "GET /phonepe/redirect",
+    "GET /razorpay/payment/redirect",
+    "GET /sitemap.xml",
+    "GET /stripe/redirect",
+    "GET /webmcp/product",
+    "PATCH /customer/account/addresses/edit/{id}",
+    "POST /admin/marketing/search-seo/search-synonyms/create",
+    "POST /admin/sales/eu-withdrawals/{id}/resend-confirmation",
+    "POST /admin/sales/rma/reasons/mass-update",
+    "POST /admin/sales/rma/rma-status/mass-delete",
+    "POST /api/checkout/onepage/addresses",
+    "POST /api/checkout/onepage/orders",
+    "POST /api/customer/wishlist",
+    "POST /customer/account/rma/cancel/{id}",
+    "POST /customer/account/rma/reopen/{id}"
+   ],
+   "reasons": [
+    "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_reasons": [
+    "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+    "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+   ],
+   "rule_A_verdict": "undecidable",
+   "shares": {
+    "all": {
+     "peak_memory": {
+      "denominator": 3,
+      "no_estimate": 40,
+      "routes": 63,
+      "unmeasured": 20,
+      "with_estimate": 23,
+      "within_goal": 3,
+      "within_min": 3
+     },
+     "queries": {
+      "denominator": 11,
+      "no_estimate": 6,
+      "routes": 63,
+      "unmeasured": 46,
+      "with_estimate": 57,
+      "within_goal": 11,
+      "within_min": 11
+     },
+     "rows_examined": {
+      "denominator": 11,
+      "no_estimate": 6,
+      "routes": 63,
+      "unmeasured": 46,
+      "with_estimate": 57,
+      "within_goal": 10,
+      "within_min": 10
+     }
+    },
+    "marked": {
+     "peak_memory": {
+      "denominator": 2,
+      "no_estimate": 17,
+      "routes": 19,
+      "unmeasured": 0,
+      "with_estimate": 2,
+      "within_goal": 2,
+      "within_min": 2
+     },
+     "queries": {
+      "denominator": 6,
+      "no_estimate": 5,
+      "routes": 19,
+      "unmeasured": 8,
+      "with_estimate": 14,
+      "within_goal": 6,
+      "within_min": 6
+     },
+     "rows_examined": {
+      "denominator": 6,
+      "no_estimate": 5,
+      "routes": 19,
+      "unmeasured": 8,
+      "with_estimate": 14,
+      "within_goal": 6,
+      "within_min": 6
+     }
+    },
+    "unmarked": {
+     "peak_memory": {
+      "denominator": 1,
+      "no_estimate": 23,
+      "routes": 44,
+      "unmeasured": 20,
+      "with_estimate": 21,
+      "within_goal": 1,
+      "within_min": 1
+     },
+     "queries": {
+      "denominator": 5,
+      "no_estimate": 1,
+      "routes": 44,
+      "unmeasured": 38,
+      "with_estimate": 43,
+      "within_goal": 5,
+      "within_min": 5
+     },
+     "rows_examined": {
+      "denominator": 5,
+      "no_estimate": 1,
+      "routes": 44,
+      "unmeasured": 38,
+      "with_estimate": 43,
+      "within_goal": 4,
+      "within_min": 4
+     }
+    }
+   },
+   "tool_verdict_word": "indeterminate",
+   "verdict": "undecidable"
+  }
+ },
+ "both_apps_not_for_the_verdict": {
+  "reasons": [
+   "queries: 46 of 57 routes with an estimate could not be measured, more than 20%",
+   "rows_examined: 46 of 57 routes with an estimate could not be measured, more than 20%"
+  ],
+  "verdict": "undecidable"
+ },
+ "no_variance_directory_read_as_empty": [],
+ "rows": 30000,
+ "rule": "B decides, A shown (docs/simulator-spec.md 7.1)",
+ "tool_sha256": "95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b"
+}

@@ -1,0 +1,592 @@
+# at 2026-11-24T12:21:25+0900
+innodb_table_stats	addresses	29276	801	237	2026-11-24 03:17:41
+innodb_table_stats	admin_password_resets	30028	225	225	2026-11-24 03:15:42
+innodb_table_stats	admins	0	1	2	2026-11-24 03:15:41
+innodb_table_stats	agent_conversation_messages	29138	869	485	2026-11-24 03:15:44
+innodb_table_stats	agent_conversations	29963	225	161	2026-11-24 03:15:45
+innodb_table_stats	attribute_families	0	1	0	2026-11-24 03:15:24
+innodb_table_stats	attribute_group_mappings	25515	161	27	2026-11-24 03:15:47
+innodb_table_stats	attribute_group_translations	29948	225	161	2026-11-24 03:15:55
+innodb_table_stats	attribute_groups	29892	289	161	2026-11-24 03:15:46
+innodb_table_stats	attribute_option_translations	29735	353	161	2026-11-24 03:15:49
+innodb_table_stats	attribute_options	29223	225	33	2026-11-24 03:15:48
+innodb_table_stats	attribute_translations	29942	225	225	2026-11-24 03:15:50
+innodb_table_stats	attributes	30	1	1	2026-11-24 03:17:30
+innodb_table_stats	booking_product_appointment_slots	30305	97	97	2026-11-24 03:16:29
+innodb_table_stats	booking_product_default_slots	29984	225	97	2026-11-24 03:16:30
+innodb_table_stats	booking_product_event_ticket_translations	29673	417	161	2026-11-24 03:16:31
+innodb_table_stats	booking_product_event_tickets	29486	161	97	2026-11-24 03:16:31
+innodb_table_stats	booking_product_rental_slots	29991	225	97	2026-11-24 03:16:32
+innodb_table_stats	booking_product_table_slots	29960	225	97	2026-11-24 03:16:32
+innodb_table_stats	booking_products	29148	225	27	2026-11-24 03:16:28
+innodb_table_stats	bookings	29311	161	388	2026-11-24 03:17:06
+innodb_table_stats	cache	0	1	0	2026-11-24 03:15:39
+innodb_table_stats	cache_locks	0	1	0	2026-11-24 03:15:39
+innodb_table_stats	cart	29139	929	56	2026-11-24 03:16:08
+innodb_table_stats	cart_item_inventories	30363	97	0	2026-11-24 03:15:50
+innodb_table_stats	cart_items	29392	673	112	2026-11-24 03:17:04
+innodb_table_stats	cart_payment	30081	225	29	2026-11-24 03:16:09
+innodb_table_stats	cart_rule_channels	30369	97	27	2026-11-24 03:16:06
+innodb_table_stats	cart_rule_coupon_usage	30360	97	54	2026-11-24 03:16:10
+innodb_table_stats	cart_rule_coupons	29250	225	27	2026-11-24 03:15:52
+innodb_table_stats	cart_rule_customer_groups	30369	97	30	2026-11-24 03:16:00
+innodb_table_stats	cart_rule_customers	28740	97	54	2026-11-24 03:16:11
+innodb_table_stats	cart_rule_translations	29924	225	97	2026-11-24 03:15:52
+innodb_table_stats	cart_rules	29766	353	0	2026-11-24 03:15:51
+innodb_table_stats	cart_shipping_rates	29326	673	29	2026-11-24 03:16:11
+innodb_table_stats	catalog_rule_channels	30369	97	27	2026-11-24 03:16:07
+innodb_table_stats	catalog_rule_customer_groups	29250	97	30	2026-11-24 03:16:01
+innodb_table_stats	catalog_rule_product_prices	30044	161	111	2026-11-24 03:16:33
+innodb_table_stats	catalog_rule_products	29979	225	111	2026-11-24 03:16:34
+innodb_table_stats	catalog_rules	29733	289	0	2026-11-24 03:15:53
+innodb_table_stats	categories	29049	289	65	2026-11-24 03:17:30
+innodb_table_stats	category_filterable_attributes	29750	97	128	2026-11-24 03:15:54
+innodb_table_stats	category_translations	29236	865	174	2026-11-24 03:17:30
+innodb_table_stats	channel_currencies	0	1	1	2026-11-24 03:15:38
+innodb_table_stats	channel_inventory_sources	0	1	1	2026-11-24 03:15:28
+innodb_table_stats	channel_locales	0	1	1	2026-11-24 03:15:38
+innodb_table_stats	channel_translations	0	1	2	2026-11-24 03:15:41
+innodb_table_stats	channels	0	1	3	2026-11-24 03:15:38
+innodb_table_stats	cms_page_channels	30369	97	27	2026-11-24 03:16:07
+innodb_table_stats	cms_page_translations	29412	609	327	2026-11-24 03:17:31
+innodb_table_stats	cms_pages	30186	161	0	2026-11-24 03:15:55
+innodb_table_stats	compare_items	30336	97	54	2026-11-24 03:16:35
+innodb_table_stats	core_config	29879	289	0	2026-11-24 03:15:56
+innodb_table_stats	countries	30206	161	0	2026-11-24 03:15:56
+innodb_table_stats	country_state_translations	29960	225	27	2026-11-24 03:15:57
+innodb_table_stats	country_states	29886	289	29	2026-11-24 03:15:56
+innodb_table_stats	country_translations	30053	225	27	2026-11-24 03:15:58
+innodb_table_stats	currencies	0	1	0	2026-11-24 03:15:34
+innodb_table_stats	currency_exchange_rates	0	1	1	2026-11-24 03:15:25
+innodb_table_stats	customer_groups	3	1	1	2026-11-24 03:17:29
+innodb_table_stats	customer_notes	28267	161	97	2026-11-24 03:16:12
+innodb_table_stats	customer_password_resets	29970	225	225	2026-11-24 03:16:02
+innodb_table_stats	customer_social_accounts	29828	289	252	2026-11-24 03:16:14
+innodb_table_stats	customers	29483	545	402	2026-11-24 03:16:08
+innodb_table_stats	datagrid_saved_filters	29936	225	161	2026-11-24 03:16:02
+innodb_table_stats	downloadable_link_purchased	29381	737	81	2026-11-24 03:17:07
+innodb_table_stats	eu_withdrawals	29454	673	679	2026-11-24 03:16:22
+innodb_table_stats	failed_jobs	0	1	0	2026-11-24 03:15:33
+innodb_table_stats	gdpr_data_request	29716	353	27	2026-11-24 03:16:16
+innodb_table_stats	import_batches	30305	97	27	2026-11-24 03:16:04
+innodb_table_stats	imports	29452	673	0	2026-11-24 03:16:02
+innodb_table_stats	inventory_sources	0	1	0	2026-11-24 03:15:25
+innodb_table_stats	invoice_items	29581	545	58	2026-11-24 03:16:23
+innodb_table_stats	invoices	29326	673	29	2026-11-24 03:16:22
+innodb_table_stats	job_batches	0	1	0	2026-11-24 03:15:33
+innodb_table_stats	jobs	0	1	0	2026-11-24 03:15:32
+innodb_table_stats	locales	0	1	1	2026-11-24 03:15:33
+innodb_table_stats	marketing_campaigns	29768	353	117	2026-11-24 03:16:19
+innodb_table_stats	marketing_events	29990	225	0	2026-11-24 03:16:18
+innodb_table_stats	marketing_templates	29886	289	0	2026-11-24 03:16:18
+innodb_table_stats	migrations	212	3	0	2026-11-24 03:15:45
+innodb_table_stats	notification_reads	30015	161	225	2026-11-24 03:16:25
+innodb_table_stats	notifications	29874	289	479	2026-11-24 03:16:24
+innodb_table_stats	order_comments	30205	161	29	2026-11-24 03:16:26
+innodb_table_stats	order_items	29287	801	168	2026-11-24 03:19:44
+innodb_table_stats	order_payment	29240	225	69	2026-11-24 03:17:40
+innodb_table_stats	order_transactions	29719	417	27	2026-11-24 03:16:27
+innodb_table_stats	orders	28419	1572	259	2026-11-24 03:17:40
+innodb_table_stats	password_resets	0	1	0	2026-11-24 03:15:24
+innodb_table_stats	personal_access_tokens	29701	417	450	2026-11-24 03:16:27
+innodb_table_stats	product_attribute_values	178617	673	1156	2026-11-24 03:17:51
+innodb_table_stats	product_bundle_option_products	30375	97	124	2026-11-24 03:16:35
+innodb_table_stats	product_bundle_option_translations	29935	289	518	2026-11-24 03:16:36
+innodb_table_stats	product_bundle_options	28762	161	27	2026-11-24 03:16:35
+innodb_table_stats	product_categories	29608	97	27	2026-11-24 03:18:41
+innodb_table_stats	product_channels	30369	97	54	2026-11-24 03:18:31
+innodb_table_stats	product_cross_sells	29250	97	27	2026-11-24 03:16:37
+innodb_table_stats	product_customer_group_prices	29812	353	419	2026-11-24 03:16:37
+innodb_table_stats	product_customizable_option_prices	29258	225	27	2026-11-24 03:16:39
+innodb_table_stats	product_customizable_option_translations	29898	289	161	2026-11-24 03:16:39
+innodb_table_stats	product_customizable_options	29720	417	27	2026-11-24 03:16:38
+innodb_table_stats	product_downloadable_link_translations	29876	289	27	2026-11-24 03:16:40
+innodb_table_stats	product_downloadable_links	29245	801	27	2026-11-24 03:16:40
+innodb_table_stats	product_downloadable_sample_translations	29911	289	27	2026-11-24 03:16:41
+innodb_table_stats	product_downloadable_samples	29721	417	27	2026-11-24 03:16:41
+innodb_table_stats	product_flat	0	1	3	2026-11-24 03:15:40
+innodb_table_stats	product_grouped_products	29502	97	151	2026-11-24 03:16:42
+innodb_table_stats	product_image_translations	29970	225	161	2026-11-24 03:16:43
+innodb_table_stats	product_images	30096	225	27	2026-11-24 03:16:42
+innodb_table_stats	product_inventories	29575	97	124	2026-11-24 03:18:21
+innodb_table_stats	product_inventory_indices	29166	97	151	2026-11-24 03:19:44
+innodb_table_stats	product_omnibus_prices	28934	161	194	2026-11-24 03:16:43
+innodb_table_stats	product_ordered_inventories	29642	97	124	2026-11-24 03:16:44
+innodb_table_stats	product_price_indices	89824	417	580	2026-11-24 03:18:01
+innodb_table_stats	product_relations	30316	130	133	2026-11-24 03:17:33
+innodb_table_stats	product_review_attachments	29063	289	27	2026-11-24 03:16:46
+innodb_table_stats	product_reviews	29836	289	71	2026-11-24 03:17:33
+innodb_table_stats	product_super_attributes	30011	97	33	2026-11-24 03:16:46
+innodb_table_stats	product_up_sells	30316	130	133	2026-11-24 03:17:34
+innodb_table_stats	product_videos	30137	225	27	2026-11-24 03:16:47
+innodb_table_stats	products	29962	161	196	2026-11-24 03:17:32
+innodb_table_stats	refund_items	29571	545	87	2026-11-24 03:17:08
+innodb_table_stats	refunds	29417	673	29	2026-11-24 03:16:47
+innodb_table_stats	rma	29224	225	56	2026-11-24 03:16:52
+innodb_table_stats	rma_additional_fields	29253	161	58	2026-11-24 03:16:53
+innodb_table_stats	rma_custom_field_options	29350	225	27	2026-11-24 03:16:49
+innodb_table_stats	rma_custom_fields	29798	353	161	2026-11-24 03:16:48
+innodb_table_stats	rma_images	30187	161	27	2026-11-24 03:16:54
+innodb_table_stats	rma_items	30100	161	116	2026-11-24 03:17:09
+innodb_table_stats	rma_messages	29866	289	27	2026-11-24 03:16:54
+innodb_table_stats	rma_reason_resolutions	30003	161	27	2026-11-24 03:16:50
+innodb_table_stats	rma_reasons	30188	161	0	2026-11-24 03:16:49
+innodb_table_stats	rma_rules	30022	225	0	2026-11-24 03:16:50
+innodb_table_stats	rma_statuses	29248	225	0	2026-11-24 03:16:51
+innodb_table_stats	roles	0	1	0	2026-11-24 03:15:24
+innodb_table_stats	search_synonyms	30022	225	0	2026-11-24 03:16:55
+innodb_table_stats	search_terms	29867	289	252	2026-11-24 03:16:55
+innodb_table_stats	sessions	0	1	0	2026-11-24 03:15:39
+innodb_table_stats	shipment_items	29580	481	27	2026-11-24 03:16:58
+innodb_table_stats	shipments	29594	481	56	2026-11-24 03:16:56
+innodb_table_stats	sitemap_channels	30369	97	27	2026-11-24 03:17:00
+innodb_table_stats	sitemaps	29996	225	0	2026-11-24 03:16:59
+innodb_table_stats	subscribers_list	29911	225	56	2026-11-24 03:17:01
+innodb_table_stats	tax_categories	29850	289	161	2026-11-24 03:17:02
+innodb_table_stats	tax_categories_tax_rates	30336	97	124	2026-11-24 03:17:12
+innodb_table_stats	tax_rates	29702	417	161	2026-11-24 03:17:10
+innodb_table_stats	theme_section_translations	29194	161	27	2026-11-24 03:17:14
+innodb_table_stats	theme_sections	29993	225	27	2026-11-24 03:17:14
+innodb_table_stats	url_rewrites	29702	417	356	2026-11-24 03:17:14
+innodb_table_stats	users	29842	289	161	2026-11-24 03:17:15
+innodb_table_stats	wishlist	30008	161	81	2026-11-24 03:17:17
+innodb_table_stats	wishlist_items	28964	161	125	2026-11-24 03:17:38
+cardinality	addresses	addresses_cart_id_foreign	1	cart_id	1
+cardinality	addresses	addresses_customer_id_foreign	1	customer_id	2
+cardinality	addresses	addresses_order_id_foreign	1	order_id	2
+cardinality	addresses	addresses_parent_address_id_foreign	1	parent_address_id	15001
+cardinality	addresses	PRIMARY	1	id	29276
+cardinality	admin_password_resets	admin_password_resets_email_index	1	email	26849
+cardinality	admins	admins_api_token_unique	1	api_token	1
+cardinality	admins	admins_email_unique	1	email	1
+cardinality	admins	PRIMARY	1	id	1
+cardinality	agent_conversation_messages	agent_conversation_messages_conversation_id_index	1	conversation_id	29138
+cardinality	agent_conversation_messages	agent_conversation_messages_user_id_index	1	user_id	28992
+cardinality	agent_conversation_messages	conversation_index	1	conversation_id	29138
+cardinality	agent_conversation_messages	conversation_index	2	user_id	29138
+cardinality	agent_conversation_messages	conversation_index	3	updated_at	29138
+cardinality	agent_conversation_messages	PRIMARY	1	id	29138
+cardinality	agent_conversations	agent_conversations_user_id_updated_at_index	1	user_id	29963
+cardinality	agent_conversations	agent_conversations_user_id_updated_at_index	2	updated_at	29963
+cardinality	agent_conversations	PRIMARY	1	id	29963
+cardinality	attribute_families	PRIMARY	1	id	1
+cardinality	attribute_group_mappings	attribute_group_mappings_attribute_group_id_foreign	1	attribute_group_id	25515
+cardinality	attribute_group_mappings	PRIMARY	1	attribute_id	28
+cardinality	attribute_group_mappings	PRIMARY	2	attribute_group_id	25515
+cardinality	attribute_group_translations	attribute_group_translations_locale_unique	1	attribute_group_id	29948
+cardinality	attribute_group_translations	attribute_group_translations_locale_unique	2	locale	29948
+cardinality	attribute_group_translations	PRIMARY	1	id	29948
+cardinality	attribute_groups	attribute_groups_attribute_family_id_name_unique	1	attribute_family_id	1
+cardinality	attribute_groups	attribute_groups_attribute_family_id_name_unique	2	name	29892
+cardinality	attribute_groups	PRIMARY	1	id	29892
+cardinality	attribute_option_translations	attribute_option_locale_unique	1	attribute_option_id	29735
+cardinality	attribute_option_translations	attribute_option_locale_unique	2	locale	29468
+cardinality	attribute_option_translations	PRIMARY	1	id	29735
+cardinality	attribute_options	attribute_options_attribute_id_foreign	1	attribute_id	29
+cardinality	attribute_options	PRIMARY	1	id	29223
+cardinality	attribute_translations	attribute_translations_attribute_id_locale_unique	1	attribute_id	28
+cardinality	attribute_translations	attribute_translations_attribute_id_locale_unique	2	locale	29942
+cardinality	attribute_translations	PRIMARY	1	id	29942
+cardinality	attributes	attributes_code_unique	1	code	30
+cardinality	attributes	PRIMARY	1	id	30
+cardinality	booking_product_appointment_slots	booking_product_appointment_slots_booking_product_id_foreign	1	booking_product_id	30000
+cardinality	booking_product_appointment_slots	PRIMARY	1	id	30305
+cardinality	booking_product_default_slots	booking_product_default_slots_booking_product_id_foreign	1	booking_product_id	29984
+cardinality	booking_product_default_slots	PRIMARY	1	id	29984
+cardinality	booking_product_event_ticket_translations	bpet_locale_unique	1	booking_product_event_ticket_id	29673
+cardinality	booking_product_event_ticket_translations	bpet_locale_unique	2	locale	29673
+cardinality	booking_product_event_ticket_translations	PRIMARY	1	id	29673
+cardinality	booking_product_event_tickets	booking_product_event_tickets_booking_product_id_foreign	1	booking_product_id	29486
+cardinality	booking_product_event_tickets	PRIMARY	1	id	29486
+cardinality	booking_product_rental_slots	booking_product_rental_slots_booking_product_id_foreign	1	booking_product_id	29991
+cardinality	booking_product_rental_slots	PRIMARY	1	id	29991
+cardinality	booking_product_table_slots	booking_product_table_slots_booking_product_id_foreign	1	booking_product_id	29960
+cardinality	booking_product_table_slots	PRIMARY	1	id	29960
+cardinality	booking_products	booking_products_product_id_foreign	1	product_id	29148
+cardinality	booking_products	PRIMARY	1	id	29148
+cardinality	bookings	bookings_booking_product_event_ticket_id_foreign	1	booking_product_event_ticket_id	29311
+cardinality	bookings	bookings_order_id_foreign	1	order_id	29311
+cardinality	bookings	bookings_order_item_id_foreign	1	order_item_id	29311
+cardinality	bookings	bookings_product_id_foreign	1	product_id	29311
+cardinality	bookings	PRIMARY	1	id	29311
+cardinality	cache	PRIMARY	1	key	0
+cardinality	cache_locks	PRIMARY	1	key	0
+cardinality	cart	cart_channel_id_foreign	1	channel_id	1
+cardinality	cart	cart_customer_id_foreign	1	customer_id	29139
+cardinality	cart	PRIMARY	1	id	29139
+cardinality	cart_item_inventories	PRIMARY	1	id	30363
+cardinality	cart_items	cart_items_cart_id_foreign	1	cart_id	29392
+cardinality	cart_items	cart_items_parent_id_foreign	1	parent_id	15001
+cardinality	cart_items	cart_items_product_id_foreign	1	product_id	29392
+cardinality	cart_items	cart_items_tax_category_id_foreign	1	tax_category_id	29392
+cardinality	cart_items	PRIMARY	1	id	29392
+cardinality	cart_payment	cart_payment_cart_id_foreign	1	cart_id	30000
+cardinality	cart_payment	PRIMARY	1	id	30081
+cardinality	cart_rule_channels	cart_rule_channels_channel_id_foreign	1	channel_id	1
+cardinality	cart_rule_channels	PRIMARY	1	cart_rule_id	30011
+cardinality	cart_rule_channels	PRIMARY	2	channel_id	30369
+cardinality	cart_rule_coupon_usage	cart_rule_coupon_usage_cart_rule_coupon_id_foreign	1	cart_rule_coupon_id	30000
+cardinality	cart_rule_coupon_usage	cart_rule_coupon_usage_customer_id_foreign	1	customer_id	30000
+cardinality	cart_rule_coupon_usage	PRIMARY	1	id	30360
+cardinality	cart_rule_coupons	cart_rule_coupons_cart_rule_id_foreign	1	cart_rule_id	29250
+cardinality	cart_rule_coupons	PRIMARY	1	id	29250
+cardinality	cart_rule_customer_groups	cart_rule_customer_groups_customer_group_id_foreign	1	customer_group_id	3
+cardinality	cart_rule_customer_groups	PRIMARY	1	cart_rule_id	30011
+cardinality	cart_rule_customer_groups	PRIMARY	2	customer_group_id	30369
+cardinality	cart_rule_customers	cart_rule_customers_cart_rule_id_foreign	1	cart_rule_id	28740
+cardinality	cart_rule_customers	cart_rule_customers_customer_id_foreign	1	customer_id	28740
+cardinality	cart_rule_customers	PRIMARY	1	id	28740
+cardinality	cart_rule_translations	cart_rule_translations_cart_rule_id_locale_unique	1	cart_rule_id	29536
+cardinality	cart_rule_translations	cart_rule_translations_cart_rule_id_locale_unique	2	locale	29924
+cardinality	cart_rule_translations	PRIMARY	1	id	29924
+cardinality	cart_rules	PRIMARY	1	id	29766
+cardinality	cart_shipping_rates	cart_shipping_rates_cart_id_foreign	1	cart_id	29326
+cardinality	cart_shipping_rates	PRIMARY	1	id	29326
+cardinality	catalog_rule_channels	catalog_rule_channels_channel_id_foreign	1	channel_id	1
+cardinality	catalog_rule_channels	PRIMARY	1	catalog_rule_id	30369
+cardinality	catalog_rule_channels	PRIMARY	2	channel_id	30369
+cardinality	catalog_rule_customer_groups	catalog_rule_customer_groups_customer_group_id_foreign	1	customer_group_id	3
+cardinality	catalog_rule_customer_groups	PRIMARY	1	catalog_rule_id	29250
+cardinality	catalog_rule_customer_groups	PRIMARY	2	customer_group_id	29250
+cardinality	catalog_rule_product_prices	catalog_rule_product_prices_catalog_rule_id_foreign	1	catalog_rule_id	30000
+cardinality	catalog_rule_product_prices	catalog_rule_product_prices_channel_id_foreign	1	channel_id	1
+cardinality	catalog_rule_product_prices	catalog_rule_product_prices_customer_group_id_foreign	1	customer_group_id	3
+cardinality	catalog_rule_product_prices	catalog_rule_product_prices_product_id_foreign	1	product_id	30000
+cardinality	catalog_rule_product_prices	PRIMARY	1	id	30044
+cardinality	catalog_rule_products	catalog_rule_products_catalog_rule_id_foreign	1	catalog_rule_id	29979
+cardinality	catalog_rule_products	catalog_rule_products_channel_id_foreign	1	channel_id	1
+cardinality	catalog_rule_products	catalog_rule_products_customer_group_id_foreign	1	customer_group_id	3
+cardinality	catalog_rule_products	catalog_rule_products_product_id_foreign	1	product_id	29979
+cardinality	catalog_rule_products	PRIMARY	1	id	29979
+cardinality	catalog_rules	PRIMARY	1	id	29733
+cardinality	categories	categories__lft__rgt_parent_id_index	1	_lft	29049
+cardinality	categories	categories__lft__rgt_parent_id_index	2	_rgt	29049
+cardinality	categories	categories__lft__rgt_parent_id_index	3	parent_id	29049
+cardinality	categories	PRIMARY	1	id	29049
+cardinality	category_filterable_attributes	category_filterable_attributes_attribute_id_foreign	1	attribute_id	27
+cardinality	category_filterable_attributes	category_filterable_attributes_category_id_foreign	1	category_id	29750
+cardinality	category_translations	category_translations_category_id_slug_locale_unique	1	category_id	29236
+cardinality	category_translations	category_translations_category_id_slug_locale_unique	2	slug	29236
+cardinality	category_translations	category_translations_category_id_slug_locale_unique	3	locale	29236
+cardinality	category_translations	category_translations_locale_id_foreign	1	locale_id	1
+cardinality	category_translations	PRIMARY	1	id	29236
+cardinality	channel_currencies	channel_currencies_currency_id_foreign	1	currency_id	1
+cardinality	channel_currencies	PRIMARY	1	channel_id	1
+cardinality	channel_currencies	PRIMARY	2	currency_id	1
+cardinality	channel_inventory_sources	channel_inventory_source_unique	1	channel_id	1
+cardinality	channel_inventory_sources	channel_inventory_source_unique	2	inventory_source_id	1
+cardinality	channel_inventory_sources	channel_inventory_sources_inventory_source_id_foreign	1	inventory_source_id	1
+cardinality	channel_locales	channel_locales_locale_id_foreign	1	locale_id	1
+cardinality	channel_locales	PRIMARY	1	channel_id	1
+cardinality	channel_locales	PRIMARY	2	locale_id	1
+cardinality	channel_translations	channel_translations_channel_id_locale_unique	1	channel_id	1
+cardinality	channel_translations	channel_translations_channel_id_locale_unique	2	locale	1
+cardinality	channel_translations	channel_translations_locale_index	1	locale	1
+cardinality	channel_translations	PRIMARY	1	id	1
+cardinality	channels	channels_base_currency_id_foreign	1	base_currency_id	1
+cardinality	channels	channels_default_locale_id_foreign	1	default_locale_id	1
+cardinality	channels	channels_hostname_idx	1	hostname	1
+cardinality	channels	channels_root_category_id_foreign	1	root_category_id	1
+cardinality	channels	PRIMARY	1	id	1
+cardinality	cms_page_channels	cms_page_channels_channel_id_foreign	1	channel_id	1
+cardinality	cms_page_channels	cms_page_channels_cms_page_id_channel_id_unique	1	cms_page_id	29250
+cardinality	cms_page_channels	cms_page_channels_cms_page_id_channel_id_unique	2	channel_id	30369
+cardinality	cms_page_translations	cms_page_translations_cms_page_id_url_key_locale_unique	1	cms_page_id	29412
+cardinality	cms_page_translations	cms_page_translations_cms_page_id_url_key_locale_unique	2	url_key	29412
+cardinality	cms_page_translations	cms_page_translations_cms_page_id_url_key_locale_unique	3	locale	29412
+cardinality	cms_page_translations	PRIMARY	1	id	29412
+cardinality	cms_pages	PRIMARY	1	id	30186
+cardinality	compare_items	compare_items_customer_id_foreign	1	customer_id	30000
+cardinality	compare_items	compare_items_product_id_foreign	1	product_id	30000
+cardinality	compare_items	PRIMARY	1	id	30336
+cardinality	core_config	PRIMARY	1	id	29879
+cardinality	countries	PRIMARY	1	id	30206
+cardinality	country_state_translations	country_state_translations_country_state_id_foreign	1	country_state_id	29960
+cardinality	country_state_translations	PRIMARY	1	id	29960
+cardinality	country_states	country_states_country_id_foreign	1	country_id	29886
+cardinality	country_states	PRIMARY	1	id	29886
+cardinality	country_translations	country_translations_country_id_foreign	1	country_id	30000
+cardinality	country_translations	PRIMARY	1	id	30053
+cardinality	currencies	PRIMARY	1	id	1
+cardinality	currency_exchange_rates	currency_exchange_rates_target_currency_unique	1	target_currency	0
+cardinality	currency_exchange_rates	PRIMARY	1	id	0
+cardinality	customer_groups	customer_groups_code_unique	1	code	3
+cardinality	customer_groups	PRIMARY	1	id	3
+cardinality	customer_notes	customer_notes_customer_id_foreign	1	customer_id	28267
+cardinality	customer_notes	PRIMARY	1	id	28267
+cardinality	customer_password_resets	customer_password_resets_email_index	1	email	29970
+cardinality	customer_social_accounts	customer_social_accounts_customer_id_foreign	1	customer_id	29828
+cardinality	customer_social_accounts	customer_social_accounts_provider_id_unique	1	provider_id	29364
+cardinality	customer_social_accounts	PRIMARY	1	id	29828
+cardinality	customers	customers_api_token_unique	1	api_token	1
+cardinality	customers	customers_channel_id_foreign	1	channel_id	1
+cardinality	customers	customers_customer_group_id_foreign	1	customer_group_id	3
+cardinality	customers	customers_email_channel_unique	1	email	29179
+cardinality	customers	customers_email_channel_unique	2	channel_id	29483
+cardinality	customers	customers_phone_unique	1	phone	29483
+cardinality	customers	PRIMARY	1	id	29483
+cardinality	datagrid_saved_filters	datagrid_saved_filters_user_id_name_src_unique	1	user_id	29936
+cardinality	datagrid_saved_filters	datagrid_saved_filters_user_id_name_src_unique	2	name	29936
+cardinality	datagrid_saved_filters	datagrid_saved_filters_user_id_name_src_unique	3	src	29374
+cardinality	datagrid_saved_filters	PRIMARY	1	id	29936
+cardinality	downloadable_link_purchased	downloadable_link_purchased_customer_id_foreign	1	customer_id	29381
+cardinality	downloadable_link_purchased	downloadable_link_purchased_order_id_foreign	1	order_id	29381
+cardinality	downloadable_link_purchased	downloadable_link_purchased_order_item_id_foreign	1	order_item_id	29381
+cardinality	downloadable_link_purchased	PRIMARY	1	id	29381
+cardinality	eu_withdrawals	eu_withdrawals_channel_id_status_index	1	channel_id	1
+cardinality	eu_withdrawals	eu_withdrawals_channel_id_status_index	2	status	1
+cardinality	eu_withdrawals	eu_withdrawals_customer_id_index	1	customer_id	29454
+cardinality	eu_withdrawals	eu_withdrawals_declined_by_user_id_foreign	1	declined_by_user_id	1
+cardinality	eu_withdrawals	eu_withdrawals_order_id_unique	1	order_id	29454
+cardinality	eu_withdrawals	eu_withdrawals_received_at_index	1	received_at	2951
+cardinality	eu_withdrawals	eu_withdrawals_refunded_by_user_id_foreign	1	refunded_by_user_id	1
+cardinality	eu_withdrawals	eu_withdrawals_uuid_unique	1	uuid	29454
+cardinality	eu_withdrawals	PRIMARY	1	id	29454
+cardinality	failed_jobs	failed_jobs_uuid_unique	1	uuid	0
+cardinality	failed_jobs	PRIMARY	1	id	0
+cardinality	gdpr_data_request	gdpr_data_request_customer_id_foreign	1	customer_id	29716
+cardinality	gdpr_data_request	PRIMARY	1	id	29716
+cardinality	import_batches	import_batches_import_id_foreign	1	import_id	30000
+cardinality	import_batches	PRIMARY	1	id	30305
+cardinality	imports	PRIMARY	1	id	29452
+cardinality	inventory_sources	inventory_sources_code_unique	1	code	1
+cardinality	inventory_sources	PRIMARY	1	id	1
+cardinality	invoice_items	invoice_items_invoice_id_foreign	1	invoice_id	29581
+cardinality	invoice_items	invoice_items_parent_id_foreign	1	parent_id	15001
+cardinality	invoice_items	PRIMARY	1	id	29581
+cardinality	invoices	invoices_order_id_foreign	1	order_id	29326
+cardinality	invoices	PRIMARY	1	id	29326
+cardinality	job_batches	PRIMARY	1	id	0
+cardinality	jobs	jobs_queue_index	1	queue	0
+cardinality	jobs	PRIMARY	1	id	0
+cardinality	locales	locales_code_unique	1	code	1
+cardinality	locales	PRIMARY	1	id	1
+cardinality	marketing_campaigns	marketing_campaigns_channel_id_foreign	1	channel_id	1
+cardinality	marketing_campaigns	marketing_campaigns_customer_group_id_foreign	1	customer_group_id	3
+cardinality	marketing_campaigns	marketing_campaigns_marketing_event_id_foreign	1	marketing_event_id	29768
+cardinality	marketing_campaigns	marketing_campaigns_marketing_template_id_foreign	1	marketing_template_id	29768
+cardinality	marketing_campaigns	PRIMARY	1	id	29768
+cardinality	marketing_events	PRIMARY	1	id	29990
+cardinality	marketing_templates	PRIMARY	1	id	29886
+cardinality	migrations	PRIMARY	1	id	212
+cardinality	notification_reads	notification_reads_reader_type_reader_id_index	1	reader_type	29969
+cardinality	notification_reads	notification_reads_reader_type_reader_id_index	2	reader_id	30015
+cardinality	notification_reads	PRIMARY	1	notification_id	30015
+cardinality	notification_reads	PRIMARY	2	reader_type	30001
+cardinality	notification_reads	PRIMARY	3	reader_id	30015
+cardinality	notifications	notifications_audience_type_index	1	audience	29874
+cardinality	notifications	notifications_audience_type_index	2	type	29465
+cardinality	notifications	notifications_notifiable_type_notifiable_id_index	1	notifiable_type	29874
+cardinality	notifications	notifications_notifiable_type_notifiable_id_index	2	notifiable_id	29186
+cardinality	notifications	notifications_order_id_foreign	1	order_id	29874
+cardinality	notifications	PRIMARY	1	id	29874
+cardinality	order_comments	order_comments_order_id_foreign	1	order_id	30000
+cardinality	order_comments	PRIMARY	1	id	30205
+cardinality	order_items	order_items_order_id_foreign	1	order_id	1
+cardinality	order_items	order_items_parent_id_foreign	1	parent_id	1
+cardinality	order_items	order_items_tax_category_id_foreign	1	tax_category_id	29287
+cardinality	order_items	PRIMARY	1	id	29287
+cardinality	order_payment	order_payment_order_id_foreign	1	order_id	1
+cardinality	order_payment	PRIMARY	1	id	29240
+cardinality	order_transactions	order_transactions_order_id_foreign	1	order_id	29719
+cardinality	order_transactions	PRIMARY	1	id	29719
+cardinality	orders	orders_channel_id_foreign	1	channel_id	1
+cardinality	orders	orders_customer_id_foreign	1	customer_id	1
+cardinality	orders	orders_increment_id_unique	1	increment_id	28419
+cardinality	orders	PRIMARY	1	id	28419
+cardinality	password_resets	password_resets_email_index	1	email	0
+cardinality	personal_access_tokens	personal_access_tokens_token_unique	1	token	29701
+cardinality	personal_access_tokens	personal_access_tokens_tokenable_type_tokenable_id_index	1	tokenable_type	29701
+cardinality	personal_access_tokens	personal_access_tokens_tokenable_type_tokenable_id_index	2	tokenable_id	29247
+cardinality	personal_access_tokens	PRIMARY	1	id	29701
+cardinality	product_attribute_values	chanel_locale_attribute_value_index_unique	1	channel	1
+cardinality	product_attribute_values	chanel_locale_attribute_value_index_unique	2	locale	2
+cardinality	product_attribute_values	chanel_locale_attribute_value_index_unique	3	attribute_id	5
+cardinality	product_attribute_values	chanel_locale_attribute_value_index_unique	4	product_id	169475
+cardinality	product_attribute_values	PRIMARY	1	id	178617
+cardinality	product_attribute_values	prod_attr_product_id_idx	1	product_id	29871
+cardinality	product_attribute_values	product_attribute_values_attribute_id_foreign	1	attribute_id	5
+cardinality	product_attribute_values	product_attribute_values_unique_id_unique	1	unique_id	178617
+cardinality	product_bundle_option_products	bundle_option_products_product_id_bundle_option_id_unique	1	product_id	30000
+cardinality	product_bundle_option_products	bundle_option_products_product_id_bundle_option_id_unique	2	product_bundle_option_id	30000
+cardinality	product_bundle_option_products	pbop_option_id_idx	1	product_bundle_option_id	30000
+cardinality	product_bundle_option_products	PRIMARY	1	id	30375
+cardinality	product_bundle_option_translations	bundle_option_translations_locale_label_bundle_option_id_unique	1	locale	28659
+cardinality	product_bundle_option_translations	bundle_option_translations_locale_label_bundle_option_id_unique	2	label	26975
+cardinality	product_bundle_option_translations	bundle_option_translations_locale_label_bundle_option_id_unique	3	product_bundle_option_id	26249
+cardinality	product_bundle_option_translations	PRIMARY	1	id	29935
+cardinality	product_bundle_option_translations	product_bundle_option_translations_option_id_locale_unique	1	product_bundle_option_id	29935
+cardinality	product_bundle_option_translations	product_bundle_option_translations_option_id_locale_unique	2	locale	29935
+cardinality	product_bundle_options	PRIMARY	1	id	28762
+cardinality	product_bundle_options	product_bundle_options_product_id_foreign	1	product_id	28762
+cardinality	product_categories	product_categories_category_id_foreign	1	category_id	29608
+cardinality	product_categories	product_categories_product_id_category_id_unique	1	product_id	29608
+cardinality	product_categories	product_categories_product_id_category_id_unique	2	category_id	29608
+cardinality	product_channels	pc_product_id_channel_id_idx	1	product_id	30000
+cardinality	product_channels	pc_product_id_channel_id_idx	2	channel_id	30000
+cardinality	product_channels	product_channels_channel_id_foreign	1	channel_id	1
+cardinality	product_channels	product_channels_product_id_channel_id_unique	1	product_id	29608
+cardinality	product_channels	product_channels_product_id_channel_id_unique	2	channel_id	30369
+cardinality	product_cross_sells	product_cross_sells_child_id_foreign	1	child_id	29250
+cardinality	product_cross_sells	product_cross_sells_parent_id_child_id_unique	1	parent_id	29250
+cardinality	product_cross_sells	product_cross_sells_parent_id_child_id_unique	2	child_id	29250
+cardinality	product_customer_group_prices	PRIMARY	1	id	29812
+cardinality	product_customer_group_prices	product_customer_group_prices_customer_group_id_foreign	1	customer_group_id	3
+cardinality	product_customer_group_prices	product_customer_group_prices_product_id_foreign	1	product_id	29812
+cardinality	product_customer_group_prices	product_customer_group_prices_unique_id_unique	1	unique_id	29812
+cardinality	product_customizable_option_prices	pcop_product_customizable_option_id_foreign	1	product_customizable_option_id	29258
+cardinality	product_customizable_option_prices	PRIMARY	1	id	29258
+cardinality	product_customizable_option_translations	PRIMARY	1	id	29898
+cardinality	product_customizable_option_translations	product_customizable_option_id_locale_unique	1	product_customizable_option_id	29300
+cardinality	product_customizable_option_translations	product_customizable_option_id_locale_unique	2	locale	29898
+cardinality	product_customizable_options	PRIMARY	1	id	29720
+cardinality	product_customizable_options	product_customizable_options_product_id_foreign	1	product_id	29720
+cardinality	product_downloadable_link_translations	link_translations_link_id_foreign	1	product_downloadable_link_id	29876
+cardinality	product_downloadable_link_translations	PRIMARY	1	id	29876
+cardinality	product_downloadable_links	PRIMARY	1	id	29245
+cardinality	product_downloadable_links	product_downloadable_links_product_id_foreign	1	product_id	29245
+cardinality	product_downloadable_sample_translations	PRIMARY	1	id	29911
+cardinality	product_downloadable_sample_translations	sample_translations_sample_id_foreign	1	product_downloadable_sample_id	29911
+cardinality	product_downloadable_samples	PRIMARY	1	id	29721
+cardinality	product_downloadable_samples	product_downloadable_samples_product_id_foreign	1	product_id	29721
+cardinality	product_flat	PRIMARY	1	id	0
+cardinality	product_flat	product_flat_attribute_family_id_foreign	1	attribute_family_id	0
+cardinality	product_flat	product_flat_parent_id_foreign	1	parent_id	0
+cardinality	product_flat	product_flat_unique_index	1	product_id	0
+cardinality	product_flat	product_flat_unique_index	2	channel	0
+cardinality	product_flat	product_flat_unique_index	3	locale	0
+cardinality	product_grouped_products	grouped_products_product_id_associated_product_id_unique	1	product_id	29502
+cardinality	product_grouped_products	grouped_products_product_id_associated_product_id_unique	2	associated_product_id	29502
+cardinality	product_grouped_products	pgp_product_id_idx	1	product_id	29502
+cardinality	product_grouped_products	PRIMARY	1	id	29502
+cardinality	product_grouped_products	product_grouped_products_associated_product_id_foreign	1	associated_product_id	29502
+cardinality	product_image_translations	image_translations_image_id_locale_unique	1	product_image_id	29970
+cardinality	product_image_translations	image_translations_image_id_locale_unique	2	locale	29970
+cardinality	product_image_translations	PRIMARY	1	id	29970
+cardinality	product_images	PRIMARY	1	id	30096
+cardinality	product_images	prod_img_product_id_idx	1	product_id	30000
+cardinality	product_inventories	PRIMARY	1	id	29575
+cardinality	product_inventories	product_inventories_inventory_source_id_foreign	1	inventory_source_id	1
+cardinality	product_inventories	product_source_vendor_index_unique	1	product_id	29575
+cardinality	product_inventories	product_source_vendor_index_unique	2	inventory_source_id	29575
+cardinality	product_inventories	product_source_vendor_index_unique	3	vendor_id	29575
+cardinality	product_inventory_indices	PRIMARY	1	id	29166
+cardinality	product_inventory_indices	prod_inv_product_id_idx	1	product_id	29166
+cardinality	product_inventory_indices	product_inventory_indices_channel_id_foreign	1	channel_id	1
+cardinality	product_inventory_indices	product_inventory_indices_product_id_channel_id_unique	1	product_id	29166
+cardinality	product_inventory_indices	product_inventory_indices_product_id_channel_id_unique	2	channel_id	29166
+cardinality	product_omnibus_prices	omnibus_lookup_index	1	product_id	28934
+cardinality	product_omnibus_prices	omnibus_lookup_index	2	channel_id	28934
+cardinality	product_omnibus_prices	omnibus_lookup_index	3	currency_code	28934
+cardinality	product_omnibus_prices	omnibus_lookup_index	4	recorded_at	28934
+cardinality	product_omnibus_prices	PRIMARY	1	id	28934
+cardinality	product_omnibus_prices	product_omnibus_prices_channel_id_foreign	1	channel_id	1
+cardinality	product_ordered_inventories	PRIMARY	1	id	29642
+cardinality	product_ordered_inventories	product_ordered_inventories_channel_id_foreign	1	channel_id	1
+cardinality	product_ordered_inventories	product_ordered_inventories_product_id_channel_id_unique	1	product_id	29642
+cardinality	product_ordered_inventories	product_ordered_inventories_product_id_channel_id_unique	2	channel_id	29642
+cardinality	product_price_indices	ppi_product_id_customer_group_id_idx	1	product_id	29548
+cardinality	product_price_indices	ppi_product_id_customer_group_id_idx	2	customer_group_id	89824
+cardinality	product_price_indices	price_indices_product_id_customer_group_id_channel_id_unique	1	product_id	30532
+cardinality	product_price_indices	price_indices_product_id_customer_group_id_channel_id_unique	2	customer_group_id	89824
+cardinality	product_price_indices	price_indices_product_id_customer_group_id_channel_id_unique	3	channel_id	89824
+cardinality	product_price_indices	PRIMARY	1	id	89824
+cardinality	product_price_indices	product_price_indices_channel_id_foreign	1	channel_id	1
+cardinality	product_price_indices	product_price_indices_customer_group_id_foreign	1	customer_group_id	2
+cardinality	product_relations	product_relations_child_id_foreign	1	child_id	30000
+cardinality	product_relations	product_relations_parent_id_child_id_unique	1	parent_id	1
+cardinality	product_relations	product_relations_parent_id_child_id_unique	2	child_id	30316
+cardinality	product_review_attachments	PRIMARY	1	id	29063
+cardinality	product_review_attachments	product_review_images_review_id_foreign	1	review_id	29063
+cardinality	product_reviews	PRIMARY	1	id	29836
+cardinality	product_reviews	prod_rev_product_id_idx	1	product_id	1
+cardinality	product_super_attributes	product_super_attributes_attribute_id_foreign	1	attribute_id	29
+cardinality	product_super_attributes	product_super_attributes_product_id_attribute_id_unique	1	product_id	29250
+cardinality	product_super_attributes	product_super_attributes_product_id_attribute_id_unique	2	attribute_id	30011
+cardinality	product_up_sells	product_up_sells_child_id_foreign	1	child_id	30000
+cardinality	product_up_sells	product_up_sells_parent_id_child_id_unique	1	parent_id	1
+cardinality	product_up_sells	product_up_sells_parent_id_child_id_unique	2	child_id	30316
+cardinality	product_videos	PRIMARY	1	id	30137
+cardinality	product_videos	prod_vid_product_id_idx	1	product_id	30000
+cardinality	products	PRIMARY	1	id	29962
+cardinality	products	products_attribute_family_id_foreign	1	attribute_family_id	1
+cardinality	products	products_parent_id_foreign	1	parent_id	1
+cardinality	products	products_sku_unique	1	sku	29925
+cardinality	refund_items	PRIMARY	1	id	29571
+cardinality	refund_items	refund_items_order_item_id_foreign	1	order_item_id	29571
+cardinality	refund_items	refund_items_parent_id_foreign	1	parent_id	15001
+cardinality	refund_items	refund_items_refund_id_foreign	1	refund_id	29571
+cardinality	refunds	PRIMARY	1	id	29417
+cardinality	refunds	refunds_order_id_foreign	1	order_id	29417
+cardinality	rma	PRIMARY	1	id	29224
+cardinality	rma	rma_order_id_foreign	1	order_id	29224
+cardinality	rma	rma_rma_status_id_foreign	1	rma_status_id	29224
+cardinality	rma_additional_fields	PRIMARY	1	id	29253
+cardinality	rma_additional_fields	rma_additional_fields_rma_custom_field_id_foreign	1	rma_custom_field_id	29253
+cardinality	rma_additional_fields	rma_additional_fields_rma_id_foreign	1	rma_id	29253
+cardinality	rma_custom_field_options	PRIMARY	1	id	29350
+cardinality	rma_custom_field_options	rma_custom_field_options_rma_custom_field_id_foreign	1	rma_custom_field_id	29350
+cardinality	rma_custom_fields	PRIMARY	1	id	29798
+cardinality	rma_custom_fields	rma_custom_fields_code_unique	1	code	29798
+cardinality	rma_images	PRIMARY	1	id	30187
+cardinality	rma_images	rma_images_rma_id_foreign	1	rma_id	30000
+cardinality	rma_items	PRIMARY	1	id	30100
+cardinality	rma_items	rma_items_order_item_id_foreign	1	order_item_id	30000
+cardinality	rma_items	rma_items_rma_id_foreign	1	rma_id	30000
+cardinality	rma_items	rma_items_rma_reason_id_foreign	1	rma_reason_id	30000
+cardinality	rma_items	rma_items_variant_id_foreign	1	variant_id	30000
+cardinality	rma_messages	PRIMARY	1	id	29866
+cardinality	rma_messages	rma_messages_rma_id_foreign	1	rma_id	29866
+cardinality	rma_reason_resolutions	PRIMARY	1	id	30003
+cardinality	rma_reason_resolutions	rma_reason_resolutions_rma_reason_id_foreign	1	rma_reason_id	30000
+cardinality	rma_reasons	PRIMARY	1	id	30188
+cardinality	rma_rules	PRIMARY	1	id	30022
+cardinality	rma_statuses	PRIMARY	1	id	29248
+cardinality	roles	PRIMARY	1	id	1
+cardinality	search_synonyms	PRIMARY	1	id	30022
+cardinality	search_terms	PRIMARY	1	id	29867
+cardinality	search_terms	search_terms_channel_id_foreign	1	channel_id	1
+cardinality	search_terms	search_terms_term_channel_locale_unique	1	term	29867
+cardinality	search_terms	search_terms_term_channel_locale_unique	2	channel_id	26353
+cardinality	search_terms	search_terms_term_channel_locale_unique	3	locale	26235
+cardinality	sessions	PRIMARY	1	id	0
+cardinality	sessions	sessions_last_activity_index	1	last_activity	0
+cardinality	sessions	sessions_user_id_index	1	user_id	0
+cardinality	shipment_items	PRIMARY	1	id	29580
+cardinality	shipment_items	shipment_items_shipment_id_foreign	1	shipment_id	29580
+cardinality	shipments	PRIMARY	1	id	29594
+cardinality	shipments	shipments_inventory_source_id_foreign	1	inventory_source_id	1
+cardinality	shipments	shipments_order_id_foreign	1	order_id	29594
+cardinality	sitemap_channels	sitemap_channels_channel_id_foreign	1	channel_id	1
+cardinality	sitemap_channels	sitemap_channels_sitemap_id_channel_id_unique	1	sitemap_id	30369
+cardinality	sitemap_channels	sitemap_channels_sitemap_id_channel_id_unique	2	channel_id	30369
+cardinality	sitemaps	PRIMARY	1	id	29996
+cardinality	subscribers_list	PRIMARY	1	id	29911
+cardinality	subscribers_list	subscribers_list_channel_id_foreign	1	channel_id	1
+cardinality	subscribers_list	subscribers_list_customer_id_foreign	1	customer_id	29911
+cardinality	tax_categories	PRIMARY	1	id	29850
+cardinality	tax_categories	tax_categories_code_unique	1	code	29850
+cardinality	tax_categories_tax_rates	PRIMARY	1	id	30336
+cardinality	tax_categories_tax_rates	tax_categories_tax_rates_tax_rate_id_foreign	1	tax_rate_id	30000
+cardinality	tax_categories_tax_rates	tax_map_index_unique	1	tax_category_id	30000
+cardinality	tax_categories_tax_rates	tax_map_index_unique	2	tax_rate_id	30000
+cardinality	tax_rates	PRIMARY	1	id	29702
+cardinality	tax_rates	tax_rates_identifier_unique	1	identifier	29702
+cardinality	theme_section_translations	PRIMARY	1	id	29194
+cardinality	theme_section_translations	theme_customization_id_foreign	1	section_id	29194
+cardinality	theme_sections	PRIMARY	1	id	29993
+cardinality	theme_sections	theme_customizations_channel_id_foreign	1	channel_id	1
+cardinality	url_rewrites	PRIMARY	1	id	29702
+cardinality	url_rewrites	url_rewrites_et_rp_lc_idx	1	entity_type	29702
+cardinality	url_rewrites	url_rewrites_et_rp_lc_idx	2	request_path	27220
+cardinality	url_rewrites	url_rewrites_et_rp_lc_idx	3	locale	27714
+cardinality	users	PRIMARY	1	id	29842
+cardinality	users	users_email_unique	1	email	29842
+cardinality	wishlist	PRIMARY	1	id	30008
+cardinality	wishlist	wishlist_channel_id_foreign	1	channel_id	1
+cardinality	wishlist	wishlist_customer_id_foreign	1	customer_id	30000
+cardinality	wishlist	wishlist_product_id_foreign	1	product_id	30000
+cardinality	wishlist_items	PRIMARY	1	id	28964
+cardinality	wishlist_items	wishlist_items_channel_id_foreign	1	channel_id	1
+cardinality	wishlist_items	wishlist_items_customer_id_foreign	1	customer_id	1
+cardinality	wishlist_items	wishlist_items_product_id_foreign	1	product_id	28964

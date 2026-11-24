@@ -1,0 +1,6 @@
+1	GET	/admin/customers/view/{id}	/admin/customers/view/1	GET__admin_customers_view__id_
+2	POST	/admin/sales/invoices/create/{order_id}	/admin/sales/invoices/create/1	POST__admin_sales_invoices_create__order_id_
+3	GET	/api/products	/api/products	GET__api_products
+4	GET	/customer/account	/customer/account	GET__customer_account
+5	GET	/customer/account/wishlist	/customer/account/wishlist	GET__customer_account_wishlist
+6	POST	/customer/account/orders/cancel/{id}	/customer/account/orders/cancel/1	POST__customer_account_orders_cancel__id_

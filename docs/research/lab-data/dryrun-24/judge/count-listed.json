@@ -1,0 +1,80 @@
+{
+ "condition_1a": {
+  "goal_unmarked_queries": {
+   "denominator": 1,
+   "inside": 1,
+   "needed": 1,
+   "short": 0
+  },
+  "goal_unmarked_rows_examined": {
+   "denominator": 1,
+   "inside": 0,
+   "needed": 1,
+   "short": 1
+  },
+  "minimum_all_queries": {
+   "denominator": 5,
+   "inside": 5,
+   "needed": 4,
+   "short": 0
+  },
+  "minimum_all_rows_examined": {
+   "denominator": 5,
+   "inside": 4,
+   "needed": 4,
+   "short": 0
+  }
+ },
+ "condition_3_misses": 1,
+ "line_met_on_listed_routes": false,
+ "list_routes_missing_from_estimate": [],
+ "list_routes_with_incomplete_estimate": [],
+ "list_sha256": "47b366f9fa412cfca34256076902570e04ea5c334db18cf11629aa6a5fefcae4",
+ "not_measured_with_estimate": [
+  "GET /",
+  "GET /admin/marketing/communications/campaigns/edit/{id}",
+  "GET /admin/settings/inventory-sources/edit/{id}",
+  "GET /api/categories",
+  "GET /api/categories/attributes",
+  "GET /api/categories/attributes/{attribute_id}/options",
+  "GET /api/categories/tree",
+  "GET /api/core/countries",
+  "GET /api/customer/addresses",
+  "GET /api/customer/addresses/allowed-countries",
+  "GET /api/customer/addresses/allowed-states",
+  "GET /api/product/{id}/reviews",
+  "GET /customer/account/addresses/create",
+  "GET /sitemap.xml"
+ ],
+ "per_quantity": {
+  "queries": {
+   "denominator": 5,
+   "denominator_under_5": false,
+   "no_estimate": 0,
+   "routes_in_list": 19,
+   "unmeasured": 14,
+   "unmeasured_over_20_percent": true,
+   "with_estimate": 19
+  },
+  "rows_examined": {
+   "denominator": 5,
+   "denominator_under_5": false,
+   "no_estimate": 0,
+   "routes_in_list": 19,
+   "unmeasured": 14,
+   "unmeasured_over_20_percent": true,
+   "with_estimate": 19
+  }
+ },
+ "reasons": [
+  "queries: 14 of 19 routes with an estimate could not be measured, more than 20%",
+  "rows_examined: 14 of 19 routes with an estimate could not be measured, more than 20%"
+ ],
+ "routes_in_list": 19,
+ "rule_A_reasons": [
+  "queries: 14 of 19 routes with an estimate could not be measured, more than 20%",
+  "rows_examined: 14 of 19 routes with an estimate could not be measured, more than 20%"
+ ],
+ "verdict_rule_A_shown": "undecidable",
+ "verdict_rule_B": "undecidable"
+}

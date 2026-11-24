@@ -1,0 +1,50 @@
+[2026-11-24T11:37:37+0900] project peak-bagisto-dry24-eas, run id 4580faf894d0
+ Network peak-bagisto-dry24-eas_measure-internal Creating 
+ Network peak-bagisto-dry24-eas_measure-internal Created 
+ Volume peak-bagisto-dry24-eas_measure-dbdata Creating 
+ Volume peak-bagisto-dry24-eas_measure-dbdata Created 
+ Container peak-bagisto-dry24-eas-measure-db-1 Creating 
+ Container peak-bagisto-dry24-eas-measure-db-1 Created 
+ Container peak-bagisto-dry24-eas-measure-php-1 Creating 
+ Container peak-bagisto-dry24-eas-measure-php-1 Created 
+ Container peak-bagisto-dry24-eas-measure-db-1 Starting 
+ Container peak-bagisto-dry24-eas-measure-db-1 Started 
+ Container peak-bagisto-dry24-eas-measure-db-1 Waiting 
+ Container peak-bagisto-dry24-eas-measure-db-1 Healthy 
+ Container peak-bagisto-dry24-eas-measure-php-1 Starting 
+ Container peak-bagisto-dry24-eas-measure-php-1 Started 
+ Container peak-bagisto-dry24-eas-measure-php-1 Waiting 
+ Container peak-bagisto-dry24-eas-measure-db-1 Waiting 
+ Container peak-bagisto-dry24-eas-measure-db-1 Healthy 
+ Container peak-bagisto-dry24-eas-measure-php-1 Healthy 
+network peak-bagisto-dry24-eas_measure-internal internal=true
+PASS negative dns:example.com              did not resolve
+PASS negative tcp:1.1.1.1:443              could not connect
+PASS negative tcp:8.8.8.8:53               could not connect
+PASS negative http:example.com             no response
+PASS negative default-route                no default route
+PASS positive tcp:measure-db:3306          connected
+PASS positive dns:measure-db               resolved to 192.168.144.2
+PASS positive login:measure                logged in as the measurement user
+PREFLIGHT OK
+planned 2 databases for 63 routes (0 routes not planned)
+[2026-11-24T11:37:52+0900] 2 databases to build
+[2026-11-24T11:37:52+0900] g1 (target): building peak_sim_measure_4580faf894d0_shared_30000 (63 routes)
+[2026-11-24T11:42:30+0900] g1: built in 278 s
+prepared peak_sim_measure_4580faf894d0_shared_30000: 152 tables analyzed, STATS_AUTO_RECALC=0 on 70
+state default: STATS_SAMPLE_PAGES=20 and ANALYZE TABLE on 70 tables
+state default: 432 statement types, 192 sent as EXPLAIN FORMAT=JSON
+state low: STATS_SAMPLE_PAGES=4 and ANALYZE TABLE on 70 tables
+state low: 432 statement types, 192 sent as EXPLAIN FORMAT=JSON
+state high: STATS_SAMPLE_PAGES=200 and ANALYZE TABLE on 70 tables
+state high: 432 statement types, 192 sent as EXPLAIN FORMAT=JSON
+dropped peak_sim_measure_4580faf894d0_shared_30000
+[2026-11-24T11:42:51+0900] g1: done
+[2026-11-24T11:42:51+0900] g2 (small): building peak_sim_measure_4580faf894d0_shared_3000 (63 routes)
+[2026-11-24T11:43:24+0900] g2: built in 33 s
+prepared peak_sim_measure_4580faf894d0_shared_3000: 152 tables analyzed, STATS_AUTO_RECALC=0 on 70
+state default: STATS_SAMPLE_PAGES=20 and ANALYZE TABLE on 70 tables
+state default: 432 statement types, 192 sent as EXPLAIN FORMAT=JSON
+dropped peak_sim_measure_4580faf894d0_shared_3000
+[2026-11-24T11:43:31+0900] g2: done
+explain.json: 432 statement types, 1 plan_unstable, 31 plan_changes_at_scale, 0 explain_unavailable

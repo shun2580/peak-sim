@@ -1,0 +1,25 @@
+start_fit=2026-11-24T11:37:20+09:00 tool_head=6986d5351b10d5250cd5c4bf6cf45502f08e18a4
+end_predict=2026-11-24T11:37:22+09:00
+start_explain=2026-11-24T11:37:37+09:00 project=peak-bagisto-dry24-eas capture_sha=928b311eb47da3a58687236d633c2f376920b82a508227e91d587398c6e4a5a4 tasks_sha=c996986b57df28dd20d350037ee406c9ebf0029f503ffaa4e3cce67f5daab814
+end_explain=2026-11-24T11:43:32+09:00 exit=0
+start_estimate_1=2026-11-24T11:43:56+09:00
+end_estimate=2026-11-24T11:43:58+09:00
+stopped=2026-11-24T11:44:03+09:00
+mimic_commit=c9b8e9f7906d75bd9883de37894dc5b122b1e7b6 at=2026-11-24T11:44:17+09:00
+measure_start_iso=2026-11-24T11:44:23+09:00 tool_commit=c9b8e9f7906d75bd9883de37894dc5b122b1e7b6 project=peak-bagisto-dry24
+measure_exit=0 end_iso=2026-11-24T11:51:22+09:00
+repeat_start_iso=2026-11-24T11:51:22+09:00 project-prefix=peak-bagisto-dry24-var
+repeat_exit=2 end_iso=2026-11-24T11:51:22+09:00
+repeat_start_iso=2026-11-24T11:51:51+09:00 project-prefix=peak-bgdry24-var
+stopped=2026-11-24T11:51:54+09:00
+repeat_exit=0 end_iso=2026-11-24T11:58:28+09:00
+stopped2=2026-11-24T11:59:01+09:00
+cap_start_iso=2026-11-24T12:00:22+09:00 tool_commit=3018d4a6a3bd68918c6d4e047f1cd619178ef211 project=peak-bagisto-dry24c mem=400m compose=~/projects/peak-sim-trials/_scratch/dryrun24/cap/measure.compose.cap.yaml
+cap_exit=0 end_iso=2026-11-24T12:05:32+09:00
+cap_stopped=2026-11-24T12:06:08+09:00
+final_start_iso=2026-11-24T12:06:47+09:00
+measure_start_iso=2026-11-24T12:06:47+09:00 tool_commit=3018d4a6a3bd68918c6d4e047f1cd619178ef211 project=peak-bagisto-dry24f
+measure_exit=0 end_iso=2026-11-24T12:15:08+09:00
+repeat_start_iso=2026-11-24T12:15:08+09:00 project-prefix=peak-bgdry24f-var
+repeat_exit=0 end_iso=2026-11-24T12:21:33+09:00
+final_stopped=2026-11-24T12:22:42+09:00

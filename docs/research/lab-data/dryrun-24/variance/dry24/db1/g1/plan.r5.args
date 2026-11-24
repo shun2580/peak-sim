@@ -1,0 +1,7 @@
+--scale=30000
+--uri=/customer/account/wishlist
+--method=GET
+--route=/customer/account/wishlist
+--axis=N
+--act-as=Webkul\Customer\Models\Customer:1:customer
+--phases=warmup,cold
