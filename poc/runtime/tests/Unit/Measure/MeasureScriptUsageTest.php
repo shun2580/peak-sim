@@ -55,6 +55,12 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'empty profile' => [['--app=/x', '--static=/y', '--profile=']];
         yield 'gate bypass maybe' => [['--app=/x', '--static=/y', '--gate-bypass=maybe']];
         yield 'timeout not a number' => [['--app=/x', '--static=/y', '--request-timeout=soon']];
+        yield 'n tables with a capital' => [['--app=/x', '--static=/y', '--n-tables=Entities']];
+        yield 'n tables with an empty name' => [['--app=/x', '--static=/y', '--n-tables=a,,b']];
+        yield 'n tables with a trailing comma' => [['--app=/x', '--static=/y', '--n-tables=a,']];
+        yield 'n tables empty' => [['--app=/x', '--static=/y', '--n-tables=']];
+        yield 'n tables with a schema dot' => [['--app=/x', '--static=/y', '--n-tables=db.entities']];
+        yield 'n tables with the seeder' => [['--app=/x', '--static=/y', '--data=seeder', '--n-tables=entities']];
     }
 
     /** @param list<string> $args */
@@ -76,6 +82,8 @@ final class MeasureScriptUsageTest extends TestCase
         yield 'three digits' => [['--request-timeout=100']];
         yield 'warm off' => [['--warm=off']];
         yield 'all three' => [['--scales=100000', '--request-timeout=600', '--warm=off']];
+        yield 'n tables' => [['--n-tables=entities,images,references']];
+        yield 'one n table with the generator' => [['--data=generator', '--n-tables=entities']];
     }
 
     /**
@@ -105,6 +113,7 @@ final class MeasureScriptUsageTest extends TestCase
         $this->assertStringContainsString('--request-timeout', $out);
         $this->assertStringContainsString('--gate-bypass', $out);
         $this->assertStringContainsString('--warm', $out);
+        $this->assertStringContainsString('--n-tables', $out);
     }
 
     public function test_help_names_the_variable_that_runs_the_stack_in_another_image(): void

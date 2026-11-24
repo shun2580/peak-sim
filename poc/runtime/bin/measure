@@ -34,6 +34,8 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
                          alone gives no growth verdict (a log-log slope needs two), the counts per route are still recorded
   --only=<a>,<b>         measure only the routes whose uri contains one of these; a name that starts with = must equal the whole uri
   --base=N               generator only: rows of every table that is not scaled (default 5)
+  --n-tables=<a>,<b>     generator only: these tables all grow to N together, in one database shared by every route (the way
+                         a plan taken at scale builds its database); without it each route gets the database of its own scaled table
   --profile=<name>       generator only: app knowledge from profiles/<name>.php (column values, tables to skip); a result
                          reached with a profile is reported apart from one reached without
   --gate-bypass=on|off  on (default): a route that answers 403 is tried once more with every Gate check let through, and that
@@ -66,7 +68,7 @@ fail_usage() {
   exit 2
 }
 
-app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" profile="" profile_given=0 gate="" timeout="" warm="" keep=0 purge=0
+app="" static="" out="" expected="" data="generator" scales="100,1000,10000" only="" base="" ntables="" ntables_given=0 profile="" profile_given=0 gate="" timeout="" warm="" keep=0 purge=0
 for arg in "$@"; do
   case "$arg" in
     --help|-h) usage; exit 0 ;;
@@ -78,6 +80,7 @@ for arg in "$@"; do
     --scales=*) scales="${arg#--scales=}" ;;
     --only=*) only="${arg#--only=}" ;;
     --base=*) base="${arg#--base=}" ;;
+    --n-tables=*) ntables="${arg#--n-tables=}"; ntables_given=1 ;;
     --profile=*) profile="${arg#--profile=}"; profile_given=1 ;;
     --gate-bypass=*) gate="${arg#--gate-bypass=}" ;;
     --request-timeout=*) timeout="${arg#--request-timeout=}" ;;
@@ -102,6 +105,10 @@ for s in "${scale_list[@]}"; do
   prev="$s"
 done
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ "$ntables_given" = 1 ]; then
+  [[ "$ntables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || fail_usage "--n-tables takes table names (lowercase letters, digits and _) separated by commas"
+  [ "$data" = generator ] || fail_usage "--n-tables is for --data=generator"
+fi
 if [ "$profile_given" = 1 ]; then [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"; fi
 if [ -n "$gate" ]; then case "$gate" in on|off) ;; *) fail_usage "--gate-bypass takes on or off" ;; esac; fi
 if [ -n "$timeout" ]; then [[ "$timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$timeout))" -ge 1 ] && [ "$((10#$timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"; fi
@@ -125,6 +132,7 @@ cp "$static" "$PEAK_OUT_DIR/static.json" || { echo "bin/measure: cannot write to
 inner=(--data="$data")
 [ -n "$only" ] && inner+=(--only="$only")
 [ -n "$base" ] && inner+=(--base="$base")
+[ "$ntables_given" = 1 ] && inner+=(--n-tables="$ntables")
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")
 [ -n "$warm" ] && inner+=(--warm="$warm")

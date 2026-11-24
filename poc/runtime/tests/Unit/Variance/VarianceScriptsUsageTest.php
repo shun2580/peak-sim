@@ -125,6 +125,11 @@ final class VarianceScriptsUsageTest extends TestCase
         yield 'watch interval of zero' => [['--watch-interval=0']];
         yield 'profile with a path' => [['--profile=../x']];
         yield 'data kind unknown' => [['--data=dump']];
+        yield 'n tables with a capital' => [['--n-tables=Entities']];
+        yield 'n tables with an empty name' => [['--n-tables=a,,b']];
+        yield 'n tables empty' => [['--n-tables=']];
+        yield 'n tables with a schema dot' => [['--n-tables=db.entities']];
+        yield 'n tables with the seeder' => [['--data=seeder', '--n-tables=entities']];
         yield 'parallel without a php image' => [['--parallel']];
         yield 'notifier that is not a file' => [['--notify=/no/such/notifier']];
         yield 'a record that already exists' => [['--label=taken', '--out=OUT']];
@@ -140,6 +145,22 @@ final class VarianceScriptsUsageTest extends TestCase
 
         $this->assertSame(2, $code, $err);
         $this->assertStringContainsString('bin/variance-run', $err);
+    }
+
+    public function test_shared_n_tables_pass_the_checks_of_the_script_and_stop_only_at_the_record_that_exists(): void
+    {
+        [$code, , $err] = self::invoke('variance-run', [...self::good(), '--label=taken', '--source-commit=abc1234', '--n-tables=entities,images,references']);
+
+        $this->assertSame(2, $code, $err);
+        $this->assertStringContainsString('already exists', $err);
+    }
+
+    public function test_help_names_the_n_tables_option(): void
+    {
+        [$code, $out] = self::invoke('variance-run', ['--help']);
+
+        $this->assertSame(0, $code);
+        $this->assertStringContainsString('--n-tables', $out);
     }
 
     /**

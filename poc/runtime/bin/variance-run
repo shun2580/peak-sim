@@ -60,6 +60,8 @@ usage: bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [
   --profile=<name>       app profile (default bookstack; "none" for no profile)
   --data=generator|seeder  how the databases are filled (default generator)
   --base=N               generator only: rows of every table that is not scaled
+  --n-tables=<a>,<b>     generator only: these tables all grow to N together, in the one database every route shares (the way
+                         a plan taken at scale builds its database); without it each route gets the database of its own scaled table
   --request-timeout=N    seconds one request may run, 1 to 600 (default 600)
   --tap=on|off           on (default): give measure-one --tap-out=<file> so each trial leaves its per-statement record;
                          off: leave the flag out (for a measure-one that does not have it)
@@ -110,7 +112,7 @@ fail_usage() {
 }
 
 app="" tasks="" scale="" out="" label="variance" routes="$T1_ROUTES" dbs=2 laps=3 parallel=0 image="" profile="bookstack"
-data="generator" base="" req_timeout=600 tap=on analyze=none notify="" w_interval=30 w_stmt=900 w_idle=1800 source_commit=""
+data="generator" base="" ntables="" ntables_given=0 req_timeout=600 tap=on analyze=none notify="" w_interval=30 w_stmt=900 w_idle=1800 source_commit=""
 prefix="peak-var" keep=0 purge=0 stats_auto=keep stats_tables="$T1_STATS_TABLES"
 for arg in "$@"; do
   case "$arg" in
@@ -128,6 +130,7 @@ for arg in "$@"; do
     --profile=*) profile="${arg#--profile=}" ;;
     --data=*) data="${arg#--data=}" ;;
     --base=*) base="${arg#--base=}" ;;
+    --n-tables=*) ntables="${arg#--n-tables=}"; ntables_given=1 ;;
     --request-timeout=*) req_timeout="${arg#--request-timeout=}" ;;
     --tap=*) tap="${arg#--tap=}" ;;
     --analyze=*) analyze="${arg#--analyze=}" ;;
@@ -161,6 +164,10 @@ case "$out" in /*) ;; *) fail_usage "--out must be an absolute path" ;; esac
 [[ "$profile" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || fail_usage "--profile takes the name of a file in profiles/ (lowercase letters, digits, - and _)"
 case "$data" in generator|seeder) ;; *) fail_usage "--data takes generator or seeder" ;; esac
 if [ -n "$base" ]; then [[ "$base" =~ ^[1-9][0-9]{0,3}$ ]] || fail_usage "--base must be a positive integer"; fi
+if [ "$ntables_given" = 1 ]; then
+  [[ "$ntables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || fail_usage "--n-tables takes table names (lowercase letters, digits and _) separated by commas"
+  [ "$data" = generator ] || fail_usage "--n-tables is for --data=generator"
+fi
 [[ "$req_timeout" =~ ^[0-9]{1,3}$ ]] && [ "$((10#$req_timeout))" -ge 1 ] && [ "$((10#$req_timeout))" -le 600 ] || fail_usage "--request-timeout must be 1 to 600 seconds"
 case "$tap" in on|off) ;; *) fail_usage "--tap takes on or off" ;; esac
 case "$analyze" in none|before|rerun) ;; *) fail_usage "--analyze takes none, before or rerun" ;; esac
@@ -203,6 +210,7 @@ mkdir -p "$run_root" || { echo "bin/variance-run: cannot write to $run_root" >&2
   echo "php_image=${image:-default}"
   # only when asked for: a run with the default (keep) writes exactly the record it wrote before this option existed
   [ "$stats_auto" = off ] && echo "stats_auto_recalc=off stats_tables=$stats_tables"
+  [ "$ntables_given" = 1 ] && echo "n_tables=$ntables"
 } > "$run_root/run.txt"
 
 json() { # json key=value ... -> one JSON object; a value of only digits is a number, anything else a string
@@ -244,9 +252,10 @@ run_db() {
   # Passed by name: the key is on no command line and never printed.
   local exec_env=(-e PEAK_MEASURE_APP_KEY -e "PEAK_MEASURE_REQUEST_TIMEOUT=$req_timeout")
   [ "$profile" != none ] && exec_env+=(-e "PEAK_MEASURE_PROFILE=$profile")
-  local profile_arg=() base_arg=()
+  local profile_arg=() base_arg=() ntables_arg=()
   [ "$profile" != none ] && profile_arg=("--profile=$profile")
   [ -n "$base" ] && base_arg=("--base=$base")
+  [ "$ntables_given" = 1 ] && ntables_arg=("--n-tables=$ntables")
 
   refuse_if_kept_volume || return 2
   teardown() { [ "$keep" = 1 ] || stack_down "$purge" >/dev/null 2>&1; }
@@ -264,7 +273,7 @@ run_db() {
 
   cp "$tasks" "$db_dir/tasks.json" || return 2
   # The plan is made inside the container (it needs the measurer's own classes) and written as plain files under /out.
-  if ! in_php /peak-sim/poc/runtime/bin/inner/variance-plan.php --tasks=/out/tasks.json "--routes=$routes" "--scale=$scale" "--data=$data" --out-dir=/out "${profile_arg[@]}" "${base_arg[@]}"; then
+  if ! in_php /peak-sim/poc/runtime/bin/inner/variance-plan.php --tasks=/out/tasks.json "--routes=$routes" "--scale=$scale" "--data=$data" --out-dir=/out "${profile_arg[@]}" "${base_arg[@]}" "${ntables_arg[@]}"; then
     echo "[$(now_iso)] db$k: the plan could not be made" >&2
     return 2
   fi
