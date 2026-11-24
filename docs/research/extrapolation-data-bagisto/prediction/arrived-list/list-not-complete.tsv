@@ -1,0 +1,7 @@
+method	uri	status	reason
+GET	/admin/catalog/products/edit/{id}	partial	capture status partial
+GET	/admin/marketing/promotions/cart-rules/edit/{id}	partial	capture status partial
+GET	/api/customer/wishlist	partial	capture status partial
+DELETE	/api/customer/wishlist/{id}	partial	capture status partial
+GET	/api/products/{id}/related	partial	capture status partial
+GET	/api/products/{id}/up-sell	partial	capture status partial

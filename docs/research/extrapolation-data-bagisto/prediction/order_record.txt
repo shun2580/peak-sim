@@ -1,0 +1,15 @@
+start_all=2026-11-24T12:35:54+09:00 tool_head=d99180ed6bf7e9ad841b0f269bca90bcde426a8d project=peak-bagisto-a240k-eas capture_sha=928b311eb47da3a58687236d633c2f376920b82a508227e91d587398c6e4a5a4 tasks_sha=c996986b57df28dd20d350037ee406c9ebf0029f503ffaa4e3cce67f5daab814
+start_fit=2026-11-24T12:35:54+09:00
+fit failed
+note: the first start (12:35:54) stopped at fit (exit 3, no image peak-measure-php:8.4 for PHP_VERSION=8.4); nothing else ran; restarted with PHP_VERSION=8.3 for the fit/predict/estimate/marked steps (no database was touched)
+start_all=2026-11-24T12:36:16+09:00 tool_head=d99180ed6bf7e9ad841b0f269bca90bcde426a8d project=peak-bagisto-a240k-eas capture_sha=928b311eb47da3a58687236d633c2f376920b82a508227e91d587398c6e4a5a4 tasks_sha=c996986b57df28dd20d350037ee406c9ebf0029f503ffaa4e3cce67f5daab814
+start_fit=2026-11-24T12:36:16+09:00
+end_predict=2026-11-24T12:36:17+09:00
+start_explain=2026-11-24T12:36:17+09:00 project=peak-bagisto-a240k-eas scale=240000 small=default(10000) mem_cap=none_for_build
+end_explain=2026-11-24T12:51:42+09:00 exit=0
+db_stop exit=0
+stopped=2026-11-24T12:52:13+09:00
+start_estimate_1=2026-11-24T12:52:13+09:00
+start_estimate_2=2026-11-24T12:52:14+09:00
+end_estimate=2026-11-24T12:52:15+09:00
+done_all=2026-11-24T12:52:15+09:00
