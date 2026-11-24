@@ -210,7 +210,7 @@ flat over the sizes); it was not added or removed by hand, and it does not chang
 | Not measured | 20 | 23 | 19 | 62 |
 
 So of 45 measured routes, 20 show that the data reached them; 25 measured routes and 13 `no_info` routes carry the note (38 routes; `summary.json` counts 37 because it counts URIs and one URI is there with two methods).
-The one `O(N)` verdict is in the admin area: `GET /admin/marketing/promotions/cart-rules/edit/{id}`, from the points at 100, 1,000 and 10,000 rows (it returned 206, 1,572 and 15,226 rows; at 10,000 rows
+The one `O(N)` verdict is in the admin area: `GET /admin/marketing/promotions/cart-rules/edit/{id}`, from the points at 100, 1,000 and 10,000 rows (it ran 206, 1,572 and 15,226 statements per request (the values the verdict is fitted on), and returned 1,334, 36,475 and 2,718,246 rows; at 10,000 rows
 the answer was about 989 MB and the peak memory about 4.3 GB). At 30,000 rows it answered 500, and why was not found.
 This count cannot be set beside the first capture's (29 measured, 17 `no_info`, 98 GET routes of the storefront): the route set and the data are different, and no better or worse is claimed.
 
@@ -235,7 +235,7 @@ The login gates work: of the 41 customer-side and 40 admin routes, none is recor
 
 **What is not known.**
 
-- The cause of the 9 `exception` routes (and of the 500 of the one `O(N)` route at 30,000 rows) is not known: the application writes its log to stderr, the tool does not keep an exception's text, and the log file in the container is empty.
+- The cause of the 9 `exception` routes (and of the 500 of the one `O(N)` route at 30,000 rows) is not known: the application writes its log to stderr, the tool does not keep an exception's text, and there is no log file in the container.
   Among them are the customer's order page and the order withdraw route. A fix for the order page that was tried (the product type of the order's items) did not change the answer and was not kept.
 - Which 7 routes the tool counts as not being controllers is not known.
 - That a route shows the data reached it says the rows it read grew with the size; it does not say the route is measured well at a size that was not seen.
