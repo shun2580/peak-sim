@@ -4,7 +4,7 @@
   python3 -I timeout_scan.py --out <dir> --measure <measure dir> --variance <variance dir> [--variance <variance dir> ...]
   python3 -I timeout_scan.py --selftest
 
-The rule (one sentence, the lord's ruling of 2026-11-24 18:45; D255 has the same words):
+The rule (one sentence, the maintainer's ruling of 2026-11-24 18:45; D255 has the same words):
 
   A try whose `stderr.log` holds the text `the request ran longer than 600 seconds` in even one place (the text of RequestTimeout,
   poc/runtime/src/Run/Requester.php:232) counts as a timeout (D126b), whatever the class and the detail of its record say.
