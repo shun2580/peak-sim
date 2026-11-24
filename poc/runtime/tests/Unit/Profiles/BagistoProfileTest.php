@@ -6,6 +6,7 @@ namespace PeakSim\Runtime\Tests\Unit\Profiles;
 
 use PDO;
 use PeakSim\Runtime\Measure\Profile;
+use PeakSim\Runtime\Measure\RouteOrder;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -93,6 +94,46 @@ final class BagistoProfileTest extends TestCase
         $numbers = $pdo->query('SELECT _lft FROM categories UNION ALL SELECT _rgt FROM categories ORDER BY 1')->fetchAll(PDO::FETCH_COLUMN);
         $this->assertSame(range(1, 12), array_map('intval', $numbers), 'the numbers 1 to 2n each appear once');
         $this->assertSame(5, (int) $pdo->query('SELECT COUNT(*) FROM categories WHERE parent_id = 1 AND id > 1')->fetchColumn());
+    }
+
+    public function test_the_routes_that_rewrite_a_shared_table_are_named_in_the_order_they_are_measured(): void
+    {
+        $listed = Profile::stateChanging($this->profile);
+
+        $this->assertSame([
+            'POST /admin/sales/rma/rma-status/mass-delete' => ['rma_statuses'],
+            'POST /api/customer/addresses' => ['addresses'],
+            'POST /customer/account/addresses/create' => ['addresses'],
+            'POST /customer/account/orders/cancel/{id}' => ['order_items', 'product_inventory_indices'],
+            'POST /customer/account/profile/destroy' => ['wishlist_items', 'addresses', 'orders'],
+        ], $listed);
+    }
+
+    public function test_the_order_rule_measures_those_routes_last_of_the_120_and_keeps_the_place_of_the_rest(): void
+    {
+        $file = dirname(__DIR__, 5) . '/docs/research/bagisto-prep/route-set-measure.txt';
+        $this->assertFileExists($file);
+        $routes = array_values(array_filter(array_map('trim', (array) file($file)), static fn (string $l): bool => $l !== ''));
+        $this->assertCount(120, $routes);
+
+        $last = array_keys(Profile::stateChanging($this->profile));
+        foreach ($last as $route) {
+            $this->assertContains($route, $routes, $route . ' is in the measured route set');
+        }
+
+        $ordered = RouteOrder::lastRoutesLast($routes, static fn (string $r): string => $r, $last);
+
+        $this->assertCount(120, $ordered);
+        $this->assertSame($last, array_slice($ordered, -count($last)));
+        $this->assertSame(array_values(array_diff($routes, $last)), array_slice($ordered, 0, 120 - count($last)));
+        $this->assertNotSame($routes, $ordered, 'with the list the order is not the order of the task list');
+    }
+
+    public function test_every_listed_route_says_why_and_names_a_file_and_line_of_the_app_or_of_the_record(): void
+    {
+        foreach ($this->profile['state_changing'] as $entry) {
+            $this->assertMatchesRegularExpression('/\.php:\d+/', $entry['why'], $entry['route']);
+        }
     }
 
     public function test_after_generation_refuses_a_database_that_is_not_a_measurement_database(): void

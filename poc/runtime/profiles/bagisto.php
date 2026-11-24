@@ -227,6 +227,46 @@ $profile = [
     ],
 ];
 
+// Routes whose request rewrites, in one call, a part of a table that grows with the count of rows, and that other routes of the route
+// set read. Each request is rolled back, so the rows return and the optimizer's statistics of the table do not; a route measured after one
+// of these reads the table in another state. They are measured after every other route of their database, in this order. The criterion is
+// the one of `profiles/bookstack.php`: a write whose row count grows with N (the data above puts every wishlist item, order, order item and
+// a third of the addresses on customer 1 and order 1, and every return-request status on one `default` value). The 120 routes were read
+// one by one, with the file and line of each, in docs/research/bagisto-prep/state-changing.md. The list was set from the code and the
+// data layout (and, for the one delete the capture of 30,000 rows recorded, from that record), before any measurement at the count the
+// test is run at. A route that could write many rows depending on a
+// body or a state the tool may not reach is listed (measured last costs nothing) and says so.
+//   Order of the list: a route that deletes or nulls rows other listed routes read goes after them. The cascade of the customer deletion
+//   removes `addresses` and `wishlist_items` rows and nulls `orders.customer_id`, so it is last; the order cancellation reads and
+//   rewrites the order's items, so it goes before it.
+$profile['state_changing'] = [
+    [
+        'route' => 'POST /admin/sales/rma/rma-status/mass-delete',
+        'tables' => ['rma_statuses'],
+        'why' => 'deletes with `where default = 0` and no condition on the id (packages/Webkul/Admin/src/Http/Controllers/Sales/RMA/StatusController.php:146); the capture of 30,000 rows recorded `delete from rma_statuses where default = ?` with 30,003 rows deleted. The return-request list of the storefront joins `rma_statuses` (packages/Webkul/Shop/src/DataGrids/RMA/RMADataGrid.php:33)',
+    ],
+    [
+        'route' => 'POST /api/customer/addresses',
+        'tables' => ['addresses'],
+        'why' => 'when the body carries `default_address` it updates every default address of the customer (packages/Webkul/Shop/src/Http/Controllers/API/AddressController.php:81-85); the data puts a third of `addresses` on customer 1 and half of them have the flag (poc/runtime/src/Data/ValueFactory.php:160-161). The form request does not list `default_address` (packages/Webkul/Shop/src/Http/Requests/Customer/AddressRequest.php:31-50), so the tool probably does not send it; listed because it is not certain and measuring it last costs nothing',
+    ],
+    [
+        'route' => 'POST /customer/account/addresses/create',
+        'tables' => ['addresses'],
+        'why' => 'the same statement as the API route above, on the same condition (packages/Webkul/Shop/src/Http/Controllers/Customer/Account/AddressController.php:70-74); listed on the same doubt',
+    ],
+    [
+        'route' => 'POST /customer/account/orders/cancel/{id}',
+        'tables' => ['order_items', 'product_inventory_indices'],
+        'why' => 'cancels the order: for every item of the order it saves the item (packages/Webkul/Sales/src/Repositories/OrderRepository.php:153-185), and order 1 holds every generated item; after the cancel the product listener re-indexes the inventory of every product of the order (packages/Webkul/Product/src/Listeners/Order.php:23-35, queue `sync`: .env.example:44), which the product listings read. It writes only if an item has a quantity to cancel and the order is not closed or fraud (Sales/src/Models/Order.php:375-390), which the generated words may not satisfy; listed on that doubt',
+    ],
+    [
+        'route' => 'POST /customer/account/profile/destroy',
+        'tables' => ['wishlist_items', 'addresses', 'orders'],
+        'why' => 'deletes the customer (packages/Webkul/Shop/src/Http/Controllers/Customer/CustomerController.php:167); the foreign keys cascade to `wishlist_items` (Customer/src/Database/Migrations/2023_05_26_213105_create_wishlist_items_table.php:26) and `addresses` (Core/src/Database/Migrations/2020_04_16_185147_add_table_addresses.php:39), and set `orders.customer_id` to null (Sales/src/Database/Migrations/2018_09_27_113154_create_orders_table.php:76); the data puts every wishlist item and order and a third of the addresses on customer 1. It deletes only when the password matches (CustomerController.php:160), which the tool cannot supply; listed because its effect would be the largest of the set, and it is last',
+    ],
+];
+
 $profile['after_generation'] =
     /** @return array{fixups: array<string, int>} */
     static function (PDO $pdo, string $database) use ($profile): array {
