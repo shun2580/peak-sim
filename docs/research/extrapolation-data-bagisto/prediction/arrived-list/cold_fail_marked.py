@@ -4,7 +4,7 @@
   python3 -I cold_fail_marked.py --out <dir> --compare <compare_test2.py> --marked <marked.json> --at <rows> \
       --measure <measure dir or attempts.jsonl> [--repeated <routes list>] [--variance <dir> ...]
 
-The ruling (the lord, 2026-11-24 18:50): a marked route whose cold try of the all-route measure failed (500 and the like) and whose
+The ruling (the maintainer, 2026-11-24 18:50): a marked route whose cold try of the all-route measure failed (500 and the like) and whose
 repeat later gave an ok is counted as NOT MEASURED (a). The count of the records as written (b) is shown beside it and decides nothing.
 The reason is D126b: the measure side shows a timeout only if its text was kept, so "no timeout seen" does not mean "no timeout".
 

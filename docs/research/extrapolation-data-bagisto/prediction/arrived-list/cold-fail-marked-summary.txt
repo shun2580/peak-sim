@@ -9,4 +9,4 @@ listed (7):
   GET /api/products/{id}/up-sell  [500; written: exception 500; in repeated list: yes]
 variance records rewritten for (a): 1 (directories: 1)
 compare_test2.py sha256: 95da6a9b77bdc5c43a1455c9c1ac9b4f11cb0e966aa1cfeac4e42220e382bb8b
-script sha256: 17f5cbfa79a54978571472d7eaa7450f33e694bce2eba63fdd20b08c43d551bf
+script sha256: da668a1107bf190adf04e85307872753f7a885c037d302c556c77bb701cb8dcf
