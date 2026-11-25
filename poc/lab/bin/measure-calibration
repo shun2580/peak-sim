@@ -135,7 +135,7 @@ if [ "$search_gate_advisory" = 1 ]; then   # GATE-ADVISORY: only a refusal (14) 
     printf 'min_degree=%s\n' "$(sed -n 's/^ *"min_degree": *\([0-9.eE+-]*\),*$/\1/p' "$gate_json" | head -1)"
     printf 'min_left_out=%s\n' "$(sed -n 's/^ *"min_left_out": *"\([^"]*\)",*$/\1/p' "$gate_json" | head -1)"
     printf 'threshold=%s\n' "$(sed -n 's/^ *"threshold": *\([0-9.eE+-]*\),*$/\1/p' "$gate_json" | head -1)"
-    printf 'note=%s\n' "this run was made with --search-gate-advisory: a refused gate (14) did not stop it; it is a search run, not a calibration run"
+    printf 'note=%s\n' "this run was made with --search-gate-advisory: a refused gate (14) did not stop it; if this run is taken as the rate, it is the calibration run itself and is not measured again (D274, D277)"
   } >"$out/search-gate-advisory.txt"
   if [ "$gate_rc" = 14 ]; then
     echo "GATE ADVISORY: the calibration gate refused (exit 14) and --search-gate-advisory is given, so the search run goes on; the degrees are in $out/calibration-gate.json (decisions.md D270 decision 1)" >&2

@@ -267,8 +267,8 @@ has "$work/mc.err" 'GATE ADVISORY: the calibration gate refused (exit 14)' && pa
 has "$work/mc.out" 'degree 0.005938' && pass "10f the degrees are printed as before" || fail "10f no degrees in the output"
 has "$out/calibration/calibration-gate.json" '"passed": false' && pass "10g calibration-gate.json keeps the refusal (passed false)" || fail "10g"
 a="$out/calibration/search-gate-advisory.txt"
-has "$a" 'search_gate_advisory=1' && has "$a" 'gate_exit=14' && has "$a" 'gate_passed=false' && has "$a" 'min_degree=0.0038' && has "$a" 'min_left_out=cal-4' && has "$a" 'threshold=0.5' \
-  && pass "10h search-gate-advisory.txt has the flag, the gate's exit code 14, passed false, the smallest degree 0.0038 (without cal-4) and the threshold" || fail "10h ($(cat "$a" 2>/dev/null | tr '\n' ' '))"
+has "$a" 'search_gate_advisory=1' && has "$a" 'gate_exit=14' && has "$a" 'gate_passed=false' && has "$a" 'min_degree=0.0038' && has "$a" 'min_left_out=cal-4' && has "$a" 'threshold=0.5' && has "$a" 'it is the calibration run itself and is not measured again' && ! has "$a" 'not a calibration run' \
+  && pass "10h search-gate-advisory.txt has the flag, the gate's exit code 14, passed false, the smallest degree 0.0038 (without cal-4), the threshold and a note that a taken search run is the calibration run itself" || fail "10h ($(cat "$a" 2>/dev/null | tr '\n' ' '))"
 has "$out/calibration/cal-1/search-gate-advisory.txt" 'gate_exit=14' && has "$out/calibration/cal-1/calibration-gate.json" '"passed": false' && pass "10i the run's directory keeps the same two records" || fail "10i"
 grep -q 'CHECKSUM' "$work/docker.calls" && pass "10j the guard of the N tables ran before the load tool" || fail "10j"
 # the write check still runs and still stops the entry (a record that writes outside views)
