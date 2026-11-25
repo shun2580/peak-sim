@@ -80,3 +80,34 @@ This is a finding about the gate on inputs and is written here before any run is
 Any exit of a guard other than 0 (13, 14, 15, 16, 17, 18) stops everything and nothing is retried or repaired. The load tool's own failure, a run whose rate is not reached
 (`rps_status` not `valid`), any 503, any statement the write guards refuse, or a utilization that cannot be read: stop and report. No database is removed, no volume is removed, no
 `--purge`, no `docker kill`; the database container is stopped with `docker stop -t 180` at the end.
+
+## The first run: cal-6 at 0.45 rps (2026-11-25 14:31 to 14:50)
+
+Measured through `bin/measure-calibration` with the gate stand-ins above; the gate opened (smallest degree 0.507784, without cal-4), the write check, the limits guard (`LIMITS OK`) and
+the guards of the N tables (identical before and after) all passed. Records: `cal6-rps-0.45/` (the entry's own output files, `cal-6/record.json` among them), `search-log.txt`.
+
+| | |
+| --- | --- |
+| Rate asked, rate reached | 0.45 rps asked, **0.3625 reached** (ratio 0.8056); `rps_status` **invalid** (`rps_outside_5_percent`, `load_tool_dropped_arrivals`) |
+| Requests in the kept window (480 s) | 174 sent, 47 arrivals dropped by the load tool; route 1 (`GET /api/products`): 132 sent at 0.275 rps against 0.36 asked; the other seven routes 6 each (0.0125 rps against 0.0129) |
+| Statuses | 200 for 173; status 0 (no answer: the 600 s request timeout) for 1, on route 1 |
+| Request time | mean 286 s, 95th percentile 571 s, longest 600 s (the load tool's own timing); 23 requests of route 1 were in flight at the window's start and 67 at its end |
+| Database utilization (2 CPUs) | **26.1014%** |
+| App CPU utilization (6 CPUs) | **99.89%**: the app was at its limit for the whole window |
+| Tables | the N tables identical before and after; `innodb_table_stats` unchanged (no automatic recalculation) |
+
+The utilization is inside 20% to 30%, but the run is **not valid**: the rate was not reached, because the app's 6 CPUs were exhausted, and the load tool dropped arrivals and timed
+a request out. The rule written above says that a run whose rate is not reached stops the search; it was not made into a rate. No further run was measured. R_3 and R_4 are
+not found, so the grid of the gate over R_0, R_1 and R_2 for the real R_3 and R_4 (D266, decision 2) was not made.
+
+What the run shows, as measurements and not as explanations: at this mix the limit is the app, not the database. The database was at 26% while the app was at 100% and answering in minutes. From
+the window's figures, the app used about 2,877 CPU-seconds over 480 s for 174 requests, about 16.5 s of app CPU per request on average (route 1 is 76% of them); the database used about
+251 CPU-seconds, about 1.44 s per request, which is the figure the desk estimate gave. The desk estimate looked at the database only. The next stage value below, 0.3, would be 0.36 times
+the rate reached at saturation, so its utilization would be near 21.6% if the database cost scales with the rate (a figure of order, not a measurement), at the lower edge of the band; and at
+R_3 = 0.3 the gate refuses with the stand-ins above (and with any cal-7 rate from 0.45 to 1.5), so the next run cannot be measured through the entry as it stands.
+
+## State left
+
+The compose files of the lab are back to the committed bytes (`limits/t-restore.txt`: the same two SHA-256 as before), the database container was stopped with `docker stop -t 180` (`Shutdown complete`,
+`limits/db-shutdown.txt`) and the stack taken down without `-v`: the data volume of the Bagisto lab (with the 3,000-, 10,000- and 30,000-row databases) is kept, as is the BookStack lab's. The 30,000-row
+database was measured once and not purged.

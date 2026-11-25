@@ -1,0 +1,4 @@
+2026-11-25 14:31:22 PRE free: total 15 available 9 df: 883G free
+2026-11-25 14:31:22 START cal-6 R_3=0.45 R_4=0.7 name=cal6-rps-0.45 (stand-ins R_0=1 R_1=4 R_2=0.45)
+2026-11-25 14:50:25 END cal-6 name=cal6-rps-0.45 exit=0
+RESULT target=0.45 achieved=0.3625 status=invalid db_util=26.1014% requests=174 dropped=47 http={'0': 1, '200': 173}
