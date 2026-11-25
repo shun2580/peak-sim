@@ -1,0 +1,18 @@
+route	rows_sum_30000	statements_30000	writes	tables_written	result
+GET /api/products	1770285	18	no		selected 1
+GET /customer/account/addresses/create	810103	33	no		selected 2
+GET /admin/customers/view/{id}	570079	37	no		selected 3
+GET /admin/marketing/communications/campaigns/edit/{id}	300059	27	no		selected 4
+GET /admin/settings/inventory-sources/edit/{id}	300042	23	no		selected 5
+GET /admin/customers/search	210039	22	no		selected 6
+GET /api/categories	120049	4	no		selected 7
+GET /api/categories/attributes/{attribute_id}/options	62131	23	no		selected 8
+GET /api/product/{id}/reviews	60041	21	no		not selected: below the first 8
+GET /api/categories/tree	60011	4	no		not selected: below the first 8
+GET /api/customer/addresses/allowed-countries	60010	3	no		not selected: below the first 8
+GET /api/customer/addresses/allowed-states	60010	3	no		not selected: below the first 8
+GET /sitemap.xml	60006	2	no		not selected: below the first 8
+GET /	30007	2	no		not selected: below the first 8
+GET /api/core/countries	30007	2	no		not selected: below the first 8
+GET /api/customer/addresses	30007	2	no		not selected: below the first 8
+GET /api/categories/attributes	4182	7	no		not selected: below the first 8

@@ -1,0 +1,9 @@
+candidates (listed routes that are GET): 17
+listed routes that are not GET: 2
+taken out (write a table of the N list): 0
+remaining after the write guard: 17
+selected: 8 (cap 8, minimum 6)
+tables the lab may write: 0
+empty-kind statements read as not writing (no write word): 0
+the first 8 by rows_sum, by cold_rows_examined and by the jsonl rows.examined are the same set: yes
+the three first-8 lists are in the same order: yes

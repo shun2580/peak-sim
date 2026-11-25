@@ -1,0 +1,18 @@
+route	rank_rows_sum	rank_cold_rows_examined	rank_rows_examined_jsonl	cold_rows_examined_30000	rows_examined_jsonl_30000
+GET /api/products	1	1	1	1770285	1770285
+GET /customer/account/addresses/create	2	2	2	810103	810103
+GET /admin/customers/view/{id}	3	3	3	570079	570079
+GET /admin/marketing/communications/campaigns/edit/{id}	4	4	4	300059	300059
+GET /admin/settings/inventory-sources/edit/{id}	5	5	5	300042	300042
+GET /admin/customers/search	6	6	6	210039	210039
+GET /api/categories	7	7	7	120049	120049
+GET /api/categories/attributes/{attribute_id}/options	8	8	8	62131	62131
+GET /api/product/{id}/reviews	9	9	9	60041	60041
+GET /api/categories/tree	10	10	10	60011	60011
+GET /api/customer/addresses/allowed-countries	11	11	11	60010	60010
+GET /api/customer/addresses/allowed-states	12	12	12	60010	60010
+GET /sitemap.xml	13	13	13	60006	60006
+GET /	14	14	14	30007	30007
+GET /api/core/countries	15	15	15	30007	30007
+GET /api/customer/addresses	16	16	16	30007	30007
+GET /api/categories/attributes	17	17	17	4182	4182

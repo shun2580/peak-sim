@@ -1,0 +1,9 @@
+number	route	rows_sum_30000
+1	GET /api/products	1770285
+2	GET /customer/account/addresses/create	810103
+3	GET /admin/customers/view/{id}	570079
+4	GET /admin/marketing/communications/campaigns/edit/{id}	300059
+5	GET /admin/settings/inventory-sources/edit/{id}	300042
+6	GET /admin/customers/search	210039
+7	GET /api/categories	120049
+8	GET /api/categories/attributes/{attribute_id}/options	62131
