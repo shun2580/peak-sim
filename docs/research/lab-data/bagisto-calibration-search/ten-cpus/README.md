@@ -224,3 +224,32 @@ The rule is the one written above for R_3 (stage values from the top down; first
 The set given to the entry is cal-1 to cal-8 (cal-8 asked of the gate only, not measured); R_0 = 2, R_3 = 0.2 and R_4 = 1.0 are real; the stand-ins are R_1 = 8 and R_5 = 8. They are chosen from the inputs-only table
 (`gate-real-r3-r4/grid-real-set8.tsv`, the points with R_0 = 2 and R_2 = 1.5): R_1 = 8 and R_5 = 8 has the smallest degree 0.594549, the largest of the points with R_5 = 8, and the same pair opens the gate at every stage value of R_2 from 0.05 to 5
 (smallest degrees 0.570351 at 0.05, 0.578212 at 0.7, 0.584551 at 1.0, 0.594549 at 1.5). They are stand-ins for the gate's question, not values of R_1 or R_5, and are not kept as such. The stand-ins are the same for every cal-5 run of this search.
+
+### cal-5 (R_2) at 1.5 and 1.0 rps (2026-11-26 00:31 to 01:04; `cal5-r1.5/`, `cal5-r1/`)
+
+Both runs were measured on the 30,000-row database with R_0 = 2, R_3 = 0.2 and R_4 = 1.0 real and the stand-ins R_1 = 8 and R_5 = 8 given to the gate; the gate opened each time, the write check, the limits guard (`LIMITS OK`, 1800 s) and the guards of the N tables passed.
+10 minutes at a constant rate, the first 2 discarded, the kept window 480 s. The database's start log (above) had no recovery line.
+
+| Rate asked | Rate reached (ratio) | `rps_status` | Database (2 CPUs) | App (10 CPUs) | Requests sent, all status 200 | Arrivals dropped |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1.5 | 1.4667 (0.9778) | invalid (`load_tool_dropped_arrivals`) | 40.1903% | 77.01% | 704 | 16 |
+| 1.0 | 1.0000 (1.0000) | valid | **21.5445%** | 41.19% | 480 | 0 |
+
+By the rule: 1.5 is invalid (arrivals dropped by the load tool), and its utilization is also above 30%, so the search goes to the next stage value down; 1.0 is valid and inside 20% to 30%, it is the first value from the top that is, and it was made in the
+conditions of a run, so it is cal-5's run and is not measured again: **R_2 = 1.0 rps** (database 21.54%, app 41.2%). The run at 1.5 stays as an invalid record. (The first start of the 1.0 run failed in 1 second, before anything was measured, because the plan file was named
+with `1.0` instead of `1`; it was started again with the right name, and the line of the failed start is in `search-log.txt`.)
+
+### The search of R_1 stops before its first run: the gate refuses at 1 rps and at 2 rps
+
+R_1 is searched on cal-4 (even mix, 3,000 rows) by doubling from 1 rps. The entry calls the gate with the plans of the whole set before it measures, and the set has R_0 = 2, R_2 = 1.0, R_3 = 0.2 and R_4 = 1.0 real now. Asked of the gate with the command line
+(`bin/measure-calibration --gate-only`, cal-1 to cal-8, nothing measured; `gate-r1-stop/`), R_5 = 8 as the stand-in:
+
+| R_1 (cal-4) | Smallest degree | Gate |
+| --- | --- | --- |
+| 1 | 0.378826 (read from the table `gate-real-r3-r4/grid-real-set8.tsv`; it is 0.374260 to 0.378826 for R_5 from 1 to 32) | refuses (exit 14) |
+| 2 | 0.429264 (table; 0.386401 to 0.429264 for R_5 from 1 to 32) | refuses (exit 14) |
+| 4 | 0.522605 (table) | opens (exit 0) |
+
+The table says the same for every R_5 from 1 to 32: at R_0 = 2 and R_2 = 1.0, no R_1 of 1 or 2 opens the gate, whatever stand-in is given to cal-8 (over the whole grid of the table, R_1 = 1 passes at 0 of 504 points and R_1 = 2 at 42 of 504; at R_0 = 2 and R_2 = 1.0 neither passes at any R_5).
+By D270 (decision 1) the gate in front of a search run is a reference and must not stop the search, but the entry has no way to skip it and a stand-in cannot open it here. The first two runs of the doubling (1 and 2 rps) therefore cannot be entered,
+and the search of R_5 (cal-8, from 1 rps) has the same shape (R_5 of 1 passes at 0 of 504 points). The rule does not say what to do; nothing was measured for R_1 or R_5, the effective gate was not called, and the search stops here.

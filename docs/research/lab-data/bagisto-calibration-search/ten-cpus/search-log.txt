@@ -30,3 +30,14 @@ RESULT target=4.0 achieved=3.6625 status=invalid db_util=45.9734% app_cpu=90.608
 2026-11-25 17:54:42 START cal-1 name=cal1-r2.83 R_0=2.83 R_1=16 R_2=5 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
 2026-11-25 18:10:44 END cal-1 name=cal1-r2.83 exit=0
 RESULT target=2.83 achieved=2.8146 status=invalid db_util=31.5948% app_cpu=61.60592376578804 requests=1351 dropped=9 http={'200': 1351}
+2026-11-26 00:31:07 PRE free: total 15 available 10 df: 883G free
+2026-11-26 00:31:07 START cal-5 name=cal5-r1.5 R_0=2 R_1=8 R_2=1.5 R_3=0.2 R_4=1 R_5=8 (the one measured is cal-5; the other rates are real or stand-ins as the README says)
+2026-11-26 00:49:48 END cal-5 name=cal5-r1.5 exit=0
+RESULT target=1.5 achieved=1.4667 status=invalid db_util=40.1903% app_cpu=77.01161270559473 requests=704 dropped=16 http={'200': 704}
+2026-11-26 00:50:02 PRE free: total 15 available 8 df: 883G free
+2026-11-26 00:50:02 START cal-5 name=cal5-r1 R_0=2 R_1=8 R_2=1.0 R_3=0.2 R_4=1 R_5=8 (the one measured is cal-5; the other rates are real or stand-ins as the README says)
+2026-11-26 00:50:03 END cal-5 name=cal5-r1 exit=2
+2026-11-26 00:50:30 PRE free: total 15 available 8 df: 883G free
+2026-11-26 00:50:30 START cal-5 name=cal5-r1 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=8 (the one measured is cal-5; the other rates are real or stand-ins as the README says)
+2026-11-26 01:04:25 END cal-5 name=cal5-r1 exit=0
+RESULT target=1.0 achieved=1.0000 status=valid db_util=21.5445% app_cpu=41.18595821402977 requests=480 dropped=0 http={'200': 480}
