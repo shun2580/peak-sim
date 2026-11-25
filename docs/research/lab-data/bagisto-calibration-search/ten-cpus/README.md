@@ -200,3 +200,27 @@ and (b) taking the tried value whose utilization is nearest 25% among the valid 
 ## State left
 
 The compose files were put back to the committed bytes (`lab-config-b restore`), the database container was stopped with `docker stop -t 180` and the stack taken down without `-v`; the data volume (with the 3,000-, 10,000- and 30,000-row databases) is kept, as is the other lab's.
+
+## The search goes on after the maintainer's ruling on R_0 (second session; written before any run of it is measured)
+
+### What is fixed by the ruling (decisions D273)
+
+R_0 is **2 rps**, the valid run of cal-1 at 2 rps (database 19.33%, "just below the band"); the runs at 4 and 2.83 rps stay as invalid records and are not used for the calibration. No further run of cal-1 is made: the calibration run of cal-1 will use the search run at 2 rps
+(the same reading as for R_3 and R_4). The real rates now are R_0 = 2, R_3 = 0.2 and R_4 = 1.0. The remaining searches are R_2, R_1 and R_5, in this order; each is searched on its own run, and each run is given the real rates found so far and stand-ins for the rest.
+
+### The lab as it is started again (2026-11-26 00:29, read before any run)
+
+- Repository HEAD `0fa8924`; the lab files are as committed; the app and web containers have 10 CPUs as before (`5bdf38d`).
+- Machine just before the stack was started: 15 GiB total, 11 GiB available, 883 GB free on the disk; Windows Update is paused until 2026-11-28 15:02 UTC (read from the registry).
+- Database container start log (`docker logs` of the container, the whole log: 13 lines). The database was stopped cleanly last time (`Shutdown complete`). The log shows `InnoDB initialization has started` and `has ended` 0.7 s later, then `X Plugin ready for connections` and
+  `mysqld: ready for connections. Version: '8.4.7'`. There is **no line about crash recovery, redo log application or an error**; the only two warnings are the ones every start of this image prints (the CA certificate is self signed; the pid-file directory is
+  accessible to all OS users). The closed-network check passed for all five containers (`PREFLIGHT OK`).
+- The limits are put on as before (B's settings: PHP time 0, `memory_limit` 4G, nginx 1800 s; the load tool's request timeout 1,800 s) and read back with `bin/check-limits` before the first run.
+- Every run records the database's utilization (2 CPUs) and the app's CPU utilization (10 CPUs, `app_cpu_utilization` in `record.json`). While a run is measured nothing else is run on this machine (D271, condition c).
+
+### cal-5 (R_2) at 1.5 rps: the first run and the stand-ins
+
+The rule is the one written above for R_3 (stage values from the top down; first value 1.5 from the desk estimate; more than 30% → the next value down; the first value below 20% → stop and report; a run whose rate is not reached is invalid and not taken).
+The set given to the entry is cal-1 to cal-8 (cal-8 asked of the gate only, not measured); R_0 = 2, R_3 = 0.2 and R_4 = 1.0 are real; the stand-ins are R_1 = 8 and R_5 = 8. They are chosen from the inputs-only table
+(`gate-real-r3-r4/grid-real-set8.tsv`, the points with R_0 = 2 and R_2 = 1.5): R_1 = 8 and R_5 = 8 has the smallest degree 0.594549, the largest of the points with R_5 = 8, and the same pair opens the gate at every stage value of R_2 from 0.05 to 5
+(smallest degrees 0.570351 at 0.05, 0.578212 at 0.7, 0.584551 at 1.0, 0.594549 at 1.5). They are stand-ins for the gate's question, not values of R_1 or R_5, and are not kept as such. The stand-ins are the same for every cal-5 run of this search.
