@@ -156,3 +156,21 @@ the batch's degrees (0.644140 and 0.550836).
 - So with cal-8 the region is open: R_0 up to 8 (nearly none at 8), R_1 from 2, R_5 from 2. R_0 of 16 or more would end the search (D272, decision 3).
 
 What follows: R_0, R_1, R_2 and R_5 are searched one at a time. cal-8 needs a 1,000-row database of its own, which is not built yet.
+
+## The search of R_0, R_1, R_2 and R_5 (rules and stand-ins fixed before the first of these runs)
+
+The gate on inputs alone with R_3 = 0.2 and R_4 = 1.0 fails for cal-1 to cal-7 at every point and passes at 311 points with cal-8 (above). So the search goes on with the set cal-1 to cal-8, and each remaining rate is searched on its own run:
+
+- **R_0** (cal-1, even mix, 10,000 rows), **R_1** (cal-4, even, 3,000 rows), **R_5** (cal-8, even, 1,000 rows): the doubling search of the specification, from 1 rps: 1, 2, 4, 8, …; the first rate whose database utilization is in 20% to 30% is the rate. A first run above 30% stops the search
+  and reports (D183, amendment 1). If a rate is not reached (`rps_status` not `valid`, D270 decision 2), the geometric mean of the previous rate and this one is tried once; if that is not reached or is outside the band, stop and report (D272, decision 1).
+  A value of R_5 above 32, or of R_0 of 16 or more, is handled as D272 decisions 2 and 3 say.
+- **R_2** (cal-5, even, 30,000 rows): the stage values from the top down (D183; D263 gives cal-5 the rule of D183). The first value is the one the desk estimate of the first search puts nearest the band from above: the cost of a request of the even mix at 30,000 rows is
+  the mean of the eight routes' 1.666, 0.769, 0.545, 0.289, 0.288, 0.203, 0.114, 0.065 s = 0.4924 s, so the database's utilization on 2 CPUs would be 36.9% at 1.5 rps and 24.6% at 1.0 rps: **the first value is 1.5**. Then the same rule as for R_3 (1 to 5 of "The rule for R_3 and R_4").
+  The desk estimate was off by a factor of 0.6 to 1.5 in the two skewed runs, so it is a way of choosing the first value and nothing more.
+- The order of the search: R_0 first (a value of 16 or more would end the search at once), then R_2, R_1, R_5. Each run is given the rates found so far and stand-ins for the rest; the stand-in is chosen from `gate-real-r3-r4/grid-real-set8.tsv` so that the entry's gate opens, and it is written here before the run.
+- cal-8 needs a database of 1,000 rows and the databases of 10,000 and 3,000 rows exist already (built for the first search); the 1,000-row database is built and analysed once with the tools of the first search before the R_5 run, and its record is added here.
+
+### cal-1 (R_0): the stand-ins
+
+For the cal-1 runs: R_1 = 16, R_2 = 5, R_5 = 32 as stand-ins (R_3 0.2 and R_4 1.0 are the real ones). With them the gate opens at cal-1 at 1, 1.41, 2, 2.83, 4 and 5.66 (the smallest degrees 0.562302, 0.572432, 0.588850, 0.610578, 0.593375,
+0.548233; `gate-standin-cal1/`); it does not open at 8 with these stand-ins, and if the search reaches 8 the stand-ins for that run are chosen from the table and written here first. The geometric means 1.41, 2.83 and 5.66 are the ones the rule would try after a rate that is not reached.
