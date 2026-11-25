@@ -31,6 +31,7 @@ use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
 use PeakSim\Runtime\LabEntry\AllowedWrites;
 use PeakSim\Runtime\LabEntry\EntryGuard;
+use PeakSim\Runtime\LabEntry\LoginChoice;
 use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Run\ActingAs;
 use PeakSim\Runtime\Run\QueryCounter;
@@ -72,6 +73,18 @@ try {
     } catch (\InvalidArgumentException $e) {
         $refuse(503, 'the list of tables the lab may write cannot be used', $e->getMessage());
     }
+    // The login of this request: before the app starts, so a login the lab does not offer is refused without touching the database.
+    // A list of logins that cannot be read is a refusal too (503), never a fall back to the default login.
+    try {
+        $offeredLogins = LoginChoice::parseOffered((string) ($env['PEAK_LAB_LOGINS'] ?? ''));
+    } catch (\InvalidArgumentException $e) {
+        $refuse(503, 'the list of logins the lab offers cannot be used', $e->getMessage());
+    }
+    try {
+        $actAs = LoginChoice::resolve((string) ($_SERVER['HTTP_X_LAB_LOGIN'] ?? ''), (string) ($env['PEAK_LAB_ACT_AS'] ?? ''), $offeredLogins);
+    } catch (\InvalidArgumentException $e) {
+        $refuse(400, 'the login is not one the lab offers', $e->getMessage());
+    }
     $config = MeasureConfig::fromEnv($env);
     $scale = (int) ($env['PEAK_LAB_SCALE'] ?? '0');
     $booted = (new AppBooter())->boot($config, $scale, ScratchDir::fixed($scratchPath));
@@ -81,8 +94,8 @@ try {
     if ($profile !== '') {
         Profile::onBoot(Profile::load($profile), $app);
     }
-    // A route the measurement requested as a guest is sent with `X-Lab-Login: none` (poc/lab/bin/targets says which).
-    $actAs = ($_SERVER['HTTP_X_LAB_LOGIN'] ?? '') === 'none' ? '' : ($env['PEAK_LAB_ACT_AS'] ?? '');
+    // `X-Lab-Login: none` is a request as a guest, `X-Lab-Login: <name>` one of the logins PEAK_LAB_LOGINS offers; with no header
+    // the login is PEAK_LAB_ACT_AS (poc/lab/bin/targets says which each route is sent as).
     if ($actAs !== '') {
         ActingAs::apply($app, $actAs);
     }

@@ -9,6 +9,8 @@
 #                          They are made once and kept, because the database's data volume outlives `down`.
 #   PEAK_LAB_SCALE         the scale of the database the app reads (default 10000)
 #   PEAK_LAB_ACT_AS        the login of the entry script (default the first BookStack user)
+#   PEAK_LAB_LOGINS        the other logins a request may choose by name: name=Model\Class:key:guard, separated by `;` (default none: the
+#                          default login and the guest alone). Read by the entry (X-Lab-Login: <name>) and by bin/targets.
 #   PEAK_LAB_COMPOSE_FILES colon-separated compose files (default: lab.compose.yaml). TEST ONLY: the leaky overrides.
 #   PEAK_LAB_PREFIX        the name every container, the data volume and the network of one stack start with (default peak-lab). A second
 #                          stack (another app) sets its own project name (PEAK_LAB_PROJECT), prefix, state and out directories, and shares
@@ -79,6 +81,7 @@ if [ -n "${PEAK_LAB_ALLOWED_WRITES_FILE:-}" ]; then
   export PEAK_LAB_ALLOWED_WRITES_FILE PEAK_LAB_ALLOWED_WRITES_IN_APP
 fi
 [ -n "${PEAK_LAB_ACT_AS:-}" ] && export PEAK_LAB_ACT_AS
+[ -n "${PEAK_LAB_LOGINS:-}" ] && export PEAK_LAB_LOGINS
 
 LAB_CONTAINERS=("$PEAK_LAB_DB_CONTAINER" "$PEAK_LAB_APP_CONTAINER" "$PEAK_LAB_WEB_CONTAINER" "$PEAK_LAB_K6_CONTAINER" "$PEAK_LAB_TOOLS_CONTAINER")
 

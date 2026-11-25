@@ -1,0 +1,94 @@
+{
+    "schema_version": "1",
+    "rule": "the routes of the committed selection (docs/research/lab-data/bagisto-route-list/list/selected.tsv, by the rule of docs/simulator-spec.md 7.4.7), in its order; login is the guard the capture logged the route in on (customer, admin), or guest",
+    "inputs": {
+        "selection": {
+            "path": "docs/research/lab-data/bagisto-route-list/list/selected.tsv",
+            "sha256": "58509450f852e7b3274ac7e5b491ac786fc7094e406184ee7253addcdce190c6"
+        },
+        "capture_tasks": {
+            "file": "tasks.json of the third capture",
+            "sha256": "c996986b57df28dd20d350037ee406c9ebf0029f503ffaa4e3cce67f5daab814"
+        }
+    },
+    "counts": {
+        "selected": 8,
+        "customer": 1,
+        "admin": 4,
+        "guest": 3
+    },
+    "selected": [
+        {
+            "route": "GET /api/products",
+            "rank": 1,
+            "rows_sum_30000": 1770285,
+            "selected": true,
+            "half": "first",
+            "login": "guest",
+            "capture_act_as": null
+        },
+        {
+            "route": "GET /customer/account/addresses/create",
+            "rank": 2,
+            "rows_sum_30000": 810103,
+            "selected": true,
+            "half": "first",
+            "login": "customer",
+            "capture_act_as": "Webkul\\Customer\\Models\\Customer:1:customer"
+        },
+        {
+            "route": "GET /admin/customers/view/{id}",
+            "rank": 3,
+            "rows_sum_30000": 570079,
+            "selected": true,
+            "half": "first",
+            "login": "admin",
+            "capture_act_as": "Webkul\\User\\Models\\Admin:1:admin"
+        },
+        {
+            "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+            "rank": 4,
+            "rows_sum_30000": 300059,
+            "selected": true,
+            "half": "first",
+            "login": "admin",
+            "capture_act_as": "Webkul\\User\\Models\\Admin:1:admin"
+        },
+        {
+            "route": "GET /admin/settings/inventory-sources/edit/{id}",
+            "rank": 5,
+            "rows_sum_30000": 300042,
+            "selected": true,
+            "half": "second",
+            "login": "admin",
+            "capture_act_as": "Webkul\\User\\Models\\Admin:1:admin"
+        },
+        {
+            "route": "GET /admin/customers/search",
+            "rank": 6,
+            "rows_sum_30000": 210039,
+            "selected": true,
+            "half": "second",
+            "login": "admin",
+            "capture_act_as": "Webkul\\User\\Models\\Admin:1:admin"
+        },
+        {
+            "route": "GET /api/categories",
+            "rank": 7,
+            "rows_sum_30000": 120049,
+            "selected": true,
+            "half": "second",
+            "login": "guest",
+            "capture_act_as": null
+        },
+        {
+            "route": "GET /api/categories/attributes/{attribute_id}/options",
+            "rank": 8,
+            "rows_sum_30000": 62131,
+            "selected": true,
+            "half": "second",
+            "login": "guest",
+            "capture_act_as": null
+        }
+    ]
+}

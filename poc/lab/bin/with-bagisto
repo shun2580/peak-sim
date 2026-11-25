@@ -16,12 +16,15 @@
 #                                     the route list (spec 7.4.7: the tables the selected routes write, outside the N tables) and does not exist
 #                                     until it is committed with the list. Until then every guard that reads it REFUSES (check-writes exit 15,
 #                                     check-tables exit 2, the entry answers 503): the lab cannot write anything before the maintainer's rule has a list.
-#   the route list                    PEAK_LAB_ROUTE_LIST, default poc/lab/bagisto/route-list.json: the routes the script of spec 7.4.7 selects. It does
-#                                     not exist until it is committed, and until then check-writes refuses (exit 15)
+#   the route list                    PEAK_LAB_ROUTE_LIST, default poc/lab/bagisto/route-list.json: the routes the script of spec 7.4.7 selects, each with
+#                                     the login the capture used (made by poc/lab/bagisto/make-route-list)
 #   the N tables                      PEAK_LAB_TABLES_FILE, default docs/research/bagisto-prep/n-tables.txt (the tables that grow with the count)
 #   the counts seen so far            PEAK_LAB_SEEN_SCALES is empty: no count above 30,000 counts as seen for Bagisto, so any count above it is
 #                                     refused (exit 17, no query sent) until a committed prediction holds a scenario of that count
-#   the login of the entry            PEAK_LAB_ACT_AS, the first customer on the `customer` guard (a request as a guest is sent with `X-Lab-Login: none`)
+#   the logins of the entry           PEAK_LAB_LOGINS offers the two logins the capture used: the first customer on the `customer` guard and the
+#                                     administrator (admins row 1) on the `admin` guard. bin/targets sends each route as the login the measurement's own
+#                                     inspection gave it (the profile's `auth_gates`), by name in `X-Lab-Login`; a guest route is sent with `none`.
+#                                     PEAK_LAB_ACT_AS (the customer) is only the login of a request that names none; a name not on the list is refused (400)
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/../../.." && pwd)"
@@ -36,6 +39,7 @@ export PEAK_LAB_STATE_DIR="${PEAK_LAB_BAGISTO_STATE_DIR:-$HOME/.cache/peak-lab-b
 export PEAK_LAB_OUT_DIR="${PEAK_LAB_BAGISTO_OUT_DIR:-$PEAK_LAB_STATE_DIR/out}"
 export PEAK_LAB_PROFILE="${PEAK_LAB_PROFILE:-bagisto}"
 export PEAK_LAB_ACT_AS="${PEAK_LAB_ACT_AS:-Webkul\\Customer\\Models\\Customer:1:customer}"
+export PEAK_LAB_LOGINS="${PEAK_LAB_LOGINS:-customer=Webkul\\Customer\\Models\\Customer:1:customer;admin=Webkul\\User\\Models\\Admin:1:admin}"
 export PEAK_LAB_ALLOWED_WRITES_FILE="${PEAK_LAB_ALLOWED_WRITES_FILE:-poc/lab/bagisto/allowed-write-tables.txt}"
 export PEAK_LAB_ROUTE_LIST="${PEAK_LAB_ROUTE_LIST:-poc/lab/bagisto/route-list.json}"
 export PEAK_LAB_TABLES_FILE="${PEAK_LAB_TABLES_FILE:-$repo/docs/research/bagisto-prep/n-tables.txt}"

@@ -103,6 +103,8 @@ services:
       PEAK_LAB_SCALE: ${PEAK_LAB_SCALE:-10000}
       PEAK_LAB_PROFILE: ${PEAK_LAB_PROFILE:-bookstack}
       PEAK_LAB_ACT_AS: ${PEAK_LAB_ACT_AS:-BookStack\Users\Models\User:1:web}
+      # The logins a request may choose by name (`X-Lab-Login: <name>`); empty means the default login and the guest alone, as before.
+      PEAK_LAB_LOGINS: ${PEAK_LAB_LOGINS:-}
       PEAK_LAB_GATE_BYPASS: ${PEAK_LAB_GATE_BYPASS:-0}
       PEAK_LAB_SCRATCH: /scratch/peak-measure-lab
       # A path inside the container (the repository is mounted at /peak-sim); empty means `views` alone.

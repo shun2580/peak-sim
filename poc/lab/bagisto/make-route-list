@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Makes the Bagisto lab's route list (poc/lab/bagisto/route-list.json) from the committed selection and the capture's own record of
+who each route was logged in as. Nothing is chosen by hand: the routes and their order are those of list/selected.tsv (made by
+select_lab_routes.py by the rule of docs/simulator-spec.md 7.4.7), and the login of each route is the one the capture used for it.
+
+    poc/lab/bagisto/make-route-list --selected=<selected.tsv> --tasks=<capture tasks.json> [--out=<route-list.json>]
+
+`tasks.json` is the capture's task list (poc/runtime/bin/capture): per route, `act_as` is `Model\\Class:key:guard`, or null when the capture
+called the route as a guest. The profile's `auth_gates` decided that (a route with the customer gate on the `customer` guard, a route with
+the back-office gate on the `admin` guard, no gate no login). The `login` written for a route is the guard of its `act_as` (`customer`,
+`admin`), or `guest`. A guard other than those two, a route missing from the task list or listed twice, or one that was not filled is a stop
+(exit 4) and nothing is written. The list is not changed after it is committed with the prediction: a different list would be a different test.
+When the entry is later asked for a route (poc/lab/bin/targets), the login it is sent as is read again from the measurement's own inspection
+and must be the same one: the entry's real check compares the two.
+exit codes: 0 / 2 usage / 4 a stop
+"""
+import hashlib
+import json
+import os
+import sys
+
+GUARDS = {"customer", "admin"}
+HALF = 4  # ranks 1-4 are the first half and ranks 5-8 the second (docs/simulator-spec.md 7.2)
+
+
+def stop(message):
+    sys.stderr.write("make-route-list: " + message + "\n")
+    sys.exit(4)
+
+
+def sha256(path):
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+
+def read_selected(path):
+    rows = []
+    with open(path, "r", encoding="utf-8") as fh:
+        lines = fh.read().splitlines()
+    if not lines or lines[0].split("\t") != ["number", "route", "rows_sum_30000"]:
+        stop("the selection has not the header number, route, rows_sum_30000: " + path)
+    for line in lines[1:]:
+        cells = line.split("\t")
+        if len(cells) != 3 or not cells[0].isdigit() or not cells[2].isdigit():
+            stop("a line of the selection cannot be read: " + line[:80])
+        rows.append({"number": int(cells[0]), "route": cells[1], "rows_sum_30000": int(cells[2])})
+    if not rows or [r["number"] for r in rows] != list(range(1, len(rows) + 1)):
+        stop("the selection is empty or not numbered 1..n")
+    if len({r["route"] for r in rows}) != len(rows):
+        stop("a route is selected twice")
+    return rows
+
+
+def login_of(task):
+    act_as = task.get("act_as")
+    if act_as is None:
+        return "guest", None
+    parts = str(act_as).split(":")
+    guard = parts[2] if len(parts) == 3 else None
+    if guard not in GUARDS:
+        stop("a route was logged in on a guard the lab does not offer (%s): %s" % (guard, act_as))
+    return guard, act_as
+
+
+def main(argv):
+    selected = tasks = out = None
+    for arg in argv:
+        if arg.startswith("--selected="):
+            selected = arg[len("--selected="):]
+        elif arg.startswith("--tasks="):
+            tasks = arg[len("--tasks="):]
+        elif arg.startswith("--out="):
+            out = arg[len("--out="):]
+        else:
+            selected = None
+            break
+    if not selected or not tasks:
+        sys.stderr.write("usage: make-route-list --selected=<selected.tsv> --tasks=<capture tasks.json> [--out=<route-list.json>]\n")
+        sys.exit(2)
+    rows = read_selected(selected)
+    with open(tasks, "r", encoding="utf-8") as fh:
+        task_list = json.load(fh)
+    by_route = {}
+    for task in task_list:
+        spec = task.get("spec") or {}
+        key = "%s %s" % (spec.get("method", ""), spec.get("uri", ""))
+        if key in by_route:
+            stop("the task list has the route twice: " + key)
+        by_route[key] = task
+    selected_rows = []
+    for row in rows:
+        task = by_route.get(row["route"])
+        if task is None:
+            stop("the capture's task list has no entry for " + row["route"])
+        if task.get("fail_class") is not None or not isinstance(task.get("uri"), str):
+            stop("the capture did not fill " + row["route"])
+        login, act_as = login_of(task)
+        selected_rows.append({
+            "route": row["route"],
+            "rank": row["number"],
+            "rows_sum_30000": row["rows_sum_30000"],
+            "selected": True,
+            "half": "first" if row["number"] <= HALF else "second",
+            "login": login,
+            "capture_act_as": act_as,
+        })
+    document = {
+        "schema_version": "1",
+        "rule": "the routes of the committed selection (docs/research/lab-data/bagisto-route-list/list/selected.tsv, by the rule of docs/simulator-spec.md 7.4.7), in its order; "
+                "login is the guard the capture logged the route in on (customer, admin), or guest",
+        "inputs": {
+            "selection": {"path": "docs/research/lab-data/bagisto-route-list/list/selected.tsv", "sha256": sha256(selected)},
+            "capture_tasks": {"file": "tasks.json of the third capture", "sha256": sha256(tasks)},
+        },
+        "counts": {"selected": len(selected_rows), "customer": sum(r["login"] == "customer" for r in selected_rows),
+                   "admin": sum(r["login"] == "admin" for r in selected_rows), "guest": sum(r["login"] == "guest" for r in selected_rows)},
+        "selected": selected_rows,
+    }
+    text = json.dumps(document, indent=4, ensure_ascii=False) + "\n"
+    if out:
+        tmp = out + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        os.replace(tmp, out)
+    else:
+        sys.stdout.write(text)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

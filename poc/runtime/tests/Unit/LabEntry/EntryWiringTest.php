@@ -23,6 +23,8 @@ final class EntryWiringTest extends TestCase
     private const CALLS = [
         'method check' => 'EntryGuard::methodRefusal(',
         'latch check' => 'EntryGuard::latchRefusal(',
+        'logins read' => 'LoginChoice::parseOffered(',
+        'login chosen' => 'LoginChoice::resolve(',
         'app start' => 'new AppBooter(',
         'guard made' => 'new EntryGuard(',
         'statement watch' => '$guard->watch(',
@@ -65,8 +67,17 @@ final class EntryWiringTest extends TestCase
             || preg_match('/\$guard = new EntryGuard\([^;]*, \$allowedTables\);/', $code) !== 1) {
             $problems[] = 'allowed tables: the list the environment names is not read, or the guard is not given it';
         }
-        if (preg_match('/catch \(\\\\InvalidArgumentException \$e\) \{\s*\$refuse\(503, /', $code) !== 1) {
+        if (preg_match('/AllowedWrites::fromEnv\(\$env\); \} catch \(\\\\InvalidArgumentException \$e\) \{ \$refuse\(503, /', $code) !== 1) {
             $problems[] = 'allowed tables: a list that cannot be read is not a refusal';
+        }
+        if (preg_match('/\$offeredLogins = LoginChoice::parseOffered\(\(string\) \(\$env\[\'PEAK_LAB_LOGINS\'\] \?\? \'\'\)\); \} catch \(\\\\InvalidArgumentException \$e\) \{ \$refuse\(503, /', $code) !== 1) {
+            $problems[] = 'logins: the list the environment offers is not read, or a list that cannot be read is not a 503';
+        }
+        if (preg_match('/\$actAs = LoginChoice::resolve\(\(string\) \(\$_SERVER\[\'HTTP_X_LAB_LOGIN\'\] \?\? \'\'\), \(string\) \(\$env\[\'PEAK_LAB_ACT_AS\'\] \?\? \'\'\), \$offeredLogins\); \} catch \(\\\\InvalidArgumentException \$e\) \{ \$refuse\(400, /', $code) !== 1) {
+            $problems[] = 'login: the header, the default and the offered list are not what chooses it, or a login that is not offered is not a 400';
+        }
+        if (preg_match('/if \(\$actAs !== \'\'\) \{ ActingAs::apply\(\$app, \$actAs\); \}/', $code) !== 1) {
+            $problems[] = 'login: the user the choice names is not the one the app is logged in as';
         }
         if (preg_match('/\$guard->watch\(\$db, \$app\[\'events\'\]\);/', $code) !== 1) {
             $problems[] = 'statement watch: it is not put on the app\'s database and events';
@@ -104,6 +115,13 @@ final class EntryWiringTest extends TestCase
         yield 'allowed tables not read' => ['$allowedTables = AllowedWrites::fromEnv($env);', '$allowedTables = [\'views\'];', '', ''];
         yield 'allowed tables not given to the guard' => [', (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'), $allowedTables);', ', (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'));', '', ''];
         yield 'a list that cannot be read is let through' => ["\$refuse(503, 'the list of tables the lab may write cannot be used', \$e->getMessage());", '$allowedTables = [];', '', ''];
+        yield 'logins not read' => ["LoginChoice::parseOffered((string) (\$env['PEAK_LAB_LOGINS'] ?? ''))", '[]', '', ''];
+        yield 'logins list that cannot be read is let through' => ["\$refuse(503, 'the list of logins the lab offers cannot be used', \$e->getMessage());", '$offeredLogins = [];', '', ''];
+        yield 'login chosen by the default alone' => ["LoginChoice::resolve((string) (\$_SERVER['HTTP_X_LAB_LOGIN'] ?? ''), (string) (\$env['PEAK_LAB_ACT_AS'] ?? ''), \$offeredLogins)", "(string) (\$env['PEAK_LAB_ACT_AS'] ?? '')", '', ''];
+        yield 'login chosen without the offered list' => ["(string) (\$env['PEAK_LAB_ACT_AS'] ?? ''), \$offeredLogins)", "(string) (\$env['PEAK_LAB_ACT_AS'] ?? ''), [])", '', ''];
+        yield 'a login that is not offered is let through' => ["\$refuse(400, 'the login is not one the lab offers', \$e->getMessage());", "\$actAs = (string) (\$env['PEAK_LAB_ACT_AS'] ?? '');", '', ''];
+        yield 'a login that is not offered is another status' => ["\$refuse(400, 'the login is not one the lab offers'", "\$refuse(200, 'the login is not one the lab offers'", '', ''];
+        yield 'the app is logged in as someone else' => ['ActingAs::apply($app, $actAs);', "ActingAs::apply(\$app, (string) (\$env['PEAK_LAB_ACT_AS'] ?? ''));", '', ''];
         yield 'guard made with another latch' => ['$guard = new EntryGuard($latch, ', '$guard = new EntryGuard($scratchPath . \'/other.flag\', ', '', ''];
         yield 'statement watch removed' => [$watch, '', '', ''];
         yield 'statement watch commented out' => [$watch, '// ' . $watch, '', ''];

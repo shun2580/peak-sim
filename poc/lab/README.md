@@ -258,8 +258,7 @@ database on 0-1, the app side on 2-7, k6 on 8-9), the memory limit of the app, t
 
 What is Bagisto's own is only this: PHP 8.4 or later (the image is built with `PHP_VERSION=8.4` and `PHP_EXTENSIONS=calendar`, the one extension Bagisto's
 `composer.json` requires that the BookStack image lacks; the build needs the internet once, like the BookStack one), the profile `bagisto` for the builder
-and `bin/targets`, the login of the entry (the first customer on the `customer` guard; a request as a guest is sent with `X-Lab-Login: none`), and three
-files named by the environment, each a path inside the repository, relative to it:
+and `bin/targets`, the logins of the entry (below), and three files named by the environment, each a path inside the repository, relative to it:
 
 | Variable | Default in `with-bagisto` | Without it |
 | --- | --- | --- |
@@ -280,10 +279,20 @@ error. The four guards are the ones above with `views` read as "the tables of th
 the entry (`write_outside_allowed_tables` where the BookStack lab says `write_outside_views`; a delete or a replace of a listed table is refused there, as
 a delete of `views` is), (iii) `check-tables` before and after a scenario and between steps, (iv) GET and HEAD only and a statement that names another schema.
 
+**The login of a request.** The BookStack lab has two answers: the user `PEAK_LAB_ACT_AS` names, or nobody for `X-Lab-Login: none`. That is unchanged while no
+list of logins is offered, whatever the header says. The Bagisto routes need more (a storefront customer on the `customer` guard, an administrator on the
+`admin` guard, and guests), so `with-bagisto` offers two by name in `PEAK_LAB_LOGINS` (`name=Model\Class:key:guard`, entries separated by `;`): `customer`
+(the first customer) and `admin` (row 1 of `admins`), the two logins the capture used. A request picks one with `X-Lab-Login: <name>`, or `none`; it can
+never name a user model or a key of its own, and a name that is not on the list is a 400 (never the default login, which would measure another request than
+the capture saw). A list that cannot be read is a 503. `poc/runtime/src/LabEntry/LoginChoice.php` holds the rule. `bin/targets` does not choose the login
+of a route by hand: it takes the login the measurement's own inspection gives that route (the profile's `auth_gates`, the same code the capture ran) and
+writes its name into the route's headers; a login the entry does not offer leaves the route unfilled.
+
 `poc/lab/bagisto/allowed-write-tables.txt` is the committed list of the Bagisto lab. It is empty: the eight selected routes send reads only
 (`docs/research/lab-data/bagisto-route-list/list/allowed-tables.tsv` has no row), so the lab may write nothing. An empty list means no write at all and never
-`views`; tests hold that at the entry, in `check-writes` and in `check-tables`. The route list in the form the ladder reads (`poc/lab/bagisto/route-list.json`)
-is not made yet; until it is, `check-writes` refuses without `--routes`.
+`views`; tests hold that at the entry, in `check-writes` and in `check-tables`. The route list in the form the ladder reads is `poc/lab/bagisto/route-list.json`,
+made by `poc/lab/bagisto/make-route-list` from the committed selection and the capture's own record of who each route was logged in as (its `login` is
+`customer`, `admin` or `guest`); nothing in it is chosen by hand, and it is not changed after it is committed with the prediction.
 
 ## What the lab cannot say
 

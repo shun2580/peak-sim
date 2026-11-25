@@ -19,6 +19,8 @@
 # D  the stack's settings: with-bagisto gives names, a volume, a network, an image and a state directory of its own, none of them the BookStack lab's,
 #    and refuses to be pointed at the BookStack lab's; the compose file rendered for the default environment is what it always was (the same container
 #    names, volume and network), and for the Bagisto one it is sealed (an internal network, no published port) with its own names throughout
+# G  the route list of the Bagisto lab (poc/lab/bagisto/make-route-list): made from the selection and the capture's tasks, the login of each route is
+#    the guard the capture used, anything it cannot read is a stop, and the committed list is the committed selection
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -262,6 +264,7 @@ for kv in PEAK_LAB_PROJECT=peak-lab-bagisto PEAK_LAB_PREFIX=peak-lab-bagisto PEA
 done
 has "$work/wb.env" '^PEAK_LAB_SEEN_SCALES=$' && has "$work/wb.env" '^PEAK_LAB_ALLOWED_WRITES_FILE=poc/lab/bagisto/allowed-write-tables.txt$' && has "$work/wb.env" '^PEAK_LAB_ROUTE_LIST=poc/lab/bagisto/route-list.json$' && has "$work/wb.env" 'n-tables.txt$' && pass "D3 no seen scale above 30,000, and the paths of the list, the route list and the N tables are the Bagisto ones" || fail "D3"
 has "$work/wb.env" '^PEAK_LAB_ACT_AS=Webkul\\Customer\\Models\\Customer:1:customer$' && pass "D3b the login of the entry is the first customer on the customer guard" || fail "D3b ($(grep ACT_AS "$work/wb.env"))"
+has "$work/wb.env" '^PEAK_LAB_LOGINS=customer=Webkul\\Customer\\Models\\Customer:1:customer;admin=Webkul\\User\\Models\\Admin:1:admin$' && pass "D3c the Bagisto entry offers the customer and the administrator, each by name, on their own guard" || fail "D3c ($(grep LOGINS "$work/wb.env"))"
 env PEAK_LAB_BAGISTO_STATE_DIR="$HOME/.cache/peak-lab" "$lab/bin/with-bagisto" true >/dev/null 2>&1; expect_code "D4 pointed at the BookStack lab's state directory: refused" 2 $?
 env PEAK_LAB_BAGISTO_STATE_DIR="$work/bstate" "$lab/bin/with-bagisto" >/dev/null 2>&1; expect_code "D4b no command: usage" 2 $?
 env PEAK_LAB_BAGISTO_STATE_DIR="$work/bstate" PEAK_LAB_ALLOWED_WRITES_FILE=/etc/passwd "$lab/bin/with-bagisto" bash -c ". $lab/bin/_lab.sh" >/dev/null 2>"$work/wb.err"; expect_code "D5 a list outside the repository (an absolute path): refused by the scripts' shared setup" 2 $?
@@ -272,14 +275,16 @@ render() {  # render <dir for state> [wrapper...]: the compose file as docker co
   local st="$1"; shift
   PEAK_LAB_STATE_DIR="$st" PEAK_LAB_OUT_DIR="$st/out" PEAK_APP_ROOT="$repo_real" "$@" bash -c "source '$lab/bin/_lab.sh' && compose config"
 }
-render "$work/dstate" env -u PEAK_LAB_PREFIX -u PEAK_LAB_PROJECT -u PEAK_LAB_IMAGE -u PHP_VERSION -u PHP_EXTENSIONS -u PEAK_LAB_ALLOWED_WRITES_FILE -u PEAK_LAB_ROUTE_LIST >"$work/default.yaml" 2>"$work/default.err"; expect_code "D10 the default environment renders" 0 $?
+render "$work/dstate" env -u PEAK_LAB_PREFIX -u PEAK_LAB_PROJECT -u PEAK_LAB_IMAGE -u PHP_VERSION -u PHP_EXTENSIONS -u PEAK_LAB_ALLOWED_WRITES_FILE -u PEAK_LAB_ROUTE_LIST -u PEAK_LAB_LOGINS -u PEAK_LAB_ACT_AS >"$work/default.yaml" 2>"$work/default.err"; expect_code "D10 the default environment renders" 0 $?
 for c in peak-lab-db peak-lab-app peak-lab-web peak-lab-k6 peak-lab-tools; do has "$work/default.yaml" "container_name: $c\$" && pass "D11 default: container $c" || fail "D11 $c"; done
 has "$work/default.yaml" 'name: peak-lab-dbdata$' && has "$work/default.yaml" '^name: peak-lab$' && has "$work/default.yaml" 'image: peak-lab-php:8.3$' && pass "D11b default: the volume peak-lab-dbdata, the project peak-lab and the image peak-lab-php:8.3, as they were" || fail "D11b"
 has "$work/default.yaml" 'PEAK_LAB_ALLOWED_WRITES_FILE: ""$' && pass "D11c default: no list of tables is handed to the app (views alone)" || fail "D11c"
+has "$work/default.yaml" 'PEAK_LAB_LOGINS: ""$' && has "$work/default.yaml" 'PEAK_LAB_ACT_AS: BookStack.Users.Models.User:1:web$' && pass "D11d default: no list of logins is handed to the app, and its default login is the first BookStack user, as before" || fail "D11d ($(grep -E 'LOGINS|ACT_AS' "$work/default.yaml"))"
 render "$work/bstate" env PEAK_LAB_BAGISTO_STATE_DIR="$work/bstate" "$lab/bin/with-bagisto" >"$work/bag.yaml" 2>"$work/bag.err"; expect_code "D12 the Bagisto stack renders" 0 $?
 for c in db app web k6 tools; do has "$work/bag.yaml" "container_name: peak-lab-bagisto-$c\$" && pass "D13 Bagisto: container peak-lab-bagisto-$c" || fail "D13 $c"; done
 has "$work/bag.yaml" 'name: peak-lab-bagisto-dbdata$' && has "$work/bag.yaml" 'image: peak-lab-bagisto-php:8.4$' && has "$work/bag.yaml" 'PHP_EXTENSIONS: calendar$' && pass "D13b Bagisto: its own volume and image, with the calendar extension" || fail "D13b"
 has "$work/bag.yaml" 'PEAK_LAB_ALLOWED_WRITES_FILE: /peak-sim/poc/lab/bagisto/allowed-write-tables.txt$' && pass "D13c Bagisto: the list is handed to the app as a path inside the container" || fail "D13c ($(grep ALLOWED "$work/bag.yaml"))"
+has "$work/bag.yaml" 'PEAK_LAB_LOGINS: customer=Webkul.Customer.Models.Customer:1:customer;admin=Webkul.User.Models.Admin:1:admin$' && pass "D13d Bagisto: the two logins are handed to the app" || fail "D13d ($(grep LOGINS "$work/bag.yaml"))"
 { ! grep -E 'container_name: peak-lab-(db|app|web|k6|tools)$|name: peak-lab-dbdata$' "$work/bag.yaml"; } && pass "D14 Bagisto: no container and no volume of the BookStack lab's is named" || fail "D14"
 python3 - "$work/bag.yaml" <<'PY' && pass "D15 Bagisto: the one network is internal, every service is on it only, and no service publishes a port" || fail "D15"
 import re, sys
@@ -348,6 +353,61 @@ printf 'products 0 0 0\nviews 0 1 0\n' >"$work/s/io"
 env "${ENVC[@]}" PEAK_REPO_ROOT="$repo_real" PEAK_LAB_ALLOWED_WRITES_FILE="$committed" "$lab/bin/check-tables" after --scale=3000 --baseline="$work/fc/b.tsv" --out="$work/fc/a.tsv" >"$work/ct.out" 2>"$work/ct.err"; expect_code "F12b ... and a write to views then stops it (16): views is not allowed when the list is empty" 16 $?
 printf 'products 0 0 0\nsessions 1 0 0\n' >"$work/s/io"
 env "${ENVC[@]}" PEAK_REPO_ROOT="$repo_real" PEAK_LAB_ALLOWED_WRITES_FILE="$committed" "$lab/bin/check-tables" after --scale=3000 --baseline="$work/fc/b.tsv" --out="$work/fc/a.tsv" >"$work/ct.out" 2>"$work/ct.err"; expect_code "F12c ... and so does a new counter row with a write in it (16)" 16 $?
+
+# ---- G: the Bagisto route list, and the logins of the entry ---------------------------------------------------------------------
+echo "# the route list and the logins"
+mrl="$lab/bagisto/make-route-list"
+mkdir -p "$work/g"
+printf 'number\troute\trows_sum_30000\n1\tGET /api/things\t900\n2\tGET /shop/mine\t800\n3\tGET /admin/things/view/{id}\t700\n' >"$work/g/selected.tsv"
+cat >"$work/g/tasks.json" <<'JSON'
+[
+ {"spec": {"method": "GET", "uri": "/admin/things/view/{id}"}, "uri": "/admin/things/view/1", "fail_class": null, "act_as": "Shop\\User\\Models\\Admin:1:admin"},
+ {"spec": {"method": "GET", "uri": "/api/things"}, "uri": "/api/things", "fail_class": null, "act_as": null},
+ {"spec": {"method": "GET", "uri": "/shop/mine"}, "uri": "/shop/mine", "fail_class": null, "act_as": "Shop\\Customer\\Models\\Customer:1:customer"},
+ {"spec": {"method": "GET", "uri": "/not/selected"}, "uri": "/not/selected", "fail_class": null, "act_as": "Shop\\Staff:1:staff"}
+]
+JSON
+python3 -I "$mrl" --selected="$work/g/selected.tsv" --tasks="$work/g/tasks.json" --out="$work/g/list.json" 2>"$work/g/err"; expect_code "G1 the route list is made from a selection and the capture's tasks" 0 $?
+python3 - "$work/g/list.json" <<'PY' && pass "G2 the routes keep the selection's order and ranks, each with the login its task had (guest, customer, admin), and the halves are 1-4 and 5-8" || fail "G2"
+import json, sys
+d = json.load(open(sys.argv[1]))
+rows = d["selected"]
+assert [r["route"] for r in rows] == ["GET /api/things", "GET /shop/mine", "GET /admin/things/view/{id}"], rows
+assert [r["rank"] for r in rows] == [1, 2, 3]
+assert [r["login"] for r in rows] == ["guest", "customer", "admin"], rows
+assert [r["half"] for r in rows] == ["first"] * 3
+assert d["counts"] == {"selected": 3, "customer": 1, "admin": 1, "guest": 1}, d["counts"]
+assert rows[0]["capture_act_as"] is None and rows[2]["capture_act_as"].endswith(":1:admin")
+assert len(d["inputs"]["selection"]["sha256"]) == 64 and len(d["inputs"]["capture_tasks"]["sha256"]) == 64
+PY
+python3 -I "$mrl" --selected="$work/g/selected.tsv" --tasks="$work/g/tasks.json" >"$work/g/again.json" 2>/dev/null && cmp -s "$work/g/list.json" "$work/g/again.json" && pass "G3 made again, the list is the same bytes" || fail "G3"
+python3 - "$work/g/tasks.json" "$work/g/t-staff.json" "$work/g/t-missing.json" "$work/g/t-unfilled.json" "$work/g/t-twice.json" <<'PY'
+import json, sys
+t = json.load(open(sys.argv[1]))
+def save(path, tasks): json.dump(tasks, open(path, "w"))
+staff = json.loads(json.dumps(t)); staff[0]["act_as"] = "Shop\\Staff:1:staff"; save(sys.argv[2], staff)
+save(sys.argv[3], [x for x in t if x["spec"]["uri"] != "/shop/mine"])
+unfilled = json.loads(json.dumps(t)); unfilled[1]["fail_class"] = "unfilled_param"; unfilled[1]["uri"] = None; save(sys.argv[4], unfilled)
+save(sys.argv[5], t + [t[0]])
+PY
+for k in staff missing unfilled twice; do
+  rm -f "$work/g/stop.json"; python3 -I "$mrl" --selected="$work/g/selected.tsv" --tasks="$work/g/t-$k.json" --out="$work/g/stop.json" 2>"$work/g/err"; rc=$?
+  { [ "$rc" -eq 4 ] && [ ! -e "$work/g/stop.json" ]; } && pass "G4 $k: a stop (exit 4), nothing written" || fail "G4 $k (exit $rc)"
+done
+python3 -I "$mrl" --selected="$work/g/selected.tsv" >/dev/null 2>&1; expect_code "G5 no task list: usage (2)" 2 $?
+printf 'number\troute\trows_sum_30000\n2\tGET /a\t5\n' >"$work/g/bad-sel.tsv"
+python3 -I "$mrl" --selected="$work/g/bad-sel.tsv" --tasks="$work/g/tasks.json" >/dev/null 2>&1; expect_code "G6 a selection not numbered from 1: a stop" 4 $?
+python3 - "$lab/bagisto/route-list.json" "$lab/../../docs/research/lab-data/bagisto-route-list/list/selected.tsv" <<'PY' && pass "G7 the committed Bagisto route list is the committed selection, in order, each route with a login of customer, admin or guest" || fail "G7"
+import json, sys
+d = json.load(open(sys.argv[1]))
+sel = [l.split("\t") for l in open(sys.argv[2]).read().splitlines()[1:]]
+assert [r["route"] for r in d["selected"]] == [c[1] for c in sel]
+assert [r["rank"] for r in d["selected"]] == [int(c[0]) for c in sel]
+assert [r["rows_sum_30000"] for r in d["selected"]] == [int(c[2]) for c in sel]
+assert all(r["login"] in ("customer", "admin", "guest") for r in d["selected"])
+assert all((r["login"] == "guest") == (r["capture_act_as"] is None) for r in d["selected"])
+assert d["counts"]["selected"] == len(sel) == 8
+PY
 
 # ---- E: each guard, taken out of a copy, no longer holds ---------------------------------------------------------------------------
 echo "# each part of the list taken out of a copy of the tool is caught by the cases above"

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // Runs INSIDE the tools container (poc/lab/bin/targets). Starts BookStack on the lab database of one scale, lets the
-// measurement's own inspection (`Measure\Inspection`, with the `bookstack` profile) fill the arguments of every route
+// measurement's own inspection (`Measure\Inspection`, with the profile of the app: `bookstack` unless PEAK_LAB_PROFILE says another) fill the arguments of every route
 // of the static analysis, and writes the concrete paths of the routes of the route list to /out/targets-<scale>.json.
 // Sends no request. Exit codes: 0 / 2 usage / 10 refused / 12 the app did not start / 13 the profile or route list cannot be used.
 
@@ -11,6 +11,7 @@ use PeakSim\Runtime\Boot\AppBooter;
 use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
+use PeakSim\Runtime\LabEntry\LoginChoice;
 use PeakSim\Runtime\Measure\BuildFailure;
 use PeakSim\Runtime\Measure\Inspection;
 use PeakSim\Runtime\Measure\MeasureExit;
@@ -44,6 +45,16 @@ if (!is_array($list) || !isset($list['selected']) || !is_array($list['selected']
 $wanted = [];
 foreach ($list['selected'] as $row) {
     $wanted[] = (string) $row['route'];
+}
+
+// The logins the entry offers (PEAK_LAB_LOGINS). With none, the routes are sent as the entry has always sent them: the default login,
+// or `X-Lab-Login: none` for a guest. With a list, each route is sent as the login the measurement's own inspection gave it (the login
+// the capture used), by that login's name on the list; a login the list does not hold is a route left unfilled, never the default.
+try {
+    $offered = LoginChoice::parseOffered((string) getenv('PEAK_LAB_LOGINS'));
+} catch (\InvalidArgumentException $e) {
+    fwrite(STDERR, 'PEAK_LAB_LOGINS cannot be used: ' . $e->getMessage() . "\n");
+    exit(MeasureExit::DATA);
 }
 
 try {
@@ -93,8 +104,19 @@ foreach ($inspected['tasks'] as $task) {
         $entry['credentials'] = 'a token in the query (not written here)';
     }
     if (($task['act_as'] ?? null) === null) {
-        // The measurement requested this route as a guest. The lab's entry logs the first user in unless told not to.
-        $entry['headers'] = ['X-Lab-Login' => 'none'];
+        // The measurement requested this route as a guest. The lab's entry logs the default user in unless told not to.
+        $entry['headers'] = ['X-Lab-Login' => LoginChoice::GUEST];
+        if ($offered !== []) {
+            $entry['login'] = 'guest';
+        }
+    } elseif ($offered !== []) {
+        $name = LoginChoice::nameOf((string) $task['act_as'], $offered);
+        if ($name === null) {
+            $unfilled[$key] = ['fail_class' => 'login_not_offered', 'detail' => 'the measurement logs this route in as ' . $task['act_as'] . ', which the entry does not offer'];
+            continue;
+        }
+        $entry['headers'] = ['X-Lab-Login' => $name];
+        $entry['login'] = $name;
     }
     $routes[$key] = $entry;
 }
