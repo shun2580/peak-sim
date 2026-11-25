@@ -1,0 +1,2 @@
+[25-Nov-2026 05:18:46 UTC] {"lab":"refused","status":405,"why":"only GET and HEAD are served","detail":""}
+[25-Nov-2026 05:18:49 UTC] {"lab":"refused","status":400,"why":"the login is not one the lab offers","detail":"the login is not one the lab offers: no-such-login"}

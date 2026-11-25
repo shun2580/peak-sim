@@ -1,0 +1,13 @@
+{
+ "rps_after": {
+  "GET /api/products": 0.028571428571428574,
+  "GET /customer/account/addresses/create": 0.8,
+  "GET /admin/customers/view/{id}": 0.028571428571428574,
+  "GET /admin/marketing/communications/campaigns/edit/{id}": 0.028571428571428574,
+  "GET /admin/settings/inventory-sources/edit/{id}": 0.028571428571428574,
+  "GET /admin/customers/search": 0.028571428571428574,
+  "GET /api/categories": 0.028571428571428574,
+  "GET /api/categories/attributes/{attribute_id}/options": 0.028571428571428574
+ },
+ "dropped": []
+}

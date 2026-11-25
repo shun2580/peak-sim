@@ -1,0 +1,4 @@
+2026-11-25 14:16:41
+B ON: ladder-b-1800s.diff applied at 2026-11-25T14:16:41+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
