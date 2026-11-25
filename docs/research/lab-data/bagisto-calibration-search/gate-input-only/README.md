@@ -133,3 +133,46 @@ No point passes with R_4 above 0.45 (R_3 = 0.3 or 0.37). With R_3 = 0.3 and R_4 
 - `passing-points.tsv`: the 58 that pass.
 - `plans-sha256.txt`: sha256 of each of the 47 plan files used.
 - `gate_input_only.py`: the driver that was run (container name and paths as run; it needs a container of the dev image with the repository, the search record's directory and a work directory mounted).
+
+## Addendum: R_3 = 0.45 and 0.7 against all 14 values of R_4
+
+The same call, driver and inputs (sha256 above; the repository was at the commit that added this directory) with R_3 in 0.45 and 0.7: another 14,112 points, nothing measured.
+Files: `grid-r3-0.45-0.7-r4-all.tsv` (all points) and `passing-points-r3-0.45-0.7.tsv` (the passing ones). Where a pair was also in the earlier table
+(`../gate-standin/grid-pairs-a.tsv`), the counts agree (R_3 = 0.45 with R_4 = 0.7: 24; R_3 = 0.7 with R_4 = 1: 37).
+
+| R_3 | R_4 | points | passing | largest degree (at R_0, R_1, R_2) |
+| --- | --- | --- | --- | --- |
+| 0.45 | 0.05 | 504 | 5 | 0.544166 (1, 4, 0.7) |
+| 0.45 | 0.07 | 504 | 5 | 0.544750 (1, 4, 0.7) |
+| 0.45 | 0.1 | 504 | 5 | 0.545971 (1, 4, 0.7) |
+| 0.45 | 0.15 | 504 | 5 | 0.548467 (1, 4, 0.7) |
+| 0.45 | 0.2 | 504 | 6 | 0.545869 (1, 4, 0.7) |
+| 0.45 | 0.3 | 504 | 13 | 0.538650 (1, 4, 0.7) |
+| 0.45 | 0.37 | 504 | 11 | 0.547161 (1, 4, 0.45) |
+| 0.45 | 0.45 | 504 | 12 | 0.551415 (1, 4, 0.3) |
+| 0.45 | 0.7 | 504 | 24 | 0.521496 (1, 4, 0.05) |
+| 0.45 | 1 | 504 | 0 | 0.466557 (1, 2, 0.05) |
+| 0.45 | 1.5 | 504 | 0 | 0.420179 (2, 2, 0.05) |
+| 0.45 | 2.2 | 504 | 0 | 0.376057 (2, 2, 0.05) |
+| 0.45 | 3.3 | 504 | 0 | 0.366468 (4, 4, 0.05) |
+| 0.45 | 5 | 504 | 0 | 0.347423 (8, 16, 1.5) |
+| 0.7 | 0.05 | 504 | 9 | 0.564350 (1, 4, 1) |
+| 0.7 | 0.07 | 504 | 9 | 0.564093 (1, 4, 1) |
+| 0.7 | 0.1 | 504 | 9 | 0.563547 (1, 4, 1) |
+| 0.7 | 0.15 | 504 | 9 | 0.562216 (1, 4, 1) |
+| 0.7 | 0.2 | 504 | 10 | 0.560368 (1, 4, 1) |
+| 0.7 | 0.3 | 504 | 15 | 0.562078 (1, 4, 0.7) |
+| 0.7 | 0.37 | 504 | 16 | 0.569393 (1, 4, 0.7) |
+| 0.7 | 0.45 | 504 | 17 | 0.571818 (1, 4, 0.7) |
+| 0.7 | 0.7 | 504 | 40 | 0.568310 (1, 4, 0.05) |
+| 0.7 | 1 | 504 | 37 | 0.519370 (1, 4, 0.05) |
+| 0.7 | 1.5 | 504 | 0 | 0.477069 (2, 4, 0.05) |
+| 0.7 | 2.2 | 504 | 0 | 0.417702 (2, 4, 0.05) |
+| 0.7 | 3.3 | 504 | 0 | 0.389925 (4, 4, 0.05) |
+| 0.7 | 5 | 504 | 0 | 0.358450 (8, 16, 0.05) |
+
+Totals: **257 of 14,112 points pass** (86 with R_3 = 0.45, 171 with R_3 = 0.7). Every other point exits 14; no other exit code and no unreadable result occurred.
+With R_3 = 0.45 no point passes at R_4 of 1 or more; with R_3 = 0.7 none at 1.5 or more. Over the passing points: R_0 is 1 (218 points) or 2 (39); R_1 is 4 (125), 8 (86) or 2 (46);
+the smallest degree is 0.500303 to 0.571818; the smallest set leaves out cal-6 (149) or cal-4 (108).
+
+Over the four values of R_3 (0.3, 0.37, 0.45, 0.7): 315 of 28,224 points pass.
