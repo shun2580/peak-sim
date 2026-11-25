@@ -1,0 +1,10 @@
+# The Bagisto lab's one difference from lab.compose.yaml, laid over it by poc/lab/bin/with-bagisto (PEAK_LAB_COMPOSE_FILES): the web server reads
+# nginx/lab-bagisto.conf instead of nginx/lab.conf. The two files differ in two lines only: this one has no `keepalive 64;` in the upstream and no
+# `fastcgi_keep_conn on;` in the location, so nginx opens a connection to php-fpm for each request and closes it after the response. The BookStack lab
+# does not use this file and keeps lab.conf as it was. php-fpm's pool (16 static workers) is the same file for both labs.
+# The mount is replaced, not added: a bind mount is keyed by its target, so the one at /etc/nginx/nginx.conf gets the new source and the rest of the
+# service (image, CPUs, read-only root, user, the /out mount) is what lab.compose.yaml says.
+services:
+  lab-web:
+    volumes:
+      - ${PEAK_REPO_ROOT}/${PEAK_LAB_NGINX_CONF:?set by poc/lab/bin/with-bagisto}:/etc/nginx/nginx.conf:ro

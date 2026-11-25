@@ -12,6 +12,8 @@
 # there is no way to point this wrapper at the BookStack lab's project, containers or volume.
 #
 # What is Bagisto's own here:
+#   the web server's file             compose/nginx/lab-bagisto.conf (PEAK_LAB_NGINX_CONF, PEAK_LAB_COMPOSE_FILES): lab.conf without the upstream keepalive and
+#                                     fastcgi_keep_conn, nothing else changed; the app's php-fpm pool (16 static workers) is the same file for both labs
 #   the tables the lab may write      PEAK_LAB_ALLOWED_WRITES_FILE, default poc/lab/bagisto/allowed-write-tables.txt. That file is decided by
 #                                     the route list (spec 7.4.7: the tables the selected routes write, outside the N tables) and does not exist
 #                                     until it is committed with the list. Until then every guard that reads it REFUSES (check-writes exit 15,
@@ -46,6 +48,12 @@ export PEAK_LAB_OUT_DIR="${PEAK_LAB_BAGISTO_OUT_DIR:-$PEAK_LAB_STATE_DIR/out}"
 # php-fpm's pm.max_children stays 16, the same file for both labs (decisions D191 (4): the count of workers is not tied to the cores).
 export PEAK_LAB_APP_CPUS=10
 export PEAK_LAB_CPUSET_APP="2-7,12-15"
+# The web server's own file (spec 7.4.7, maintainer ruling 2026-11-26): the BookStack lab's compose/nginx/lab.conf less its upstream `keepalive 64;` and
+# `fastcgi_keep_conn on;` (two lines, nothing else), laid over lab.compose.yaml by compose/lab.bagisto.override.yaml. Set here, not offered, like the CPUs:
+# an own value in the environment does not win, so this stack cannot be started on lab.conf, and the BookStack lab (which never runs this wrapper) still
+# reads lab.conf through lab.compose.yaml alone. bin/lab-config-b reads the same variable to put B's timeout on this file instead of lab.conf.
+export PEAK_LAB_NGINX_CONF="poc/lab/compose/nginx/lab-bagisto.conf"
+export PEAK_LAB_COMPOSE_FILES="$repo/poc/lab/compose/lab.compose.yaml:$repo/poc/lab/compose/lab.bagisto.override.yaml"
 export PEAK_LAB_PROFILE="${PEAK_LAB_PROFILE:-bagisto}"
 export PEAK_LAB_ACT_AS="${PEAK_LAB_ACT_AS:-Webkul\\Customer\\Models\\Customer:1:customer}"
 export PEAK_LAB_LOGINS="${PEAK_LAB_LOGINS:-customer=Webkul\\Customer\\Models\\Customer:1:customer;admin=Webkul\\User\\Models\\Admin:1:admin}"
