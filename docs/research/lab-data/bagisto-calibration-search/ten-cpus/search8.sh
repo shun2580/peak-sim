@@ -7,7 +7,7 @@ cd "$PEAK_SIM_REPO"
 REC=$HOME/.cache/peak-lab-bagisto/out/calibration-search; P=$REC/plans; OUT=$REC/t5e
 id="$1"; name="$2"; r0="$3"; r1="$4"; r2="$5"; r3="$6"; r4="$7"; r5="$8"
 log=$OUT/search-log.txt
-adv=(); [ "${SEARCH_GATE_ADVISORY:-0}" != 1 ] || adv=(--gate-advisory)   # set to 1 for the search runs of R_1 and R_5 only (D275): a refused gate is recorded and the run goes on
+adv=(); [ "${SEARCH_GATE_ADVISORY:-0}" != 1 ] || adv=(--search-gate-advisory)   # set to 1 for the search runs of R_1 and R_5 only (D275): a refused gate is recorded and the run goes on
 echo "$(date '+%F %T') PRE free: $(free -g | awk 'NR==2{print "total "$2" available "$7}') df: $(df -h / | awk 'NR==2{print $4" free"}')" >>$log
 echo "$(date '+%F %T') START $id name=$name R_0=$r0 R_1=$r1 R_2=$r2 R_3=$r3 R_4=$r4 R_5=$r5 (the one measured is $id; the other rates are real or stand-ins as the README says)" >>$log
 poc/lab/bin/with-bagisto poc/lab/bin/measure-calibration --estimate=$REC/estimate-shared --gate-tables=n_shared \
