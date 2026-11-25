@@ -253,3 +253,18 @@ R_1 is searched on cal-4 (even mix, 3,000 rows) by doubling from 1 rps. The entr
 The table says the same for every R_5 from 1 to 32: at R_0 = 2 and R_2 = 1.0, no R_1 of 1 or 2 opens the gate, whatever stand-in is given to cal-8 (over the whole grid of the table, R_1 = 1 passes at 0 of 504 points and R_1 = 2 at 42 of 504; at R_0 = 2 and R_2 = 1.0 neither passes at any R_5).
 By D270 (decision 1) the gate in front of a search run is a reference and must not stop the search, but the entry has no way to skip it and a stand-in cannot open it here. The first two runs of the doubling (1 and 2 rps) therefore cannot be entered,
 and the search of R_5 (cal-8, from 1 rps) has the same shape (R_5 of 1 passes at 0 of 504 points). The rule does not say what to do; nothing was measured for R_1 or R_5, the effective gate was not called, and the search stops here.
+
+## The search of R_1 and R_5 with the entry's gate as a reference (written before either is measured)
+
+The entry's gate refuses the first runs of the doubling searches of R_1 (cal-4) and R_5 (cal-8) whatever stand-ins are given (section above, "The search of R_1 stops before its first run"). The maintainer's side took the way that keeps the rule of D270 (decision 1:
+the gate in front of a search run is a reference): the entry has a new flag, `--gate-advisory` (commit `d223190`; `bin/measure-calibration` and `tests/calibration-gate.sh`, 67 tests with the 16 new ones). Written here before the first of these runs is measured:
+
+- **The searches of R_1 and R_5 are measured with the flag, from 1 rps: 1, 2, 4, 8, ...** by the rule written above (the doubling search of the specification, D183 amendment 1, D272 decision 1; no value is skipped to reach a rate the gate would open). The search of R_2 was made without it and is not measured again.
+- **What the flag does:** the gate is called with the same inputs and the same arithmetic. If it refuses (exit 14), the entry prints `GATE ADVISORY`, keeps the degrees in `calibration-gate.json` (also in the run's directory) and the flag and the gate's exit code in `gate-advisory.txt`, and measures. Every other guard is unchanged (the write check, the
+  closed-network check, the limits guard, the guards of the N tables). Any other failure of the gate (an unusable plan or estimate) still stops the entry; the flag cannot be given with `--gate-only`.
+- **The gate's result of a run made with the flag is a reference and is kept as such** in the run's record; it does not stand as a reason to take or to refuse the run's rate.
+- **The flag is not used for anything else.** The effective gate, called after R_0 to R_5 are decided, with the real plans, and before the calibration is measured, is called without the flag (D264 decision 6; D270 decision 1).
+- **The rates the entry is given for the other runs of the set** (a plan is needed for each run, because the gate looks at the whole set): R_0 = 2, R_2 = 1.0, R_3 = 0.2 and R_4 = 1.0 are real. For the run of R_1 the rate of cal-8 is given as **1**, and for the run of R_5 the rate of cal-4 is the R_1 found; the rate of the run not yet searched is the first value of its own search, a rule that is not aimed at
+  any gate or any band, and only an input of the reference gate. They are not values of R_1 or R_5.
+- The helper `search8.sh` passes the flag when `SEARCH_GATE_ADVISORY=1` is set in the environment; without it the call is what it was.
+- R_1 and R_5 are not measured by this record. After them, the effective gate (input only) is called and the search stops there, as the task says.
