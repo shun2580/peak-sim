@@ -41,3 +41,20 @@ RESULT target=1.5 achieved=1.4667 status=invalid db_util=40.1903% app_cpu=77.011
 2026-11-26 00:50:30 START cal-5 name=cal5-r1 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=8 (the one measured is cal-5; the other rates are real or stand-ins as the README says)
 2026-11-26 01:04:25 END cal-5 name=cal5-r1 exit=0
 RESULT target=1.0 achieved=1.0000 status=valid db_util=21.5445% app_cpu=41.18595821402977 requests=480 dropped=0 http={'200': 480}
+2026-11-26 01:43:02 R_1-R_5 search START: peak-sim HEAD 73aa37e; git status --short -- poc/lab = [] (empty); free: total 15 available 11; df / 883G free; Windows Update paused until 2026-11-28T15:02:20Z
+2026-11-26 01:43:57 PRE free: total 15 available 10 df: 883G free
+2026-11-26 01:43:58 START cal-4 name=cal4-r1 R_0=2 R_1=1 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-4; the other rates are real or stand-ins as the README says)
+2026-11-26 01:55:44 END cal-4 name=cal4-r1 exit=0
+RESULT target=1.0 achieved=0.9938 status=valid db_util=2.9030% app_cpu=4.326083247799062 requests=477 dropped=0 http={'200': 477}
+2026-11-26 01:55:55 PRE free: total 15 available 10 df: 883G free
+2026-11-26 01:55:55 START cal-4 name=cal4-r2 R_0=2 R_1=2 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-4; the other rates are real or stand-ins as the README says)
+2026-11-26 02:07:41 END cal-4 name=cal4-r2 exit=0
+RESULT target=2.0 achieved=1.9979 status=valid db_util=4.9735% app_cpu=8.632159185864685 requests=959 dropped=0 http={'200': 959}
+2026-11-26 02:07:50 PRE free: total 15 available 10 df: 883G free
+2026-11-26 02:07:50 START cal-4 name=cal4-r4 R_0=2 R_1=4 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-4; the other rates are real or stand-ins as the README says)
+2026-11-26 02:19:35 END cal-4 name=cal4-r4 exit=0
+RESULT target=4.0 achieved=4.0000 status=valid db_util=9.4082% app_cpu=17.5754522333801 requests=1920 dropped=0 http={'200': 1920}
+2026-11-26 02:19:46 PRE free: total 15 available 10 df: 883G free
+2026-11-26 02:19:46 START cal-4 name=cal4-r8 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-4; the other rates are real or stand-ins as the README says)
+2026-11-26 02:33:36 END cal-4 name=cal4-r8 exit=0
+RESULT target=8.0 achieved=8.0000 status=valid db_util=20.2227% app_cpu=38.59154297273373 requests=3840 dropped=0 http={'200': 3840}

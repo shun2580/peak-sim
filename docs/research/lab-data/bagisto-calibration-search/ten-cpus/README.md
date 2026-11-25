@@ -268,3 +268,39 @@ the gate in front of a search run is a reference), under the standing delegation
   any gate or any band, and only an input of the reference gate. They are not values of R_1 or R_5.
 - The helper `search8.sh` passes the flag when `SEARCH_GATE_ADVISORY=1` is set in the environment; without it the call is what it was.
 - R_1 and R_5 are not measured by this record. After them, the effective gate (input only) is called and the search stops there, as the task says.
+
+## The search of R_1 (cal-4), measured with `--search-gate-advisory` (2026-11-26 01:43 to 02:33; `cal4-r1/`, `cal4-r2/`, `cal4-r4/`, `cal4-r8/`)
+
+Written after the four runs; the rule and the rates were fixed above before the first of them.
+
+**Before the first run** (read at 01:43, `start-r1-r5.txt`, `search-log.txt`): repository HEAD `73aa37e`; `git status --short -- poc/lab` empty; 15 GiB total, 11 GiB available, 883 GB free; Windows Update paused until 2026-11-28 15:02 UTC (read from the registry).
+The database container's start log (the whole log, 13 lines) shows `InnoDB initialization has started` and `has ended` 0.6 s later and `ready for connections`, with **no line about crash recovery, redo log application or an error** (the two usual warnings only: the CA certificate is self signed, the pid-file directory). The closed-network check passed;
+B's settings were put on (`lab-config-b apply`), the app and web containers were made again on 3,000 rows, `bin/check-limits --require=unlimited --request-timeout=1800s` said `LIMITS OK`; the app and web have 10 CPUs (cores 2-7 and 12-15), the database 2 (0-1), the load tool 2 (8-9). While a run was measured nothing else was run on this machine.
+
+Rates given to the entry: R_0 = 2, R_2 = 1.0, R_3 = 0.2, R_4 = 1.0 real; cal-8 at **1** (a rate it is not searched at, given to the gate's question only); cal-4 at the value tried. cal-4 is the 3,000-row database, even mix, request timeout 1,800 s, 10 minutes at a constant rate, the first 2 discarded (kept window 480 s).
+
+| Rate asked | Rate reached (ratio) | `rps_status` | Database (2 CPUs) | App (10 CPUs) | Requests sent, all status 200 | Arrivals dropped | Gate (reference), smallest degree |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.9938 (0.9938) | valid | **2.9030%** | 4.33% | 477 | 0 | 0.374260 (without cal-7), refused |
+| 2 | 1.9979 (0.9990) | valid | **4.9735%** | 8.63% | 959 | 0 | 0.386401 (without cal-4), refused |
+| 4 | 4.0000 (1.0000) | valid | **9.4082%** | 17.58% | 1,920 | 0 | 0.386401 (without cal-4), refused |
+| 8 | 8.0000 (1.0000) | valid | **20.2227%** | 38.59% | 3,840 | 0 | 0.386401 (without cal-4), refused |
+
+In every run the gate refused (exit 14), the entry printed `GATE ADVISORY` and measured (`search-gate-advisory.txt` in each run's directory: the flag, exit code 14, not passed, the degree, the run left out, the threshold 0.50). The write check (`WRITE CHECK OK`), the limits guard (`LIMITS OK`, 1800 s) and the guards of the N tables (`TABLES SAME`) passed, and no status code other than 200 was seen.
+(As for cal-1 at 1 rps, `tables-after.tsv` of the run at 1 rps lists some write counters as extra lines that `tables-before.tsv` does not; the guard's own `.diff` is empty.) The gate's result is a reference and was not used to take or to refuse a rate.
+
+By the rule (D183 amendment 1, D272 decision 1): 1, 2 and 4 rps are valid and below the band, so the rate is doubled; **8 rps is valid and its utilization, 20.2227%, is inside 20% to 30%, and it is the first value of the doubling that is: R_1 = 8 rps**. It was made in the conditions of a run (with the flag, which changes nothing but the entry's treatment of the gate), so by D274 and D277 (B1) it is cal-4's run and is not measured again.
+The first run (1 rps) was not above 30%, so the stop for an over-band first run (D183 amendment 1) did not apply. The utilization is close to the lower edge (20.22%); that is what was measured and it is not adjusted.
+R_1 is 8: not 1, 2 or 32 (D277, B2), and not outside the grid, so the search of R_5 goes on, with cal-4 given to the gate at 8.
+
+Times (start of the entry's call, `search-log.txt`): 1 rps 01:43:58, 2 rps 01:55:55, 4 rps 02:07:50, 8 rps 02:19:46.
+
+### The database of 1,000 rows for cal-8 (built and analysed once, 2026-11-26 02:34; `build-1000/`)
+
+Before the search of R_5, as the plan above says. `bin/build-db --scale=1000` with the 123 N tables of `docs/research/bagisto-prep/n-tables.txt` at 1,000 rows and every other table at the base size, as for the other scales (`build-output.txt`: 24.74 s, rc 0), then `bin/analyze-db --scale=1000` once on the 152 tables
+(`analyze/`: 152 of 152 `status OK`, 1 s). The first start of the analysis, inside the helper script, failed before it ran (its output directory did not exist, rc 1; nothing was analysed; `steps.txt` says so, and `analyze.out` and `analyze.err2` are the two empty files of that start — the two empty files were removed by mistake and
+made them again empty, 02:35, before this commit). The second start is the one that ran (`analyze.out2`). No ANALYZE is run between runs.
+
+### The search of R_5 (cal-8): the rule and the rates, fixed before the first run of it
+
+cal-8 is even mix on the 1,000-row database; it is searched by the doubling search from 1 rps (1, 2, 4, 8, …; D183 amendment 1, D272 decision 1 and 2), with the flag `--search-gate-advisory` as written above. Rates given to the entry: R_0 = 2, R_1 = 8, R_2 = 1.0, R_3 = 0.2, R_4 = 1.0 real; cal-8 at the value tried. A first run above 30% stops the search and reports; a rate not reached (`rps_status` not `valid`) → the geometric mean of the previous value and this one once, and then stop if that is not reached or outside the band; a value above 32 is handled as D272 decision 2 says.

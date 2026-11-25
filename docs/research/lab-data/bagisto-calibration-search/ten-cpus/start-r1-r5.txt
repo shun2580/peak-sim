@@ -1,0 +1,17 @@
+B ON: ladder-b-1800s.diff applied at 2026-11-26T01:43:35+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+9f16ea0f461643cf19eb85aa15357d72ba23786e144d987653db820beb0b23ee  poc/lab/compose/nginx/lab.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+PASS peak-lab-bagisto-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-bagisto-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-db: the name example.com is unreachable
+PASS peak-lab-bagisto-db: its own port (3306) (positive control)
+PREFLIGHT OK
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+/peak-lab-bagisto-app cpuset=2-7,12-15 nano=10000000000
+/peak-lab-bagisto-web cpuset=2-7,12-15 nano=10000000000
+/peak-lab-bagisto-db cpuset=0-1 nano=2000000000
+/peak-lab-bagisto-k6 cpuset=8-9 nano=2000000000
+/peak-lab-bagisto-tools cpuset=10-11 nano=2000000000
