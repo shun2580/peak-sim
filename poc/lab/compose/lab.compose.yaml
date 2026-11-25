@@ -9,6 +9,7 @@
 #   PEAK_LAB_UID/GID     the user the containers run as (so the files they write in the out directory are the user's own)
 #   PEAK_MEASURE_DB_ROOT_PASSWORD / PEAK_MEASURE_DB_PASSWORD / PEAK_MEASURE_RUN_ID / PEAK_MEASURE_APP_KEY   throwaway values
 #   PEAK_LAB_SCALE       the scale of the database the app reads (database peak_sim_measure_<run id>_lab_<scale>)
+#   PEAK_LAB_APP_CPUS / PEAK_LAB_CPUSET_APP   the app side's CPU quota and cores (default 6 and 2-7; see the CPU note below)
 #   PEAK_LAB_PREFIX      the start of every container name and of the data volume's name (default peak-lab). A second stack (another app) is
 #                        this same file with its own project name (-p), prefix, image and PHP version: see poc/lab/bin/with-bagisto. Two
 #                        stacks share no container, network or volume, because the project name and the prefix both differ.
@@ -18,6 +19,8 @@
 #
 # CPU: the database is pinned to 2 CPUs and the app side (php-fpm and nginx) to 6, on separate cores, so the app does not
 # run out of CPU before the database does (section 7.2). k6 and the tools container have cores of their own.
+# The app side's count is one variable pair, PEAK_LAB_APP_CPUS (the quota) and PEAK_LAB_CPUSET_APP (the cores); the defaults, 6 and 2-7, are the
+# BookStack lab's. The Bagisto lab sets 10 and 2-7,12-15 (section 7.4.7): poc/lab/bin/with-bagisto. The database, k6 and tools cores do not change.
 name: peak-lab
 
 networks:
@@ -75,7 +78,7 @@ services:
     image: ${PEAK_LAB_IMAGE:-peak-lab-php}:${PHP_VERSION:-8.3}
     container_name: ${PEAK_LAB_PREFIX:-peak-lab}-app
     networks: [lab-internal]
-    cpus: 6
+    cpus: ${PEAK_LAB_APP_CPUS:-6}
     cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
     # The app container's memory limit (decisions.md D210), with no swap on top (the same value for both): a request that takes memory the machine
     # does not have ends in this container's own out-of-memory stop, which bin/check-oom reads and stops a measurement for, and not in WSL as a
@@ -120,7 +123,7 @@ services:
     networks:
       lab-internal:
         aliases: [lab-web]
-    cpus: 6
+    cpus: ${PEAK_LAB_APP_CPUS:-6}
     cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
     read_only: true
     tmpfs:

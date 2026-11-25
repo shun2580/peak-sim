@@ -105,6 +105,17 @@ check "4d the app's root is read-only (a write to it fails)" bash -c '! docker e
 check "4e the app container cannot write into the repository or the app" bash -c '! docker exec peak-lab-bagisto-app sh -c "echo x > /peak-sim/lab-test-file" 2>/dev/null && ! docker exec peak-lab-bagisto-app sh -c "echo x > /app/lab-test-file" 2>/dev/null'
 check "4f the database is mysql 8.4 and has its own cores (0-1)" bash -c '[ "$(docker inspect -f "{{.HostConfig.CpusetCpus}}" peak-lab-bagisto-db)" = 0-1 ] && docker exec peak-lab-bagisto-db mysqld --version | grep -q "8\.4"'
 
+check "4g the app and the web server have 10 CPUs on cores 2-7,12-15 (spec 7.4.7), and the web server shares the app's cores" bash -c '
+  for c in peak-lab-bagisto-app peak-lab-bagisto-web; do
+    [ "$(docker inspect -f "{{.HostConfig.CpusetCpus}} {{.HostConfig.NanoCpus}}" "$c")" = "2-7,12-15 10000000000" ] || exit 1
+  done'
+check "4h k6 has 8-9 and the tools 10-11, so the app's 12-15 are used by no other container of this lab" bash -c '
+  [ "$(docker inspect -f "{{.HostConfig.CpusetCpus}}" peak-lab-bagisto-k6)" = 8-9 ] && [ "$(docker inspect -f "{{.HostConfig.CpusetCpus}}" peak-lab-bagisto-tools)" = 10-11 ]'
+check "4i the app container sees 10 CPUs' worth of quota in its own cgroup (cpu.max) and its allowed cores are 2-7,12-15" bash -c '
+  [ "$(docker exec peak-lab-bagisto-app cat /sys/fs/cgroup/cpu.max | cut -d" " -f1)" -eq "$(( $(docker exec peak-lab-bagisto-app cat /sys/fs/cgroup/cpu.max | cut -d" " -f2) * 10 ))" ] &&
+  [ "$(docker exec peak-lab-bagisto-app cat /sys/fs/cgroup/cpuset.cpus.effective)" = 2-7,12-15 ]'
+check "4j php-fpm in the app container has a static pool of 16 workers (php-fpm -tt)" bash -c 'out="$(docker exec peak-lab-bagisto-app php-fpm -tt 2>&1)"; echo "$out" | grep -q "pm = static" && echo "$out" | grep -q "pm.max_children = 16"'
+
 # 5 -----------------------------------------------------------------------------------------------------------------------------
 status="$(docker exec peak-lab-bagisto-k6 sh -c 'wget -q -S -O /dev/null --post-data=x http://lab-web:8080/ 2>&1 | head -1')"
 check "5a a POST at the entry gets 405 (got: ${status:-nothing})" bash -c 'echo "$1" | grep -q "405"' _ "$status"

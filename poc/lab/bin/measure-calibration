@@ -200,7 +200,7 @@ for id in ${measure//,/ }; do
   tables_rc=$?
   if [ "$tables_rc" != 0 ]; then echo "measure-calibration: the N tables guard stopped $id after the run (exit $tables_rc); the run is not judged and no record was made" >&2; exit "$tables_rc"; fi
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
-    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 >"$d/record.json" 2>"$d/summarize.err" || {
+    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus="$PEAK_LAB_APP_CPUS" >"$d/record.json" 2>"$d/summarize.err" || {
     rm -f "$d/record.json"; echo "measure-calibration: summarize-run failed in $id: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
   stats "$run_scale" "$d/stats-after.tsv" || { echo "measure-calibration: the statistics after $id could not be read: $(cat "$d/stats-after.tsv.err" 2>/dev/null). The run is recorded; read them by hand." >&2; }
   echo "RUN END $id at $ended_at: record $d/record.json"

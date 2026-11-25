@@ -8,6 +8,8 @@
 #   PEAK_LAB_STATE_DIR     where the throwaway passwords, the run id and the app key live (default ~/.cache/peak-lab).
 #                          They are made once and kept, because the database's data volume outlives `down`.
 #   PEAK_LAB_SCALE         the scale of the database the app reads (default 10000)
+#   PEAK_LAB_APP_CPUS      the app side's CPU quota (default 6; the Bagisto stack sets 10): the compose file's `cpus` of the app and the web server, and
+#                          the --app-cpus the measuring scripts give summarize-run. PEAK_LAB_CPUSET_APP (default 2-7) names the cores.
 #   PEAK_LAB_ACT_AS        the login of the entry script (default the first BookStack user)
 #   PEAK_LAB_LOGINS        the other logins a request may choose by name: name=Model\Class:key:guard, separated by `;` (default none: the
 #                          default login and the guest alone). Read by the entry (X-Lab-Login: <name>) and by bin/targets.
@@ -34,6 +36,10 @@ LAB_DIR="$(cd "$_here/.." && pwd)"
 : "${PEAK_LAB_OUT_DIR:=${HOME}/.cache/peak-lab/out}"
 : "${PEAK_LAB_LOAD_DIR:=$LAB_DIR/load}"
 : "${PEAK_LAB_SCALE:=10000}"
+# The app side's CPU quota: the denominator of the app CPU utilization every measuring script records (--app-cpus). It is the number the compose file
+# gives the app container (lab.compose.yaml: PEAK_LAB_APP_CPUS, default 6); the Bagisto lab sets 10 in bin/with-bagisto (spec 7.4.7).
+: "${PEAK_LAB_APP_CPUS:=6}"
+case "$PEAK_LAB_APP_CPUS" in ''|*[!0-9]*|0) echo "lab: PEAK_LAB_APP_CPUS must be a whole number of CPUs, 1 or more (got '$PEAK_LAB_APP_CPUS')" >&2; exit 2 ;; esac
 : "${PEAK_LAB_UID:=$(id -u)}"
 : "${PEAK_LAB_GID:=$(id -g)}"
 if [ -z "${PEAK_APP_ROOT:-}" ] && [ -d "$PEAK_REPO_ROOT/../peak-sim-trials/bookstack" ]; then
@@ -67,7 +73,7 @@ set +a
 : "${PEAK_LAB_WEB_CONTAINER:=${PEAK_LAB_PREFIX}-web}"
 : "${PEAK_LAB_K6_CONTAINER:=${PEAK_LAB_PREFIX}-k6}"
 : "${PEAK_LAB_TOOLS_CONTAINER:=${PEAK_LAB_PREFIX}-tools}"
-export PEAK_REPO_ROOT PEAK_APP_ROOT PEAK_LAB_OUT_DIR PEAK_LAB_LOAD_DIR PEAK_LAB_SCALE PEAK_LAB_UID PEAK_LAB_GID PEAK_LAB_PREFIX
+export PEAK_REPO_ROOT PEAK_APP_ROOT PEAK_LAB_OUT_DIR PEAK_LAB_LOAD_DIR PEAK_LAB_SCALE PEAK_LAB_UID PEAK_LAB_GID PEAK_LAB_PREFIX PEAK_LAB_APP_CPUS
 export PEAK_LAB_DB_CONTAINER PEAK_LAB_APP_CONTAINER PEAK_LAB_WEB_CONTAINER PEAK_LAB_K6_CONTAINER PEAK_LAB_TOOLS_CONTAINER
 # A path that names a file inside the repository, relative to it (it is also read inside the containers, where the repository is /peak-sim).
 for _v in PEAK_LAB_ALLOWED_WRITES_FILE PEAK_LAB_ROUTE_LIST; do

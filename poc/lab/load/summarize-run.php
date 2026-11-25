@@ -7,7 +7,7 @@ declare(strict_types=1);
  * utilization over the kept window. It judges nothing else.
  *
  *   php poc/lab/load/summarize-run.php --plan=<plan.json> --k6-summary=<summary.json> --samples=<cpu samples file>
- *       [--app-samples=<app cpu samples file> [--app-cpus=6]] [--require-sent=1]
+ *       [--app-samples=<app cpu samples file> [--app-cpus=6]] [--require-sent=1]   (the measuring scripts pass the app container's CPU quota, 6 or 10)
  *
  * "Did the decided rps come out" is counted on the requests SENT inside the kept window (the load tool's `measure_sent`), and a step
  * in which the load tool dropped any arrival is invalid (section 7.4.3). A summary written before the load tool counted the sent

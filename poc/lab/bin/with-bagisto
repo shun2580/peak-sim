@@ -40,6 +40,12 @@ export PHP_VERSION="${PHP_VERSION:-8.4}"
 export PHP_EXTENSIONS="${PHP_EXTENSIONS:-calendar}"
 export PEAK_LAB_STATE_DIR="${PEAK_LAB_BAGISTO_STATE_DIR:-$HOME/.cache/peak-lab-bagisto}"
 export PEAK_LAB_OUT_DIR="${PEAK_LAB_BAGISTO_OUT_DIR:-$PEAK_LAB_STATE_DIR/out}"
+# The app side's CPUs (spec 7.4.7, maintainer ruling 2026-11-25): 10, the BookStack lab's cores 2-7 and the free 12-15. The database (0-1), k6 (8-9) and the
+# tools (10-11) keep the compose file's cores. These two are set here, not offered: an own value in the environment does not win, so the Bagisto lab cannot be
+# started with the BookStack lab's 6 by an inherited variable, and nothing here can reach the BookStack lab (its compose defaults, 6 and 2-7, are unchanged).
+# php-fpm's pm.max_children stays 16, the same file for both labs (decisions D191 (4): the count of workers is not tied to the cores).
+export PEAK_LAB_APP_CPUS=10
+export PEAK_LAB_CPUSET_APP="2-7,12-15"
 export PEAK_LAB_PROFILE="${PEAK_LAB_PROFILE:-bagisto}"
 export PEAK_LAB_ACT_AS="${PEAK_LAB_ACT_AS:-Webkul\\Customer\\Models\\Customer:1:customer}"
 export PEAK_LAB_LOGINS="${PEAK_LAB_LOGINS:-customer=Webkul\\Customer\\Models\\Customer:1:customer;admin=Webkul\\User\\Models\\Admin:1:admin}"

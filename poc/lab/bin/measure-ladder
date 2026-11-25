@@ -556,7 +556,7 @@ for rps in "${rungs[@]}"; do
   tables_rc=$?
   if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the write guard stopped $scenario after rung $i (exit $tables_rc); the step is not judged and has no record" >&2; exit "$tables_rc"; fi
   php_tool poc/lab/load/summarize-run.php --plan="$(in_container "$d/plan.json")" --k6-summary="$(in_container "$d/summary.json")" \
-    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus=6 --require-sent=1 >"$d/run.json" 2>"$d/summarize.err" || {
+    --samples="$(in_container "$d/cpu.txt")" --app-samples="$(in_container "$d/app-cpu.txt")" --app-cpus="$PEAK_LAB_APP_CPUS" --require-sent=1 >"$d/run.json" 2>"$d/summarize.err" || {
     echo "measure-ladder: summarize-run failed at rung $i: $(cat "$d/summarize.err"). Stopped." >&2; exit 13; }
   if [ -n "$trial" ]; then record_args=(--trial="$trial"); else record_args=(--scenario="$scenario" --scale="$scale" --prediction-file="$pred_file" --prediction-commit="$pred_commit" --prediction-time="$pred_time"); fi
   php_tool poc/lab/load/ladder.php record "${record_args[@]}" --rung="$i" --summary="$(in_container "$d/run.json")" --settings="$(in_container "$d/settings.json")" \

@@ -27,6 +27,7 @@ conditions 1 to 5 hold here too, and condition 6 is the lab's own (below: how ea
 | `bin/with-bagisto` | runs any command above against **the Bagisto lab**, a stack of its own (below): its own project, containers, network, data volume, PHP 8.4 image and state directory, and the Bagisto paths for the list of tables the lab may write, the route list and the N tables |
 | `tests/allowed-writes.sh` | the tests of the write guards over a list of tables that may be written (a stand-in `docker`; the PHP class in a throw-away container; never touches a lab): the three readers of the list agree, each guard accepts the list's tables and refuses the rest, the stack's settings are its own, and each part taken out of a copy is caught |
 | `tests/bagisto-stack.sh` | the Bagisto stack started for real: sealed, nothing shared with the BookStack lab (its containers, network and volume are listed before and after), no published port, PHP 8.4 with `calendar`, a POST and a GET at the entry refused, and the guards read on the real server through a made-up database that the test makes and drops. No request goes to any route and no Bagisto database is built |
+| `tests/app-cpus.sh` | the CPUs of the app side in the two labs, read from the compose file as Docker renders it (no container is started): the BookStack lab's app and web server on 6 CPUs, cores 2-7; the Bagisto lab's on 10 CPUs, cores 2-7,12-15; the database, k6 and tools cores unchanged and no core shared; the Bagisto wrapper does not take the app's CPUs from the environment; the `--app-cpus` of both measuring scripts is `$PEAK_LAB_APP_CPUS`; php-fpm keeps 16 static workers |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
 | `tests/predict-ladder-allocation.sh` | the tests of `bin/predict-ladder --drop-marked-routes` through the command, on the committed records of the fourth backtest (the plain output is the committed bytes; the flag takes a marked route out, keeps the sum, and stops with 38, 39 and 40; `--warmup-from-marks` writes the warm-up by the rule of 7.4.5 and changes nothing else; PHP or the built PHP image, python3 and git; never touches the lab) |
 | `tests/extrapolation-gate.sh` | the tests of the gate in front of `bin/measure-extrapolation` (git and bash only; the runtime tools are replaced by a recorder; never touches the lab; one test takes the gate's two lines out of a copy of the door and shows that a closed gate then starts the tool) |
@@ -155,8 +156,8 @@ One network, `internal: true`, no published port. Container names are fixed so t
 | Container | Image | CPU | Role |
 | --- | --- | --- | --- |
 | `peak-lab-db` (host name `measure-db`) | `mysql:8.4.7` | 2 (cores 0-1) | the database. The statistics' automatic recalculation is left at its default. The buffer pool (2 GB) holds every database of the scenarios |
-| `peak-lab-app` | `peak-lab-php` (built here from `php:8.3-fpm`) | 6 (cores 2-7, shared with the web server) | php-fpm, 16 static workers, opcache on |
-| `peak-lab-web` (alias `lab-web`) | `nginx:1.28-alpine` | cores 2-7 | `http://lab-web:8080` to the app's entry script; `:8081/__lab/status` (a counter of requests) and `/__lab/health` |
+| `peak-lab-app` | `peak-lab-php` (built here from `php:8.3-fpm`) | 6 (cores 2-7, shared with the web server; the Bagisto lab: 10, cores 2-7,12-15) | php-fpm, 16 static workers (the same pool file in both labs), opcache on |
+| `peak-lab-web` (alias `lab-web`) | `nginx:1.28-alpine` | cores 2-7 (the Bagisto lab: 2-7,12-15, the app's) | `http://lab-web:8080` to the app's entry script; `:8081/__lab/status` (a counter of requests) and `/__lab/health` |
 | `peak-lab-k6` | `grafana/k6:2.3.0` | 2 (cores 8-9) | idle; `docker exec peak-lab-k6 k6 run /load/<script>.js` |
 | `peak-lab-tools` | `peak-lab-php` | cores 10-11 | builds databases; not part of the load |
 
@@ -254,7 +255,15 @@ the BookStack lab: the project is `peak-lab-bagisto` (so the network is `peak-la
 the run id and the records are in `~/.cache/peak-lab-bagisto` (not `~/.cache/peak-lab`). The wrapper refuses to be given the BookStack lab's state
 directory, project or prefix. What makes the names differ is one variable, `PEAK_LAB_PREFIX` (default `peak-lab`, which gives every name the BookStack
 lab has always had); every script takes the container names from `bin/_lab.sh`, which makes them from it. The build, the closed network, the cores (the
-database on 0-1, the app side on 2-7, k6 on 8-9), the memory limit of the app, the read-only root and the guards are the compose file's, the same for both.
+database on 0-1, the app side on 2-7, k6 on 8-9; the one difference below), the memory limit of the app, the read-only root and the guards are the compose file's, the same for both.
+
+The one difference in the cores (`docs/simulator-spec.md` 7.4.7, the maintainer's ruling of 2026-11-25): the Bagisto lab's app and web server have 10 CPUs, on cores
+2-7 and 12-15, where the BookStack lab's have 6 on 2-7. `bin/with-bagisto` sets `PEAK_LAB_APP_CPUS=10` and `PEAK_LAB_CPUSET_APP=2-7,12-15` (an own value in the
+environment does not win); the compose file's defaults, 6 and 2-7, stay the BookStack lab's. The database stays on 2 CPUs (0-1), k6 on 8-9 and the tools on 10-11,
+and php-fpm keeps its 16 static workers (one pool file for both). The app CPU utilization of every calibration run and every step is taken over the same number
+(`bin/measure-calibration` and `bin/measure-ladder` pass `--app-cpus="$PEAK_LAB_APP_CPUS"`), which every run's `app_cpu_utilization.cpus` keeps. Cores 12-15 are also what
+the host-side development containers of the tests and of the calibration gate use by default (`PEAK_DEV_CPUSET`); nothing of that runs inside a measured window.
+`tests/app-cpus.sh` and `tests/bagisto-stack.sh` (4g-4j) pin all of it.
 
 What is Bagisto's own is only this: PHP 8.4 or later (the image is built with `PHP_VERSION=8.4` and `PHP_EXTENSIONS=calendar`, the one extension Bagisto's
 `composer.json` requires that the BookStack image lacks; the build needs the internet once, like the BookStack one), the profile `bagisto` for the builder
