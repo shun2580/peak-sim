@@ -387,7 +387,7 @@ Nothing was changed in the lab to look; the settings were not changed to test th
 
 The compose files were put back (`lab-config-b restore`, `git status --short -- poc/lab` empty, SHA-256 `604aedff…` and `f495eab5…`), the load tool, tools, web and app containers were stopped with `docker stop`, the database with `docker stop -t 180` (**`Shutdown complete`**, 2026-11-25T19:59:40Z) and the stack taken down without `-v` (`cal8-r32-diag/shutdown.txt`). The volumes are kept (54); no `kill`, `prune` or `--purge`.
 
-Two things were changed in the copies kept here before the commit, not in what the run wrote: the absolute paths in `obs/observe-log.txt` and `cal8-r32-diag.out.txt` were replaced by `<obs>` and `<out>`, and the last line of `run_diag.sh` (a one-line notice to the person who started the run) was left out; in `start.txt` the two CPU limits in nanoCPUs were written as `10e9` and `2e9`.
+Two things were changed in the copies kept here before the commit, not in what the run wrote: the absolute paths in `obs/observe-log.txt` and `cal8-r32-diag.out.txt` were replaced by `<obs>` and `<out>`, and the last line of `run_diag.sh` (a one-line notice to the person who started the run) was left out.
 
 ## A confirming run at 32 rps, after the web server's upstream keepalive was taken out (written at 2026-11-26 08:22, before it is measured; `cal8-r32-confirm/`)
 
