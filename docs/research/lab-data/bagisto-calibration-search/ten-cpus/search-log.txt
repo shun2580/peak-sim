@@ -92,3 +92,9 @@ RESULT target=32.0 achieved=31.2083 status=invalid db_util=40.8905% app_cpu=75.3
 2026-11-26 04:35:30 NOTE (written after the start at 04:34, true as of the start): --out of the diagnostic run is <out>/cal8-r32-diag, a directory made new for it (it did not exist before); no existing run directory (cal8-r32 and the others) is named by it, and cal8-r32 was checked to be still there at this time
 2026-11-26 04:58:55 END cal-8 name=cal8-r32-diag exit=0
 RESULT target=32.0 achieved=31.8438 status=invalid db_util=40.6999% app_cpu=75.19758275336159 requests=15285 dropped=85 http={'200': 15285}
+2026-11-26 08:22:12 CONFIRM START (a run only to see whether the stall after the load window is gone after the web server's upstream keepalive was taken out; its value is used for nothing): peak-sim HEAD a2f749b; git status --short -- poc/lab was [] (empty) before the B diff was applied; free: total 15 available 10; df / 882G free; Windows Update paused until 2026-11-28T15:02:20Z; db start log read (13 lines, no recovery or error line); check-limits LIMITS OK
+2026-11-26 08:22:12 PRE free: total 15 available 10 df: 882G free
+2026-11-26 08:22:12 START cal-8 name=cal8-r32-confirm R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 08:33:59 END cal-8 name=cal8-r32-confirm exit=0
+RESULT target=32.0 achieved=31.9958 status=invalid db_util=41.9708% app_cpu=78.1636003184818 requests=15358 dropped=16 http={'200': 15358}
+2026-11-26 08:44:26 NOTE: a second observer (driver2.sh, same observe.sh, looks 15 s after those of driver.sh) was started at 08:23:44 because driver.sh skips every look after the load tool's tail has ended; the tail ended 08:32:54, so the looks at 1, 2, 5 and 10 minutes after the window are driver2's (cal8-r32-confirm/obs2/). Written after the run.

@@ -1,0 +1,5 @@
+/peak-lab-bagisto-app RestartCount=0 OOMKilled=false Status=running
+/peak-lab-bagisto-web RestartCount=0 OOMKilled=false Status=running
+/peak-lab-bagisto-db RestartCount=0 OOMKilled=false Status=running
+/peak-lab-bagisto-k6 RestartCount=0 OOMKilled=false Status=running
+/peak-lab-bagisto-tools RestartCount=0 OOMKilled=false Status=running

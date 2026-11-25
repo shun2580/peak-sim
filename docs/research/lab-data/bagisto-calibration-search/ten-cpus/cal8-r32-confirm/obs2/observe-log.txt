@@ -1,0 +1,8 @@
+2026-11-26 08:23:44 driver2: load tool started at 2026-11-26T08:22:42+09:00; the window ends at 2026-11-26 08:32:42; looks are taken 15 s after the times of driver.sh and also after the tail has ended
+2026-11-26 08:32:01 wrote <obs2>/w-1min.txt
+2026-11-26 08:33:05 wrote <obs2>/end+5s.txt
+2026-11-26 08:34:01 wrote <obs2>/end+1m.txt
+2026-11-26 08:35:00 wrote <obs2>/end+2m.txt
+2026-11-26 08:38:00 wrote <obs2>/end+5m.txt
+2026-11-26 08:43:00 wrote <obs2>/end+10m.txt
+2026-11-26 08:43:00 driver2: done

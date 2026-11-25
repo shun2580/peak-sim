@@ -1,0 +1,222 @@
+# start of the stack (up), 2026-11-26 08:20-08:22
+Thu Nov 26 08:20:49 JST 2026
+ Image peak-lab-bagisto-php:8.4 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 668B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.fpm
+#2 transferring dockerfile: 1.23kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/php:8.4-fpm
+#3 DONE 1.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/4] FROM docker.io/library/php:8.4-fpm@sha256:8374ec282efaccb7350fbea59c252fcd2e73a238b06b970e8f3c74fb605f1853
+#5 resolve docker.io/library/php:8.4-fpm@sha256:8374ec282efaccb7350fbea59c252fcd2e73a238b06b970e8f3c74fb605f1853 0.0s done
+#5 DONE 0.0s
+
+#6 [2/4] RUN apt-get update  && apt-get install -y --no-install-recommends libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev  && docker-php-ext-configure gd --with-jpeg --with-freetype  && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd  && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/4] RUN if [ -n "calendar" ]; then docker-php-ext-install $(echo "calendar" | tr ',' ' '); fi
+#7 CACHED
+
+#8 [4/4] WORKDIR /peak-sim
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 exporting manifest sha256:5f07421fd2bb3cb32d1fa49842c54236f980f604f83d4df41ecec42120bd5a7d done
+#9 exporting config sha256:7bec95034e8e1210e6c8ea36655969792edb5f2ce2ac19022cb903bf48bf2f90 done
+#9 exporting attestation manifest sha256:17e4b739a7d98d2187d58fad48cb82fedddb20158b8e98edbfeb3318d49bc955 0.0s done
+#9 exporting manifest list sha256:422ce3269504f1487248ff82ceee3446a727e00e3a88c5a1f8a7d4b6937a0791 done
+#9 naming to docker.io/library/peak-lab-bagisto-php:8.4 done
+#9 unpacking to docker.io/library/peak-lab-bagisto-php:8.4 done
+#9 DONE 0.1s
+
+#10 resolving provenance for metadata file
+#10 DONE 0.0s
+ Image peak-lab-bagisto-php:8.4 Built 
+ Network peak-lab-bagisto_lab-internal Creating 
+ Network peak-lab-bagisto_lab-internal Created 
+ Container peak-lab-bagisto-db Creating 
+ Container peak-lab-bagisto-db Created 
+ Container peak-lab-bagisto-app Creating 
+ Container peak-lab-bagisto-app Created 
+ Container peak-lab-bagisto-tools Creating 
+ Container peak-lab-bagisto-web Creating 
+ Container peak-lab-bagisto-web Created 
+ Container peak-lab-bagisto-k6 Creating 
+ Container peak-lab-bagisto-tools Created 
+ Container peak-lab-bagisto-k6 Created 
+ Container peak-lab-bagisto-db Starting 
+ Container peak-lab-bagisto-db Started 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-app Starting 
+ Container peak-lab-bagisto-app Started 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-web Starting 
+ Container peak-lab-bagisto-web Started 
+ Container peak-lab-bagisto-k6 Starting 
+ Container peak-lab-bagisto-k6 Started 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-tools Starting 
+ Container peak-lab-bagisto-tools Started 
+ Container peak-lab-bagisto-tools Waiting 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-app Waiting 
+ Container peak-lab-bagisto-web Waiting 
+ Container peak-lab-bagisto-k6 Waiting 
+ Container peak-lab-bagisto-app Healthy 
+ Container peak-lab-bagisto-web Healthy 
+ Container peak-lab-bagisto-tools Healthy 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-k6 Healthy 
+PASS container: peak-lab-bagisto-db is running
+PASS container: peak-lab-bagisto-app is running
+PASS container: peak-lab-bagisto-web is running
+PASS container: peak-lab-bagisto-k6 is running
+PASS container: peak-lab-bagisto-tools is running
+PASS network: peak-lab-bagisto_lab-internal internal=true
+PASS peak-lab-bagisto-db: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-db: no published port
+PASS peak-lab-bagisto-app: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-app: no published port
+PASS peak-lab-bagisto-web: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-web: no published port
+PASS peak-lab-bagisto-k6: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-k6: no published port
+PASS peak-lab-bagisto-tools: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-tools: no published port
+peak-lab-bagisto-app: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-app: PASS negative http:example.com             no response
+peak-lab-bagisto-app: PASS negative default-route                no default route
+peak-lab-bagisto-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-app: PREFLIGHT OK
+peak-lab-bagisto-tools: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-tools: PASS negative http:example.com             no response
+peak-lab-bagisto-tools: PASS negative default-route                no default route
+peak-lab-bagisto-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-tools: PREFLIGHT OK
+PASS peak-lab-bagisto-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-web: http://example.com is unreachable
+PASS peak-lab-bagisto-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-bagisto-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-k6: http://example.com is unreachable
+PASS peak-lab-bagisto-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-bagisto-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-db: the name example.com is unreachable
+PASS peak-lab-bagisto-db: its own port (3306) (positive control)
+PREFLIGHT OK
+lab is up and sealed. scale=10000  web (from inside the network only): http://lab-web:8080
+
+# B settings on, app and web recreated at 1,000 rows, limits read
+Thu Nov 26 08:21:20 JST 2026
+git status poc/lab above (empty = clean)
+B ON: ladder-b-1800s-bagisto.diff applied at 2026-11-26T08:21:20+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+ Container peak-lab-bagisto-app Recreate 
+ Container peak-lab-bagisto-app Recreated 
+ Container peak-lab-bagisto-web Recreate 
+ Container peak-lab-bagisto-web Recreated 
+ Container peak-lab-bagisto-app Starting 
+ Container peak-lab-bagisto-app Started 
+ Container peak-lab-bagisto-web Starting 
+ Container peak-lab-bagisto-web Started 
+PASS container: peak-lab-bagisto-db is running
+PASS container: peak-lab-bagisto-app is running
+PASS container: peak-lab-bagisto-web is running
+PASS container: peak-lab-bagisto-k6 is running
+PASS container: peak-lab-bagisto-tools is running
+PASS network: peak-lab-bagisto_lab-internal internal=true
+PASS peak-lab-bagisto-db: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-db: no published port
+PASS peak-lab-bagisto-app: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-app: no published port
+PASS peak-lab-bagisto-web: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-web: no published port
+PASS peak-lab-bagisto-k6: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-k6: no published port
+PASS peak-lab-bagisto-tools: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-tools: no published port
+peak-lab-bagisto-app: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-app: PASS negative http:example.com             no response
+peak-lab-bagisto-app: PASS negative default-route                no default route
+peak-lab-bagisto-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-app: PREFLIGHT OK
+peak-lab-bagisto-tools: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-tools: PASS negative http:example.com             no response
+peak-lab-bagisto-tools: PASS negative default-route                no default route
+peak-lab-bagisto-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-tools: PREFLIGHT OK
+PASS peak-lab-bagisto-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-web: http://example.com is unreachable
+PASS peak-lab-bagisto-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-bagisto-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-k6: http://example.com is unreachable
+PASS peak-lab-bagisto-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-bagisto-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-db: the name example.com is unreachable
+PASS peak-lab-bagisto-db: its own port (3306) (positive control)
+PREFLIGHT OK
+
+--- check-limits
+
+rc=2
+peak-lab-bagisto-web Up 12 seconds
+peak-lab-bagisto-app Up 13 seconds
+peak-lab-bagisto-k6 Up 38 seconds
+peak-lab-bagisto-tools Up 38 seconds
+peak-lab-bagisto-db Up 42 seconds (healthy)
+/peak-lab-bagisto-app cpuset=2-7,12-15 nano=10e9
+/peak-lab-bagisto-web cpuset=2-7,12-15 nano=10e9
+/peak-lab-bagisto-db cpuset=0-1 nano=2e9
+/peak-lab-bagisto-k6 cpuset=8-9 nano=2e9
+/peak-lab-bagisto-tools cpuset=10-11 nano=2e9
+
+# check-limits --require=unlimited --request-timeout=1800s
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+
+# database start log (docker logs, the whole log)
+2026-11-25 23:20:52+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.7-1.el9 started.
+2026-11-25 23:20:53+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-11-25 23:20:53+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.7-1.el9 started.
+'/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-11-25T23:20:53.625409Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-11-25T23:20:53.939226Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.7) starting as process 1
+2026-11-25T23:20:53.952704Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-25T23:20:54.627843Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-11-25T23:20:54.982278Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-11-25T23:20:54.982319Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-11-25T23:20:54.984877Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-11-25T23:20:55.017539Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-11-25T23:20:55.017650Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.7'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.

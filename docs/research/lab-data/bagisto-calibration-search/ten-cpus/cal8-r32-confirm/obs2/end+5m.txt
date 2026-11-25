@@ -1,0 +1,68 @@
+label=end+5m
+time=2026-11-26 08:37:57
+== app container: sockets on port 9000 (raw /proc/net/tcp and tcp6 lines, then a summary)
+  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode                                                     
+   0: 00000000000000000000000000000000:2328 00000000000000000000000000000000:0000 0A 00000000:00000000 00:00000000 00000000  1000        0 11204422 1 00000000fc7dd95a 100 0 0 10 0
+summary: listen_sockets=1 listen_rx_queue(Recv-Q)=0 established_total=0 states={'0A': 1}
+established_by_peer(hex ip)={}
+== app container: php-fpm workers (pid state wchan)
+1 state=S wchan=do_epoll_wait cmd=php-fpm: master process (/usr/local/etc/
+7 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+8 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+9 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+10 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+11 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+12 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+13 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+14 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+15 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+16 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+17 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+18 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+19 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+20 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+21 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+22 state=S wchan=inet_csk_accept cmd=php-fpm: pool www     
+== app container: each php-fpm worker's socket fds (pid fd->socket inode); the listen socket is the one in the LISTEN line above
+1 7 -> socket:[11204420];8 -> socket:[11204421];9 -> socket:[11204422];
+7 11 -> socket:[11204422];
+8 12 -> socket:[11204422];
+9 14 -> socket:[11204422];
+10 16 -> socket:[11204422];
+11 18 -> socket:[11204422];
+12 20 -> socket:[11204422];
+13 22 -> socket:[11204422];
+14 24 -> socket:[11204422];
+15 26 -> socket:[11204422];
+16 28 -> socket:[11204422];
+17 30 -> socket:[11204422];
+18 32 -> socket:[11204422];
+19 34 -> socket:[11204422];
+20 36 -> socket:[11204422];
+21 38 -> socket:[11204422];
+22 40 -> socket:[11204422];
+== app container: all sockets on port 9000 with inode (raw, full)
+00000000000000000000000000000000:2328 00000000000000000000000000000000:0000 0A 00000000:00000000 11204422
+== app container: wchan counts
+      1 do_epoll_wait
+     16 inet_csk_accept
+== web container: sockets with remote port 9000 (summary; raw lines follow)
+summary: to_port_9000 by state (01=ESTABLISHED 02=SYN_SENT 06=TIME_WAIT 08=CLOSE_WAIT)={}  peers={}  send_queue_bytes_total=0
+  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode                                                     
+== web container: nginx stub_status (port 8081, read only)
+Active connections: 1 
+server accepts handled requests
+ 187 187 19201 
+Reading: 0 Writing: 1 Waiting: 0 
+== docker stats (app web db k6), one reading
+peak-lab-bagisto-app cpu=0.00% mem=275.7MiB / 6GiB
+peak-lab-bagisto-web cpu=0.00% mem=6.418MiB / 15.56GiB
+peak-lab-bagisto-db cpu=0.28% mem=800MiB / 15.56GiB
+peak-lab-bagisto-k6 cpu=0.00% mem=1.34MiB / 15.56GiB
+== db: connections
+2
+Query	1
+Daemon	1
+== load tool progress line (last 'running' line of k6-output.txt)
+running (10m00.9s), 0000/0176 VUs, 19190 complete and 0 interrupted iterations
+k6.exit present: 0

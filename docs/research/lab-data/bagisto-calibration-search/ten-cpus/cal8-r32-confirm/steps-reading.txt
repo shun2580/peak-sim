@@ -1,0 +1,4 @@
+window end at k6 t=600.8s; after: 2 rows to t=600.9s; last VUs=0; complete 19189 -> 19190
+steps (t, size): []
+15-16 steps: 0; longest link of 55-70 s gaps: 0; 13-18 runs: 0
+type iii: none
