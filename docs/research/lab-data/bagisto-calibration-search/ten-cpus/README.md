@@ -107,3 +107,23 @@ eighth run, **for the gate's question only**: it is not measured, and the stand-
 `gate-standin-cal6-with-cal8/`). This is not the use of cal-8 that D271 (decision 3) keeps for the effective gate; the effective gate is still called after R is decided, with the real plans, and cal-8 is added there only if
 cal-1 to cal-7 fail it. Whether this reading of D270 (decision 1) holds is for the maintainer's side to judge; it is recorded here before the run, and it does not favour the pass of the calibration (it concerns a reference gate
 and the search runs only).
+
+### cal-6 at 0.2 rps (2026-11-25 16:30 to 16:42; `cal6-r0.2/`)
+
+| | |
+| --- | --- |
+| Rate asked, rate reached | 0.2 asked, 0.2021 reached (ratio 1.0104); `rps_status` **valid**, 0 arrivals dropped |
+| Requests in the kept window (480 s) | 97 sent, all status 200, none failed; route 1 76 |
+| Route 1 in flight | 5 at the window's start, 5 at its end |
+| Database utilization (2 CPUs) | **20.7775%** (inside 20% to 30%) |
+| App CPU utilization (10 CPUs) | **47.43%** (4.5 to 5.1 CPUs a minute once the load was on) |
+| Guards | gate opened (smallest degree 0.591401, with cal-8 as the gate-only stand-in); write check, limits guard (`LIMITS OK`, 1800 s), the N tables identical before and after, `innodb_table_stats` unchanged |
+
+The run is valid and inside the band, it was made in the conditions of a run, and 0.2 is the first stage value from the top whose run is valid and inside the band. By the rule above (rule 5) it is cal-6's run and is not measured again:
+**R_3 = 0.2 rps**. The utilization is close to the lower edge of the band (20.78%); that is what was measured and it is not adjusted. The runs at 0.45 and 0.3 stay as invalid records.
+
+### The stand-ins of the cal-7 search (decided before it is measured)
+
+R_3 is 0.2 now, and cal-6 is given to the entry at 0.2 in every cal-7 run. cal-7 is searched at 1.0 first, then by the same rule (0.7, then 0.84 once, and the stage values below if a run is invalid by D270). The other runs are
+stand-ins for the gate's question as before: R_0 = 1, R_1 = 4, R_2 = 0.2, and cal-8 at R_5 = 8 (1,000 rows, asked of the gate only). Asked of the gate with cal-7 at 1, 0.84, 0.7, 0.45, 0.37, 0.3 and 0.2 the entry's gate opens at each
+(smallest degrees 0.626919, 0.627143, 0.623240, 0.606005, 0.598335, 0.591401, 0.582258; `gate-standin-cal7/`).

@@ -6,3 +6,7 @@ RESULT target=0.45 achieved=0.3792 status=invalid db_util=47.0770% app_cpu=99.72
 2026-11-25 16:13:27 START cal-6 R_3=0.3 R_4=0.3 name=cal6-r0.3 (stand-ins R_0=1 R_1=4 R_2=0.2)
 2026-11-25 16:28:00 END cal-6 name=cal6-r0.3 exit=0
 RESULT target=0.3 achieved=0.2875 status=invalid db_util=45.2421% app_cpu=99.59999148408181 requests=138 dropped=6 http={'200': 138}
+2026-11-25 16:30:06 PRE free: total 15 available 8 df: 883G free
+2026-11-25 16:30:06 START cal-6 R_3=0.2 R_4=0.3 name=cal6-r0.2 (stand-ins R_0=1 R_1=4 R_2=0.2 R_5=8 (cal-8 asked of the gate only))
+2026-11-25 16:42:02 END cal-6 name=cal6-r0.2 exit=0
+RESULT target=0.2 achieved=0.2021 status=valid db_util=20.7775% app_cpu=47.425096599929454 requests=97 dropped=0 http={'200': 97}
