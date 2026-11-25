@@ -337,3 +337,15 @@ R_5 is **not found**. The effective gate was not called.
 #### State left
 
 The compose files were put back (`lab-config-b restore`; SHA-256 `604aedff…` and `f495eab5…`, as committed; `git status --short -- poc/lab` empty), the load tool, tools, web and app containers were stopped, and the database was stopped with `docker stop -t 180` (**`Shutdown complete`**, 2026-11-25T19:21:43Z) and the stack taken down without `-v` (`shutdown-r1-r5.txt`). The data volume is kept (54 volumes, none removed); no `kill`, no `prune`, no `--purge`. The other lab was not touched.
+
+## A diagnostic run at 32 rps, to look at the stall after the load window (written at 2026-11-26 04:31, before it is measured; `cal8-r32-diag/`)
+
+At 32 rps the run of cal-8 (`cal8-r32/`) left requests unanswered for about 30 minutes after the load window while the app and the database were idle, and a reading of the lab's files gives a candidate cause that nobody has observed: the upstream keepalive of the web server's FastCGI connections (`keepalive 64`, `fastcgi_keep_conn on`; two nginx workers keep up to 128 idle connections) may hold the 16 php-fpm workers (`pm = static`, `pm.max_children = 16`) on idle connections, so that a 17th connection waits in the listen backlog until the web server closes an idle one (the upstream `keepalive_timeout` default is 60 s).
+
+**This run only looks. It is not a search run.** Its one purpose is to observe the stall; its value is used for nothing: not for R_5, not for any calibration, and it is not a run of the search rule. The rule of the search (the geometric mean of 16 and 32, 22.63 rps) is **not** measured here; it waits until the cause is known and the maintainer has ruled.
+
+- Plan and rate are those of `cal8-r32/`: cal-8, even mix, 1,000 rows, 32 rps, 10 minutes at a constant rate with the first 2 discarded, request timeout 1,800 s, the flag `--search-gate-advisory`, the same rates for the other runs. The directory is `cal8-r32-diag/`.
+- The lab's settings are changed in no way: `lab.conf`, the php-fpm settings and the ini are as committed (with the B diff on the two compose files, as for every run of this search).
+- Observation only: nothing is put into a container, no setting is changed, nothing is killed. At about one minute before the end of the window, right after it, and 2, 5 and 10 minutes after it, and right after the tail ends, the app container's listen queue on port 9000 (`ss -ltn` or `/proc/net/tcp`), its established connections and their peers, each php-fpm worker's `wchan` and state, and the web container's established connections to port 9000 are read, with the time from `date`.
+- The cause counts as confirmed only if three things hold together: the receive queue of port 9000 is above 0, more than 16 connections from the web container are established, and the workers wait in a read on a connection rather than in `accept`. What is seen is written down as it is, and a cause is not argued from less.
+- The tail ends by itself when the load tool's 1,800 s request timeout runs out; it is not stopped.
