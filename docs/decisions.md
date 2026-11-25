@@ -3809,3 +3809,17 @@ D257 §2 の条件 1 の (a)(「繰り返しは、全ルートの測りとは別
 #### 8. 追補(2026-11-25 11:38 記帳。本項より上は書き換えない)
 
 - **追補の点検**:§6 の追補(3e4b976)も、独立の点検を受け、PASS を得た。
+
+#### 9. 追補(決め 2・7・9 の確かめの結果。2026-11-25 11:45 記帳。本項より上は書き換えない)
+
+ルートの一覧を作るスクリプトを走らせる前の記帳である。確かめたのはコードと記録の作りだけで、候補の 30,000 件の値は見ていない。以下は後から変えない。
+
+- **決め 2(候補を並べる列)**:列は capture.json の `routes[].totals["30000"].rows_sum` とする。見積もりが「読んだ行数」として当てはめる量は、文の型ごとの `per_scale[規模].rows_sum / count` で(`poc/runtime/src/Estimate/RowEstimator.php` の `series()`、672〜686 行)、その元が `rows_sum` だからである。`cold_rows_examined`(capture.json)と routes.jsonl の `rows.examined` は、同じ試行の同じ数で、測った値の側の量ゆえ、合否に使わぬ参考として並べる。候補で 30,000 の値が欠ける・null・`unread_events` が 0 でないルートがあれば、黙って外さず、止まって知らせる(`unread_events` が 0 でないと、`rows_sum` が読めた文だけの和になるため)。
+- **決め 7(書き込みの記録)**:捕捉は INSERT・UPDATE・DELETE を記録する作りである。口は `QueryExecuted` の全部で、文の種類での絞りはない(`poc/runtime/src/Run/StatementTap.php` の `listenTo`、59〜65 行。`poc/runtime/src/Run/StatementLedger.php` の `record`、31〜50 行と `typeOf`、93〜96 行)。止める理由はない。捕捉もラボも session・cache・queue は偽物(array・sync。`poc/runtime/src/Boot/AppBooter.php` の 119〜123 行)ゆえ、それらの表への書き込みは DB に出ない。文の種類が空(先頭がコメントの文)の書き込みの文があれば、止まって知らせる。
+- **決め 9(ラボの見積もりの入力)**:D181 の前例(捕捉は ANALYZE の後に自動の取り直しを切る・ラボは既定のまま)により、cap3 を見積もりの入力に流用する。次の 4 条件を満たす。
+  1. ラボの構築は cap3 と同じ recipe とする。123 表をそのまま・base は既定とし、生成器のコードは cap3 の時の commit(`dec492b`)から `poc/runtime/src/Data` に差がないこと。
+  2. `poc/lab/bin/build-db` の profile の決め打ち(`bookstack`)を引数にする。既定は今のまま `bookstack` とし、試験で固定する。
+  3. 構築の後に ANALYZE を一度だけ全表にかける(記録を写す)。
+  4. 自動の取り直しは既定のままとする(D181)。
+
+本項は、実装担当の決めの記帳であり、規則の変更ではない。
