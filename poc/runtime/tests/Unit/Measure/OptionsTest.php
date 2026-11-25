@@ -202,4 +202,27 @@ final class OptionsTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Options::parse(['--analyze-after-build=maybe']);
     }
+
+    public function test_a_measured_database_is_kept_unless_the_run_says_to_drop_it(): void
+    {
+        $this->assertFalse(Options::parse([])->dropDb, 'the default is to keep');
+        $this->assertFalse(Options::parse(['--drop-db=off'])->dropDb);
+        $this->assertTrue(Options::parse(['--drop-db=on'])->dropDb);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badDropDbArguments(): iterable
+    {
+        yield 'a word' => ['--drop-db=sometimes'];
+        yield 'empty' => ['--drop-db='];
+        yield 'the old name of the opposite' => ['--keep-db=off'];
+        yield 'the flag alone' => ['--drop-db'];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('badDropDbArguments')]
+    public function test_the_drop_switch_takes_on_or_off_only(string $arg): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Options::parse([$arg]);
+    }
 }

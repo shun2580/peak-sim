@@ -89,11 +89,27 @@ final class DriverTest extends PlannerTestCase
         return new RouteTask(self::spec($uri, $static), $uri, ...$extra);
     }
 
-    public function test_it_builds_each_database_once_measures_every_route_that_needs_it_and_drops_it(): void
+    public function test_it_builds_each_database_once_measures_every_route_that_needs_it_and_keeps_it(): void
     {
         $builder = self::builder();
         $runner = self::runner();
         $result = (new Driver(new SeederPlanner(), $builder, $runner))->run([self::task('/a'), self::task('/b')], self::SCALES);
+
+        $this->assertSame(MeasureExit::OK, $result->exit);
+        $this->assertSame(
+            ['build ord:0', 'build ord:100', 'build ord:1000', 'build ord:10000'],
+            $builder->log,
+            'by default a database that has been measured on is not dropped: nothing in the run does it',
+        );
+        $this->assertCount(8, $runner->requests);
+        $this->assertSame(['/a', '/b', '/a', '/b'], array_slice(array_map(static fn (MeasureRequest $r) => $r->route, $runner->requests), 0, 4));
+    }
+
+    public function test_with_drop_databases_on_it_drops_each_database_when_its_routes_are_measured(): void
+    {
+        $builder = self::builder();
+        $runner = self::runner();
+        $result = (new Driver(new SeederPlanner(), $builder, $runner, dropDatabases: true))->run([self::task('/a'), self::task('/b')], self::SCALES);
 
         $this->assertSame(MeasureExit::OK, $result->exit);
         $this->assertSame(
@@ -244,14 +260,14 @@ final class DriverTest extends PlannerTestCase
         $this->assertSame('forbidden', $result->report->rows()[0]['class']);
     }
 
-    public function test_a_failed_database_build_stops_the_run_with_13_and_still_drops_it(): void
+    public function test_a_failed_database_build_stops_the_run_with_13_and_with_drop_databases_on_drops_it(): void
     {
         $builder = self::builder(static function (DatabasePoint $p, int $count): void {
             if ($p->scale === 1000) {
                 throw new BuildFailure('seeder failed');
             }
         });
-        $result = (new Driver(new SeederPlanner(), $builder, self::runner()))->run([self::task()], self::SCALES);
+        $result = (new Driver(new SeederPlanner(), $builder, self::runner(), dropDatabases: true))->run([self::task()], self::SCALES);
 
         $this->assertSame(MeasureExit::DATA, $result->exit);
         $this->assertStringContainsString('seeder failed', (string) $result->message);
@@ -269,11 +285,11 @@ final class DriverTest extends PlannerTestCase
             }
         });
         $runner = self::runner();
-        $result = (new Driver(new SeederPlanner(), $builder, $runner))->run([self::task('/a'), self::task('/b')], self::SCALES);
+        $result = (new Driver(new SeederPlanner(), $builder, $runner, dropDatabases: true))->run([self::task('/a'), self::task('/b')], self::SCALES);
 
         $this->assertSame(MeasureExit::OK, $result->exit, 'a build that timed out ends nothing: the scale is not_run and the run goes on');
         $this->assertContains('build ord:10000', $builder->log);
-        $this->assertContains('drop ord:1000', $builder->log, 'the database of the scale that timed out is dropped');
+        $this->assertContains('drop ord:1000', $builder->log, 'with drop databases on, the database of the scale that timed out is dropped');
         $this->assertNotContains(1000, array_map(static fn (MeasureRequest $r): int => $r->scale, $runner->requests), 'nothing is measured on it');
         $this->assertContains(10000, array_map(static fn (MeasureRequest $r): int => $r->scale, $runner->requests));
 
@@ -314,7 +330,52 @@ final class DriverTest extends PlannerTestCase
 
         $this->assertSame(MeasureExit::APP_START, $result->exit);
         $this->assertCount(1, $runner->requests);
+        $this->assertSame(['build ord:0'], $builder->log, 'the database is kept, as after any other stop');
+    }
+
+    public function test_an_app_that_does_not_start_with_drop_databases_on_drops_the_database(): void
+    {
+        $runner = self::runner(static fn (MeasureRequest $r, int $n): OneResult => new OneResult(12, [], 'cannot start the app'));
+        $builder = self::builder();
+        (new Driver(new SeederPlanner(), $builder, $runner, dropDatabases: true))->run([self::task()], self::SCALES);
+
         $this->assertSame(['build ord:0', 'drop ord:0'], $builder->log);
+    }
+
+    /**
+     * The promise "no database is dropped unless the run is told to" covers every way a point can end: it is measured to the end,
+     * its build fails, its build runs over the limit, the app does not start, a request is refused. Only the rebuild of a database
+     * a request changed (the next test) drops one.
+     *
+     * @return array<string, array{callable(DatabasePoint, int): void|null, callable(MeasureRequest, int): OneResult|null}>
+     */
+    public static function endsOfAPoint(): array
+    {
+        return [
+            'measured to the end' => [null, null],
+            'build failed' => [static function (DatabasePoint $p): void {
+                if ($p->scale === 1000) {
+                    throw new BuildFailure('seeder failed');
+                }
+            }, null],
+            'build timed out' => [static function (DatabasePoint $p): void {
+                if ($p->scale === 1000) {
+                    throw new BuildTimedOut(900, []);
+                }
+            }, null],
+            'app did not start' => [null, static fn (MeasureRequest $r, int $n): OneResult => new OneResult(12, [], 'cannot start the app')],
+            'a request was refused' => [null, static fn (MeasureRequest $r, int $n): OneResult => new OneResult(10, [], 'refused: another schema')],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('endsOfAPoint')]
+    public function test_by_default_no_way_a_point_ends_drops_its_database(?callable $onBuild, ?callable $script): void
+    {
+        $builder = self::builder($onBuild === null ? null : \Closure::fromCallable($onBuild));
+        (new Driver(new SeederPlanner(), $builder, self::runner($script)))->run([self::task('/a'), self::task('/b')], self::SCALES);
+
+        $this->assertNotSame([], $builder->log, 'the run did build');
+        $this->assertSame([], array_values(array_filter($builder->log, static fn (string $l): bool => str_starts_with($l, 'drop '))));
     }
 
     public function test_a_refusal_stops_the_run_with_10(): void
@@ -339,7 +400,11 @@ final class DriverTest extends PlannerTestCase
         $result = (new Driver(new SeederPlanner(), $builder, $runner))->run([self::task('/bad'), self::task('/good')], self::SCALES);
 
         $this->assertSame(MeasureExit::OK, $result->exit);
-        $this->assertSame(['build ord:100', 'drop ord:100', 'build ord:100', 'drop ord:100'], array_values(array_filter($builder->log, static fn (string $l): bool => str_ends_with($l, ' ord:100'))));
+        $this->assertSame(
+            ['build ord:100', 'drop ord:100', 'build ord:100'],
+            array_values(array_filter($builder->log, static fn (string $l): bool => str_ends_with($l, ' ord:100'))),
+            'the changed database is dropped and built again (that rebuild stays); the rebuilt one, which is measured on, is kept',
+        );
         $rebuilt = array_filter($result->builds, static fn (array $b): bool => isset($b['rebuilt_after']));
         $this->assertCount(4, $rebuilt, 'the route changes the database on every scale, and every one is rebuilt');
         $this->assertSame(['/bad'], array_values(array_unique(array_column($rebuilt, 'rebuilt_after'))));
@@ -348,6 +413,25 @@ final class DriverTest extends PlannerTestCase
         $rows = array_column($result->report->rows(), null, 'route');
         $this->assertSame('not_rollbackable', $rows['/bad']['class']);
         $this->assertSame('measured_ON', $rows['/good']['verdict']);
+    }
+
+    public function test_a_contaminated_database_is_rebuilt_also_with_drop_databases_on_and_every_database_is_then_dropped(): void
+    {
+        $runner = self::runner(static function (MeasureRequest $r, int $n): OneResult {
+            if ($r->route === '/bad') {
+                return new OneResult(14, [new Attempt($r->route, $r->method, $r->scale, $r->axis, Attempt::WARMUP, 200, 4, [], [], 10, 1000, false, 'not_rollbackable', 'row_count_changed: orders')], 'the database can no longer be trusted');
+            }
+
+            return OneResult::ok(self::linearOf($r));
+        });
+        $builder = self::builder();
+        $result = (new Driver(new SeederPlanner(), $builder, $runner, dropDatabases: true))->run([self::task('/bad'), self::task('/good')], self::SCALES);
+
+        $this->assertSame(MeasureExit::OK, $result->exit);
+        $this->assertSame(
+            ['build ord:100', 'drop ord:100', 'build ord:100', 'drop ord:100'],
+            array_values(array_filter($builder->log, static fn (string $l): bool => str_ends_with($l, ' ord:100'))),
+        );
     }
 
     public function test_a_database_that_cannot_be_rebuilt_after_contamination_stops_the_run_with_14(): void

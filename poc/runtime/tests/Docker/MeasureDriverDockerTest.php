@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace PeakSim\Runtime\Tests\Docker;
 
+use PeakSim\Runtime\Explain\ExplainDb;
 use PeakSim\Runtime\Tests\Docker\Support\DockerCase;
 use PeakSim\Runtime\Tests\Docker\Support\ProbeApp;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The whole driver (bin/inner/measure.php) inside the sealed container, against the verification app and a scratch
- * copy with a few extra routes: databases built and dropped per scale, the empty system and the second sweep
- * measured, rollbacks that fail repaired by a rebuild, the record written.
+ * copy with a few extra routes: databases built per scale and kept (dropped only with --drop-db=on), the empty system and the
+ * second sweep measured, rollbacks that fail repaired by a rebuild, the record written.
+ *
+ * The driver is run here by hand, in one container, so every run has the run id of the container; a database a test leaves
+ * (that is the point of keeping it) is dropped after the test, by its name, so the next test starts clean.
  */
 #[Group('in-stack')]
 final class MeasureDriverDockerTest extends DockerCase
@@ -31,6 +35,11 @@ final class MeasureDriverDockerTest extends DockerCase
         self::assertSame(0, $exit, $err);
         self::$analysis = self::scratch('analysis') . '/analysis.json';
         file_put_contents(self::$analysis, $out);
+    }
+
+    protected function tearDown(): void
+    {
+        self::dropKept();
     }
 
     public static function tearDownAfterClass(): void
@@ -98,6 +107,42 @@ final class MeasureDriverDockerTest extends DockerCase
         return array_values(array_filter(self::db()->listMeasureDatabases(), static fn (string $n): bool => str_starts_with($n, $prefix)));
     }
 
+    /** Drops the databases of this run id, by name: only what the tests above left, and only in this throwaway stack. */
+    private static function dropKept(): void
+    {
+        foreach (self::leftovers() as $name) {
+            self::db()->drop($name);
+        }
+    }
+
+    /**
+     * The names the points of a run built, from its summary: `peak_sim_measure_<run id>_<tag>_<scale>`, once each.
+     *
+     * @return list<string>
+     */
+    private static function builtNames(string $dir): array
+    {
+        $summary = json_decode((string) file_get_contents($dir . '/summary.json'), true, 512, JSON_THROW_ON_ERROR);
+        $names = [];
+        foreach ($summary['builds'] as $build) {
+            [$tag, $scale] = explode(':', (string) $build['point']);
+            $names[] = 'peak_sim_measure_' . self::config()->runId . '_' . $tag . '_' . $scale;
+        }
+        $names = array_values(array_unique($names));
+        sort($names);
+
+        return $names;
+    }
+
+    /** The databases the run left are the ones it built, no more and no fewer. */
+    private static function assertKept(string $dir): void
+    {
+        $kept = self::leftovers();
+        sort($kept);
+        self::assertNotSame([], $kept, 'a database the run measured on is kept');
+        self::assertSame(self::builtNames($dir), $kept, 'every database the run built is still there');
+    }
+
     public function testTheVerificationAppWithItsOwnSeeder(): void
     {
         [$exit, $stdout, $stderr, $dir] = self::drive([
@@ -132,11 +177,25 @@ final class MeasureDriverDockerTest extends DockerCase
 
         $comparison = json_decode((string) file_get_contents($dir . '/comparison.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertCount(24, $comparison, 'one row per expected route; the routes not asked for are not_measured');
-        self::assertSame([], self::leftovers(), 'every database the run made is dropped');
+        self::assertKept($dir);
         $summary = json_decode((string) file_get_contents($dir . '/summary.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('seeder', $summary['meta']['data']);
         $ord20 = array_values(array_filter($summary['builds'], static fn (array $b): bool => $b['point'] === 'ord:20'))[0];
         self::assertSame(['customers' => 20, 'items' => 60, 'orders' => 20, 'products' => 20], array_intersect_key($ord20['rows'], array_flip(['customers', 'items', 'orders', 'products'])));
+
+        // The kept database has its tables as they were built: the count after the run is the count the build recorded.
+        $pdo = ExplainDb::open(self::config(), 'peak_sim_measure_' . self::config()->runId . '_ord_20');
+        foreach (['customers', 'items', 'orders', 'products'] as $table) {
+            self::assertSame($ord20['rows'][$table], (int) $pdo->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn(), $table . ' has the rows it was built with');
+        }
+    }
+
+    public function testWithDropDbOnEveryDatabaseTheRunMadeIsDropped(): void
+    {
+        [$exit, $stdout, $stderr] = self::drive(['--data=seeder', '--only=/ok/eager,/ng/n-plus-one', '--drop-db=on']);
+
+        self::assertSame(0, $exit, $stdout . $stderr);
+        self::assertSame([], self::leftovers(), 'what bin/measure --purge asks for: nothing is left');
     }
 
     public function testTheVerificationAppWithTheGenerator(): void
@@ -154,7 +213,7 @@ final class MeasureDriverDockerTest extends DockerCase
         foreach ($generated as $build) {
             self::assertSame(0, $build['generation']['failed'], $build['point'] . ' ' . json_encode($build['generation']['failed_tables']));
         }
-        self::assertSame([], self::leftovers());
+        self::assertKept($dir);
     }
 
     public function testAProfileMakesTheFilterRouteSeeItsDataAndIsNamedInTheRecord(): void
@@ -164,6 +223,9 @@ final class MeasureDriverDockerTest extends DockerCase
         self::assertSame(0, $exit, $stdout . $stderr);
         self::assertSame('no_info', self::routes($plain)['/ng/collection-filter']['verdict'], 'without the profile the filter sees no data');
         self::assertStringContainsString("\nprofile: none\n", (string) file_get_contents($plain . '/report.md'));
+        self::assertKept($plain);
+        // A second run of the same container has the same run id: its build starts by dropping a database of the same name.
+        self::dropKept();
 
         [$exit, $stdout, $stderr, $dir] = self::drive(['--data=generator', '--profile=fixtures', '--only=/ng/collection-filter']);
         self::assertSame(0, $exit, $stdout . $stderr);
@@ -173,7 +235,7 @@ final class MeasureDriverDockerTest extends DockerCase
         self::assertStringContainsString("\nprofile: fixtures\n", (string) file_get_contents($dir . '/report.md'));
         $summary = json_decode((string) file_get_contents($dir . '/summary.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('fixtures', $summary['meta']['profile']);
-        self::assertSame([], self::leftovers());
+        self::assertKept($dir);
     }
 
     public function testARouteThatChangesTheDatabaseIsRecordedAndTheDatabaseRebuilt(): void
@@ -212,7 +274,7 @@ final class MeasureDriverDockerTest extends DockerCase
         $summary = json_decode((string) file_get_contents($dir . '/summary.json'), true, 512, JSON_THROW_ON_ERROR);
         $rebuilt = array_filter($summary['builds'], static fn (array $b): bool => isset($b['rebuilt_after']));
         self::assertNotEmpty($rebuilt, 'a database a request changed is dropped and built again');
-        self::assertSame([], self::leftovers());
+        self::assertKept($dir);
     }
 
     public function testAnAppThatIsNotThereStopsWithTheCodeOfTheFailure(): void
@@ -221,7 +283,7 @@ final class MeasureDriverDockerTest extends DockerCase
 
         self::assertSame(13, $exit, 'the inspection database cannot be built without an app');
         self::assertStringContainsString('could not build the inspection database', $stderr);
-        self::assertSame([], self::leftovers());
+        self::assertSame([], self::leftovers(), 'the inspection database is a small one nothing is measured on: it is always dropped');
     }
 
     public function testADatabaseTagFromOutsideIsRefused(): void

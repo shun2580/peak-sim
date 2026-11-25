@@ -154,6 +154,6 @@ final class StateChangingOrderTest extends PlannerTestCase
         $source = (string) file_get_contents(dirname(__DIR__, 3) . '/bin/inner/measure.php');
 
         $this->assertStringContainsString('array_keys(Profile::stateChanging(Profile::load($options->profile)))', $source);
-        $this->assertStringContainsString('$options->tapDir, $lastRoutes)', $source);
+        $this->assertStringContainsString('$options->tapDir, $lastRoutes, $options->dropDb)', $source);
     }
 }
