@@ -1,0 +1,1 @@
+2026-11-26 08:52:37 PLAN written before any run of this search is measured: README.md "Before the first run" (rules, starting values R_3 0.45, R_4 1.0, R_0 1, R_2 1.5, R_1 1, R_5 1, the stand-ins of the R_3 runs). peak-sim HEAD f7dab84.
