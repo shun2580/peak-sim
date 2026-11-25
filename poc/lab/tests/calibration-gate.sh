@@ -19,10 +19,10 @@
 #  8  usage errors (no --measure, no --request-timeout, a --measure that is not in --run) stop at 2 before the gate
 #  9  --gate-tables: without it the gate is given no --tables and the record is what it was; with it the list reaches the gate alone (the shared-table
 #     estimate of the Bagisto lab opens the gate only with it) and never the guard of the N tables; a bad value is a usage error before the gate
-# 10  --gate-advisory (decisions.md D270 decision 1, the search of a rate): without it a refused gate stops at 14 as ever; with it a refusal (14) is printed as
-#     GATE ADVISORY, recorded (calibration-gate.json says passed false, gate-advisory.txt in the out directory and in the run's directory) and the entry goes on
+# 10  --search-gate-advisory (decisions.md D270 decision 1, the search of a rate): without it a refused gate stops at 14 as ever; with it a refusal (14) is printed as
+#     GATE ADVISORY, recorded (calibration-gate.json says passed false, search-gate-advisory.txt in the out directory and in the run's directory) and the entry goes on
 #     to the write check, the tables guard, the limits guard and k6 (the stand-in k6 stops it at 13); any other failure of the gate still stops it; together with
-#     --gate-only it is a usage error before the gate; without the flag no gate-advisory.txt is written or copied
+#     --gate-only it is a usage error before the gate; without the flag no search-gate-advisory.txt is written or copied
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -252,49 +252,51 @@ for bad in 'Entities' 'a b' 'a,,b' ',a' 'a,' 'a;b'; do
   if [ "$rc" = 2 ] && [ ! -e "$work/gate.args" ] && [ "$(lab_calls)" = 0 ]; then pass "9p --gate-tables='$bad': usage, exit 2, the gate not called, the lab not touched"; else fail "9p --gate-tables='$bad' (exit $rc)"; fi
 done
 
-# 10 --gate-advisory ----------------------------------------------------------------------------------------------------------------------
+# 10 --search-gate-advisory ----------------------------------------------------------------------------------------------------------------------
 # the five runs are refused by the gate (1); the flag lets the entry go on
 set_lab "${B[@]}" scale=10000
 mc --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s; rc=$?
 expect_code "10a without the flag a refused gate still stops the entry at 14" 14 $rc
-[ "$(k6_calls)" = 0 ] && [ ! -e "$out/calibration/gate-advisory.txt" ] && pass "10b and nothing is measured, no advisory file is written" || fail "10b"
+[ "$(k6_calls)" = 0 ] && [ ! -e "$out/calibration/search-gate-advisory.txt" ] && pass "10b and nothing is measured, no advisory file is written" || fail "10b"
 
 set_lab "${B[@]}" scale=10000
-mc --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s --gate-advisory; rc=$?
+mc --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s --search-gate-advisory; rc=$?
 expect_code "10c with the flag the refused gate does not stop the entry: it goes through the guards to the load tool (the stand-in k6 stops it at 13)" 13 $rc
 [ "$(k6_calls)" -ge 1 ] && pass "10d the load tool was reached" || fail "10d k6 was never reached ($(head -3 "$work/mc.err" | tr '\n' ' '))"
 has "$work/mc.err" 'GATE ADVISORY: the calibration gate refused (exit 14)' && pass "10e it says in the output that the gate refused and that the run goes on" || fail "10e ($(head -3 "$work/mc.err" | tr '\n' ' '))"
 has "$work/mc.out" 'degree 0.005938' && pass "10f the degrees are printed as before" || fail "10f no degrees in the output"
 has "$out/calibration/calibration-gate.json" '"passed": false' && pass "10g calibration-gate.json keeps the refusal (passed false)" || fail "10g"
-has "$out/calibration/gate-advisory.txt" 'gate_advisory=1' && has "$out/calibration/gate-advisory.txt" 'gate_exit=14' && pass "10h gate-advisory.txt has the flag and the gate's exit code 14" || fail "10h"
-has "$out/calibration/cal-1/gate-advisory.txt" 'gate_exit=14' && has "$out/calibration/cal-1/calibration-gate.json" '"passed": false' && pass "10i the run's directory keeps the same two records" || fail "10i"
+a="$out/calibration/search-gate-advisory.txt"
+has "$a" 'search_gate_advisory=1' && has "$a" 'gate_exit=14' && has "$a" 'gate_passed=false' && has "$a" 'min_degree=0.0038' && has "$a" 'min_left_out=cal-4' && has "$a" 'threshold=0.5' \
+  && pass "10h search-gate-advisory.txt has the flag, the gate's exit code 14, passed false, the smallest degree 0.0038 (without cal-4) and the threshold" || fail "10h ($(cat "$a" 2>/dev/null | tr '\n' ' '))"
+has "$out/calibration/cal-1/search-gate-advisory.txt" 'gate_exit=14' && has "$out/calibration/cal-1/calibration-gate.json" '"passed": false' && pass "10i the run's directory keeps the same two records" || fail "10i"
 grep -q 'CHECKSUM' "$work/docker.calls" && pass "10j the guard of the N tables ran before the load tool" || fail "10j"
 # the write check still runs and still stops the entry (a record that writes outside views)
 python3 "$here/make-statement-record.py" "$lab/routes/route-list.json" "$work/rec/bad.json" --variant=other-table >/dev/null 2>&1
 if [ -s "$work/rec/bad.json" ]; then
   set_lab "${B[@]}" scale=10000
-  env_run "$work/lab/bin/measure-calibration" --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s --gate-advisory --statement-record="$work/rec/bad.json" >"$work/mc.out" 2>"$work/mc.err"; rc=$?
+  env_run "$work/lab/bin/measure-calibration" --estimate="$est" "${five[@]}" "${scales[@]}" --measure=cal-1 --request-timeout=600s --search-gate-advisory --statement-record="$work/rec/bad.json" >"$work/mc.out" 2>"$work/mc.err"; rc=$?
   [ "$rc" = 15 ] && [ "$(k6_calls)" = 0 ] && pass "10k with the flag a record that writes outside views still stops the entry (15), no load" || fail "10k (exit $rc)"
 else
   fail "10k the made-up bad statement record could not be made"
 fi
 # a gate that fails for another reason still stops the entry, flag or not: an estimate directory with nothing in it
 mkdir -p "$work/emptyest"; set_lab "${B[@]}" scale=10000
-mc --estimate="$work/emptyest" "${seven[@]}" --measure=cal-1 --request-timeout=600s --gate-advisory; rc=$?
+mc --estimate="$work/emptyest" "${seven[@]}" --measure=cal-1 --request-timeout=600s --search-gate-advisory; rc=$?
 if [ "$rc" != 0 ] && [ "$rc" != 14 ] && [ "$rc" != 13 ] && [ "$(k6_calls)" = 0 ] && [ "$(lab_calls)" = 0 ]; then pass "10l an unusable estimate stops the entry with the gate's own exit code ($rc), flag or not"; else fail "10l (exit $rc)"; fi
 # together with --gate-only it is a usage error before the gate and before the lab
 set_lab "${B[@]}"; rm -f "$out/calibration/calibration-gate.json"
-mc --estimate="$est" "${five[@]}" "${scales[@]}" --gate-only --gate-advisory; rc=$?
-if [ "$rc" = 2 ] && [ "$(lab_calls)" = 0 ] && [ ! -e "$out/calibration/calibration-gate.json" ]; then pass "10m --gate-advisory with --gate-only: usage, exit 2, the gate not called, the lab not touched"; else fail "10m (exit $rc)"; fi
+mc --estimate="$est" "${five[@]}" "${scales[@]}" --gate-only --search-gate-advisory; rc=$?
+if [ "$rc" = 2 ] && [ "$(lab_calls)" = 0 ] && [ ! -e "$out/calibration/calibration-gate.json" ]; then pass "10m --search-gate-advisory with --gate-only: usage, exit 2, the gate not called, the lab not touched"; else fail "10m (exit $rc)"; fi
 # a gate that opens, with the flag: nothing changes in the measuring, the advisory file says exit 0
 set_lab "${B[@]}" scale=10000
-mc --estimate="$est" "${seven[@]}" --measure=cal-1 --request-timeout=600s --gate-advisory; rc=$?
+mc --estimate="$est" "${seven[@]}" --measure=cal-1 --request-timeout=600s --search-gate-advisory; rc=$?
 expect_code "10n a gate that opens, with the flag: the entry goes on to the load tool as without it" 13 $rc
-has "$out/calibration/gate-advisory.txt" 'gate_exit=0' && pass "10o and the advisory file says the gate's exit was 0" || fail "10o"
+has "$out/calibration/search-gate-advisory.txt" 'gate_exit=0' && has "$out/calibration/search-gate-advisory.txt" 'gate_passed=true' && pass "10o and the advisory file says the gate's exit was 0 and that it passed" || fail "10o"
 # a call without the flag after one with it, in the same out directory, copies no advisory file into the run's directory
-set_lab "${B[@]}" scale=10000; mkdir -p "$out/calibration"; printf 'gate_advisory=1\ngate_exit=14\n' >"$out/calibration/gate-advisory.txt"
+set_lab "${B[@]}" scale=10000; mkdir -p "$out/calibration"; printf 'search_gate_advisory=1\ngate_exit=14\n' >"$out/calibration/search-gate-advisory.txt"
 mc --estimate="$est" "${seven[@]}" --measure=cal-2 --request-timeout=600s; rc=$?
-[ ! -e "$out/calibration/cal-2/gate-advisory.txt" ] && pass "10p without the flag an old advisory file is not copied into the run's directory" || fail "10p"
+[ ! -e "$out/calibration/cal-2/search-gate-advisory.txt" ] && pass "10p without the flag an old advisory file is not copied into the run's directory" || fail "10p"
 
 echo
 echo "calibration gate tests: $passed passed, $failed failed, $skipped skipped"
