@@ -1,0 +1,17 @@
+calibration gate: threshold 0.50, degree = the smallest singular value of the design matrix (queries, rows) with each column scaled to length 1
+  cal-1    queries/s 46.5645  rows/s 342287  rows per query 7350.8112
+  cal-2    queries/s 53.1258  rows/s 478395  rows per query 9004.9516
+  cal-3    queries/s 43.2258  rows/s 409374  rows per query 9470.5823
+  cal-4    queries/s 183.902  rows/s 408710  rows per query 2222.4292
+  cal-5    queries/s 51.9234  rows/s 1.13968e+6  rows per query 21949.3348
+  cal-6    queries/s 5.78411  rows/s 445570  rows per query 77033.4979
+  cal-7    queries/s 9.25554  rows/s 223004  rows per query 24094.0849
+  all runs               degree 0.603180  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-1          degree 0.619232  ok  (cal-2, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-2          degree 0.628186  ok  (cal-1, cal-3, cal-4, cal-5, cal-6, cal-7)
+  without cal-3          degree 0.619838  ok  (cal-1, cal-2, cal-4, cal-5, cal-6, cal-7)
+  without cal-4          degree 0.360296  BELOW  (cal-1, cal-2, cal-3, cal-5, cal-6, cal-7)
+  without cal-5          degree 0.535484  ok  (cal-1, cal-2, cal-3, cal-4, cal-6, cal-7)
+  without cal-6          degree 0.584683  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-7)
+  without cal-7          degree 0.602232  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6)
+  smallest degree 0.360296 (without cal-4)

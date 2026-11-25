@@ -1,0 +1,36 @@
+{
+ "selected": [
+  {
+   "route": "GET /api/products",
+   "number": 1
+  },
+  {
+   "route": "GET /customer/account/addresses/create",
+   "number": 2
+  },
+  {
+   "route": "GET /admin/customers/view/{id}",
+   "number": 3
+  },
+  {
+   "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+   "number": 4
+  },
+  {
+   "route": "GET /admin/settings/inventory-sources/edit/{id}",
+   "number": 5
+  },
+  {
+   "route": "GET /admin/customers/search",
+   "number": 6
+  },
+  {
+   "route": "GET /api/categories",
+   "number": 7
+  },
+  {
+   "route": "GET /api/categories/attributes/{attribute_id}/options",
+   "number": 8
+  }
+ ]
+}
