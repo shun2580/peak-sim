@@ -17,6 +17,8 @@
 #  6  --gate-only touches no container and answers by the gate
 #  7  the limits guard is in the entry too: a lab left at the default is refused (13) after the gate opens, k6 never called
 #  8  usage errors (no --measure, no --request-timeout, a --measure that is not in --run) stop at 2 before the gate
+#  9  --gate-tables: without it the gate is given no --tables and the record is what it was; with it the list reaches the gate alone (the shared-table
+#     estimate of the Bagisto lab opens the gate only with it) and never the guard of the N tables; a bad value is a usage error before the gate
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -185,6 +187,66 @@ mc --estimate="$est" "${seven[@]}" --request-timeout=600s; expect_code "8 no --m
 mc --estimate="$est" "${seven[@]}" --measure=cal-1; expect_code "8b no --request-timeout: usage" 2 $?
 mc --estimate="$est" "${seven[@]}" --measure=cal-9 --request-timeout=600s; expect_code "8c --measure of a run that is not in --run: usage" 2 $?
 [ ! -e "$out/calibration/calibration-gate.json" ] && [ "$(lab_calls)" = 0 ] && pass "8d none of them reached the gate or the lab" || fail "8d"
+
+# 9 --gate-tables: the table names the gate counts rows of (decisions.md D264 decision 3: the Bagisto lab's estimate names the pseudo table n_shared, the guard of the
+#   N tables reads the real tables). It goes to the gate and to nothing else; without it the entry is what it was.
+# a copy of the lab whose gate is a spy: it writes the arguments it was given and runs the real gate
+mkdir -p "$work/lab2/bin" "$work/lab2/observe" "$work/lab2/scenarios" "$work/lab2/routes"
+cp "$work"/lab/bin/* "$work/lab2/bin/"; cp "$work/lab/observe/sample-cpu" "$work/lab2/observe/"; cp "$work/lab/routes/route-list.json" "$work/lab2/routes/"
+printf '#!/usr/bin/env bash\necho "$*" >>"%s/gate.args"\nexec "%s/scenarios/calibration-gate" "$@"\n' "$work" "$lab" >"$work/lab2/scenarios/calibration-gate"
+chmod +x "$work/lab2/scenarios/calibration-gate"
+mc2() { env_run "$work/lab2/bin/measure-calibration" "$@" --statement-record="$rec" >"$work/mc.out" 2>"$work/mc.err"; }
+degrees() { grep -E 'degree' "$work/mc.out"; }
+# the estimate whose N-axis routes name n_shared instead of entities, images, references (nothing else is changed)
+mkdir -p "$work/est-shared"
+python3 - "$est/estimate.json" "$work/est-shared/estimate.json" <<'PY'
+import re, sys
+t = open(sys.argv[1]).read()
+t2 = re.sub(r'"table": "(entities|images|references)"', '"table": "n_shared"', t)
+assert t2 != t
+open(sys.argv[2], 'w').write(t2)
+PY
+est_shared="$work/est-shared"
+
+set_lab "${B[@]}"; rm -f "$work/gate.args"
+mc2 --estimate="$est" "${seven[@]}" --gate-only; rc=$?
+expect_code "9 without the option the seven runs open the gate as before" 0 $rc
+[ "$(grep -c -- '--tables' "$work/gate.args")" = 0 ] && pass "9b without the option the gate is given no --tables (its own default stays)" || fail "9b the gate was given --tables ($(cat "$work/gate.args"))"
+degrees >"$work/deg.plain"; cp "$out/calibration/calibration-gate.json" "$work/gate.plain.json"
+
+set_lab "${B[@]}"; rm -f "$work/gate.args"
+mc2 --estimate="$est" "${seven[@]}" --gate-only --gate-tables=entities,images,references; rc=$?
+expect_code "9c the option naming the default tables: the gate opens" 0 $rc
+[ "$(grep -c -- '--tables=entities,images,references' "$work/gate.args")" = 1 ] && pass "9d the list reaches the gate, once, as --tables" || fail "9d ($(cat "$work/gate.args"))"
+cmp -s "$out/calibration/calibration-gate.json" "$work/gate.plain.json" && pass "9e the gate's record is byte for byte the one made without the option" || fail "9e the record differs"
+
+set_lab "${B[@]}"
+mc2 --estimate="$est_shared" "${seven[@]}" --gate-only; rc=$?
+expect_code "9f the shared-table copy without the option: refused (the gate counts rows of tables the estimate does not name)" 14 $rc
+has "$work/mc.out" 'smallest degree 0.000000' && pass "9g the degree is 0.000000: every route is out of the rates" || fail "9g ($(degrees | tail -2 | tr '\n' ' '))"
+
+set_lab "${B[@]}"; rm -f "$work/gate.args"
+mc2 --estimate="$est_shared" "${seven[@]}" --gate-only --gate-tables=n_shared; rc=$?
+expect_code "9h the shared-table copy with --gate-tables=n_shared: the gate opens" 0 $rc
+degrees >"$work/deg.shared"
+cmp -s "$work/deg.shared" "$work/deg.plain" && pass "9i the degrees equal those of the original estimate with its own tables (every N table has the one count)" || fail "9i the degrees differ"
+[ "$(lab_calls)" = 0 ] && pass "9j --gate-only touched no container" || fail "9j the lab was touched"
+
+# the option does not reach the guard of the N tables: the run goes on to bin/check-tables (before), which reads the real tables, and then to the stand-in k6
+set_lab "${B[@]}" scale=10000
+mc2 --estimate="$est_shared" "${seven[@]}" --measure=cal-1 --request-timeout=600s --gate-tables=n_shared; rc=$?
+expect_code "9k with the option the entry goes on, through the guard, to the load tool (the stand-in k6 stops it at 13)" 13 $rc
+[ "$(k6_calls)" -ge 1 ] && pass "9l the load tool was reached" || fail "9l k6 was never reached ($(head -3 "$work/mc.err" | tr '\n' ' '))"
+grep -q 'CHECKSUM' "$work/docker.calls" && pass "9m the guard of the N tables ran (CHECKSUM TABLE was asked)" || fail "9m check-tables did not run"
+if grep -q 'n_shared' "$work/docker.calls"; then fail "9n the pseudo table reached the database side: $(grep -m1 'n_shared' "$work/docker.calls")"; else pass "9n the pseudo table n_shared never reached the database side (check-tables kept the real tables)"; fi
+grep 'CHECKSUM' "$work/docker.calls" | grep -q 'entities' && pass "9o the CHECKSUM TABLE was asked of the real N tables" || fail "9o ($(grep -m1 CHECKSUM "$work/docker.calls"))"
+
+# a bad value is a usage error before the gate and before the lab
+for bad in 'Entities' 'a b' 'a,,b' ',a' 'a,' 'a;b'; do
+  set_lab "${B[@]}"; rm -f "$work/gate.args"
+  mc2 --estimate="$est" "${seven[@]}" --gate-only "--gate-tables=$bad"; rc=$?
+  if [ "$rc" = 2 ] && [ ! -e "$work/gate.args" ] && [ "$(lab_calls)" = 0 ]; then pass "9p --gate-tables='$bad': usage, exit 2, the gate not called, the lab not touched"; else fail "9p --gate-tables='$bad' (exit $rc)"; fi
+done
 
 echo
 echo "calibration gate tests: $passed passed, $failed failed, $skipped skipped"
