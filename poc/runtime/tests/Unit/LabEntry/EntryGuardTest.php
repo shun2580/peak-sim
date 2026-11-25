@@ -85,6 +85,53 @@ final class EntryGuardTest extends TestCase
         self::assertNotNull(EntryGuard::latchRefusal($this->latch));
     }
 
+    public function testARefusedInsertSaysWhatKindOfRecordItWasFor(): void
+    {
+        [$guard, $db] = $this->watching('/admin/customers/view/1', ['mysql'], ['visits']);
+        $connection = $db->connections['mysql'];
+        $insert = 'insert into `notifications` (`type`, `audience`, `data`, `notifiable_type`, `notifiable_id`, `updated_at`, `created_at`) values (?, ?, ?, ?, ?, ?, ?)';
+        // the data and the time are bound too, and none of them may reach the latch or the message: only the type, which names a kind of thing
+        $bindings = ['system.app_url_mismatch', 'admin', '{"url":"http://measure.invalid","host":"secret-host"}', null, null, '2026-11-25 13:00:00', '2026-11-25 13:00:00'];
+
+        try {
+            $connection->run($insert, $bindings);
+            self::fail('the statement was sent');
+        } catch (LabWriteRefused $e) {
+            self::assertStringContainsString('write_outside_allowed_tables', $e->getMessage());
+            self::assertStringEndsWith(' [type=system.app_url_mismatch]', $e->getMessage());
+            self::assertStringNotContainsString('secret-host', $e->getMessage());
+        }
+        self::assertSame([], $connection->sent);
+        $latched = (string) file_get_contents($this->latch);
+        self::assertStringContainsString('[type=system.app_url_mismatch]', $latched);
+        self::assertStringNotContainsString('secret-host', $latched);
+        self::assertStringNotContainsString('2026-11-25', $latched);
+        self::assertStringNotContainsString('secret-host', (string) $guard->finish($db, new QueryCounter(self::DB, 'mysql')));
+    }
+
+    public function testTheTypeIsKeptOnlyWhenItIsAName(): void
+    {
+        $insert = 'insert into `notifications` (`type`, `audience`) values (?, ?)';
+        self::assertSame(' [type=a.b_c-1]', EntryGuard::typeNote($insert, ['a.b_c-1', 'admin']));
+        // a value that is not shaped like a name (data, a path, an e-mail address, a long text, a number, null) is left out
+        foreach (['Has Space', 'a@b.example', '/a/path', str_repeat('a', 65), '1abc', '', 'UPPER'] as $value) {
+            self::assertSame('', EntryGuard::typeNote($insert, [$value, 'admin']), (string) $value);
+        }
+        self::assertSame('', EntryGuard::typeNote($insert, [5, 'admin']));
+        self::assertSame('', EntryGuard::typeNote($insert, [null, 'admin']));
+        // the type is the one in the column called `type`, wherever it stands in the list, and a value of another column is never taken for it
+        self::assertSame(' [type=kind.one]', EntryGuard::typeNote('insert into `t` (`a`, `type`) values (?, ?)', ['not.the.type', 'kind.one']));
+        self::assertSame('', EntryGuard::typeNote('insert into `t` (`a`, `b`) values (?, ?)', ['kind.one', 'kind.two']));
+        // not an insert, no column list, values that are not all placeholders, a row of another width, no binding for the column: nothing
+        self::assertSame('', EntryGuard::typeNote('update `t` set `type` = ?', ['kind.one']));
+        self::assertSame('', EntryGuard::typeNote('insert into `t` values (?, ?)', ['kind.one', 'x']));
+        self::assertSame('', EntryGuard::typeNote("insert into `t` (`type`, `b`) values ('kind.one', ?)", ['x']));
+        self::assertSame('', EntryGuard::typeNote('insert into `t` (`type`, `b`) values (?)', ['kind.one']));
+        self::assertSame('', EntryGuard::typeNote($insert, []));
+        // a statement with no bindings at all (a refused statement of another kind) says nothing extra
+        self::assertSame('', EntryGuard::typeNote('delete from `entities`', []));
+    }
+
     public function testAnImplicitCommitIsNotSent(): void
     {
         foreach (['commit', 'start transaction', 'set autocommit = 0', 'alter table `views` add x int'] as $sql) {
@@ -321,10 +368,11 @@ final class FakeConnection
         return $this;
     }
 
-    public function run(string $sql): void
+    /** @param array<array-key, mixed> $bindings */
+    public function run(string $sql, array $bindings = []): void
     {
         foreach ($this->hooks as $hook) {
-            $hook($sql, [], $this);
+            $hook($sql, $bindings, $this);
         }
         $this->sent[] = $sql;
     }

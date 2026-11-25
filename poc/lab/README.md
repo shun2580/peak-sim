@@ -288,6 +288,19 @@ the capture saw). A list that cannot be read is a 503. `poc/runtime/src/LabEntry
 of a route by hand: it takes the login the measurement's own inspection gives that route (the profile's `auth_gates`, the same code the capture ran) and
 writes its name into the route's headers; a login the entry does not offer leaves the route unfilled.
 
+**The Host of a request.** A request of the capture carries `Host: measure.invalid`, the host of `APP_URL` (`Run\Requester::BASE_URL`). A request through the lab's web
+server would carry the web server's own name, and Bagisto checks after each administrator's response that `APP_URL` matches the address the request arrived on
+(its system health check for the application URL, `Webkul\Admin\SystemHealth\Checks\ApplicationUrlCheck`). With the web server's name that check fails in the lab and
+not in the capture, and the app then tries to record a notification: an insert into `notifications`, a table that grows with the count, which the entry's guard
+refuses before it is sent (and latches). The lab's Host is therefore a setting of the lab and not a part of the app's work: `with-bagisto` sets
+`PEAK_LAB_REQUEST_HOST` to the host of `APP_URL`, `bin/targets` writes it as the one header of the targets file, and `bin/entry-check` and the load scripts send
+it with every request. The BookStack lab sets none, and its requests are what they were. The database does less in the lab once the Hosts agree (no insert, no
+read of the channels' host names), which is the side the alignment moves the lab to. The cache of the capture and of the lab is an array cache, which is empty for
+every request, so the health checks (eleven reads of `notifications`, a count of `failed_jobs`, a read of `products`) run after every administrator's response here,
+where a real store runs them once in five minutes: both sides are alike, and an administrator's route weighs more in them than in production.
+When the entry refuses an insert, the latch and the app's log say what kind of record it was for (` [type=...]`, a name such as a notification type; no bound value
+but that name is written), and `bin/entry-check` keeps both in its record (`latch.txt`, `app-lab-log.txt`).
+
 `poc/lab/bagisto/allowed-write-tables.txt` is the committed list of the Bagisto lab. It is empty: the eight selected routes send reads only
 (`docs/research/lab-data/bagisto-route-list/list/allowed-tables.tsv` has no row), so the lab may write nothing. An empty list means no write at all and never
 `views`; tests hold that at the entry, in `check-writes` and in `check-tables`. The route list in the form the ladder reads is `poc/lab/bagisto/route-list.json`,

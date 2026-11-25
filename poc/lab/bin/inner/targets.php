@@ -57,6 +57,16 @@ try {
     exit(MeasureExit::DATA);
 }
 
+// The Host every request is sent with (PEAK_LAB_REQUEST_HOST). Empty (the BookStack lab): no Host is named, the requests carry the web server's
+// own name as they always have. The Bagisto lab names the host of APP_URL, which is also the host of every request in the capture
+// (Run\Requester::BASE_URL): the app's own check that APP_URL matches the address a request arrived on (a health check run after each
+// administrator's response) then reads the same thing in the lab as it did in the capture, instead of raising a notification about the lab's network name.
+$requestHost = (string) getenv('PEAK_LAB_REQUEST_HOST');
+if ($requestHost !== '' && preg_match('/^[a-z0-9]([a-z0-9.-]{0,251}[a-z0-9])?$/D', $requestHost) !== 1) {
+    fwrite(STDERR, "PEAK_LAB_REQUEST_HOST cannot be used (a host name, lower case, no port)\n");
+    exit(MeasureExit::DATA);
+}
+
 try {
     $profileName = (string) (getenv('PEAK_LAB_PROFILE') ?: 'bookstack');
     $profile = Profile::load($profileName);
@@ -123,7 +133,7 @@ foreach ($inspected['tasks'] as $task) {
 $missing = array_values(array_diff($wanted, array_keys($routes), array_keys($unfilled)));
 $document = [
     'base_url' => 'http://lab-web:8080',
-    'headers' => new stdClass(),
+    'headers' => $requestHost === '' ? new stdClass() : ['Host' => $requestHost],
     'scale' => $scale,
     'database' => $booted->dbName,
     'routes' => $routes,

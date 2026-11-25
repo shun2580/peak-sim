@@ -75,7 +75,7 @@ final class EntryGuard
         });
         $events->listen('Illuminate\\Database\\Events\\QueryExecuted', function (object $event): void {
             if (!$this->hooked->contains($event->connection)) {
-                $this->inspect((string) $event->connectionName, (string) $event->sql, false);
+                $this->inspect((string) $event->connectionName, (string) $event->sql, false, is_array($event->bindings ?? null) ? $event->bindings : []);
             }
         });
     }
@@ -114,20 +114,50 @@ final class EntryGuard
         }
         $this->hooked->attach($connection, true);
         $connection->beforeExecuting(function (string $query, array $bindings, object $connection): void {
-            $this->inspect((string) $connection->getName(), $query, true);
+            $this->inspect((string) $connection->getName(), $query, true, $bindings);
         });
     }
 
-    private function inspect(string $connection, string $sql, bool $beforeRun): void
+    /** @param array<array-key, mixed> $bindings */
+    private function inspect(string $connection, string $sql, bool $beforeRun, array $bindings = []): void
     {
         $reason = ViewsOnlyWrites::violation($connection, $this->defaultConnection, $this->measureDb, $sql, $this->allowedTables);
         if ($reason === null) {
             return;
         }
+        $reason .= self::typeNote($sql, $bindings);
         $this->latch($reason);
         if ($beforeRun) {
             throw new LabWriteRefused('lab: refused before it was sent: ' . $reason);
         }
+    }
+
+    /**
+     * What kind of record a refused insert was for, when the table keeps one in a column called `type` (a notification's type, a
+     * log entry's kind): ` [type=system.app_url_mismatch]`, or an empty string. Only a value shaped like a name (lower-case letters, digits,
+     * `_`, `.`, `-`, up to 64) is kept, because it names a kind of thing and is never data; anything else, and every other binding, stays out
+     * of the latch and of the log. The statement's own text is the one the guard already keeps (placeholders, no values).
+     *
+     * @param array<array-key, mixed> $bindings
+     */
+    public static function typeNote(string $sql, array $bindings): string
+    {
+        if (preg_match('/^\s*insert\s+(?:ignore\s+)?into\s+`?[A-Za-z0-9_.]+`?\s*\(([^)]*)\)\s*values\s*\(([^)]*)\)/i', $sql, $m) !== 1) {
+            return '';
+        }
+        $columns = array_map(static fn (string $c): string => strtolower(trim($c, " `\t\r\n")), explode(',', $m[1]));
+        $values = array_map('trim', explode(',', $m[2]));
+        // Only a row of plain placeholders, one for each column, lines the values up with the bindings by position.
+        if (count($columns) !== count($values) || array_unique($values) !== ['?']) {
+            return '';
+        }
+        $at = array_search('type', $columns, true);
+        $bindings = array_values($bindings);
+        if ($at === false || !isset($bindings[$at]) || !is_string($bindings[$at]) || preg_match('/^[a-z][a-z0-9_.-]{0,63}$/D', $bindings[$at]) !== 1) {
+            return '';
+        }
+
+        return ' [type=' . $bindings[$at] . ']';
     }
 
     private function latch(string $problem): void
