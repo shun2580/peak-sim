@@ -127,3 +127,32 @@ The run is valid and inside the band, it was made in the conditions of a run, an
 R_3 is 0.2 now, and cal-6 is given to the entry at 0.2 in every cal-7 run. cal-7 is searched at 1.0 first, then by the same rule (0.7, then 0.84 once, and the stage values below if a run is invalid by D270). The other runs are
 stand-ins for the gate's question as before: R_0 = 1, R_1 = 4, R_2 = 0.2, and cal-8 at R_5 = 8 (1,000 rows, asked of the gate only). Asked of the gate with cal-7 at 1, 0.84, 0.7, 0.45, 0.37, 0.3 and 0.2 the entry's gate opens at each
 (smallest degrees 0.626919, 0.627143, 0.623240, 0.606005, 0.598335, 0.591401, 0.582258; `gate-standin-cal7/`).
+
+### cal-7 at 1.0 rps (2026-11-25 16:42 to 16:54; `cal7-r1/`)
+
+| | |
+| --- | --- |
+| Rate asked, rate reached | 1.0 asked, 1.0021 reached (ratio 1.0021); `rps_status` **valid**, 0 arrivals dropped |
+| Requests in the kept window (480 s) | 481 sent, all status 200, none failed |
+| Database utilization (2 CPUs) | **21.0616%** (inside 20% to 30%) |
+| App CPU utilization (10 CPUs) | **12.85%** |
+| Guards | gate opened (smallest degree 0.626919, cal-8 as the gate-only stand-in); write check, limits guard, the N tables identical before and after, `innodb_table_stats` unchanged |
+
+Valid, inside the band, in the conditions of a run, and the first value tried: it is cal-7's run and is not measured again. **R_4 = 1.0 rps.** The desk estimate of the first search had put the database at 35.3% at 1.0 rps for this run; the
+measurement is 21.1%, the other way from what cal-6 showed (estimate 14.0% at 0.2 rps, measured 20.8%).
+
+### The gate on inputs alone, with R_3 = 0.2 and R_4 = 1.0, over the rest of the grid (2026-11-25 16:55; nothing measured)
+
+Before it was called: repository HEAD `a07c74b`; the inputs' sha256: `estimate-shared/estimate.json` 92fd9b7b78a400f6e355c77d7492fa82a204fdb815fa1aaab196c7f4760a194c, `calibration-gate.php` c627e16c0d73d7bc40f7b5e9f6d83bef6d4f74b2222a91b2a86dba00d039a5c5,
+`CalibrationScenario.php` e31fdffa6481474af377f4f39c941846f6b7613bdf6ff70ea276315f88f439f6, `CalibrationGate.php` 126dd4347cfda8194710ebfa9d0b58c42c9b4589d70b079f90d23956ccf53137, `CalibrationPoint.php`
+d4e26052342bb80448876315b5adac97550c452fcef5836cf80411258adb2005, `gate_batch_real.php` 4888cdcdd9f24fac23469cea3690e9f14bc7d0483ec473901a8f53e695808b85 (the batch form of the gate, as `../gate-input-only/cal-8/gate_batch.php`,
+with R_3 and R_4 fixed; the same call for every point: shared-table copy of the estimate, `--tables=n_shared`, `--scale=10000`, cal-4 at 3,000 rows, cal-5 to cal-7 at 30,000, cal-8 at 1,000). Grid: R_0 and R_1 in 1, 2, 4, 8, 16, 32 and R_2 in 14 values
+(the stage values and 0.37), 504 points; with cal-8, R_5 in 1, 2, 4, 8, 16, 32 as well, 3,024 points. Tables: `gate-real-r3-r4/`. Two points were also asked of the command line (`bin/measure-calibration --gate-only`) and gave
+the batch's degrees (0.644140 and 0.550836).
+
+- **cal-1 to cal-7: 0 of 504 points pass**; the largest smallest degree is 0.380375 (R_0 1, R_1 8, R_2 0.05, without cal-4). The set cal-1 to cal-7 fails at the rates found, so cal-8 is added (D271, decision 3).
+- **cal-1 to cal-8: 311 of 3,024 points pass** (10.3%); the largest smallest degree is 0.644140 (R_0 1, R_1 8, R_2 2.2, R_5 8 or 16).
+- By rate (points passing / points): R_0 1: 159/504, 2: 127/504, 4: 23/504, 8: 2/504, **16 and 32: 0**. R_1 1: 0/504, 2: 42, 4: 99, 8: 110, 16: 56, 32: 4. R_5 1: 0/504, 2: 26, 4: 63, 8: 77, 16: 82, 32: 63. R_2 17 to 30 of 216 for every value (5 and the low values fewest).
+- So with cal-8 the region is open: R_0 up to 8 (nearly none at 8), R_1 from 2, R_5 from 2. R_0 of 16 or more would end the search (D272, decision 3).
+
+What follows: R_0, R_1, R_2 and R_5 are searched one at a time. cal-8 needs a 1,000-row database of its own, which is not built yet.
