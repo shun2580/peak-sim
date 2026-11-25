@@ -1,0 +1,8 @@
+2026-11-25 15:54:20 PRE free: total 15 available 10 df: 883G free
+2026-11-25 15:54:20 START cal-6 R_3=0.45 R_4=0.3 name=cal6-r0.45 (stand-ins R_0=1 R_1=4 R_2=0.2)
+2026-11-25 16:13:06 END cal-6 name=cal6-r0.45 exit=0
+RESULT target=0.45 achieved=0.3792 status=invalid db_util=47.0770% app_cpu=99.72766103772534 requests=182 dropped=36 http={'200': 182}
+2026-11-25 16:13:27 PRE free: total 15 available 8 df: 883G free
+2026-11-25 16:13:27 START cal-6 R_3=0.3 R_4=0.3 name=cal6-r0.3 (stand-ins R_0=1 R_1=4 R_2=0.2)
+2026-11-25 16:28:00 END cal-6 name=cal6-r0.3 exit=0
+RESULT target=0.3 achieved=0.2875 status=invalid db_util=45.2421% app_cpu=99.59999148408181 requests=138 dropped=6 http={'200': 138}

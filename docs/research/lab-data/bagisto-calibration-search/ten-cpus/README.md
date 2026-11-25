@@ -68,3 +68,42 @@ The stand-ins for the cal-7 runs are chosen after R_3 is known and are written h
 4. If a point passes: the search of the remaining rates (R_0, R_1, R_2, and R_5 if cal-8 is used), then the effective gate with the real plans. Stop there. The calibration itself is not measured by this task.
 
 Each window in which a run is measured is written in `search-log.txt` with its start and end.
+
+## Results
+
+### cal-6 at 0.45 rps (2026-11-25 15:54 to 16:13; `cal6-r0.45/`)
+
+| | |
+| --- | --- |
+| Rate asked, rate reached | 0.45 asked, **0.3792 reached** (ratio 0.8426); `rps_status` **invalid** (`rps_outside_5_percent`, `load_tool_dropped_arrivals`: 36 arrivals dropped) |
+| Requests in the kept window (480 s) | 182 sent, all status 200; route 1 (`GET /api/products`) 140 |
+| Route 1 in flight | 22 at the window's start, 56 at its end |
+| Database utilization (2 CPUs) | **47.0770%** |
+| App CPU utilization (10 CPUs) | **99.73%** (4,787 CPU-seconds over 480 s); the app's per-minute use was 9.96 CPUs from the second minute on |
+
+The gate opened (smallest degree 0.508322), the write check, the limits guard (`LIMITS OK`, request timeout 1800 s) and the guards of the N tables passed. The run is invalid because the rate was not reached;
+by D270 (decision 2) it is not taken as R_3, whatever its utilization, and the search goes to the next stage value down, 0.3.
+
+### cal-6 at 0.3 rps (2026-11-25 16:13 to 16:28; `cal6-r0.3/`)
+
+| | |
+| --- | --- |
+| Rate asked, rate reached | 0.3 asked, **0.2875 reached** (ratio 0.9583, inside 5%); `rps_status` **invalid** (`load_tool_dropped_arrivals`: 6 arrivals dropped) |
+| Requests in the kept window | 138 sent, all status 200 |
+| Route 1 in flight | 11 at the window's start, 25 at its end |
+| Database utilization (2 CPUs) | **45.2421%** |
+| App CPU utilization (10 CPUs) | **99.60%** (the app was at 5.7 CPUs in the first minute and at 9.9 or more from the third on) |
+
+Same guards, all passed; invalid by D270 (decision 2) and not taken. These are measurements, not explanations: on 10 CPUs the app was again at its limit and the database was well above 30% at both rates
+(on 6 CPUs the one earlier run had the database at 26% at 0.3625 rps reached). The database's CPU per request sent was about 2.5 s at 0.45 and about 3.1 s at 0.3 (6 CPUs, 0.45: about 1.4 s), so the database's
+utilization did not fall with the rate between these two runs.
+
+### The next value, 0.2 rps, and the gate it needs (decided before it is measured)
+
+The next stage value down is 0.2. The gate, asked with the same stand-ins as before and cal-6 at 0.2, 0.15 or 0.1, **refuses**: the smallest degree is 0.4265 (R_3 = 0.2), about 0.375 (0.15), about 0.32 (0.1), with R_4
+of 0.1, 0.2 or 0.3 and R_2 of 0.2 or 0.3, R_1 of 2 or 4 (36 combinations, all exit 14; the printed list is not kept as a file). By D270 (decision 1) the gate in front of a search run is a reference and must not stop the search,
+and the entry has no way to skip it. The set of runs given to the entry is a choice of the measurer; so for the search runs from here the entry is given **cal-8** (1,000 rows, even, at the stand-in rate R_5 = 8) as an
+eighth run, **for the gate's question only**: it is not measured, and the stand-in is not a value of R_5. The gate then opens with the stand-ins above (smallest degree 0.591401 at R_3 = 0.2, 0.561721 at 0.15, 0.534800 at 0.1;
+`gate-standin-cal6-with-cal8/`). This is not the use of cal-8 that D271 (decision 3) keeps for the effective gate; the effective gate is still called after R is decided, with the real plans, and cal-8 is added there only if
+cal-1 to cal-7 fail it. Whether this reading of D270 (decision 1) holds is for the maintainer's side to judge; it is recorded here before the run, and it does not favour the pass of the calibration (it concerns a reference gate
+and the search runs only).
