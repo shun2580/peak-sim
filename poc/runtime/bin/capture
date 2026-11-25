@@ -7,7 +7,10 @@
 #
 # 1. brings the sealed stack up (bin/stack up)        2. bin/preflight must pass                  (exit 11 otherwise)
 # 3. runs the driver of bin/measure inside the container with a per-statement record for each cold request of the N axis
-# 4. makes capture.json from those records (bin/inner/capture-build.php)                           5. tears the stack down (the database volume stays unless --purge)
+# 4. makes capture.json from those records (bin/inner/capture-build.php)                           5. tears the stack down
+#
+# What a run leaves behind: as bin/measure. The databases it measured on and their volume stay; only --purge drops the databases
+# (the driver gets --drop-db=on, and bin/inner/cleanup.php runs at the end) and removes the volume.
 #
 # The measurer is the same one: same stack, same data, same requests, same safety conditions. The only difference is that
 # every cold request is also tapped (it is slower, and its peak memory is not comparable with an untapped run), and the
@@ -50,8 +53,8 @@ usage: bin/capture --app=<dir> --static=<analysis.json> [options]
                          is sent (the statistics state the EXPLAIN step puts its databases in, so the plans the capture sees are the
                          plans EXPLAIN reads). Default off: the capture is as it was.
   --keep-stack           leave the stack up afterwards (tear it down with bin/stack down, add --purge to drop the volume)
-  --purge                also remove the database volume when the run ends (without it the volume is kept: <project>_measure-dbdata);
-                         not with --keep-stack
+  --purge                also drop the databases the run measured and remove the database volume when the run ends (without it both are
+                         kept: the databases, and the volume <project>_measure-dbdata that holds them); not with --keep-stack
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-capture), PHP_VERSION (default 8.3), PEAK_PHP_IMAGE (an already built image)
 output (in --out): capture.json, capture-taps/ (one record per route and scale), and the usual record of bin/measure
@@ -136,6 +139,7 @@ inner=(--data="$data" --warm=off --tap-dir=/out/capture-taps)
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")
 [ -n "$analyze" ] && inner+=(--analyze-after-build="$analyze")
+[ "$purge" = 1 ] && inner+=(--drop-db=on)
 
 refuse_if_kept_volume || exit 2
 teardown() { [ "$keep" = 1 ] || stack_down "$purge" >/dev/null 2>&1; }
@@ -165,8 +169,11 @@ code=$?
 compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/capture-build.php --from=/out --app="$appname"
 build=$?
 
-# Whatever the driver left behind (it drops its own databases; this covers a crash) is removed before the stack goes.
-compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+# --purge only: whatever the driver left behind (with --drop-db=on it drops its own databases; this covers a crash) is removed
+# before the stack goes. Without --purge the measured databases are kept, so nothing is dropped here.
+if [ "$purge" = 1 ]; then
+  compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+fi
 if [ "$build" -ne 0 ]; then
   echo "bin/capture: capture.json could not be made (exit $build); the record is in $PEAK_OUT_DIR" >&2
   [ "$code" -eq 0 ] && code=3

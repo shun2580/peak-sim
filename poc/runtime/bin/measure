@@ -5,7 +5,11 @@
 #   bin/measure --app=<dir> --static=<analysis.json> [options]
 #
 # 1. brings the sealed stack up (bin/stack up)         2. bin/preflight must pass                 (exit 11 otherwise)
-# 3. runs the driver inside the container (bin/inner/measure.php)                                4. tears the stack down (the database volume stays unless --purge)
+# 3. runs the driver inside the container (bin/inner/measure.php)                                4. tears the stack down
+#
+# What a run leaves behind: the databases it measured on and their volume stay (<project>_measure-dbdata). Only --purge drops the
+# databases (the driver gets --drop-db=on, and bin/inner/cleanup.php runs at the end) and removes the volume. No other flag and no
+# environment variable does either. The one drop that is not --purge's is the driver's own rebuild of a database a request changed.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,8 +50,8 @@ usage: bin/measure --app=<dir> --static=<analysis.json> [options]
   --warm=on|off          on (default): each measurement is a warm-up, a cold and a warm request; off: warm-up and cold only
                          (the warm request is left out, a third of the time; the cold value, which decides, is the same)
   --keep-stack           leave the stack up afterwards (for looking around; tear it down with bin/stack down, add --purge to drop the volume)
-  --purge                also remove the database volume when the run ends (without it the volume is kept: <project>_measure-dbdata);
-                         not with --keep-stack
+  --purge                also drop the databases the run measured and remove the database volume when the run ends (without it both are
+                         kept: the databases, and the volume <project>_measure-dbdata that holds them); not with --keep-stack
   --help                 this text
 environment: PEAK_COMPOSE_PROJECT (default peak-measure), PHP_VERSION (default 8.3, the image the app runs in),
              PEAK_PHP_IMAGE (run in another, already built image; see bin/stack build-image)
@@ -136,6 +140,7 @@ inner=(--data="$data")
 [ "$profile_given" = 1 ] && inner+=(--profile="$profile")
 [ -n "$gate" ] && inner+=(--gate-bypass="$gate")
 [ -n "$warm" ] && inner+=(--warm="$warm")
+[ "$purge" = 1 ] && inner+=(--drop-db=on)
 if [ -n "$expected" ]; then
   cp "$expected" "$PEAK_OUT_DIR/expected.json" || exit 2
   inner+=(--expected=/out/expected.json)
@@ -165,6 +170,9 @@ compose exec -T "${exec_env[@]}" \
   measure-php php /peak-sim/poc/runtime/bin/inner/measure.php "${inner[@]}"
 code=$?
 
-# Whatever the driver left behind (it drops its own databases; this covers a crash) is removed before the stack goes.
-compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+# --purge only: whatever the driver left behind (with --drop-db=on it drops its own databases; this covers a crash) is removed
+# before the stack goes. Without --purge the measured databases are kept, so nothing is dropped here.
+if [ "$purge" = 1 ]; then
+  compose exec -T measure-php php /peak-sim/poc/runtime/bin/inner/cleanup.php >/dev/null 2>&1 || true
+fi
 exit "$code"

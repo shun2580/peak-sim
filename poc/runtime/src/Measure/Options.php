@@ -24,6 +24,8 @@ final class Options
         public readonly ?string $tapDir = null,
         public readonly array $nTables = [],
         public readonly bool $analyzeAfterBuild = false,
+        /** Drop each database once it is measured. Default off: a measured database is kept (see `bin/measure --purge`). */
+        public readonly bool $dropDb = false,
     ) {
     }
 
@@ -40,7 +42,7 @@ final class Options
                 throw new \InvalidArgumentException('unexpected argument: ' . $arg);
             }
             [$name, $value] = explode('=', substr($arg, 2), 2);
-            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir', 'n-tables', 'analyze-after-build'], true)) {
+            if (!in_array($name, ['data', 'only', 'expected', 'base', 'profile', 'gate-bypass', 'warm', 'tap-dir', 'n-tables', 'analyze-after-build', 'drop-db'], true)) {
                 throw new \InvalidArgumentException('unknown option: --' . $name);
             }
             $values[$name] = $value;
@@ -113,7 +115,14 @@ final class Options
             throw new \InvalidArgumentException('--analyze-after-build takes on or off');
         }
 
-        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir, $nTables, $analyze === 'on');
+        // Set only by `bin/measure --purge` and `bin/capture --purge`. Off (the default), a database the run has measured is kept,
+        // and nothing but the driver's own rebuild of a database a request changed (and the inspection database) is dropped.
+        $dropDb = $values['drop-db'] ?? 'off';
+        if (!in_array($dropDb, ['on', 'off'], true)) {
+            throw new \InvalidArgumentException('--drop-db takes on or off');
+        }
+
+        return new self($data, $only, $expected, $base, $profile, $gate === 'on', $warm === 'on', $tapDir, $nTables, $analyze === 'on', $dropDb === 'on');
     }
 
     /**

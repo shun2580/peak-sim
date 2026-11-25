@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 // Runs INSIDE the sealed PHP container (started by bin/measure). The driver of a whole measurement:
-// inspect the app, then for each database a route needs: build it, measure the routes on it, drop it. Writes the
+// inspect the app, then for each database a route needs: build it, measure the routes on it, keep it (drop it only
+// with --drop-db=on, which bin/measure and bin/capture pass for --purge and for nothing else). Writes the
 // record into PEAK_MEASURE_OUT_DIR (default /out) and prints a short summary.
 //
-//   php measure.php [--data=generator|seeder] [--only=a,b] [--n-tables=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>] [--analyze-after-build=on|off]
+//   php measure.php [--data=generator|seeder] [--only=a,b] [--n-tables=a,b] [--base=N] [--profile=<name>] [--gate-bypass=on|off] [--warm=on|off] [--expected=/out/expected.json] [--tap-dir=<dir>] [--analyze-after-build=on|off] [--drop-db=on|off]
 //
 // Input comes from PEAK_MEASURE_* variables (MeasureConfig). Exit codes: see Measure\MeasureExit.
 
@@ -109,7 +110,7 @@ $driverBuilder = $options->analyzeAfterBuild
     : $builder;
 // The routes the profile says rewrite a table other routes read are measured after every other route of their database (RouteOrder).
 $lastRoutes = $options->profile === null ? [] : array_keys(Profile::stateChanging(Profile::load($options->profile)));
-$driver = new Driver($planner, $driverBuilder, $runner, $options->gateBypass, $options->warm, $options->tapDir, $lastRoutes);
+$driver = new Driver($planner, $driverBuilder, $runner, $options->gateBypass, $options->warm, $options->tapDir, $lastRoutes, $options->dropDb);
 $result = $driver->run($tasks, $scales);
 
 // 3. Record.

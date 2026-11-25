@@ -15,11 +15,14 @@ use PeakSim\Runtime\Run\Attempt;
  * runner measures one route on one):
  *
  *   for each database a route needs (empty system first), in a fixed order:
- *     build it, measure every route that needs it, drop it
+ *     build it, measure every route that needs it, and keep it (it is dropped only when the run is given `dropDatabases`)
  *
  * One database holds one scale of one data plan, so routes that share a plan share the database and the migration is
  * paid once per scale, not once per route. Every request inside is rolled back (bin/measure-one). A request that
  * could not be rolled back makes the runner stop with 14: the database is dropped and built again, and the run goes on.
+ *
+ * The promise "a measured database is kept" is about the database the run has measured on. The rebuild above is not a
+ * break of it: a database a request changed is no longer the one that was built, so it is made again before the next route.
  *
  * Stops the whole run: a database that cannot be built (13), an app that does not start (12), a refusal (10), a
  * database that cannot be rebuilt clean (14). Whatever was measured by then is kept in the result.
@@ -44,6 +47,8 @@ final class Driver
         private readonly ?string $tapDir = null,
         /** @var list<string> the "METHOD uri" of the routes measured after every other route of their database (`RouteOrder`) */
         private readonly array $lastRoutes = [],
+        /** false (default): every database is kept when its routes are measured; true: it is dropped then (`bin/measure --purge`) */
+        private readonly bool $dropDatabases = false,
     ) {
     }
 
@@ -110,7 +115,9 @@ final class Driver
                     'measure_seconds' => round($measureNanos / 1e9, 2),
                     'routes' => $routes,
                 ];
-                $this->dropQuietly($point, $built);
+                if ($this->dropDatabases) {
+                    $this->dropQuietly($point, $built);
+                }
             }
         }
 
@@ -415,7 +422,7 @@ final class Driver
         try {
             $this->builder->drop($point);
         } catch (\Throwable) {
-            // The run record already says what happened; bin/cleanup removes whatever is left.
+            // The run record already says what happened; bin/cleanup (or --purge) removes whatever is left.
         }
     }
 
