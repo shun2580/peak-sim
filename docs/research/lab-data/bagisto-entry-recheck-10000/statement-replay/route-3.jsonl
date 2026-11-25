@@ -1,0 +1,46 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":5.23}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.76}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":1.82}
+{"phase":"login","conn":1490,"sql":"select * from `admins` where `admins`.`id` = ? limit 1","bindings":1,"ms":0.74}
+{"phase":"handle","conn":1490,"sql":"select * from `roles` where `roles`.`id` = ? limit 1","bindings":1,"ms":2.2}
+{"phase":"handle","conn":1490,"sql":"select * from `customers` where `customers`.`id` = ? limit 1","bindings":1,"ms":0.54}
+{"phase":"handle","conn":1490,"sql":"select * from `addresses` where `addresses`.`customer_id` in (1) and `address_type` = ?","bindings":1,"ms":28.71}
+{"phase":"handle","conn":1490,"sql":"select * from `customer_groups` where `customer_groups`.`id` in (1)","bindings":0,"ms":0.81}
+{"phase":"handle","conn":1490,"sql":"select * from `customer_groups` where `code` <> ?","bindings":1,"ms":0.47}
+{"phase":"handle","conn":1490,"sql":"select * from `orders` where `orders`.`customer_id` = ? and `orders`.`customer_id` is not null","bindings":1,"ms":177.83}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `code` = ?","bindings":1,"ms":0.78}
+{"phase":"handle","conn":1490,"sql":"select `invoices`.*, `orders`.`customer_id` as `laravel_through_key` from `invoices` inner join `orders` on `orders`.`id` = `invoices`.`order_id` where `orders`.`customer_id` = ?","bindings":1,"ms":106.47}
+{"phase":"handle","conn":1490,"sql":"select * from `product_reviews` where `product_reviews`.`customer_id` = ? and `product_reviews`.`customer_id` is not null","bindings":1,"ms":12.88}
+{"phase":"handle","conn":1490,"sql":"select * from `customer_notes` where `customer_notes`.`customer_id` = ? and `customer_notes`.`customer_id` is not null","bindings":1,"ms":1.68}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.68}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.54}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `channels`.`id` = ? limit 1","bindings":1,"ms":0.71}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.13}
+{"phase":"handle","conn":1490,"sql":"select * from `countries`","bindings":0,"ms":9.78}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.38}
+{"phase":"handle","conn":1490,"sql":"select * from `country_states`","bindings":0,"ms":13.27}
+{"phase":"handle","conn":1490,"sql":"select * from `countries`","bindings":0,"ms":5.63}
+{"phase":"handle","conn":1490,"sql":"select * from `country_states`","bindings":0,"ms":8.39}
+{"phase":"handle","conn":1490,"sql":"select * from `locales`","bindings":0,"ms":0.67}
+{"phase":"handle","conn":1490,"sql":"select * from `channel_translations` where `channel_translations`.`channel_id` = ? and `channel_translations`.`channel_id` is not null","bindings":1,"ms":0.59}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `code` = ?","bindings":1,"ms":0.69}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.11}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.45}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.22}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":2.11}
+{"phase":"terminate","conn":1490,"sql":"select count(*) as `aggregate` from `failed_jobs`","bindings":0,"ms":2.13}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.48}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.36}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.4}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.38}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.34}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.75}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.36}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.7}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.35}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.34}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.74}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.37}
+{"phase":"terminate","conn":1490,"sql":"select exists(select * from `products` where `created_at` < ? and not exists (select * from `product_price_indices` where `products`.`id` = `product_price_indices`.`product_id`)) as `exists`","bindings":1,"ms":11.59}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.5}
+{"phase":"end","status":200}

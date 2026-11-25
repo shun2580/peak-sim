@@ -1,0 +1,66 @@
+{
+    "base_url": "http://lab-web:8080",
+    "headers": {},
+    "scale": 3000,
+    "database": "peak_sim_measure_1827d0ce5465_lab_3000",
+    "routes": {
+        "GET /admin/customers/search": {
+            "path": "/admin/customers/search",
+            "headers": {
+                "X-Lab-Login": "admin"
+            },
+            "login": "admin"
+        },
+        "GET /admin/customers/view/{id}": {
+            "path": "/admin/customers/view/1",
+            "headers": {
+                "X-Lab-Login": "admin"
+            },
+            "login": "admin"
+        },
+        "GET /admin/marketing/communications/campaigns/edit/{id}": {
+            "path": "/admin/marketing/communications/campaigns/edit/1",
+            "headers": {
+                "X-Lab-Login": "admin"
+            },
+            "login": "admin"
+        },
+        "GET /admin/settings/inventory-sources/edit/{id}": {
+            "path": "/admin/settings/inventory-sources/edit/1",
+            "headers": {
+                "X-Lab-Login": "admin"
+            },
+            "login": "admin"
+        },
+        "GET /api/categories": {
+            "path": "/api/categories",
+            "headers": {
+                "X-Lab-Login": "none"
+            },
+            "login": "guest"
+        },
+        "GET /api/categories/attributes/{attribute_id}/options": {
+            "path": "/api/categories/attributes/24/options",
+            "headers": {
+                "X-Lab-Login": "none"
+            },
+            "login": "guest"
+        },
+        "GET /api/products": {
+            "path": "/api/products",
+            "headers": {
+                "X-Lab-Login": "none"
+            },
+            "login": "guest"
+        },
+        "GET /customer/account/addresses/create": {
+            "path": "/customer/account/addresses/create",
+            "headers": {
+                "X-Lab-Login": "customer"
+            },
+            "login": "customer"
+        }
+    },
+    "unfilled": [],
+    "not_in_static_analysis": []
+}

@@ -1,0 +1,32 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":5.37}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.5}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":2.1}
+{"phase":"login","conn":1490,"sql":"select * from `admins` where `admins`.`id` = ? limit 1","bindings":1,"ms":0.99}
+{"phase":"handle","conn":1490,"sql":"select * from `roles` where `roles`.`id` = ? limit 1","bindings":1,"ms":0.8}
+{"phase":"handle","conn":1490,"sql":"select * from `inventory_sources` where `inventory_sources`.`id` = ? limit 1","bindings":1,"ms":2.73}
+{"phase":"handle","conn":1490,"sql":"select * from `countries`","bindings":0,"ms":7.93}
+{"phase":"handle","conn":1490,"sql":"select * from `country_states`","bindings":0,"ms":11.68}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `code` = ?","bindings":1,"ms":0.82}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `code` = ?","bindings":1,"ms":0.44}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.54}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.41}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.81}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":3.95}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.04}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.79}
+{"phase":"terminate","conn":1490,"sql":"select count(*) as `aggregate` from `failed_jobs`","bindings":0,"ms":0.45}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.4}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.37}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.35}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.34}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.45}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.04}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.38}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.57}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.47}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.7}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.5}
+{"phase":"terminate","conn":1490,"sql":"select exists(select * from `products` where `created_at` < ? and not exists (select * from `product_price_indices` where `products`.`id` = `product_price_indices`.`product_id`)) as `exists`","bindings":1,"ms":12.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.54}
+{"phase":"end","status":200}

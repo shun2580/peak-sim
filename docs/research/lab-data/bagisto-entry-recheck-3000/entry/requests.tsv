@@ -1,0 +1,9 @@
+route	login	sent_login	path	status	selects	capture_selects	rows_read	capture_rows	rows_extra	pass
+GET /api/products	guest	none	/api/products	200	34	None	161322	None	None	yes
+GET /customer/account/addresses/create	customer	customer	/customer/account/addresses/create	200	49	None	87200	None	None	yes
+GET /admin/customers/view/{id}	admin	admin	/admin/customers/view/1	200	45	None	64145	None	None	yes
+GET /admin/marketing/communications/campaigns/edit/{id}	admin	admin	/admin/marketing/communications/campaigns/edit/1	200	35	None	36077	None	None	yes
+GET /admin/settings/inventory-sources/edit/{id}	admin	admin	/admin/settings/inventory-sources/edit/1	200	31	None	36295	None	None	yes
+GET /admin/customers/search	admin	admin	/admin/customers/search	200	28	None	27052	None	None	yes
+GET /api/categories	guest	none	/api/categories	200	16	None	15078	None	None	yes
+GET /api/categories/attributes/{attribute_id}/options	guest	none	/api/categories/attributes/24/options	200	33	None	12294	None	None	yes

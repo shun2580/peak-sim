@@ -1,0 +1,36 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":4.88}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.15}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":1.66}
+{"phase":"login","conn":1490,"sql":"select * from `admins` where `admins`.`id` = ? limit 1","bindings":1,"ms":0.58}
+{"phase":"handle","conn":1490,"sql":"select * from `roles` where `roles`.`id` = ? limit 1","bindings":1,"ms":0.61}
+{"phase":"handle","conn":1490,"sql":"select * from `marketing_campaigns` where `marketing_campaigns`.`id` = ? limit 1","bindings":1,"ms":1.12}
+{"phase":"handle","conn":1490,"sql":"select * from `marketing_templates` where `status` = ?","bindings":1,"ms":21.14}
+{"phase":"handle","conn":1490,"sql":"select * from `marketing_events`","bindings":0,"ms":33.23}
+{"phase":"handle","conn":1490,"sql":"select * from `channels`","bindings":0,"ms":0.7}
+{"phase":"handle","conn":1490,"sql":"select * from `locales`","bindings":0,"ms":0.48}
+{"phase":"handle","conn":1490,"sql":"select * from `channel_translations` where `channel_translations`.`channel_id` = ? and `channel_translations`.`channel_id` is not null","bindings":1,"ms":0.51}
+{"phase":"handle","conn":1490,"sql":"select * from `customer_groups`","bindings":0,"ms":0.37}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `code` = ?","bindings":1,"ms":0.69}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `code` = ?","bindings":1,"ms":0.47}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.49}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.39}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.82}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.17}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.36}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.8}
+{"phase":"terminate","conn":1490,"sql":"select count(*) as `aggregate` from `failed_jobs`","bindings":0,"ms":0.4}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.4}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.34}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.33}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.33}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.7}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.8}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.6}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.4}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.95}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.36}
+{"phase":"terminate","conn":1490,"sql":"select exists(select * from `products` where `created_at` < ? and not exists (select * from `product_price_indices` where `products`.`id` = `product_price_indices`.`product_id`)) as `exists`","bindings":1,"ms":13.11}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.54}
+{"phase":"end","status":200}

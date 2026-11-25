@@ -1,0 +1,50 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":6.18}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.59}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":1.66}
+{"phase":"login","conn":1490,"sql":"select * from `customers` where `customers`.`id` = ? limit 1","bindings":1,"ms":1.78}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.7}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.53}
+{"phase":"handle","conn":1490,"sql":"select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pivot_locale_id` from `locales` inner join `channel_locales` on `locales`.`id` = `channel_locales`.`locale_id` where `channel_locales`.`channel_id` = ?","bindings":1,"ms":0.64}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `locales`.`id` = ? limit 1","bindings":1,"ms":0.4}
+{"phase":"handle","conn":1490,"sql":"select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency_id` as `pivot_currency_id` from `currencies` inner join `channel_currencies` on `currencies`.`id` = `channel_currencies`.`currency_id` where `channel_currencies`.`channel_id` = ?","bindings":1,"ms":0.52}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `currencies`.`id` = ? limit 1","bindings":1,"ms":0.38}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `code` = ?","bindings":1,"ms":0.37}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":5.54}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.43}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ? and `locale_code` = ?","bindings":3,"ms":4.08}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.44}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.16}
+{"phase":"handle","conn":1490,"sql":"select * from `countries`","bindings":0,"ms":16.54}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.41}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.57}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.52}
+{"phase":"handle","conn":1490,"sql":"select * from `country_states`","bindings":0,"ms":19.88}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `code` = ?","bindings":1,"ms":0.64}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.78}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.36}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `locales` inner join `channel_locales` on `locales`.`id` = `channel_locales`.`locale_id` where `channel_locales`.`channel_id` = ?","bindings":1,"ms":0.74}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `currencies` inner join `channel_currencies` on `currencies`.`id` = `channel_currencies`.`currency_id` where `channel_currencies`.`channel_id` = ?","bindings":1,"ms":0.63}
+{"phase":"handle","conn":1490,"sql":"select * from `locales`","bindings":0,"ms":0.45}
+{"phase":"handle","conn":1490,"sql":"select * from `channel_translations` where `channel_translations`.`channel_id` = ? and `channel_translations`.`channel_id` is not null","bindings":1,"ms":2.19}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.98}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.86}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.89}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.71}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.67}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.79}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.63}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.66}
+{"phase":"handle","conn":1490,"sql":"select * from `cart` where `customer_id` = ? and `is_active` = ?","bindings":2,"ms":2.13}
+{"phase":"handle","conn":1490,"sql":"select * from `cart_items` where `cart_items`.`cart_id` = ? and `cart_items`.`cart_id` is not null and `parent_id` is null","bindings":1,"ms":2.48}
+{"phase":"handle","conn":1490,"sql":"select * from `cart_items` where `cart_items`.`parent_id` in (?)","bindings":1,"ms":0.41}
+{"phase":"handle","conn":1490,"sql":"select * from `cart_items` where `cart_items`.`parent_id` in (1)","bindings":0,"ms":0.37}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.63}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.62}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.78}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `locales` inner join `channel_locales` on `locales`.`id` = `channel_locales`.`locale_id` where `channel_locales`.`channel_id` = ?","bindings":1,"ms":0.6}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `currencies` inner join `channel_currencies` on `currencies`.`id` = `channel_currencies`.`currency_id` where `channel_currencies`.`channel_id` = ?","bindings":1,"ms":0.5}
+{"phase":"handle","conn":1490,"sql":"select * from `theme_sections` where `type` = ? and `theme_code` = ? and `channel_id` = ? and `status` = ? order by `sort_order` asc","bindings":4,"ms":21.37}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.02}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ? and `locale_code` = ?","bindings":3,"ms":3.92}
+{"phase":"handle","conn":1490,"sql":"select * from `core_config` where `code` = ? and `channel_code` = ?","bindings":2,"ms":4.19}
+{"phase":"end","status":200}

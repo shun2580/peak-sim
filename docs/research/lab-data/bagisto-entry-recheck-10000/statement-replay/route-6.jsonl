@@ -1,0 +1,29 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":5.07}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.07}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":1.9}
+{"phase":"login","conn":1490,"sql":"select * from `admins` where `admins`.`id` = ? limit 1","bindings":1,"ms":0.9}
+{"phase":"handle","conn":1490,"sql":"select * from `roles` where `roles`.`id` = ? limit 1","bindings":1,"ms":0.71}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `customers` where `email` LIKE ? or `first_name` LIKE ? or `last_name` LIKE ?","bindings":3,"ms":17.24}
+{"phase":"handle","conn":1490,"sql":"select * from `customers` where `email` LIKE ? or `first_name` LIKE ? or `last_name` LIKE ? order by `created_at` desc limit 10 offset 0","bindings":3,"ms":7.48}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `channels`.`id` in (1)","bindings":0,"ms":0.54}
+{"phase":"handle","conn":1490,"sql":"select * from `locales`","bindings":0,"ms":0.53}
+{"phase":"handle","conn":1490,"sql":"select * from `channel_translations` where `channel_translations`.`channel_id` = ? and `channel_translations`.`channel_id` is not null","bindings":1,"ms":0.62}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.85}
+{"phase":"terminate","conn":1490,"sql":"select count(*) as `aggregate` from `failed_jobs`","bindings":0,"ms":0.43}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.38}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.38}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.35}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.35}
+{"phase":"terminate","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.41}
+{"phase":"terminate","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.44}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.04}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.47}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":4.38}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.48}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.37}
+{"phase":"terminate","conn":1490,"sql":"select * from `core_config` where `code` = ?","bindings":1,"ms":3.71}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.42}
+{"phase":"terminate","conn":1490,"sql":"select exists(select * from `products` where `created_at` < ? and not exists (select * from `product_price_indices` where `products`.`id` = `product_price_indices`.`product_id`)) as `exists`","bindings":1,"ms":13.96}
+{"phase":"terminate","conn":1490,"sql":"select * from `notifications` where `audience` = ? and `type` = ? order by `id` desc limit 1","bindings":2,"ms":0.56}
+{"phase":"end","status":200}

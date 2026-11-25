@@ -1,0 +1,17 @@
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":5.21}
+{"phase":"boot","conn":1669,"sql":"select `value`, `code` from `core_config` where `code` like ?","bindings":1,"ms":3.49}
+{"phase":"lockdown","conn":1490,"sql":"select database() as db","bindings":0,"ms":1.8}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `hostname` in (?, ?, ?)","bindings":3,"ms":0.74}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` limit 1","bindings":0,"ms":0.42}
+{"phase":"handle","conn":1490,"sql":"select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pivot_locale_id` from `locales` inner join `channel_locales` on `locales`.`id` = `channel_locales`.`locale_id` where `channel_locales`.`channel_id` = ?","bindings":1,"ms":0.6}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `locales`.`id` = ? limit 1","bindings":1,"ms":0.38}
+{"phase":"handle","conn":1490,"sql":"select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency_id` as `pivot_currency_id` from `currencies` inner join `channel_currencies` on `currencies`.`id` = `channel_currencies`.`currency_id` where `channel_currencies`.`channel_id` = ?","bindings":1,"ms":0.57}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `currencies`.`id` = ? limit 1","bindings":1,"ms":0.37}
+{"phase":"handle","conn":1490,"sql":"select * from `currencies` where `code` = ?","bindings":1,"ms":0.34}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `code` = ?","bindings":1,"ms":0.39}
+{"phase":"handle","conn":1490,"sql":"select count(*) as `aggregate` from `categories` left join `category_translations` on `category_translations`.`category_id` = `categories`.`id` where `categories`.`status` = ? and `category_translations`.`locale` = ?","bindings":2,"ms":30.13}
+{"phase":"handle","conn":1490,"sql":"select `categories`.* from `categories` left join `category_translations` on `category_translations`.`category_id` = `categories`.`id` where `categories`.`status` = ? and `category_translations`.`locale` = ? order by `categories`.`position` asc, `categories`.`id` asc limit 10 offset 0","bindings":2,"ms":11.48}
+{"phase":"handle","conn":1490,"sql":"select * from `category_translations` where `category_translations`.`category_id` in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)","bindings":0,"ms":1.14}
+{"phase":"handle","conn":1490,"sql":"select * from `channels` where `code` = ?","bindings":1,"ms":0.87}
+{"phase":"handle","conn":1490,"sql":"select * from `locales` where `locales`.`id` = ? limit 1","bindings":1,"ms":0.54}
+{"phase":"end","status":200}

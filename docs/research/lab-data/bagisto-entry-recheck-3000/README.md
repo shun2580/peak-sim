@@ -1,0 +1,3 @@
+# Bagisto lab: repeat of the real check of the entry, 3,000 rows (passed)
+
+This is not a trial. It is the record of the repeat of the real check of the lab entry at 3,000 rows, taken after the lab requests were given the same Host as `APP_URL`. The first attempt failed (see `../bagisto-entry-real-check-10000/`: the write guard refused an insert into `notifications`). This time all eight routes answered 200 with the login the route list names, no write outside the allowed list was sent, and the latch stayed unset. There is no capture figure at this count, so only the status, the writes and the latch were judged.

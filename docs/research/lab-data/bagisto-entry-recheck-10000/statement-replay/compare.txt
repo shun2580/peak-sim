@@ -1,0 +1,100 @@
+
+### 1 GET /api/products: lab 34, capture 18, extra 18, missing 2
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [handle:1] select exists (select 1 from information_schema.tables where table_schema = schema() and table_name = 'admins'
+  EXTRA +1 [handle:1] select count(*) as `aggregate` from `admins`
+  EXTRA +1 [handle:1] select * from `admins` limit ?
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+  EXTRA +1 [handle:1] select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pi
+  EXTRA +1 [handle:1] select * from `locales` where `locales`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency
+  EXTRA +1 [handle:1] select * from `currencies` where `currencies`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  EXTRA +1 [handle:1] select * from `customer_groups` where `code` = ?
+  EXTRA +1 [handle:1] select count(*) as `aggregate` from (select `products`.* from `products` left join `products` as `variants` on
+  EXTRA +1 [handle:1] select `products`.* from `products` left join `products` as `variants` on coalesce(variants.parent_id, variant
+  EXTRA +1 [handle:1] select `attributes`.* from `attributes` inner join `attribute_group_mappings` on `attributes`.`id` = `attribut
+  EXTRA +1 [handle:1] select * from `currency_exchange_rates` where `target_currency` = ?
+  MISSING -1 select `products`.* from `products` left join `products` as `variants` on coalesce(variants.parent_id, variant
+  MISSING -1 select count(*) as `aggregate` from (select `products`.* from `products` left join `products` as `variants` on
+
+### 2 GET /customer/account/addresses/create: lab 49, capture 33, extra 16, missing 0
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +2 [handle:2] select * from `cart_items` where `cart_items`.`parent_id` in (?)
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [login:1] select * from `customers` where `customers`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+  EXTRA +1 [handle:1] select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pi
+  EXTRA +1 [handle:1] select * from `locales` where `locales`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency
+  EXTRA +1 [handle:1] select * from `currencies` where `currencies`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  EXTRA +1 [handle:1] select * from `channel_translations` where `channel_translations`.`channel_id` = ? and `channel_translations`.
+  EXTRA +1 [handle:1] select * from `cart` where `customer_id` = ? and `is_active` = ?
+  EXTRA +1 [handle:1] select * from `cart_items` where `cart_items`.`cart_id` = ? and `cart_items`.`cart_id` is not null and `parent
+
+### 3 GET /admin/customers/view/{id}: lab 45, capture 37, extra 8, missing 0
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [login:1] select * from `admins` where `admins`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `currencies` where `code` = ?
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+
+### 4 GET /admin/marketing/communications/campaigns/edit/{id}: lab 35, capture 27, extra 8, missing 0
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [login:1] select * from `admins` where `admins`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  EXTRA +1 [handle:1] select * from `currencies` where `code` = ?
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+
+### 5 GET /admin/settings/inventory-sources/edit/{id}: lab 31, capture 23, extra 8, missing 0
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [login:1] select * from `admins` where `admins`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  EXTRA +1 [handle:1] select * from `currencies` where `code` = ?
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+
+### 6 GET /admin/customers/search: lab 28, capture 22, extra 7, missing 1
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [login:1] select * from `admins` where `admins`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `customers` where `email` like ? or `first_name` like ? or `last_name` like ? order by `created_
+  EXTRA +1 [terminate:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [terminate:1] select * from `channels` limit ?
+  MISSING -1 select * from `customers` where `email` like ? or `first_name` like ? or `last_name` like ? order by `created_
+
+### 7 GET /api/categories: lab 16, capture 4, extra 13, missing 1
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +2 [handle:2] select * from `locales` where `locales`.`id` = ? limit ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+  EXTRA +1 [handle:1] select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pi
+  EXTRA +1 [handle:1] select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency
+  EXTRA +1 [handle:1] select * from `currencies` where `currencies`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  EXTRA +1 [handle:1] select `categories`.* from `categories` left join `category_translations` on `category_translations`.`category
+  EXTRA +1 [handle:1] select * from `channels` where `code` = ?
+  MISSING -1 select `categories`.* from `categories` left join `category_translations` on `category_translations`.`category
+
+### 8 GET /api/categories/attributes/{attribute_id}/options: lab 33, capture 23, extra 11, missing 1
+  EXTRA +2 [boot:2] select `value`, `code` from `core_config` where `code` like ?
+  EXTRA +1 [lockdown:1] select database() as db
+  EXTRA +1 [handle:1] select * from `channels` where `hostname` in (?)
+  EXTRA +1 [handle:1] select * from `channels` limit ?
+  EXTRA +1 [handle:1] select `locales`.*, `channel_locales`.`channel_id` as `pivot_channel_id`, `channel_locales`.`locale_id` as `pi
+  EXTRA +1 [handle:1] select * from `locales` where `locales`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select `currencies`.*, `channel_currencies`.`channel_id` as `pivot_channel_id`, `channel_currencies`.`currency
+  EXTRA +1 [handle:1] select * from `currencies` where `currencies`.`id` = ? limit ?
+  EXTRA +1 [handle:1] select * from `attribute_options` where `attribute_options`.`attribute_id` = ? and `attribute_options`.`attrib
+  EXTRA +1 [handle:1] select * from `locales` where `code` = ?
+  MISSING -1 select * from `attribute_options` where `attribute_options`.`attribute_id` = ? and `attribute_options`.`attrib
