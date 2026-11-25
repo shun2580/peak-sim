@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# The lab entry, passed once for real: one request to each route of the route list, through the real stack (nginx, php-fpm, the database), each as the
+# login the route list names (guest, customer or administrator). It is not a measurement: no load, one request per route, nothing is timed or compared
+# for speed. For each request it records the HTTP status and, from the database's own counters around it, the statements and the rows the server read,
+# and sets them beside the capture's figures for the same route and the same count of rows.
+#
+#   poc/lab/bin/entry-check --scale=N --targets=<targets-N.json> --capture=<capture.json> --out=<directory> [--routes=<route-list.json>] [--no-capture-ok]
+#
+# targets-N.json is what bin/targets wrote for that scale. The lab must be up, with the database of that scale (bin/use-db N). Writes requests.tsv,
+# routes.tsv and summary.json into the directory (which it makes; it refuses a directory that already holds a requests.tsv). Sends only GET requests to the
+# routes, plus one POST (it must be 405) and one GET that asks for a login the lab does not offer (it must be 400 and touch no statement).
+# exit codes: 0 every route passed / 1 a route did not pass (the files say which) / 2 usage / 3 the lab is not ready / 11 not sealed
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+exec python3 -I "$(dirname "${BASH_SOURCE[0]}")/inner/entry_check.py" "$@"
