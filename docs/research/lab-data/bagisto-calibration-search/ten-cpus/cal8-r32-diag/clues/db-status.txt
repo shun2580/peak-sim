@@ -1,0 +1,5 @@
+Aborted_connects	9
+Connection_errors_max_connections	0
+Innodb_row_lock_current_waits	0
+Max_used_connections	28
+Threads_connected	1

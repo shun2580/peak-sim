@@ -86,3 +86,9 @@ RESULT target=16.0 achieved=15.9979 status=valid db_util=17.7310% app_cpu=30.092
 2026-11-26 03:37:58 START cal-8 name=cal8-r32 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
 2026-11-26 04:18:39 END cal-8 name=cal8-r32 exit=0
 RESULT target=32.0 achieved=31.2083 status=invalid db_util=40.8905% app_cpu=75.33135544059243 requests=14980 dropped=450 http={'0': 88, '200': 14889, '504': 3}
+2026-11-26 04:34:04 DIAG START (a run only to observe the stall at 32 rps; its value is used for nothing): peak-sim HEAD b9f7b3a; git status --short -- poc/lab was [] (empty) at 04:32:04, before the B diff was applied; after it:  M poc/lab/compose/nginx/lab.conf; M poc/lab/compose/php/zz-lab.ini; (the two compose files, the B diff only); free: total 15 available 10; df / 883G free; Windows Update paused until 2026-11-28T15:02:20Z; db start log read (no recovery or error line, see cal8-r32-diag/start2.txt)
+2026-11-26 04:34:04 PRE free: total 15 available 10 df: 883G free
+2026-11-26 04:34:04 START cal-8 name=cal8-r32-diag R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 04:35:30 NOTE (written after the start at 04:34, true as of the start): --out of the diagnostic run is <out>/cal8-r32-diag, a directory made new for it (it did not exist before); no existing run directory (cal8-r32 and the others) is named by it, and cal8-r32 was checked to be still there at this time
+2026-11-26 04:58:55 END cal-8 name=cal8-r32-diag exit=0
+RESULT target=32.0 achieved=31.8438 status=invalid db_util=40.6999% app_cpu=75.19758275336159 requests=15285 dropped=85 http={'200': 15285}

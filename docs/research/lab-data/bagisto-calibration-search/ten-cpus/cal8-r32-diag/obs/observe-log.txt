@@ -1,0 +1,12 @@
+2026-11-26 04:34:33 driver: load tool started at 2026-11-26T04:34:32+09:00; the window ends at 2026-11-26 04:44:32
+2026-11-26 04:43:35 wrote <obs>/w-1min.txt
+2026-11-26 04:44:39 wrote <obs>/end+5s.txt
+2026-11-26 04:45:35 wrote <obs>/end+1m.txt
+2026-11-26 04:46:35 wrote <obs>/end+2m.txt
+2026-11-26 04:49:35 wrote <obs>/end+5m.txt
+2026-11-26 04:54:36 wrote <obs>/end+10m.txt
+2026-11-26 04:58:41 driver: the tail has ended; the mark end+15m is not taken
+2026-11-26 04:58:41 driver: the tail has ended; the mark end+20m is not taken
+2026-11-26 04:58:41 driver: the tail has ended; the mark end+25m is not taken
+2026-11-26 04:58:44 wrote <obs>/tail-end.txt
+2026-11-26 04:58:44 driver: done

@@ -1,0 +1,23 @@
+B OFF: ladder-b-1800s.diff reversed at 2026-11-26T04:59:36+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+604aedff9bcb935c92dbdd55e555105c5bfc954ac20654732739630101e55ec5  poc/lab/compose/nginx/lab.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+git status --short -- poc/lab: []
+peak-lab-bagisto-k6
+peak-lab-bagisto-tools
+peak-lab-bagisto-web
+peak-lab-bagisto-app
+2026-11-26 04:59:39 stopping db
+peak-lab-bagisto-db
+2026-11-25T19:59:39.834705Z 0 [System] [MY-013172] [Server] Received SHUTDOWN from user <via user signal>. Shutting down mysqld (Version: 8.4.7).
+2026-11-25T19:59:40.590282Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-25T19:59:40.590313Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+ Container peak-lab-bagisto-app Removing 
+ Container peak-lab-bagisto-app Removed 
+ Container peak-lab-bagisto-db Stopping 
+ Container peak-lab-bagisto-db Stopped 
+ Container peak-lab-bagisto-db Removing 
+ Container peak-lab-bagisto-db Removed 
+ Network peak-lab-bagisto_lab-internal Removing 
+ Network peak-lab-bagisto_lab-internal Removed 
+54
+13
