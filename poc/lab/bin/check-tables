@@ -7,7 +7,7 @@
 # that leaves a row as it was (an UPDATE to the same values) changes neither count nor checksum, and is found by these counters. It also holds the
 # refusal for the counts of rows that have not been seen yet: no query of any kind is sent to such a database before the prediction for it is committed.
 #
-#   poc/lab/bin/check-tables before --scale=N --baseline=<file> [--prediction=<poc/lab/predictions/....json>] [--tables=entities,images,references]
+#   poc/lab/bin/check-tables before --scale=N --baseline=<file> [--prediction=<poc/lab/predictions/....json>] [--tables=entities,images,references | --tables-file=<file>]
 #   poc/lab/bin/check-tables after  --scale=N --baseline=<file> --out=<file> [--prediction=...] [--tables=...]
 #   poc/lab/bin/check-tables step   --scale=N --baseline=<file> --out=<file> [--prediction=...]
 #   poc/lab/bin/check-tables allowed --scale=N [--prediction=...]
@@ -21,7 +21,10 @@
 #            read: the count and CHECKSUM TABLE read a whole table and would change the buffer pool between two steps of a ladder (decisions.md D189).
 #
 # The tables are the N tables of the lab (bin/build-db --n-tables=entities,images,references: the eight routes' tables that grow with the count
-# of rows). `views` is left out on purpose: the lab may write it and its checksum changes. Every table is read with SELECT COUNT(*) and
+# of rows). `views` is left out on purpose: the lab may write it and its checksum changes. For another app's lab the same holds for the tables of
+# its list of tables that may be written (PEAK_LAB_ALLOWED_WRITES_FILE, one name to a line, `#` for a comment; unset means `views` alone), and the
+# N tables are given by --tables-file (or PEAK_LAB_TABLES_FILE) in the same file form, because there are too many to name on a line. A table that is
+# in both is a usage error (exit 2): a table cannot be both checked to be unchanged and allowed to change. Every table is read with SELECT COUNT(*) and
 # CHECKSUM TABLE, which read the whole table: this is done outside any measured window (before the samplers start, after they have stopped).
 # The write counters are read in the same two places (and, in `step`, alone), for every table of every schema except the server's own (mysql, sys, performance_schema,
 # information_schema), and compared as they are: the counters of `views` in the measured schema are the only ones allowed to move. (The counters start
@@ -33,7 +36,8 @@
 #
 # THE REFUSAL FOR UNSEEN COUNTS (ruling 2026-11-11 14:15 and 2026-11-15 01:47; decisions.md D189): the counts of rows 50,000 and 200,000 may be
 # given nothing but COUNT, the statistics and EXPLAIN until the prediction for them is committed, and CHECKSUM TABLE is not among those. So a
-# scale is allowed without more only if it was seen already: at most 30,000, or 70,000, or 100,000. Any other scale is allowed only when
+# scale is allowed without more only if it was seen already: at most 30,000, or 70,000, or 100,000 (the scales above 30,000 that count as seen are
+# PEAK_LAB_SEEN_SCALES, a space-separated list, default `70000 100000`, which is what BookStack has seen; another app's lab sets the ones it has). Any other scale is allowed only when
 # --prediction names a prediction file that (a) passes bin/prediction-gate (a .json inside poc/lab/predictions/, committed in HEAD, no difference
 # from HEAD, nothing else in that directory untracked or changed) and (b) holds a scenario whose tables are of that scale. Whether the prediction is
 # committed is judged by git alone, through the gate that already stands in front of the ladder; nothing here reads a clock or a record.
@@ -51,26 +55,57 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() { sed -n '5,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 mode="${1:-}"; shift || true
 [[ "$mode" =~ ^(before|after|step|allowed)$ ]] || usage
-scale="" ; baseline="" ; out="" ; prediction="" ; tables="entities,images,references"
+scale="" ; baseline="" ; out="" ; prediction="" ; tables="" ; tables_file="${PEAK_LAB_TABLES_FILE:-}"
 for arg in "$@"; do
   case "$arg" in
     --scale=*) scale="${arg#--scale=}" ;;
     --baseline=*) baseline="${arg#--baseline=}" ;;
     --out=*) out="${arg#--out=}" ;;
     --prediction=*) prediction="${arg#--prediction=}" ;;
-    --tables=*) tables="${arg#--tables=}" ;;
+    --tables=*) tables="${arg#--tables=}"; tables_file="" ;;
+    --tables-file=*) tables_file="${arg#--tables-file=}"; tables="" ;;
     *) usage ;;
   esac
 done
 [[ "$scale" =~ ^[0-9]{1,7}$ ]] && [ "$scale" -ge 1 ] || usage
+
+# A list file: one name to a line, `#` starts a comment, blank lines are skipped, a name is letters, digits and underscores (the same reading as
+# poc/runtime/src/LabEntry/AllowedWrites.php and poc/lab/bin/check-writes). Prints the names, one to a line, each once; returns 1 on a bad line.
+read_list() {
+  local text bad
+  text="$(sed -E 's/#.*$//; s/^[[:space:]]+//; s/[[:space:]]+$//' "$1" 2>/dev/null)" || return 1
+  [ -f "$1" ] || return 1
+  bad="$(printf '%s\n' "$text" | awk 'NF && $0 !~ /^[A-Za-z0-9_]+$/ {print; exit}')"
+  [ -z "$bad" ] || { echo "check-tables: $1: not a table name: $bad" >&2; return 1; }
+  printf '%s\n' "$text" | awk 'NF && !seen[$0]++'   # (not grep: it exits 1 on an empty list, which is a good list)
+}
+# The tables the lab may write: `views` alone unless a list is named (a list that is named and cannot be read is an error, never `views`).
+allowed_writes="views"
+if [ -n "${PEAK_LAB_ALLOWED_WRITES_FILE:-}" ]; then
+  list="$(read_list "$PEAK_REPO_ROOT/$PEAK_LAB_ALLOWED_WRITES_FILE")" || { echo "check-tables: the list of tables the lab may write cannot be read: $PEAK_LAB_ALLOWED_WRITES_FILE" >&2; exit 2; }
+  allowed_writes="$(printf '%s\n' "$list" | paste -sd, -)"
+fi
+# The N tables: --tables, or a list file, or the three that BookStack's eight routes grow with.
+if [ -n "$tables_file" ]; then
+  list="$(read_list "$tables_file")" || { echo "check-tables: the list of N tables cannot be read: $tables_file" >&2; exit 2; }
+  tables="$(printf '%s\n' "$list" | paste -sd, -)"
+  [ -n "$tables" ] || { echo "check-tables: the list of N tables names none: $tables_file" >&2; exit 2; }
+elif [ -z "$tables" ]; then
+  tables="entities,images,references"
+fi
 [[ "$tables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]] || usage
-case "$tables" in *views*) echo "check-tables: views is the one table the lab may write; it is not checked here" >&2; exit 2 ;; esac
+for t in ${tables//,/ }; do
+  case ",$allowed_writes," in
+    *",$t,"*) echo "check-tables: $t is a table the lab may write; it is not checked here" >&2; exit 2 ;;
+  esac
+done
 [ "$mode" = allowed ] || [ -n "$baseline" ] || usage
 [ "$mode" != after ] && [ "$mode" != step ] || [ -n "$out" ] || usage
 
 # ---- the refusal for counts that have not been seen -------------------------------------------------------------------------------
 refuse() { echo "check-tables: REFUSED for scale $scale: $1; no query was sent to that database" >&2; exit 17; }
-if [ "$scale" -gt 30000 ] && [ "$scale" != 70000 ] && [ "$scale" != 100000 ]; then
+seen_above=" ${PEAK_LAB_SEEN_SCALES-70000 100000} "
+if [ "$scale" -gt 30000 ] && [[ "$seen_above" != *" $scale "* ]]; then
   [ -n "$prediction" ] || refuse "the count has not been seen and no prediction file was given (the prediction must be committed first)"
   gate="$("$bindir/prediction-gate" "$prediction" 2>&1)" || refuse "the prediction gate is closed: $gate"
   python3 - "$prediction" "$scale" <<'PY' || refuse "the prediction file holds no scenario of this scale"
@@ -88,7 +123,7 @@ snapshot_tables() {  # snapshot_tables <file>: one line per N table (name, count
   local t rows
   : >"$1"
   for t in ${tables//,/ }; do
-    rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
+    rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" ${PEAK_LAB_DB_CONTAINER} mysql -uroot -N -B \
       -e "SELECT COUNT(*) FROM \`${db}\`.\`${t}\`; CHECKSUM TABLE \`${db}\`.\`${t}\`" 2>"$1.err")" || return 1
     printf '%s\n' "$rows" | awk -v t="$t" 'NR==1 && $1 ~ /^[0-9]+$/ {n=$1} NR==2 && $2 ~ /^[0-9]+$/ {c=$2} END {if (NR==2 && n!="" && c!="") {print t "\t" n "\t" c; exit 0} exit 1}' >>"$1" || return 1
   done
@@ -96,17 +131,17 @@ snapshot_tables() {  # snapshot_tables <file>: one line per N table (name, count
 }
 snapshot_writes() {  # snapshot_writes <file>: appends one `write` line per table of the server that has a row (schema, table, inserts, updates, deletes). Light: no table is read.
   local io
-  io="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
+  io="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" ${PEAK_LAB_DB_CONTAINER} mysql -uroot -N -B \
     -e "SELECT object_schema, object_name, count_insert, count_update, count_delete FROM performance_schema.table_io_waits_summary_by_table WHERE object_schema = '${db}' OR object_schema NOT IN ('mysql','sys','performance_schema','information_schema') ORDER BY object_schema, object_name" 2>>"$1.err")" || return 1
   printf '%s\n' "$io" | awk -F'\t' -v db="$db" 'NF==5 && $3 ~ /^[0-9]+$/ && $4 ~ /^[0-9]+$/ && $5 ~ /^[0-9]+$/ {print "write\t" $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5; if ($1==db) seen=1} END {exit seen ? 0 : 1}' >>"$1"
 }
 snapshot() { snapshot_tables "$1" && snapshot_writes "$1"; }   # the tables, then the counters
-allowed_changes() {  # allowed_changes <file> [writes]: the readings without what the lab may change (the counters of `views` in the measured schema) and without
+allowed_changes() {  # allowed_changes <file> [writes]: the readings without what the lab may change (the counters of the tables it may write, `views`, in the measured schema) and without
   # the rows that say nothing: a counter row with no insert, no update and no delete. The server lists only the tables it has opened, so a table the app
   # opened for the first time during the scenario (pages, say) appears as a row of zeros that was not there before; it is no write. With `writes`, only the counters.
-  awk -F'\t' -v db="$db" -v only="${2:-}" '
+  awk -F'\t' -v db="$db" -v only="${2:-}" -v allowed=",$allowed_writes," '
     only == "writes" && $1 != "write" { next }
-    $1 == "write" && $2 == db && $3 == "views" { next }
+    $1 == "write" && $2 == db && index(allowed, "," $3 ",") { next }
     $1 == "write" && $4 == 0 && $5 == 0 && $6 == 0 { next }
     { print }' "$1"
 }

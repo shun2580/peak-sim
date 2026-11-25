@@ -41,5 +41,5 @@ else
   recipe="{\"mode\":\"targeted\",\"n_tables\":[${list%,}],\"m_table\":null,\"m_per\":null,\"n\":$scale,\"m\":0,\"base\":$base}"
 fi
 echo "building scale=$scale recipe=$recipe"
-docker exec peak-lab-tools php /peak-sim/poc/runtime/bin/inner/build-db.php \
-  --scale="$scale" --mode=generator --recipe-json="$recipe" --profile=bookstack
+docker exec ${PEAK_LAB_TOOLS_CONTAINER} php /peak-sim/poc/runtime/bin/inner/build-db.php \
+  --scale="$scale" --mode=generator --recipe-json="$recipe" --profile="${PEAK_LAB_PROFILE:-bookstack}"

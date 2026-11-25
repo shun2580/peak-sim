@@ -11,7 +11,8 @@ declare(strict_types=1);
  *   4. the app is not modified: it is mounted read-only; everything it writes goes to the shared scratch directory (a tmpfs).
  *   5. side effects are fakes: Fakes::install (mail, notifications, queue, outbound HTTP, storage) as in a measurement.
  *   6. (the lab's own wording, poc/lab/README.md) a request is NOT wrapped in a transaction here: the only thing it may
- *      write is the page view counter (the `views` table), and only GET and HEAD are served (405 otherwise). The
+ *      write is the page view counter (the `views` table; for another app's lab, the tables of the list the environment names:
+ *      PEAK_LAB_ALLOWED_WRITES_FILE, AllowedWrites), and only GET and HEAD are served (405 otherwise). The
  *      guard that keeps it so is PeakSim\Runtime\LabEntry\EntryGuard, called below for every request: the method
  *      and the latch before the app starts, the statement watch around the app, the verdict after it. A statement that
  *      writes anything but `views`, commits implicitly, writes on another connection or names another schema leaves a
@@ -28,6 +29,7 @@ use PeakSim\Runtime\Boot\BootFailure;
 use PeakSim\Runtime\Boot\ScratchDir;
 use PeakSim\Runtime\Config\MeasureConfig;
 use PeakSim\Runtime\Config\MeasureRefused;
+use PeakSim\Runtime\LabEntry\AllowedWrites;
 use PeakSim\Runtime\LabEntry\EntryGuard;
 use PeakSim\Runtime\Measure\Profile;
 use PeakSim\Runtime\Run\ActingAs;
@@ -64,6 +66,12 @@ try {
     foreach (getenv() as $key => $value) {
         $env[(string) $key] = (string) $value;
     }
+    // The tables that may be written. A list that is named and cannot be read is a refusal: the entry never falls back to a wider rule.
+    try {
+        $allowedTables = AllowedWrites::fromEnv($env);
+    } catch (\InvalidArgumentException $e) {
+        $refuse(503, 'the list of tables the lab may write cannot be used', $e->getMessage());
+    }
     $config = MeasureConfig::fromEnv($env);
     $scale = (int) ($env['PEAK_LAB_SCALE'] ?? '0');
     $booted = (new AppBooter())->boot($config, $scale, ScratchDir::fixed($scratchPath));
@@ -92,7 +100,7 @@ try {
 $db = $app['db'];
 $counter = new QueryCounter($booted->dbName, (string) $app['config']->get('database.default'));
 $counter->listenTo($app['events']);
-$guard = new EntryGuard($latch, $booted->dbName, (string) $app['config']->get('database.default'), (string) ($_SERVER['REQUEST_URI'] ?? ''));
+$guard = new EntryGuard($latch, $booted->dbName, (string) $app['config']->get('database.default'), (string) ($_SERVER['REQUEST_URI'] ?? ''), $allowedTables);
 $guard->watch($db, $app['events']);
 
 $request = \Illuminate\Http\Request::capture();

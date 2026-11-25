@@ -14,7 +14,7 @@ use PeakSim\Runtime\Run\QueryCounter;
  *  - Only GET and HEAD are served (methodRefusal).
  *  - A latch file left by an earlier request makes every later request a 503 (latchRefusal).
  *  - Every statement is looked at on every connection BEFORE it is sent (watch: the connection's own before-execute
- *    hook). One that writes anything but `views`, commits implicitly, writes on another connection, changes the server
+ *    hook). One that writes anything but `views` (or, for another app's lab, anything but the tables of its list: AllowedWrites), commits implicitly, writes on another connection, changes the server
  *    or writes a file is not sent: the latch is left and the statement raises LabWriteRefused. A statement on a
  *    connection that has no hook (one the app made in a way that skipped the connection event) is looked at after it
  *    ran, from the query event: the latch is left, but the statement has been sent.
@@ -39,6 +39,8 @@ final class EntryGuard
         private readonly string $measureDb,
         private readonly string $defaultConnection,
         private readonly string $uri = '',
+        /** @var list<string> the tables that may be written (AllowedWrites); `views` alone is the BookStack lab */
+        private readonly array $allowedTables = AllowedWrites::DEFAULT,
     ) {
         $this->hooked = new \SplObjectStorage();
     }
@@ -118,7 +120,7 @@ final class EntryGuard
 
     private function inspect(string $connection, string $sql, bool $beforeRun): void
     {
-        $reason = ViewsOnlyWrites::violation($connection, $this->defaultConnection, $this->measureDb, $sql);
+        $reason = ViewsOnlyWrites::violation($connection, $this->defaultConnection, $this->measureDb, $sql, $this->allowedTables);
         if ($reason === null) {
             return;
         }

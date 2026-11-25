@@ -17,7 +17,7 @@ scale="${1:-}"; file="${2:-}"; label="${3:-}"
 label="${label// /_}"
 name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
 now="$(date '+%F %T')"
-rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B -e \
+rows="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" ${PEAK_LAB_DB_CONTAINER} mysql -uroot -N -B -e \
   "SELECT table_name,last_update,n_rows FROM mysql.innodb_table_stats WHERE database_name='${name}' ORDER BY table_name" 2>/dev/null)"
 if [ -z "$rows" ]; then rows="unreadable	-	-"; fi
 printf '%s\n' "$rows" | sed "s|^|${now}\t${label}\t${scale}\t|" >>"$file"

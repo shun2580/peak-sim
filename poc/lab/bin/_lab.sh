@@ -10,11 +10,23 @@
 #   PEAK_LAB_SCALE         the scale of the database the app reads (default 10000)
 #   PEAK_LAB_ACT_AS        the login of the entry script (default the first BookStack user)
 #   PEAK_LAB_COMPOSE_FILES colon-separated compose files (default: lab.compose.yaml). TEST ONLY: the leaky overrides.
+#   PEAK_LAB_PREFIX        the name every container, the data volume and the network of one stack start with (default peak-lab). A second
+#                          stack (another app) sets its own project name (PEAK_LAB_PROJECT), prefix, state and out directories, and shares
+#                          nothing with this one; poc/lab/bin/with-bagisto sets them all for the Bagisto stack.
+#   PEAK_LAB_ALLOWED_WRITES_FILE  the tables the lab may write, one name per line (poc/lab/README.md, "The tables the lab may write"), as a path
+#                          inside the repository, relative to it. Unset: `views` alone, as it has always been. Read by bin/check-writes and
+#                          bin/check-tables on the host and, as /peak-sim/<that path>, by the entry inside php-fpm.
+#   PEAK_LAB_ROUTE_LIST    the list of the eight measured routes, a path inside the repository, relative to it (default
+#                          poc/lab/routes/route-list.json, BookStack's). Read by bin/check-writes, bin/measure-ladder and bin/targets.
+#   PEAK_LAB_PROFILE       the app profile the builder and bin/targets use (default bookstack; the Bagisto stack sets bagisto)
+#   PEAK_LAB_TABLES_FILE   the N tables (one name per line) for bin/check-tables when --tables is not given. Unset: entities,images,references.
+#   PEAK_LAB_SEEN_SCALES   the scales above 30,000 that count as seen for bin/check-tables (default: 70000 100000, which BookStack has seen).
 set -uo pipefail
 
 _here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LAB_DIR="$(cd "$_here/.." && pwd)"
 : "${PEAK_REPO_ROOT:=$(cd "$LAB_DIR/../.." && pwd)}"
+: "${PEAK_LAB_PREFIX:=peak-lab}"
 : "${PEAK_LAB_PROJECT:=peak-lab}"
 : "${PEAK_LAB_STATE_DIR:=${HOME}/.cache/peak-lab}"
 : "${PEAK_LAB_OUT_DIR:=${HOME}/.cache/peak-lab/out}"
@@ -46,10 +58,29 @@ set -a
 . "$_state"
 set +a
 
-export PEAK_REPO_ROOT PEAK_APP_ROOT PEAK_LAB_OUT_DIR PEAK_LAB_LOAD_DIR PEAK_LAB_SCALE PEAK_LAB_UID PEAK_LAB_GID
+# One name per container, from the prefix. The compose file takes the same prefix, so the two cannot disagree. The names the
+# older scripts spelled out (peak-lab-db and so on) are what the default prefix gives.
+: "${PEAK_LAB_DB_CONTAINER:=${PEAK_LAB_PREFIX}-db}"
+: "${PEAK_LAB_APP_CONTAINER:=${PEAK_LAB_PREFIX}-app}"
+: "${PEAK_LAB_WEB_CONTAINER:=${PEAK_LAB_PREFIX}-web}"
+: "${PEAK_LAB_K6_CONTAINER:=${PEAK_LAB_PREFIX}-k6}"
+: "${PEAK_LAB_TOOLS_CONTAINER:=${PEAK_LAB_PREFIX}-tools}"
+export PEAK_REPO_ROOT PEAK_APP_ROOT PEAK_LAB_OUT_DIR PEAK_LAB_LOAD_DIR PEAK_LAB_SCALE PEAK_LAB_UID PEAK_LAB_GID PEAK_LAB_PREFIX
+export PEAK_LAB_DB_CONTAINER PEAK_LAB_APP_CONTAINER PEAK_LAB_WEB_CONTAINER PEAK_LAB_K6_CONTAINER PEAK_LAB_TOOLS_CONTAINER
+# A path that names a file inside the repository, relative to it (it is also read inside the containers, where the repository is /peak-sim).
+for _v in PEAK_LAB_ALLOWED_WRITES_FILE PEAK_LAB_ROUTE_LIST; do
+  case "${!_v:-}" in
+    /*|*..*) echo "lab: $_v must be a path inside the repository, relative to it, with no .. in it" >&2; exit 2 ;;
+  esac
+done
+[ -z "${PEAK_LAB_ROUTE_LIST:-}" ] || export PEAK_LAB_ROUTE_LIST   # unset stays unset: the scripts then use BookStack's list, where they have always looked for it
+if [ -n "${PEAK_LAB_ALLOWED_WRITES_FILE:-}" ]; then
+  PEAK_LAB_ALLOWED_WRITES_IN_APP="/peak-sim/$PEAK_LAB_ALLOWED_WRITES_FILE"
+  export PEAK_LAB_ALLOWED_WRITES_FILE PEAK_LAB_ALLOWED_WRITES_IN_APP
+fi
 [ -n "${PEAK_LAB_ACT_AS:-}" ] && export PEAK_LAB_ACT_AS
 
-LAB_CONTAINERS=(peak-lab-db peak-lab-app peak-lab-web peak-lab-k6 peak-lab-tools)
+LAB_CONTAINERS=("$PEAK_LAB_DB_CONTAINER" "$PEAK_LAB_APP_CONTAINER" "$PEAK_LAB_WEB_CONTAINER" "$PEAK_LAB_K6_CONTAINER" "$PEAK_LAB_TOOLS_CONTAINER")
 
 compose() {
   local files=() f IFS=:

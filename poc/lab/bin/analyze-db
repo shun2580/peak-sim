@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# The statistics step after a build: ANALYZE TABLE, once, on every base table of the lab database of one scale (the step the earlier rehearsals did by
+# hand; decisions.md D181 for what is left alone). It changes nothing but the server's statistics of that database: no row of any table is written, and
+# `STATS_AUTO_RECALC` is NOT touched (the lab's databases keep the server's automatic recalculation on, as in production: section 7.2).
+#
+#   poc/lab/bin/analyze-db --scale=<rows> --out=<directory>
+#
+# It writes into the directory, which it makes: analyze-table-stats-before.tsv and analyze-table-stats-after.tsv (innodb_table_stats: n_rows, table,
+# last_update; the server clock on the first line), analyze-output.txt (one line per table, the server's own answer) and analyze-timing.tsv (scale, tables,
+# start, end, seconds, ok). It refuses to run twice for one directory (exit 3: "once" means once; use another directory for a deliberate second run, which a
+# measurement between scenarios must never do: D181 item 4). It stops with exit 1 unless every table answered `status OK`, and with exit 18 when the
+# database has no table or cannot be read. Run it after bin/build-db and before the statistics are read for the prediction; never between two scenarios.
+# exit codes: 0 every table analyzed / 1 a table did not answer OK / 2 usage / 3 already run for this directory / 18 unreadable or no such database
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
+usage() { echo "usage: bin/analyze-db --scale=<rows> --out=<directory>" >&2; exit 2; }
+scale="" ; out=""
+for arg in "$@"; do
+  case "$arg" in
+    --scale=*) scale="${arg#--scale=}" ;;
+    --out=*) out="${arg#--out=}" ;;
+    *) usage ;;
+  esac
+done
+[[ "$scale" =~ ^[0-9]{1,9}$ ]] && [ "$scale" -ge 1 ] && [ -n "$out" ] || usage
+db="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
+mysql_root() { docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" "${PEAK_LAB_DB_CONTAINER}" mysql -uroot -N -B -e "$1"; }
+if [ -e "$out/analyze-output.txt" ]; then echo "analyze-db: $out already holds an ANALYZE of this build; it is run once (use another directory for a deliberate second run)" >&2; exit 3; fi
+err="$(mktemp)"; trap 'rm -f "$err"' EXIT
+tables="$(mysql_root "SELECT table_name FROM information_schema.tables WHERE table_schema = '${db}' AND table_type = 'BASE TABLE' ORDER BY table_name" 2>"$err")" || { echo "analyze-db: the tables of $db cannot be read: $(head -2 "$err")" >&2; exit 18; }
+[ -n "$tables" ] || { echo "analyze-db: $db has no table (it is not built, or the name is wrong)" >&2; exit 18; }
+count="$(printf '%s\n' "$tables" | wc -l | tr -d ' ')"
+mkdir -p "$out"
+stats() {  # stats <label> <file>
+  { echo "# innodb_table_stats $1: n_rows, table, last_update; server clock $(mysql_root 'SELECT UTC_TIMESTAMP()' 2>/dev/null | head -1) (UTC)"
+    mysql_root "SELECT n_rows, table_name, last_update FROM mysql.innodb_table_stats WHERE database_name = '${db}' ORDER BY table_name" 2>/dev/null
+  } >"$2"
+}
+stats "before ANALYZE" "$out/analyze-table-stats-before.tsv"
+statement="ANALYZE TABLE $(printf '%s\n' "$tables" | sed "s/.*/\`${db}\`.\`&\`/" | paste -sd, -)"
+start="$(date '+%F %T')"; t0=$SECONDS
+result="$(mysql_root "$statement" 2>"$out/analyze.err")" || { echo "analyze-db: ANALYZE TABLE failed: $(head -2 "$out/analyze.err")" >&2; exit 1; }
+end="$(date '+%F %T')"; seconds=$((SECONDS - t0))
+printf '%s\n' "$result" | sed "s|^${db}\.||" >"$out/analyze-output.txt"
+ok="$(grep -c -P '\tstatus\tOK$' "$out/analyze-output.txt" | tr -d ' ')"
+printf 'scale\ttables\tstart_local\tend_local\tseconds\tok\n%s\t%s\t%s\t%s\t%s\t%s\n' "$scale" "$count" "$start" "$end" "$seconds" "$ok" >"$out/analyze-timing.tsv"
+stats "after ANALYZE" "$out/analyze-table-stats-after.tsv"
+echo "ANALYZE $db: $ok of $count tables status OK, $seconds s; the record is in $out"
+[ "$ok" = "$count" ] || { echo "analyze-db: not every table answered status OK (see $out/analyze-output.txt)" >&2; exit 1; }
+exit 0

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Runs a lab command against the Bagisto lab, which is a stack of its own: another project name, other container names, another data volume,
+# another network, another state and out directory, and a PHP 8.4 image (Bagisto needs 8.4 or later, and its composer.json requires the
+# `calendar` extension, which the BookStack lab's image does not have). Nothing in it is shared with the BookStack lab (project peak-lab).
+#
+#   poc/lab/bin/with-bagisto poc/lab/bin/up
+#   poc/lab/bin/with-bagisto poc/lab/bin/preflight
+#   poc/lab/bin/with-bagisto poc/lab/bin/down            (keeps the database volume; never give it --purge unless the maintainer asked)
+#   poc/lab/bin/with-bagisto poc/lab/bin/check-tables before --scale=3000 --baseline=<file>
+#
+# Every value below can be set in the environment before the call (an own value wins); the ones that name something shared are not offered:
+# there is no way to point this wrapper at the BookStack lab's project, containers or volume.
+#
+# What is Bagisto's own here:
+#   the tables the lab may write      PEAK_LAB_ALLOWED_WRITES_FILE, default poc/lab/bagisto/allowed-write-tables.txt. That file is decided by
+#                                     the route list (spec 7.4.7: the tables the selected routes write, outside the N tables) and does not exist
+#                                     until it is committed with the list. Until then every guard that reads it REFUSES (check-writes exit 15,
+#                                     check-tables exit 2, the entry answers 503): the lab cannot write anything before the maintainer's rule has a list.
+#   the route list                    PEAK_LAB_ROUTE_LIST, default poc/lab/bagisto/route-list.json: the routes the script of spec 7.4.7 selects. It does
+#                                     not exist until it is committed, and until then check-writes refuses (exit 15)
+#   the N tables                      PEAK_LAB_TABLES_FILE, default docs/research/bagisto-prep/n-tables.txt (the tables that grow with the count)
+#   the counts seen so far            PEAK_LAB_SEEN_SCALES is empty: no count above 30,000 counts as seen for Bagisto, so any count above it is
+#                                     refused (exit 17, no query sent) until a committed prediction holds a scenario of that count
+#   the login of the entry            PEAK_LAB_ACT_AS, the first customer on the `customer` guard (a request as a guest is sent with `X-Lab-Login: none`)
+set -uo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo="$(cd "$here/../../.." && pwd)"
+[ $# -ge 1 ] || { echo "usage: with-bagisto <lab command> [args]" >&2; exit 2; }
+
+export PEAK_LAB_PROJECT="peak-lab-bagisto"
+export PEAK_LAB_PREFIX="peak-lab-bagisto"
+export PEAK_LAB_IMAGE="peak-lab-bagisto-php"
+export PHP_VERSION="${PHP_VERSION:-8.4}"
+export PHP_EXTENSIONS="${PHP_EXTENSIONS:-calendar}"
+export PEAK_LAB_STATE_DIR="${PEAK_LAB_BAGISTO_STATE_DIR:-$HOME/.cache/peak-lab-bagisto}"
+export PEAK_LAB_OUT_DIR="${PEAK_LAB_BAGISTO_OUT_DIR:-$PEAK_LAB_STATE_DIR/out}"
+export PEAK_LAB_PROFILE="${PEAK_LAB_PROFILE:-bagisto}"
+export PEAK_LAB_ACT_AS="${PEAK_LAB_ACT_AS:-Webkul\\Customer\\Models\\Customer:1:customer}"
+export PEAK_LAB_ALLOWED_WRITES_FILE="${PEAK_LAB_ALLOWED_WRITES_FILE:-poc/lab/bagisto/allowed-write-tables.txt}"
+export PEAK_LAB_ROUTE_LIST="${PEAK_LAB_ROUTE_LIST:-poc/lab/bagisto/route-list.json}"
+export PEAK_LAB_TABLES_FILE="${PEAK_LAB_TABLES_FILE:-$repo/docs/research/bagisto-prep/n-tables.txt}"
+export PEAK_LAB_SEEN_SCALES="${PEAK_LAB_SEEN_SCALES-}"
+if [ -z "${PEAK_APP_ROOT:-}" ] && [ -d "$repo/../peak-sim-trials/bagisto" ]; then
+  export PEAK_APP_ROOT="$(cd "$repo/../peak-sim-trials/bagisto" && pwd)"
+fi
+# The BookStack lab's own state must never be read by this stack: the two state directories differ.
+[ "$PEAK_LAB_STATE_DIR" != "$HOME/.cache/peak-lab" ] || { echo "with-bagisto: the state directory is the BookStack lab's; refused" >&2; exit 2; }
+case "$PEAK_LAB_PROJECT:$PEAK_LAB_PREFIX" in peak-lab:*|*:peak-lab) echo "with-bagisto: the project or the prefix is the BookStack lab's; refused" >&2; exit 2 ;; esac
+exec "$@"

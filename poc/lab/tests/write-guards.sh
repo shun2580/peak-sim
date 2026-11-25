@@ -340,13 +340,13 @@ n="$(grep -c "# TABLES-STEP\$" "$lab/bin/measure-ladder")"; [ "$n" = 1 ] && pass
 [ "$(grep -c "# TABLES-STEP\$" "$lab/bin/measure-calibration")" = 0 ] && pass "C1a2 measure-calibration has no TABLES-STEP (one run, one before and one after)" || fail "C1a2"
 line() { grep -n "$2" "$lab/bin/$1" | head -1 | cut -d: -f1; }
 lw="$(line measure-ladder '# WRITE-CHECK$')"; lp="$(line measure-ladder 'bindir/preflight')"
-lb="$(line measure-ladder '# TABLES-BEFORE$')"; lk="$(line measure-ladder 'peak-lab-k6 k6 run')"; lt="$(line measure-ladder '# TABLES-STEP$')"; la="$(line measure-ladder '# TABLES-AFTER$')"; ls_="$(line measure-ladder '^  php_tool poc/lab/load/summarize-run.php')"; lc="$(line measure-ladder 'ladder.php collect')"
+lb="$(line measure-ladder '# TABLES-BEFORE$')"; lk="$(line measure-ladder 'PEAK_LAB_K6_CONTAINER} k6 run')"; lt="$(line measure-ladder '# TABLES-STEP$')"; la="$(line measure-ladder '# TABLES-AFTER$')"; ls_="$(line measure-ladder '^  php_tool poc/lab/load/summarize-run.php')"; lc="$(line measure-ladder 'ladder.php collect')"
 [ "$lw" -lt "$lp" ] && pass "C1b ladder: the write check is before the closed-network check" || fail "C1b ladder ($lw, $lp)"
 [ "$lb" -lt "$lk" ] && [ "$lk" -lt "$lt" ] && [ "$lt" -lt "$ls_" ] && pass "C1c ladder: tables before < the load tool < the step's counters < the summary of the step" || fail "C1c ladder ($lb $lk $lt $ls_)"
 ld="$(awk 'NR>1 && /^done$/ {l=NR} END {print l}' "$lab/bin/measure-ladder")"
 [ "$ld" -lt "$la" ] && [ "$la" -lt "$lc" ] && pass "C1c2 ladder: tables after (the end of the scenario) is after the loop and before the scenario's record is collected" || fail "C1c2 ladder ($ld $la $lc)"
 cw_="$(line measure-calibration '# WRITE-CHECK$')"; cp_="$(line measure-calibration 'bindir/preflight')"
-cb="$(line measure-calibration '# TABLES-BEFORE$')"; ck="$(line measure-calibration 'peak-lab-k6 k6 run')"; ca="$(line measure-calibration '# TABLES-AFTER$')"; cs="$(line measure-calibration '^  php_tool poc/lab/load/summarize-run.php')"
+cb="$(line measure-calibration '# TABLES-BEFORE$')"; ck="$(line measure-calibration 'PEAK_LAB_K6_CONTAINER} k6 run')"; ca="$(line measure-calibration '# TABLES-AFTER$')"; cs="$(line measure-calibration '^  php_tool poc/lab/load/summarize-run.php')"
 [ "$cw_" -lt "$cp_" ] && pass "C1d calibration: the write check is before the closed-network check" || fail "C1d calibration ($cw_, $cp_)"
 [ "$cb" -lt "$ck" ] && [ "$ck" -lt "$ca" ] && [ "$ca" -lt "$cs" ] && pass "C1e calibration: tables before < the load tool < tables after < the summary" || fail "C1e calibration ($cb $ck $ca $cs)"
 
@@ -538,7 +538,7 @@ for m in OOM-BASELINE OOM-BEFORE OOM-AFTER; do
   [ "$n" = 1 ] && pass "D6 measure-ladder has one line marked $m" || fail "D6 measure-ladder has $n lines marked $m"
 done
 lob="$(line measure-ladder '# OOM-BASELINE$')"; lbf="$(line measure-ladder '# OOM-BEFORE$')"; laf="$(line measure-ladder '# OOM-AFTER$')"
-lsd="$(line measure-ladder '^  read_settings "\$d"')"; lsp="$(line measure-ladder 'sample-cpu" --container=peak-lab-db')"
+lsd="$(line measure-ladder '^  read_settings "\$d"')"; lsp="$(line measure-ladder 'sample-cpu" --container=${PEAK_LAB_DB_CONTAINER}')"
 [ "$lob" -lt "$lsd" ] && [ "$lsd" -lt "$lbf" ] && [ "$lbf" -lt "$lsp" ] && [ "$lsp" -lt "$lk" ] && [ "$lk" -lt "$laf" ] && [ "$laf" -lt "$lt" ] && [ "$lt" -lt "$ls_" ] \
   && pass "D6b baseline < the limits of the step < OOM before < the samplers < the load tool < OOM after < the step's counters < the summary" || fail "D6b ($lob $lsd $lbf $lsp $lk $laf $lt $ls_)"
 # a whole ladder, to its end (the same copy as C16: the tools that summarize and record a step are no-ops)

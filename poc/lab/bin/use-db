@@ -8,7 +8,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 scale="${1:-}"
 [[ "$scale" =~ ^[0-9]{1,7}$ ]] || { echo "usage: bin/use-db <scale>" >&2; exit 2; }
 name="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_${scale}"
-found="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B -e "SHOW DATABASES LIKE '${name}'" 2>/dev/null)"
+found="$(docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" ${PEAK_LAB_DB_CONTAINER} mysql -uroot -N -B -e "SHOW DATABASES LIKE '${name}'" 2>/dev/null)"
 if [ "$found" != "$name" ]; then
   echo "lab: no database for scale $scale (build it with bin/build-db --scale=$scale ...)" >&2
   exit 2

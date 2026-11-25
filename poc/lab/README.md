@@ -23,6 +23,10 @@ conditions 1 to 5 hold here too, and condition 6 is the lab's own (below: how ea
 | `bin/check-writes`, `bin/check-tables` | the write guards (i) and (iii) of safety condition 6 (below). `check-writes` reads the capture's record of statements and refuses with exit 15; `check-tables` reads the N tables and the server's write counters before and after a scenario (between a ladder's steps, the counters only) and refuses with exit 16, 17 (a count of rows not seen, no query sent) or 18 (unreadable) |
 | `bin/measure-calibration` | **the one entry that measures calibration runs.** Calibration is measured from this entry only. It takes the plan and the count of rows of every run of the planned set (`--run=<id>:<plan.json>`, `--run-scale`), and the runs to measure now (`--measure`). Before anything else it calls the calibration gate (`scenarios/calibration-gate`; below) and stops with exit 14, with no container touched, if the set cannot tell the two coefficients apart. For each run it then checks the closed network, reads the limits and refuses unless they are the ones the measurement needs (`bin/check-limits --require=unlimited`, exit 13), records `mysql.innodb_table_stats` before and after, checks the record of statements and the N tables (safety condition 6; `--statement-record=<capture.json>` is required), and measures with the same samplers, k6 and `summarize-run` as the ladder. `--gate-only` runs the gate and nothing else |
 | `tests/run.sh` | the tests of this directory (needs Docker; refuses to run while the lab exists) |
+| `bin/analyze-db` | the statistics step after a build: `--scale=<rows> --out=<directory>` runs `ANALYZE TABLE` once on every base table of that scale's database (one statement), writes the server's answer, the timing and `innodb_table_stats` before and after, and refuses a second run for the same directory (exit 3). It changes no row and leaves `STATS_AUTO_RECALC` as it is (decisions.md D181); never run it between two scenarios |
+| `bin/with-bagisto` | runs any command above against **the Bagisto lab**, a stack of its own (below): its own project, containers, network, data volume, PHP 8.4 image and state directory, and the Bagisto paths for the list of tables the lab may write, the route list and the N tables |
+| `tests/allowed-writes.sh` | the tests of the write guards over a list of tables that may be written (a stand-in `docker`; the PHP class in a throw-away container; never touches a lab): the three readers of the list agree, each guard accepts the list's tables and refuses the rest, the stack's settings are its own, and each part taken out of a copy is caught |
+| `tests/bagisto-stack.sh` | the Bagisto stack started for real: sealed, nothing shared with the BookStack lab (its containers, network and volume are listed before and after), no published port, PHP 8.4 with `calendar`, a POST and a GET at the entry refused, and the guards read on the real server through a made-up database that the test makes and drops. No request goes to any route and no Bagisto database is built |
 | `tests/ladder-gate.sh` | the tests of the gate and of its place in front of `measure-ladder` (git and bash only; never touches the lab) |
 | `tests/predict-ladder-allocation.sh` | the tests of `bin/predict-ladder --drop-marked-routes` through the command, on the committed records of the fourth backtest (the plain output is the committed bytes; the flag takes a marked route out, keeps the sum, and stops with 38, 39 and 40; `--warmup-from-marks` writes the warm-up by the rule of 7.4.5 and changes nothing else; PHP or the built PHP image, python3 and git; never touches the lab) |
 | `tests/extrapolation-gate.sh` | the tests of the gate in front of `bin/measure-extrapolation` (git and bash only; the runtime tools are replaced by a recorder; never touches the lab; one test takes the gate's two lines out of a copy of the door and shows that a closed gate then starts the tool) |
@@ -241,6 +245,45 @@ because the database volume outlives `down`. Records go to `~/.cache/peak-lab/ou
    visibly instead of being let through. The tests are in `poc/runtime/tests/Unit/LabEntry/`: each guard taken out of a copy of
    the entry (or turned off) is caught, and `poc/runtime`'s own rollback, its checks of a request that could not be rolled back,
    and its condition 6 are tied down there so that this rule cannot get into the tool's measurement.
+
+## The Bagisto lab, and the tables a lab may write
+
+The Bagisto lab (`docs/simulator-spec.md` 7.4.7) is this same compose file started as a second stack, with `bin/with-bagisto`. Nothing is shared with
+the BookStack lab: the project is `peak-lab-bagisto` (so the network is `peak-lab-bagisto_lab-internal`), the containers are `peak-lab-bagisto-db`,
+`-app`, `-web`, `-k6` and `-tools`, the data volume is `peak-lab-bagisto-dbdata`, the image is `peak-lab-bagisto-php:8.4`, and the throw-away passwords,
+the run id and the records are in `~/.cache/peak-lab-bagisto` (not `~/.cache/peak-lab`). The wrapper refuses to be given the BookStack lab's state
+directory, project or prefix. What makes the names differ is one variable, `PEAK_LAB_PREFIX` (default `peak-lab`, which gives every name the BookStack
+lab has always had); every script takes the container names from `bin/_lab.sh`, which makes them from it. The build, the closed network, the cores (the
+database on 0-1, the app side on 2-7, k6 on 8-9), the memory limit of the app, the read-only root and the guards are the compose file's, the same for both.
+
+What is Bagisto's own is only this: PHP 8.4 or later (the image is built with `PHP_VERSION=8.4` and `PHP_EXTENSIONS=calendar`, the one extension Bagisto's
+`composer.json` requires that the BookStack image lacks; the build needs the internet once, like the BookStack one), the profile `bagisto` for the builder
+and `bin/targets`, the login of the entry (the first customer on the `customer` guard; a request as a guest is sent with `X-Lab-Login: none`), and three
+files named by the environment, each a path inside the repository, relative to it:
+
+| Variable | Default in `with-bagisto` | Without it |
+| --- | --- | --- |
+| `PEAK_LAB_ALLOWED_WRITES_FILE` | `poc/lab/bagisto/allowed-write-tables.txt` | `views` alone, as it has always been |
+| `PEAK_LAB_ROUTE_LIST` | `poc/lab/bagisto/route-list.json` | `poc/lab/routes/route-list.json` (BookStack's) |
+| `PEAK_LAB_TABLES_FILE` (the N tables; a file path) | `docs/research/bagisto-prep/n-tables.txt` | `entities,images,references` |
+
+`PEAK_LAB_SEEN_SCALES` is the counts above 30,000 that `bin/check-tables` reads without a committed prediction (default `70000 100000`, which BookStack has
+seen); `with-bagisto` sets it empty, so for Bagisto every count above 30,000 is refused (exit 17, no query) until a committed prediction holds a scenario of it.
+
+**The tables the lab may write.** The write rule of safety condition 6 is the same for every app: a request writes only the tables of one list, with the
+insert and the update only, and nothing else. For BookStack the list is `views`. For another app it is a file: one table name to a line, `#` starts a
+comment, a name is letters, digits and underscores (a schema, a quote, a space or a comma in a line is an error, not a name that is guessed at), the names
+are case sensitive, and a file that names nothing allows no write at all. The three readers of the file are `poc/runtime/src/LabEntry/AllowedWrites.php`
+(the entry), `bin/check-writes` and `bin/check-tables`; one test holds them together. A list that is named and cannot be read is a refusal everywhere
+(the entry answers 503, `check-writes` exits 15, `check-tables` exits 2), never a fall back to `views`. A table in both the list and the N tables is a usage
+error. The four guards are the ones above with `views` read as "the tables of the list": (i) `check-writes` over the capture's record, (ii) `EntryGuard` at
+the entry (`write_outside_allowed_tables` where the BookStack lab says `write_outside_views`; a delete or a replace of a listed table is refused there, as
+a delete of `views` is), (iii) `check-tables` before and after a scenario and between steps, (iv) GET and HEAD only and a statement that names another schema.
+
+`poc/lab/bagisto/allowed-write-tables.txt` is the committed list of the Bagisto lab. It is empty: the eight selected routes send reads only
+(`docs/research/lab-data/bagisto-route-list/list/allowed-tables.tsv` has no row), so the lab may write nothing. An empty list means no write at all and never
+`views`; tests hold that at the entry, in `check-writes` and in `check-tables`. The route list in the form the ladder reads (`poc/lab/bagisto/route-list.json`)
+is not made yet; until it is, `check-writes` refuses without `--routes`.
 
 ## What the lab cannot say
 

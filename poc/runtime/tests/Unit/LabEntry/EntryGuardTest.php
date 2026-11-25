@@ -207,9 +207,65 @@ final class EntryGuardTest extends TestCase
      *
      * @return array{EntryGuard, FakeDb, FakeDispatcher}
      */
-    private function watching(string $uri = '/books/x', array $names = ['mysql']): array
+    /** Another app's lab: the tables of its list may be written, `views` may not (AllowedWrites). */
+    public function testATableOfTheListIsSentAndATableOutsideItIsNot(): void
     {
-        $guard = new EntryGuard($this->latch, self::DB, 'mysql', $uri);
+        [$guard, $db] = $this->watching('/search', ['mysql'], ['visits', 'sessions']);
+        $connection = $db->connections['mysql'];
+
+        $connection->run('select * from `products` where `id` = ?');
+        $connection->run('insert into `visits` (`url`, `visited_at`) values (?, ?)');
+        $connection->run('update `sessions` set `last_activity` = ? where `id` = ?');
+        self::assertCount(3, $connection->sent);
+        self::assertNull($guard->finish($db, new QueryCounter(self::DB, 'mysql')));
+        self::assertFileDoesNotExist($this->latch);
+
+        foreach (['update `products` set `name` = ? where `id` = ?', 'update `views` set `views` = ? where `id` = ?', 'delete from `visits` where `id` = ?'] as $sql) {
+            [$guard, $db] = $this->watching('/search', ['mysql'], ['visits', 'sessions']);
+            try {
+                $db->connections['mysql']->run($sql);
+                self::fail('the statement was sent: ' . $sql);
+            } catch (LabWriteRefused $e) {
+                self::assertStringContainsString('write_outside_allowed_tables', $e->getMessage(), $sql);
+            }
+            self::assertSame([], $db->connections['mysql']->sent, $sql);
+            self::assertFileExists($this->latch);
+            self::assertNotNull(EntryGuard::latchRefusal($this->latch));
+            @unlink($this->latch);
+        }
+    }
+
+    public function testAnEmptyListAllowsNoWriteAtAll(): void
+    {
+        [$guard, $db] = $this->watching('/x', ['mysql'], []);
+        try {
+            $db->connections['mysql']->run('insert into `views` (`a`) values (?)');
+            self::fail('the statement was sent');
+        } catch (LabWriteRefused $e) {
+            self::assertStringContainsString('write_outside_allowed_tables', $e->getMessage());
+        }
+        // a read still goes
+        [$guard, $db] = $this->watching('/x', ['mysql'], []);
+        $db->connections['mysql']->run('select 1');
+        self::assertCount(1, $db->connections['mysql']->sent);
+    }
+
+    public function testTheDefaultIsStillViewsAlone(): void
+    {
+        [$guard, $db] = $this->watching();
+        try {
+            $db->connections['mysql']->run('update `visits` set `n` = ?');
+            self::fail('the statement was sent');
+        } catch (LabWriteRefused $e) {
+            self::assertStringContainsString('write_outside_views', $e->getMessage());
+        }
+    }
+
+    private function watching(string $uri = '/books/x', array $names = ['mysql'], ?array $allowed = null): array
+    {
+        $guard = $allowed === null
+            ? new EntryGuard($this->latch, self::DB, 'mysql', $uri)
+            : new EntryGuard($this->latch, self::DB, 'mysql', $uri, $allowed);
         $db = new FakeDb();
         foreach ($names as $name) {
             $db->connections[$name] = new FakeConnection($name);

@@ -77,8 +77,8 @@ case "$W" in "$lab_out"/*) ;; *) echo "measure-ladder-chain: --out-dir must be i
 mkdir -p "$W/logs" "$W/recreate" || exit 2
 log() { echo "$(date -Is) $*" >>"$W/chain.log"; }
 snap() { # $1 = label: the app and web logs, read-only copies
-  docker logs peak-lab-app >"$W/logs/app-$1.txt" 2>&1; date -u -Is >"$W/logs/app-$1.at"
-  docker logs peak-lab-web >"$W/logs/web-$1.txt" 2>&1
+  docker logs ${PEAK_LAB_APP_CONTAINER} >"$W/logs/app-$1.txt" 2>&1; date -u -Is >"$W/logs/app-$1.at"
+  docker logs ${PEAK_LAB_WEB_CONTAINER} >"$W/logs/web-$1.txt" 2>&1
 }
 readings() { # $1 = label
   "$bindir/read-memory" "$W/mem-sequence.txt" --label="$1" >/dev/null 2>&1
@@ -109,7 +109,7 @@ for sc in $scenarios; do
   "$bindir/use-db" "$scale" >"$W/recreate/use-db-recreate-$sc.txt" 2>&1 || { log "CHAIN STOP use-db failed before $sc"; finish; exit 11; }
   "$bindir/check-limits" --require=unlimited --request-timeout="$request_timeout" --dir="$W/recreate/limits-after-recreate-$sc" >"$W/recreate/check-limits-after-recreate-$sc.txt" 2>&1 \
     || { log "CHAIN STOP check-limits failed before $sc"; finish; exit 13; }
-  docker inspect peak-lab-app --format 'HostConfig.Memory={{.HostConfig.Memory}} started={{.State.StartedAt}}' >>"$W/recreate/check-limits-after-recreate-$sc.txt" 2>&1
+  docker inspect ${PEAK_LAB_APP_CONTAINER} --format 'HostConfig.Memory={{.HostConfig.Memory}} started={{.State.StartedAt}}' >>"$W/recreate/check-limits-after-recreate-$sc.txt" 2>&1
   log "recreated and checked before $sc"
   first=0
   # 3. the scenario
@@ -128,9 +128,9 @@ for sc in $scenarios; do
     log "CHAIN STOP at $sc exit=$rc"
     if [ "$rc" -eq 19 ]; then
       mkdir -p "$W/oom-stop-$sc"
-      docker inspect peak-lab-app --format '{{json .State}} mem={{.HostConfig.Memory}}' >"$W/oom-stop-$sc/inspect-app.txt" 2>&1
-      docker inspect peak-lab-db --format '{{json .State}}' >"$W/oom-stop-$sc/inspect-db.txt" 2>&1
-      docker logs --tail 200 peak-lab-app >"$W/oom-stop-$sc/app-logs-tail.txt" 2>&1
+      docker inspect ${PEAK_LAB_APP_CONTAINER} --format '{{json .State}} mem={{.HostConfig.Memory}}' >"$W/oom-stop-$sc/inspect-app.txt" 2>&1
+      docker inspect ${PEAK_LAB_DB_CONTAINER} --format '{{json .State}}' >"$W/oom-stop-$sc/inspect-db.txt" 2>&1
+      docker logs --tail 200 ${PEAK_LAB_APP_CONTAINER} >"$W/oom-stop-$sc/app-logs-tail.txt" 2>&1
       cp "$W/mem-sequence.txt" "$W/oom-stop-$sc/" 2>/dev/null
     fi
     finish

@@ -22,12 +22,19 @@ final class ViewsOnlyWrites
 {
     public const TABLE = 'views';
 
+    /** @see AllowedWrites::DEFAULT */
+    private const DEFAULT_TABLES = AllowedWrites::DEFAULT;
+
     private const KEEP = 200;
 
     /**
      * Why this statement text (it may hold several statements) is not allowed on the lab's entry, or null.
+     *
+     * $allowedTables are the tables that may be written (AllowedWrites); `views` alone when none are given, which is the BookStack lab.
+     *
+     * @param list<string> $allowedTables
      */
-    public static function violation(string $connection, string $defaultConnection, string $measureDb, string $sql): ?string
+    public static function violation(string $connection, string $defaultConnection, string $measureDb, string $sql, array $allowedTables = self::DEFAULT_TABLES): ?string
     {
         if (preg_match('/\/\*M?!/', $sql) === 1) {
             return 'executable_comment: ' . self::cut($sql);
@@ -40,7 +47,7 @@ final class ViewsOnlyWrites
             return $reason . ': ' . self::cut($sql);
         }
         foreach (self::statements($sql) as $statement) {
-            $found = self::statementViolation($statement, $measureDb);
+            $found = self::statementViolation($statement, $measureDb, $allowedTables);
             if ($found !== null) {
                 return $found;
             }
@@ -49,7 +56,8 @@ final class ViewsOnlyWrites
         return null;
     }
 
-    private static function statementViolation(string $statement, string $measureDb): ?string
+    /** @param list<string> $allowedTables */
+    private static function statementViolation(string $statement, string $measureDb, array $allowedTables): ?string
     {
         if (preg_match('/^SET\s+(?:GLOBAL|PERSIST|PERSIST_ONLY)\b/i', $statement) === 1
             || preg_match('/^SET\s+@@(?:GLOBAL|PERSIST|PERSIST_ONLY)\./i', $statement) === 1) {
@@ -60,19 +68,28 @@ final class ViewsOnlyWrites
         }
         $writes = preg_match('/^(?:INSERT|UPDATE|DELETE|REPLACE)\b/i', $statement) === 1
             || (preg_match('/^WITH\b/i', $statement) === 1 && preg_match('/\b(?:INSERT|UPDATE|DELETE|REPLACE)\b/i', $statement) === 1);
-        if (!$writes || self::isViewsWrite($statement, $measureDb)) {
+        if (!$writes || self::isAllowedWrite($statement, $measureDb, $allowedTables)) {
             return null;
         }
 
-        return 'write_outside_views: ' . self::cut($statement);
+        return ($allowedTables === self::DEFAULT_TABLES ? 'write_outside_views: ' : 'write_outside_allowed_tables: ') . self::cut($statement);
     }
 
-    /** The table name is case sensitive (as on the lab's server); the keywords are not. */
-    private static function isViewsWrite(string $statement, string $measureDb): bool
+    /**
+     * The table name is case sensitive (as on the lab's server); the keywords are not. Only the insert and the update of an allowed table
+     * pass, whatever the table: a delete, a replace, an alias or a statement that writes two tables is refused for every one of them.
+     *
+     * @param list<string> $allowedTables
+     */
+    private static function isAllowedWrite(string $statement, string $measureDb, array $allowedTables): bool
     {
-        $views = '(?:`?' . preg_quote($measureDb, '/') . '`?\s*\.\s*)?`?' . self::TABLE . '`?';
-        $insert = '/^(?i:INSERT\s+(?:(?:LOW_PRIORITY|DELAYED|HIGH_PRIORITY|IGNORE)\s+)*(?:INTO\s+)?)' . $views . '(?=[\s(]|$)/';
-        $update = '/^(?i:UPDATE\s+(?:(?:LOW_PRIORITY|IGNORE)\s+)*)' . $views . '(?i:\s+SET\b)/';
+        if ($allowedTables === []) {
+            return false;
+        }
+        $names = implode('|', array_map(static fn (string $name): string => preg_quote($name, '/'), $allowedTables));
+        $table = '(?:`?' . preg_quote($measureDb, '/') . '`?\s*\.\s*)?`?(?:' . $names . ')`?';
+        $insert = '/^(?i:INSERT\s+(?:(?:LOW_PRIORITY|DELAYED|HIGH_PRIORITY|IGNORE)\s+)*(?:INTO\s+)?)' . $table . '(?=[\s(]|$)/';
+        $update = '/^(?i:UPDATE\s+(?:(?:LOW_PRIORITY|IGNORE)\s+)*)' . $table . '(?i:\s+SET\b)/';
 
         return preg_match($insert, $statement) === 1 || preg_match($update, $statement) === 1;
     }

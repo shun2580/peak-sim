@@ -47,7 +47,8 @@ foreach ($list['selected'] as $row) {
 }
 
 try {
-    $profile = Profile::load('bookstack');
+    $profileName = (string) (getenv('PEAK_LAB_PROFILE') ?: 'bookstack');
+    $profile = Profile::load($profileName);
     $config = MeasureConfig::fromEnv(getenv());
     if ($config->staticJson === null || !is_file($config->staticJson)) {
         fwrite(STDERR, "PEAK_MEASURE_STATIC_JSON must name the static analysis output\n");
@@ -70,7 +71,7 @@ try {
     exit(BootFailure::EXIT_CODE);
 }
 
-$inspected = Inspection::tasks($booted->app, $analysis, Options::parse(['--profile=bookstack']), $profile);
+$inspected = Inspection::tasks($booted->app, $analysis, Options::parse(['--profile=' . $profileName]), $profile);
 
 $routes = [];
 $unfilled = [];

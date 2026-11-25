@@ -368,12 +368,12 @@ php_tool() {  # php_tool <path of the script under the repository> [args...]
         "${PEAK_DEV_IMAGE:-peak-sim-php-dev:8.3}" php "/peak-sim/$script" "$@"
     fi
   else
-    docker exec -i peak-lab-tools php "/peak-sim/$script" "$@"
+    docker exec -i ${PEAK_LAB_TOOLS_CONTAINER} php "/peak-sim/$script" "$@"
   fi
 }
 # Arguments that are paths under the out directory are given as host paths and rewritten for the container.
 host_or_container() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "$1"; else in_container "$1"; fi; }
-routes_path() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "$PEAK_REPO_ROOT/poc/lab/routes/route-list.json"; else echo "/peak-sim/poc/lab/routes/route-list.json"; fi; }
+routes_path() { if [ "$dry" = 1 ] && command -v php >/dev/null 2>&1; then echo "$PEAK_REPO_ROOT/${PEAK_LAB_ROUTE_LIST:-poc/lab/routes/route-list.json}"; else echo "/peak-sim/${PEAK_LAB_ROUTE_LIST:-poc/lab/routes/route-list.json}"; fi; }
 
 tflag=() ; tname="$scenario"
 if [ -n "$trial" ]; then tflag=(--trial) ; tname="$trial"; fi
@@ -463,7 +463,7 @@ tables_rc=$?
 if [ "$tables_rc" != 0 ]; then echo "measure-ladder: the N tables guard stopped $scenario at its start (exit $tables_rc); nothing was measured" >&2; exit "$tables_rc"; fi
 targets="$lab_out/targets-$scale.json"
 [ -f "$targets" ] || { echo "measure-ladder: $targets is missing (make it with: bin/targets --static=<analysis.json> --scale=$scale)" >&2; exit 2; }
-app_scale="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' peak-lab-app 2>/dev/null | sed -n 's/^PEAK_LAB_SCALE=//p')"
+app_scale="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' ${PEAK_LAB_APP_CONTAINER} 2>/dev/null | sed -n 's/^PEAK_LAB_SCALE=//p')"
 if [ "$app_scale" != "$scale" ]; then
   if [ "$switch" = 1 ]; then
     echo "switching the app to scale $scale (it read ${app_scale:-nothing}) with bin/use-db"
@@ -522,14 +522,14 @@ for rps in "${rungs[@]}"; do
 
   # The samplers stop themselves (--seconds): the kept window ends at k6's own start + $duration s, and k6 starts a few seconds
   # after this line, so they run $duration + 60 s. Nothing is killed.
-  "$bindir/../observe/sample-cpu" --container=peak-lab-db --out="$d/cpu.txt" --seconds=$((duration + 60)) 2>"$d/sampler.err" &
+  "$bindir/../observe/sample-cpu" --container=${PEAK_LAB_DB_CONTAINER} --out="$d/cpu.txt" --seconds=$((duration + 60)) 2>"$d/sampler.err" &
   db_pid=$!
-  "$bindir/../observe/sample-cpu" --container=peak-lab-app --out="$d/app-cpu.txt" --seconds=$((duration + 60)) 2>>"$d/sampler.err" &
+  "$bindir/../observe/sample-cpu" --container=${PEAK_LAB_APP_CONTAINER} --out="$d/app-cpu.txt" --seconds=$((duration + 60)) 2>>"$d/sampler.err" &
   app_pid=$!
   sleep 5   # a sample before the load starts, so the window's first edge is covered
   k6_env=(-e "PLAN=$(in_container "$d/plan.json")" -e "TARGETS=/out/targets-$scale.json" -e "SUMMARY=$(in_container "$d/summary.json")")
   [ -z "$request_timeout" ] || k6_env+=(-e "REQUEST_TIMEOUT=$request_timeout")
-  docker exec "${k6_env[@]}" peak-lab-k6 k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
+  docker exec "${k6_env[@]}" ${PEAK_LAB_K6_CONTAINER} k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
   k6_rc=$?
   echo "$k6_rc" >"$d/k6.exit"
   "$bindir/read-memory" "$d/mem-after.txt" --label="$scenario rung $i just after k6" >/dev/null 2>&1   # MEM-AFTER

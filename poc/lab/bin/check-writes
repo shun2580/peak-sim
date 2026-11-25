@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """Guard (i) of the lab's write rule: before anything is measured, read the record of the statements the measured routes send and refuse
-unless every statement that writes writes only the view-count table (`views`).
+unless every statement that writes writes only the view-count table (`views`), or, for another app's lab, only the tables of its list.
 
-    poc/lab/bin/check-writes --statements=<capture.json> [--routes=<route-list.json>]
+    poc/lab/bin/check-writes --statements=<capture.json> [--routes=<route-list.json>] [--allow-tables=<file>]
+
+The tables that may be written are `views` alone unless a list is named: `--allow-tables=<file>`, or the environment's
+PEAK_LAB_ALLOWED_WRITES_FILE (a path inside the repository, relative to it; poc/lab/bin/_lab.sh checks it). The route list is
+`--routes=<file>`, or the environment's PEAK_LAB_ROUTE_LIST in the same form, or BookStack's (poc/lab/routes/route-list.json). The file is one table name to a
+line, `#` starts a comment, a name is letters, digits and underscores, and a file that names none allows no write at all
+(poc/runtime/src/LabEntry/AllowedWrites.php reads it in the same way for the entry; poc/lab/tests/allowed-writes.sh holds the three readers
+together). A list that is named and cannot be read is a refusal (exit 15), never a fall back to `views`.
 
 The record is the one `poc/runtime/bin/capture` writes (poc/runtime/CAPTURE_FORMAT.md): per route, the statements it sent grouped by type
 (`kind` = first word, `pattern` = the text with every literal taken out). It is taken once, in the capture's own throw-away stack, never in
@@ -13,13 +20,13 @@ It refuses (exit 15, and says which route and which statement type) when:
   - the record cannot be read, or one of the eight selected routes is missing from it or is not `captured`;
   - the record is not complete: a captured scale where the statements counted by type do not add up to the route's total, or where the
     unaccounted figure is not 0;
-  - a statement type is anything but `select`, or an `update`, `insert` or `delete` of `views` alone (a DDL statement, a SET, a LOCK, a CALL,
-    a write to another table, a multi-table update or delete, a schema-qualified name, or two statements in one text are all refused: what
-    cannot be judged is refused);
+  - a statement type is anything but `select`, or an `update`, `insert`, `delete` or `replace` of one allowed table alone (a DDL statement, a SET,
+    a LOCK, a CALL, a write to another table, a multi-table update or delete, a schema-qualified name, or two statements in one text are all
+    refused: what cannot be judged is refused);
 A record that holds no write at all passes: the guard is about what is written, not about whether anything is.
 
 Callers: `bin/measure-calibration` and `bin/measure-ladder`, each on the line marked WRITE-CHECK, before the closed-network check.
-exit codes: 0 every write is to `views` only / 2 usage / 15 refused
+exit codes: 0 every write is to an allowed table only / 2 usage / 15 refused
 """
 import hashlib
 import json
@@ -27,16 +34,49 @@ import os
 import re
 import sys
 
-VIEWS_ONLY = {
-    "update": re.compile(r"^update\s+`views`\s+set\s", re.I),
-    "insert": re.compile(r"^insert\s+(?:ignore\s+)?into\s+`views`(?:\s|\()", re.I),
-    "delete": re.compile(r"^delete\s+from\s+`views`(?:\s+where\s|\s*$)", re.I),
-    "replace": re.compile(r"^replace\s+into\s+`views`(?:\s|\()", re.I),
-}
+DEFAULT_TABLES = ["views"]
+
+
+def parse_allowed(text):
+    """The tables of an allow list file, in the order written, each once. A line that is not a table name is an error."""
+    names = []
+    for number, line in enumerate(re.split(r"\r\n|\r|\n", text), 1):
+        line = re.sub(r"#.*$", "", line).strip()
+        if not line:
+            continue
+        if not re.fullmatch(r"[A-Za-z0-9_]+", line):
+            raise ValueError("line %d is not a table name: %s" % (number, line[:60]))
+        if line not in names:
+            names.append(line)
+    return names
+
+
+def allowed_tables(path):
+    if path is None:
+        env = os.environ.get("PEAK_LAB_ALLOWED_WRITES_FILE", "")
+        if not env:
+            return list(DEFAULT_TABLES)
+        root = os.environ.get("PEAK_REPO_ROOT") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
+        path = os.path.join(root, env)
+    with open(path, "r", encoding="utf-8") as fh:
+        return parse_allowed(fh.read())
+
+
+def write_rules(tables):
+    """One rule per verb, for the allowed tables only (the table name is case sensitive, as on the lab's server). None allowed: none match."""
+    if not tables:
+        return {}
+    t = "`(?:%s)`" % "|".join(re.escape(name) for name in tables)
+    return {
+        "update": re.compile(r"^update\s+" + t + r"\s+set\s", re.I),
+        "insert": re.compile(r"^insert\s+(?:ignore\s+)?into\s+" + t + r"(?:\s|\()", re.I),
+        "delete": re.compile(r"^delete\s+from\s+" + t + r"(?:\s+where\s|\s*$)", re.I),
+        "replace": re.compile(r"^replace\s+into\s+" + t + r"(?:\s|\()", re.I),
+    }
 
 
 def usage():
-    sys.stderr.write("usage: check-writes --statements=<capture.json> [--routes=<route-list.json>]\n")
+    sys.stderr.write("usage: check-writes --statements=<capture.json> [--routes=<route-list.json>] [--allow-tables=<file>]\n")
     sys.exit(2)
 
 
@@ -46,18 +86,27 @@ def refuse(message):
 
 
 def main(argv):
-    statements = routes = None
+    statements = routes = allow = None
     for arg in argv:
         if arg.startswith("--statements="):
             statements = arg[len("--statements="):]
         elif arg.startswith("--routes="):
             routes = arg[len("--routes="):]
+        elif arg.startswith("--allow-tables="):
+            allow = arg[len("--allow-tables="):]
         else:
             usage()
     if not statements:
         usage()
     if routes is None:
-        routes = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "routes", "route-list.json")
+        here = os.path.dirname(os.path.abspath(__file__))
+        listed = os.environ.get("PEAK_LAB_ROUTE_LIST", "")   # a path inside the repository (poc/lab/bin/_lab.sh checks it); BookStack's list when unset
+        routes = os.path.join(os.environ.get("PEAK_REPO_ROOT") or os.path.join(here, "..", "..", ".."), listed) if listed else os.path.join(here, "..", "routes", "route-list.json")
+    try:
+        tables = allowed_tables(allow)
+    except (OSError, ValueError) as exc:
+        refuse("the list of tables the lab may write cannot be used (%s)" % exc)
+    rules = write_rules(tables)
     try:
         with open(routes, "rb") as fh:
             selected = [r["route"] for r in json.load(fh)["selected"]]
@@ -70,6 +119,7 @@ def main(argv):
     if not selected:
         refuse("the route list names no route")
 
+    allowed_text = ", ".join("`%s`" % name for name in tables) or "no table"
     types_seen = 0
     writes = {}
     for route in selected:
@@ -103,17 +153,18 @@ def main(argv):
                 if not re.match(r"^\(?\s*select\s", pattern, re.I):
                     refuse("%s: statement type %s says select but reads %s" % (route, t.get("id"), pattern[:80]))
                 continue
-            rule = VIEWS_ONLY.get(kind)
-            if rule is None:
-                refuse("%s: statement type %s is a %s statement, which is neither a select nor a write to views: %s"
-                       % (route, t.get("id"), kind or "?", pattern[:80]))
-            if not rule.match(pattern):
-                refuse("%s: statement type %s writes somewhere other than `views` alone: %s" % (route, t.get("id"), pattern[:100]))
-            writes[(kind, route)] = writes.get((kind, route), 0) + 1
+            if kind not in ("update", "insert", "delete", "replace"):
+                refuse("%s: statement type %s is a %s statement, which is neither a select nor a write to %s: %s"
+                       % (route, t.get("id"), kind or "?", allowed_text, pattern[:80]))
+            rule = rules.get(kind)
+            if rule is None or not rule.match(pattern):
+                refuse("%s: statement type %s writes somewhere other than %s alone: %s" % (route, t.get("id"), allowed_text, pattern[:100]))
+            hit = re.search(r"`([^`]+)`", pattern)   # the rule above has matched one allowed name in backticks, the first one in the text
+            writes[(kind, hit.group(1) if hit else "?", route)] = 1
 
-    summary = ", ".join("%s views in %s" % (kind, route) for (kind, route) in sorted(writes)) or "no write"
-    print("WRITE CHECK OK %d routes, %d statement types, every write is to views only (%s); record sha256 %s"
-          % (len(selected), types_seen, summary, hashlib.sha256(raw).hexdigest()[:16]))
+    summary = ", ".join("%s %s in %s" % (kind, table, route) for (kind, table, route) in sorted(writes)) or "no write"
+    print("WRITE CHECK OK %d routes, %d statement types, every write is to %s only (%s); record sha256 %s"
+          % (len(selected), types_seen, " and ".join(tables) or "nothing: the list allows no write", summary, hashlib.sha256(raw).hexdigest()[:16]))
 
 
 if __name__ == "__main__":

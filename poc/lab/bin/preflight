@@ -79,26 +79,26 @@ done
 if [ "$all_running" -eq 1 ]; then
   # the PHP containers: the probes of the measurement stack (public addresses, a public name, the gateway, an HTTP fetch,
   # and a login of the measurement user)
-  for c in peak-lab-app peak-lab-tools; do
+  for c in ${PEAK_LAB_APP_CONTAINER} ${PEAK_LAB_TOOLS_CONTAINER}; do
     out="$(docker exec "$c" php /peak-sim/poc/runtime/bin/inner/preflight.php 2>&1)"; rc=$?
     echo "$out" | sed "s/^/$c: /"
     [ "$rc" -eq 0 ] || bad "$c: the PHP-side check exited $rc"
   done
   # web (busybox): nc and wget
-  must_fail peak-lab-web "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
-  must_fail peak-lab-web "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
-  must_fail peak-lab-web "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
-  must_pass peak-lab-web "the app (lab-app:9000)" nc -w 3 -z lab-app 9000
+  must_fail ${PEAK_LAB_WEB_CONTAINER} "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
+  must_fail ${PEAK_LAB_WEB_CONTAINER} "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
+  must_fail ${PEAK_LAB_WEB_CONTAINER} "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
+  must_pass ${PEAK_LAB_WEB_CONTAINER} "the app (lab-app:9000)" nc -w 3 -z lab-app 9000
   # k6
-  must_fail peak-lab-k6 "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
-  must_fail peak-lab-k6 "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
-  must_fail peak-lab-k6 "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
-  must_pass peak-lab-k6 "the web server (/__lab/health)" wget -T 3 -q -O /dev/null http://lab-web:8081/__lab/health
+  must_fail ${PEAK_LAB_K6_CONTAINER} "1.1.1.1:443" nc -w 3 -z 1.1.1.1 443
+  must_fail ${PEAK_LAB_K6_CONTAINER} "8.8.8.8:53" nc -w 3 -z 8.8.8.8 53
+  must_fail ${PEAK_LAB_K6_CONTAINER} "http://example.com" wget -T 3 -q -O /dev/null http://example.com/
+  must_pass ${PEAK_LAB_K6_CONTAINER} "the web server (/__lab/health)" wget -T 3 -q -O /dev/null http://lab-web:8081/__lab/health
   # database
-  must_fail peak-lab-db "1.1.1.1:443" timeout 3 bash -c '</dev/tcp/1.1.1.1/443'
-  must_fail peak-lab-db "8.8.8.8:53" timeout 3 bash -c '</dev/tcp/8.8.8.8/53'
-  must_fail peak-lab-db "the name example.com" getent hosts example.com
-  must_pass peak-lab-db "its own port (3306)" timeout 3 bash -c '</dev/tcp/127.0.0.1/3306'
+  must_fail ${PEAK_LAB_DB_CONTAINER} "1.1.1.1:443" timeout 3 bash -c '</dev/tcp/1.1.1.1/443'
+  must_fail ${PEAK_LAB_DB_CONTAINER} "8.8.8.8:53" timeout 3 bash -c '</dev/tcp/8.8.8.8/53'
+  must_fail ${PEAK_LAB_DB_CONTAINER} "the name example.com" getent hosts example.com
+  must_pass ${PEAK_LAB_DB_CONTAINER} "its own port (3306)" timeout 3 bash -c '</dev/tcp/127.0.0.1/3306'
 else
   echo "(the in-container probes are skipped: not every container is running)"
 fi

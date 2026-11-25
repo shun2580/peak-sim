@@ -54,14 +54,14 @@ case "$dir" in "$lab_out"/*) ;; *) echo "check-limits: --dir must be inside $lab
 in_container() { echo "/out/${1#"$lab_out"/}"; }
 
 rm -f "$dir/settings.json" "$dir/settings.err"
-docker exec peak-lab-web nginx -T >"$dir/settings-nginx.txt" 2>&1
-docker exec peak-lab-app php-fpm -tt >"$dir/settings-fpm.txt" 2>&1
-docker exec peak-lab-tools php /peak-sim/poc/lab/diagnosis/fcgi_get.php lab-app:9000 /peak-sim/poc/lab/diagnosis/ini-probe.php >"$dir/settings-ini.txt" 2>&1
+docker exec ${PEAK_LAB_WEB_CONTAINER} nginx -T >"$dir/settings-nginx.txt" 2>&1
+docker exec ${PEAK_LAB_APP_CONTAINER} php-fpm -tt >"$dir/settings-fpm.txt" 2>&1
+docker exec ${PEAK_LAB_TOOLS_CONTAINER} php /peak-sim/poc/lab/diagnosis/fcgi_get.php lab-app:9000 /peak-sim/poc/lab/diagnosis/ini-probe.php >"$dir/settings-ini.txt" 2>&1
 
 args=(--nginx="$(in_container "$dir/settings-nginx.txt")" --fpm="$(in_container "$dir/settings-fpm.txt")" --ini="$(in_container "$dir/settings-ini.txt")")
 [ -z "$request_timeout" ] || args+=(--k6-timeout="$request_timeout")
 [ "$require" = none ] || args+=(--require="$require")
-docker exec -i peak-lab-tools php /peak-sim/poc/lab/load/ladder.php settings "${args[@]}" >"$dir/settings.json" 2>"$dir/settings.err"
+docker exec -i ${PEAK_LAB_TOOLS_CONTAINER} php /peak-sim/poc/lab/load/ladder.php settings "${args[@]}" >"$dir/settings.json" 2>"$dir/settings.err"
 rc=$?
 if [ "$rc" != 0 ]; then
   # exit 3 = a limit could not be read, 4 = read but not as needed, anything else (docker could not run it) is a refusal as well

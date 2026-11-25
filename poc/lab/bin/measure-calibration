@@ -117,13 +117,13 @@ fi
 # 2. closed network ------------------------------------------------------------------------------------------------------------------------
 "$bindir/preflight" >/dev/null || { echo "measure-calibration: the closed-network check failed; nothing was measured" >&2; exit 11; }
 
-php_tool() { docker exec -i peak-lab-tools php "/peak-sim/$1" "${@:2}"; }
+php_tool() { docker exec -i ${PEAK_LAB_TOOLS_CONTAINER} php "/peak-sim/$1" "${@:2}"; }
 
 # stats <scale> <file>: mysql.innodb_table_stats of the database of that scale (table, last_update, n_rows, clustered_index_size, sum_of_other_index_sizes).
 # The clock of last_update is the database server's (UTC). A read that fails stops the run: the statistics are part of what a calibration records.
 stats() {
   local db="peak_sim_measure_${PEAK_MEASURE_RUN_ID}_lab_$1"
-  docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" peak-lab-db mysql -uroot -N -B \
+  docker exec -e MYSQL_PWD="$PEAK_MEASURE_DB_ROOT_PASSWORD" ${PEAK_LAB_DB_CONTAINER} mysql -uroot -N -B \
     -e "SELECT table_name, last_update, n_rows, clustered_index_size, sum_of_other_index_sizes FROM mysql.innodb_table_stats WHERE database_name='${db}' ORDER BY table_name" >"$2" 2>"$2.err" && [ -s "$2" ]
 }
 
@@ -137,7 +137,7 @@ for id in ${measure//,/ }; do
   [ -n "$duration" ] && [ -n "$warmup" ] || { echo "measure-calibration: the plan of $id has no duration_sec and warmup_sec" >&2; exit 2; }
   targets="$lab_out/targets-$run_scale.json"
   [ -f "$targets" ] || { echo "measure-calibration: $targets is missing (make it with: bin/targets --static=<analysis.json> --scale=$run_scale)" >&2; exit 2; }
-  app_scale="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' peak-lab-app 2>/dev/null | sed -n 's/^PEAK_LAB_SCALE=//p')"
+  app_scale="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' ${PEAK_LAB_APP_CONTAINER} 2>/dev/null | sed -n 's/^PEAK_LAB_SCALE=//p')"
   if [ "$app_scale" != "$run_scale" ]; then
     if [ "$switch" = 1 ]; then
       echo "switching the app to scale $run_scale (it read ${app_scale:-nothing}) with bin/use-db"
@@ -164,13 +164,13 @@ for id in ${measure//,/ }; do
   started_at="$(date -Iseconds)"; echo "$started_at" >"$d/started_at.txt"
   echo "RUN START $id scale $run_scale plan $(basename "$(dirname "$plan")")/$(basename "$plan") ($((duration / 60)) min, the first $warmup s discarded) at $started_at"
   # The samplers stop themselves (--seconds): the kept window ends at k6's own start + $duration s, and k6 starts a few seconds after this line.
-  "$bindir/../observe/sample-cpu" --container=peak-lab-db --out="$d/cpu.txt" --seconds=$((duration + 60)) 2>"$d/sampler.err" &
+  "$bindir/../observe/sample-cpu" --container=${PEAK_LAB_DB_CONTAINER} --out="$d/cpu.txt" --seconds=$((duration + 60)) 2>"$d/sampler.err" &
   db_pid=$!
-  "$bindir/../observe/sample-cpu" --container=peak-lab-app --out="$d/app-cpu.txt" --seconds=$((duration + 60)) 2>>"$d/sampler.err" &
+  "$bindir/../observe/sample-cpu" --container=${PEAK_LAB_APP_CONTAINER} --out="$d/app-cpu.txt" --seconds=$((duration + 60)) 2>>"$d/sampler.err" &
   app_pid=$!
   sleep 5   # a sample before the load starts, so the window's first edge is covered
   docker exec -e "PLAN=$(in_container "$d/plan.json")" -e "TARGETS=/out/targets-$run_scale.json" -e "SUMMARY=$(in_container "$d/summary.json")" -e "REQUEST_TIMEOUT=$request_timeout" \
-    peak-lab-k6 k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
+    ${PEAK_LAB_K6_CONTAINER} k6 run /load/scenario.js >"$d/k6-output.txt" 2>&1
   k6_rc=$?
   echo "$k6_rc" >"$d/k6.exit"
   wait "$db_pid"; db_rc=$?; wait "$app_pid"; app_rc=$?

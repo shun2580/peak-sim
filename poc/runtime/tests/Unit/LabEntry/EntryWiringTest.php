@@ -61,6 +61,13 @@ final class EntryWiringTest extends TestCase
         if (preg_match('/\$guard = new EntryGuard\(\$latch, \$booted->dbName, /', $code) !== 1) {
             $problems[] = 'guard made: it is not given the latch of the check above and the measurement database';
         }
+        if (preg_match('/\$allowedTables = AllowedWrites::fromEnv\(\$env\);/', $code) !== 1
+            || preg_match('/\$guard = new EntryGuard\([^;]*, \$allowedTables\);/', $code) !== 1) {
+            $problems[] = 'allowed tables: the list the environment names is not read, or the guard is not given it';
+        }
+        if (preg_match('/catch \(\\\\InvalidArgumentException \$e\) \{\s*\$refuse\(503, /', $code) !== 1) {
+            $problems[] = 'allowed tables: a list that cannot be read is not a refusal';
+        }
         if (preg_match('/\$guard->watch\(\$db, \$app\[\'events\'\]\);/', $code) !== 1) {
             $problems[] = 'statement watch: it is not put on the app\'s database and events';
         }
@@ -93,7 +100,10 @@ final class EntryWiringTest extends TestCase
         yield 'latch check turned off' => ['if ($latchReason !== null) {', 'if (false) {', '', ''];
         yield 'latch call removed' => ['$latchReason = EntryGuard::latchRefusal($latch);', '$latchReason = null;', '', ''];
         yield 'latch refusal made another status' => ["\$refuse(503, 'the database can no longer be trusted: '", "\$refuse(200, 'the database can no longer be trusted: '", '', ''];
-        yield 'guard not made' => ['$guard = new EntryGuard($latch, $booted->dbName, (string) $app[\'config\']->get(\'database.default\'), (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'));', '$guard = null;', '', ''];
+        yield 'guard not made' => ['$guard = new EntryGuard($latch, $booted->dbName, (string) $app[\'config\']->get(\'database.default\'), (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'), $allowedTables);', '$guard = null;', '', ''];
+        yield 'allowed tables not read' => ['$allowedTables = AllowedWrites::fromEnv($env);', '$allowedTables = [\'views\'];', '', ''];
+        yield 'allowed tables not given to the guard' => [', (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'), $allowedTables);', ', (string) ($_SERVER[\'REQUEST_URI\'] ?? \'\'));', '', ''];
+        yield 'a list that cannot be read is let through' => ["\$refuse(503, 'the list of tables the lab may write cannot be used', \$e->getMessage());", '$allowedTables = [];', '', ''];
         yield 'guard made with another latch' => ['$guard = new EntryGuard($latch, ', '$guard = new EntryGuard($scratchPath . \'/other.flag\', ', '', ''];
         yield 'statement watch removed' => [$watch, '', '', ''];
         yield 'statement watch commented out' => [$watch, '// ' . $watch, '', ''];

@@ -1,0 +1,4 @@
+# The tables the Bagisto lab may write (docs/simulator-spec.md 7.4.7; poc/lab/README.md, "The Bagisto lab, and the tables a lab may write").
+# One table name to a line. The list is EMPTY: the eight selected routes send reads only (docs/research/lab-data/bagisto-route-list/list/allowed-tables.tsv
+# has no row), so the lab may write nothing, and an empty list means no write at all; it never means `views`.
+# Not changed after the route list is committed: a different list would be a different test.

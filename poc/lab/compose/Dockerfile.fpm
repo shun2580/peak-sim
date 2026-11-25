@@ -11,4 +11,9 @@ RUN apt-get update \
  && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd \
  && rm -rf /var/lib/apt/lists/*
 
+# Extra extensions, only when asked for (the Bagisto stack asks for `calendar`, which its composer.json requires; empty by default: this layer then
+# does nothing, and the BookStack lab's image is what it was). Each name is one that docker-php-ext-install builds without a library of its own.
+ARG PHP_EXTENSIONS=""
+RUN if [ -n "${PHP_EXTENSIONS}" ]; then docker-php-ext-install $(echo "${PHP_EXTENSIONS}" | tr ',' ' '); fi
+
 WORKDIR /peak-sim

@@ -9,6 +9,12 @@
 #   PEAK_LAB_UID/GID     the user the containers run as (so the files they write in the out directory are the user's own)
 #   PEAK_MEASURE_DB_ROOT_PASSWORD / PEAK_MEASURE_DB_PASSWORD / PEAK_MEASURE_RUN_ID / PEAK_MEASURE_APP_KEY   throwaway values
 #   PEAK_LAB_SCALE       the scale of the database the app reads (database peak_sim_measure_<run id>_lab_<scale>)
+#   PEAK_LAB_PREFIX      the start of every container name and of the data volume's name (default peak-lab). A second stack (another app) is
+#                        this same file with its own project name (-p), prefix, image and PHP version: see poc/lab/bin/with-bagisto. Two
+#                        stacks share no container, network or volume, because the project name and the prefix both differ.
+#   PEAK_LAB_IMAGE       the name of the PHP image (default peak-lab-php), PHP_EXTENSIONS the extra extensions it is built with (default none)
+#   PEAK_LAB_ALLOWED_WRITES_IN_APP  the tables the app may write, as a path inside the container (poc/lab/bin/_lab.sh makes it from
+#                        PEAK_LAB_ALLOWED_WRITES_FILE; default none, which means `views` alone)
 #
 # CPU: the database is pinned to 2 CPUs and the app side (php-fpm and nginx) to 6, on separate cores, so the app does not
 # run out of CPU before the database does (section 7.2). k6 and the tools container have cores of their own.
@@ -20,7 +26,7 @@ networks:
 
 volumes:
   lab-dbdata:
-    name: peak-lab-dbdata
+    name: ${PEAK_LAB_PREFIX:-peak-lab}-dbdata
 
 x-lab-env: &lab-env
   PEAK_MEASURE_DB_HOST: measure-db
@@ -37,7 +43,7 @@ services:
   # The service name is `measure-db` because the guard (DbGuard) allows no other host name.
   measure-db:
     image: mysql:8.4.7
-    container_name: peak-lab-db
+    container_name: ${PEAK_LAB_PREFIX:-peak-lab}-db
     networks: [lab-internal]
     cpus: 2
     cpuset: ${PEAK_LAB_CPUSET_DB:-0-1}
@@ -65,8 +71,9 @@ services:
       dockerfile: Dockerfile.fpm
       args:
         PHP_VERSION: ${PHP_VERSION:-8.3}
-    image: peak-lab-php:${PHP_VERSION:-8.3}
-    container_name: peak-lab-app
+        PHP_EXTENSIONS: ${PHP_EXTENSIONS:-}
+    image: ${PEAK_LAB_IMAGE:-peak-lab-php}:${PHP_VERSION:-8.3}
+    container_name: ${PEAK_LAB_PREFIX:-peak-lab}-app
     networks: [lab-internal]
     cpus: 6
     cpuset: ${PEAK_LAB_CPUSET_APP:-2-7}
@@ -98,6 +105,8 @@ services:
       PEAK_LAB_ACT_AS: ${PEAK_LAB_ACT_AS:-BookStack\Users\Models\User:1:web}
       PEAK_LAB_GATE_BYPASS: ${PEAK_LAB_GATE_BYPASS:-0}
       PEAK_LAB_SCRATCH: /scratch/peak-measure-lab
+      # A path inside the container (the repository is mounted at /peak-sim); empty means `views` alone.
+      PEAK_LAB_ALLOWED_WRITES_FILE: ${PEAK_LAB_ALLOWED_WRITES_IN_APP:-}
     depends_on:
       measure-db:
         condition: service_healthy
@@ -105,7 +114,7 @@ services:
 
   lab-web:
     image: nginx:1.28-alpine
-    container_name: peak-lab-web
+    container_name: ${PEAK_LAB_PREFIX:-peak-lab}-web
     networks:
       lab-internal:
         aliases: [lab-web]
@@ -126,7 +135,7 @@ services:
 
   lab-k6:
     image: grafana/k6:${K6_VERSION:-2.3.0}
-    container_name: peak-lab-k6
+    container_name: ${PEAK_LAB_PREFIX:-peak-lab}-k6
     networks: [lab-internal]
     cpus: 2
     cpuset: ${PEAK_LAB_CPUSET_K6:-8-9}
@@ -148,8 +157,8 @@ services:
 
   # Builds the databases (poc/lab/bin/build-db). Runs the same PHP as the app. Not part of the load.
   lab-tools:
-    image: peak-lab-php:${PHP_VERSION:-8.3}
-    container_name: peak-lab-tools
+    image: ${PEAK_LAB_IMAGE:-peak-lab-php}:${PHP_VERSION:-8.3}
+    container_name: ${PEAK_LAB_PREFIX:-peak-lab}-tools
     networks: [lab-internal]
     cpus: 2
     cpuset: ${PEAK_LAB_CPUSET_TOOLS:-10-11}
