@@ -14,3 +14,19 @@ RESULT target=0.2 achieved=0.2021 status=valid db_util=20.7775% app_cpu=47.42509
 2026-11-25 16:42:50 START cal-7 R_3=0.2 R_4=1 name=cal7-r1 (stand-ins R_0=1 R_1=4 R_2=0.2 R_5=8 (cal-8 asked of the gate only))
 2026-11-25 16:54:43 END cal-7 name=cal7-r1 exit=0
 RESULT target=1.0 achieved=1.0021 status=valid db_util=21.0616% app_cpu=12.854260150359472 requests=481 dropped=0 http={'200': 481}
+2026-11-25 16:58:00 PRE free: total 15 available 8 df: 883G free
+2026-11-25 16:58:00 START cal-1 name=cal1-r1 R_0=1 R_1=16 R_2=5 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-25 17:10:08 END cal-1 name=cal1-r1 exit=0
+RESULT target=1.0 achieved=0.9979 status=valid db_util=8.9048% app_cpu=15.765847795406327 requests=479 dropped=0 http={'200': 479}
+2026-11-25 17:10:25 PRE free: total 15 available 9 df: 883G free
+2026-11-25 17:10:25 START cal-1 name=cal1-r2 R_0=2 R_1=16 R_2=5 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-25 17:23:24 END cal-1 name=cal1-r2 exit=0
+RESULT target=2.0 achieved=2.0000 status=valid db_util=19.3278% app_cpu=35.50120623753288 requests=960 dropped=0 http={'200': 960}
+2026-11-25 17:23:41 PRE free: total 15 available 9 df: 883G free
+2026-11-25 17:23:41 START cal-1 name=cal1-r4 R_0=4 R_1=16 R_2=5 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-25 17:54:24 END cal-1 name=cal1-r4 exit=0
+RESULT target=4.0 achieved=3.6625 status=invalid db_util=45.9734% app_cpu=90.60824917936307 requests=1758 dropped=161 http={'200': 1758}
+2026-11-25 17:54:42 PRE free: total 15 available 9 df: 883G free
+2026-11-25 17:54:42 START cal-1 name=cal1-r2.83 R_0=2.83 R_1=16 R_2=5 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-25 18:10:44 END cal-1 name=cal1-r2.83 exit=0
+RESULT target=2.83 achieved=2.8146 status=invalid db_util=31.5948% app_cpu=61.60592376578804 requests=1351 dropped=9 http={'200': 1351}

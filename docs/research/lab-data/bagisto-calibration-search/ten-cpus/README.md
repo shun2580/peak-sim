@@ -174,3 +174,29 @@ The gate on inputs alone with R_3 = 0.2 and R_4 = 1.0 fails for cal-1 to cal-7 a
 
 For the cal-1 runs: R_1 = 16, R_2 = 5, R_5 = 32 as stand-ins (R_3 0.2 and R_4 1.0 are the real ones). With them the gate opens at cal-1 at 1, 1.41, 2, 2.83, 4 and 5.66 (the smallest degrees 0.562302, 0.572432, 0.588850, 0.610578, 0.593375,
 0.548233; `gate-standin-cal1/`); it does not open at 8 with these stand-ins, and if the search reaches 8 the stand-ins for that run are chosen from the table and written here first. The geometric means 1.41, 2.83 and 5.66 are the ones the rule would try after a rate that is not reached.
+
+### cal-1 (R_0) at 1, 2, 4 and 2.83 rps (2026-11-25 16:58 to 18:10; `cal1-r1/`, `cal1-r2/`, `cal1-r4/`, `cal1-r2.83/`)
+
+All four were measured on the 10,000-row database with the stand-ins above (R_1 = 16, R_2 = 5, R_5 = 32; R_3 = 0.2 and R_4 = 1.0 real); the gate opened each time, the write check, the limits guard (`LIMITS OK`, 1800 s) and the guards of the
+N tables passed, and `innodb_table_stats` was unchanged in each. 10 minutes at a constant rate, the first 2 discarded, the kept window 480 s.
+
+| Rate asked | Rate reached (ratio) | `rps_status` | Database (2 CPUs) | App (10 CPUs) | Requests sent, all status 200 | Arrivals dropped | In flight at start / end |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.9979 (0.9979) | valid | **8.9048%** | 15.77% | 479 | 0 | 9 / 9 |
+| 2 | 2.0000 (1.0000) | valid | **19.3278%** | 35.50% | 960 | 0 | 18 / 35 |
+| 4 | 3.6625 (0.9156) | invalid (`rps_outside_5_percent`, `load_tool_dropped_arrivals`) | 45.9734% | 90.61% | 1,758 | 161 | 105 / 319 |
+| 2.83 | 2.8146 (0.9946) | invalid (`load_tool_dropped_arrivals`) | 31.5948% | 61.61% | 1,351 | 9 | 22 / 84 |
+
+(For the run at 1 rps the file `tables-after.tsv` lists the write counters of some tables as extra lines that `tables-before.tsv` does not, all with zero writes; the guard compared the counts and the checksums, found no difference, and its own `.diff` file is empty.)
+
+By the rule above: 1 rps is valid and below the band, so the rate is doubled; 2 rps is valid and just below the band (19.33%), so the rate is doubled; 4 rps is not reached (D270 decision 2: invalid, and the utilization of an invalid run is not read), so the geometric mean of 2 and 4, 2.83 rps, is tried once
+(D272 decision 1); 2.83 rps was reached to within 5% but 9 arrivals were dropped by the load tool, so it is invalid, and its utilization, 31.59%, is also above the band. D272 decision 1 says: if that is not reached or is outside the band, **stop and report**. The search of R_0 therefore stops here.
+R_0 is **not found**; R_1, R_2 and R_5 were not searched, and the effective gate was not called. The 1,000-row database was not built.
+
+What the four runs say, as measurements: the database's utilization rose from 8.9% at 1 rps to 19.3% at 2 rps, 31.6% at 2.83 rps and 46.0% at 4 rps, so the band of 20% to 30% lies between 2 and 2.83 rps, and no value of the doubling (1, 2, 4, …) or of the one geometric mean the rule allows falls in it. This is the same
+shape as the 0.45 and 0.3 rps runs of cal-6, in the other direction: the stage value above the band and the one below it both miss. The record for the maintainer's side is the choice between (a) a further geometric mean of 2 and 2.83 (2.38 rps), which the rule does not allow,
+and (b) taking the tried value whose utilization is nearest 25% among the valid runs, 2 rps (19.33%), and recording it as outside the band, as D183's amendment (1) does for a rate of the 30,000-row run; neither is done here.
+
+## State left
+
+The compose files were put back to the committed bytes (`lab-config-b restore`), the database container was stopped with `docker stop -t 180` and the stack taken down without `-v`; the data volume (with the 3,000-, 10,000- and 30,000-row databases) is kept, as is the other lab's.
