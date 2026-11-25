@@ -3,3 +3,4 @@
 2026-11-26 02:34:43 ANALYZE END rc=1
 2026-11-26 02:34:50 ANALYZE (second try: the first start in the script failed before running, its output dir did not exist; nothing was analysed) START
 2026-11-26 02:34:51 ANALYZE END rc=0
+2026-11-26 02:37:02 TARGETS END (the first start of the cal-8 run at 1 rps stopped at once, exit 2, before anything was measured: targets-1000.json was missing; see search-log)

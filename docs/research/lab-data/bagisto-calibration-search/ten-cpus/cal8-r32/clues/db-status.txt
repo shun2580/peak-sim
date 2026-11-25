@@ -1,0 +1,9 @@
+Aborted_clients	0
+Aborted_connects	48
+Connection_errors_internal	0
+Connection_errors_max_connections	0
+Connections	98480
+Max_used_connections	16
+Threads_created	325
+max_connections	151
+wait_timeout	28800

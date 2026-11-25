@@ -1,0 +1,5 @@
+web started=2026-11-25T17:37:25.671659151Z restarts=0 oom=false status=running
+app started=2026-11-25T17:37:25.456859436Z restarts=0 oom=false status=running
+db started=2026-11-25T16:43:07.366526969Z restarts=0 oom=false status=running
+k6 started=2026-11-25T16:43:11.559904238Z restarts=0 oom=false status=running
+tools started=2026-11-25T16:43:11.850561883Z restarts=0 oom=false status=running

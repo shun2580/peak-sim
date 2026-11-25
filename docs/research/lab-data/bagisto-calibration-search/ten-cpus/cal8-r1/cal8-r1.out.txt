@@ -1,0 +1,20 @@
+calibration gate: threshold 0.50, degree = the smallest singular value of the design matrix (queries, rows) with each column scaled to length 1
+  cal-1    queries/s 46.5645  rows/s 342287  rows per query 7350.8112
+  cal-2    queries/s 53.1258  rows/s 478395  rows per query 9004.9516
+  cal-3    queries/s 43.2258  rows/s 409374  rows per query 9470.5823
+  cal-4    queries/s 183.902  rows/s 408710  rows per query 2222.4292
+  cal-5    queries/s 23.6016  rows/s 518038  rows per query 21949.3348
+  cal-6    queries/s 3.85607  rows/s 297047  rows per query 77033.4979
+  cal-7    queries/s 30.8518  rows/s 743346  rows per query 24094.0849
+  cal-8    queries/s 22.7617  rows/s 17022.3  rows per query 747.8448
+  all runs               degree 0.586751  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6, cal-7, cal-8)
+  without cal-1          degree 0.604925  ok  (cal-2, cal-3, cal-4, cal-5, cal-6, cal-7, cal-8)
+  without cal-2          degree 0.612954  ok  (cal-1, cal-3, cal-4, cal-5, cal-6, cal-7, cal-8)
+  without cal-3          degree 0.603701  ok  (cal-1, cal-2, cal-4, cal-5, cal-6, cal-7, cal-8)
+  without cal-4          degree 0.386401  BELOW  (cal-1, cal-2, cal-3, cal-5, cal-6, cal-7, cal-8)
+  without cal-5          degree 0.572572  ok  (cal-1, cal-2, cal-3, cal-4, cal-6, cal-7, cal-8)
+  without cal-6          degree 0.574191  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-7, cal-8)
+  without cal-7          degree 0.537775  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6, cal-8)
+  without cal-8          degree 0.584551  ok  (cal-1, cal-2, cal-3, cal-4, cal-5, cal-6, cal-7)
+  smallest degree 0.386401 (without cal-4)
+WRITE CHECK OK 8 routes, 90 statement types, every write is to nothing: the list allows no write only (no write); record sha256 928b311eb47da3a5

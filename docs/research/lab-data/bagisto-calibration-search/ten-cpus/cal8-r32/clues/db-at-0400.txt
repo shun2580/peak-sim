@@ -1,0 +1,5 @@
+Read at 04:00 (the load window had ended at 03:49; the load tool still had 379 requests unanswered). Copied from the terminal, not a file the tool wrote.
+information_schema.processlist (not Daemon): only the reading query itself.
+show global status: Innodb_row_lock_current_waits 0, Threads_connected 1, Threads_running 2.
+docker stats at 04:00: web 0.00%, app 0.00%, k6 0.30%, tools 0.00%, db 0.29% (cpu).
+processlist rows now (04:2x): 2

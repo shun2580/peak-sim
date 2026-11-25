@@ -1,0 +1,5 @@
+peak-lab-bagisto-web cpu=0.00%
+peak-lab-bagisto-app cpu=0.00%
+peak-lab-bagisto-k6 cpu=0.00%
+peak-lab-bagisto-tools cpu=0.00%
+peak-lab-bagisto-db cpu=0.30%

@@ -58,3 +58,31 @@ RESULT target=4.0 achieved=4.0000 status=valid db_util=9.4082% app_cpu=17.575452
 2026-11-26 02:19:46 START cal-4 name=cal4-r8 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-4; the other rates are real or stand-ins as the README says)
 2026-11-26 02:33:36 END cal-4 name=cal4-r8 exit=0
 RESULT target=8.0 achieved=8.0000 status=valid db_util=20.2227% app_cpu=38.59154297273373 requests=3840 dropped=0 http={'200': 3840}
+2026-11-26 02:36:23 PRE free: total 15 available 10 df: 883G free
+2026-11-26 02:36:23 START cal-8 name=cal8-r1 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 02:36:36 END cal-8 name=cal8-r1 exit=2
+2026-11-26 02:37:10 NOTE: the start named cal8-r1 above (02:36:23) stopped in 13 s with exit 2 before anything was measured (targets-1000.json was missing, made at 02:37 with bin/targets); its .out/.err are kept and it is a mistake of mine, not a measured run. The run at 1 rps is started again as cal8-r1b.
+2026-11-26 02:37:10 PRE free: total 15 available 10 df: 883G free
+2026-11-26 02:37:10 START cal-8 name=cal8-r1b R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=1 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 02:49:10 END cal-8 name=cal8-r1b exit=0
+RESULT target=1.0 achieved=1.0000 status=valid db_util=1.9406% app_cpu=1.8724029130379842 requests=480 dropped=0 http={'200': 480}
+2026-11-26 02:49:21 PRE free: total 15 available 10 df: 883G free
+2026-11-26 02:49:21 START cal-8 name=cal8-r2 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=2 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 03:01:06 END cal-8 name=cal8-r2 exit=0
+RESULT target=2.0 achieved=1.9917 status=valid db_util=2.8579% app_cpu=3.593991921732645 requests=956 dropped=0 http={'200': 956}
+2026-11-26 03:01:15 PRE free: total 15 available 10 df: 883G free
+2026-11-26 03:01:15 START cal-8 name=cal8-r4 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=4 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 03:13:01 END cal-8 name=cal8-r4 exit=0
+RESULT target=4.0 achieved=3.9937 status=valid db_util=4.8513% app_cpu=7.226520422337875 requests=1917 dropped=0 http={'200': 1917}
+2026-11-26 03:13:10 PRE free: total 15 available 10 df: 883G free
+2026-11-26 03:13:10 START cal-8 name=cal8-r8 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=8 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 03:24:55 END cal-8 name=cal8-r8 exit=0
+RESULT target=8.0 achieved=7.9979 status=valid db_util=8.8546% app_cpu=14.330132288307192 requests=3839 dropped=0 http={'200': 3839}
+2026-11-26 03:25:05 PRE free: total 15 available 10 df: 883G free
+2026-11-26 03:25:05 START cal-8 name=cal8-r16 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=16 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 03:37:48 END cal-8 name=cal8-r16 exit=0
+RESULT target=16.0 achieved=15.9979 status=valid db_util=17.7310% app_cpu=30.092251289062943 requests=7679 dropped=0 http={'200': 7679}
+2026-11-26 03:37:58 PRE free: total 15 available 10 df: 883G free
+2026-11-26 03:37:58 START cal-8 name=cal8-r32 R_0=2 R_1=8 R_2=1 R_3=0.2 R_4=1 R_5=32 (the one measured is cal-8; the other rates are real or stand-ins as the README says)
+2026-11-26 04:18:39 END cal-8 name=cal8-r32 exit=0
+RESULT target=32.0 achieved=31.2083 status=invalid db_util=40.8905% app_cpu=75.33135544059243 requests=14980 dropped=450 http={'0': 88, '200': 14889, '504': 3}

@@ -1,0 +1,3 @@
+CPUs used per minute (cpu-seconds per second) from the samplers; they stop at the end of the 10 minute load window. (an earlier version of this file had a wrong unit for the database line and was written again)
+app (10 CPUs available) - 129 samples: 0m:6.78 1m:7.57 2m:7.54 3m:7.50 4m:7.52 5m:7.55 6m:7.51 7m:7.51 8m:7.54 9m:5.96
+database (2 CPUs available) - 129 samples: 0m:0.74 1m:0.82 2m:0.82 3m:0.81 4m:0.81 5m:0.82 6m:0.82 7m:0.82 8m:0.83 9m:0.65

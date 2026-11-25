@@ -304,3 +304,36 @@ made them again empty, 02:35, before this commit). The second start is the one t
 ### The search of R_5 (cal-8): the rule and the rates, fixed before the first run of it
 
 cal-8 is even mix on the 1,000-row database; it is searched by the doubling search from 1 rps (1, 2, 4, 8, …; D183 amendment 1, D272 decision 1 and 2), with the flag `--search-gate-advisory` as written above. Rates given to the entry: R_0 = 2, R_1 = 8, R_2 = 1.0, R_3 = 0.2, R_4 = 1.0 real; cal-8 at the value tried. A first run above 30% stops the search and reports; a rate not reached (`rps_status` not `valid`) → the geometric mean of the previous value and this one once, and then stop if that is not reached or outside the band; a value above 32 is handled as D272 decision 2 says.
+
+### The search of R_5 (cal-8) with `--search-gate-advisory` (2026-11-26 02:36 to 04:18; `cal8-r1b/` to `cal8-r32/`)
+
+Written after the runs; the rule and the rates were fixed above before the first of them. The lab was started again at 01:43 (start log: 13 lines, no recovery line, no error) and was left running between the runs of R_1 and R_5; the database of 1,000 rows was built and analysed once before the first of these (`build-1000/`). The app reads 1,000 rows (`--switch-scale`).
+Rates given to the entry: R_0 = 2, R_1 = 8, R_2 = 1.0, R_3 = 0.2, R_4 = 1.0 real; cal-8 at the value tried. Same conditions as before: 10 minutes at a constant rate, the first 2 discarded (kept window 480 s), request timeout 1,800 s, 10 CPUs for the app, 2 for the database.
+
+**A mistaken start, not a run:** the first start (`cal8-r1`, 02:36:23) stopped in 13 s with exit 2, before anything was measured, because `targets-1000.json` (the paths of the eight routes at 1,000 rows, which `--switch-scale` needs) had not been made. It was made at 02:37 with `bin/targets` (`build-1000/targets.out`) and the run at 1 rps was started again as `cal8-r1b`. The mistaken start's `.out`, `.err` and directory are kept (`cal8-r1/`).
+
+| Rate asked | Rate reached (ratio) | `rps_status` | Database (2 CPUs) | App (10 CPUs) | Requests sent | Arrivals dropped | Status codes | Gate (reference) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 (02:37) | 1.0000 (1.0000) | valid | **1.9406%** | 1.87% | 480 | 0 | 200 only | refused, 0.386401 |
+| 2 (02:49) | 1.9917 (0.9958) | valid | **2.8579%** | 3.59% | 956 | 0 | 200 only | refused, 0.453646 |
+| 4 (03:01) | 3.9937 (0.9984) | valid | **4.8513%** | 7.23% | 1,917 | 0 | 200 only | opened, 0.568429 |
+| 8 (03:13) | 7.9979 (0.9997) | valid | **8.8546%** | 14.33% | 3,839 | 0 | 200 only | opened, 0.584551 |
+| 16 (03:25) | 15.9979 (0.9999) | valid | **17.7310%** | 30.09% | 7,679 | 0 | 200 only | opened, 0.584551 |
+| 32 (03:37) | 31.2083 (0.9753) | **invalid** (`load_tool_dropped_arrivals`) | 40.8905% (not read as a rate: the run is invalid) | 75.33% | 14,980 | 450 | 200: 14,889; 0: 88; 504: 3 | opened, 0.584551 |
+
+The write check, the limits guard (`LIMITS OK`, 1800 s) and the guards of the N tables passed in every run. The gate is a reference (D270, decision 1) and was not used to take or to refuse a rate. 1, 2, 4, 8 and 16 rps are valid and below the band, so the rate was doubled each time.
+**32 rps is not reached (dropped arrivals) and is above the band, so by D270 (decision 2) it is invalid**, and by D272 (decision 1) the next step would be the geometric mean of 16 and 32 (22.63 rps), once. That was not done: the run showed something that is not a rate that was not reached (next section), and the search stops here for the lead of the implementation to decide.
+R_5 is **not found**. The effective gate was not called.
+
+#### What was seen at 32 rps after the load window (facts only; no cause is given here)
+
+- The load window ran 03:38:27 to 03:48:27; the samplers stop at 03:49:28. In the window the app used 7.5 CPUs a minute from the second minute on (of 10), the database 0.8 (of 2) (`cal8-r32/clues/cpu-timeline.txt`). The requests in flight (sent, not answered), by the load tool: 164 at the window's start and 568 at its end (289 of them `GET /api/categories`; `record.json`, `running_requests`).
+- After the window the load tool kept 555 virtual users waiting at 601 s, and the number fell by about 31 in each 120 s; the completed iterations rose by about 31 in each 120 s, from 18,203 to 18,686 over the 1,680 s that followed (`cal8-r32/clues/k6-vus-timeline.txt`). In the window the same count rose by about 30 a second.
+- At 04:00 (12 minutes after the window ended) 379 requests were unanswered; `docker stats` showed the app at 0.00% CPU, the web server 0.00%, the load tool 0.30%, the database 0.29%. In the database no statement was running (the process list held only the reading query), 1 connection was open (mine), `Innodb_row_lock_current_waits` 0 (`clues/db-at-0400.txt`).
+- The nginx error log has 5 lines `upstream timed out (110: Operation timed out) while reading response header from upstream` at 04:17:02 to 04:17:14 (the log is in UTC, 19:17), when `fastcgi_read_timeout` (1,800 s) ran out for requests sent at about 03:47, near the end of the window. The record: 434 requests finished after the window, the longest about 1,792 s (`longest_after_window_ms` in `record.json`); 88 had no status (0) and 3 were 504. The run ended at 04:18:24 and the load tool left no request in flight.
+- No container was restarted or killed by the memory limit (`RestartCount` 0 and `OOMKilled` false for all five, `clues/containers.txt`). The php-fpm log of the app container has no line from 03:30 on (no `max_children` or slow-log line). At 04:19, after the load tool had ended, all 16 php-fpm workers were idle in `accept` (`clues/procs-app.txt`). The database's `Max_used_connections` is 16, the pool's `pm.max_children`; `Aborted_connects` is 48 since the database's start (it was not read before the run, so how many belong to this run is not known); `Connection_errors_max_connections` 0 (`clues/db-status.txt`).
+- What is **not** known: why requests stayed unanswered for about 30 minutes while the app and the database were idle. The samplers stopped at 03:49 and no process-level view was taken during the stall; the one look at the workers is from after the load tool had ended. This is not a rate that was not reached; it may be a property of the lab's set-up and may bear on the calibration runs and on a real application; it is for the lead of the implementation to have looked at.
+
+#### State left
+
+The compose files were put back (`lab-config-b restore`; SHA-256 `604aedff…` and `f495eab5…`, as committed; `git status --short -- poc/lab` empty), the load tool, tools, web and app containers were stopped, and the database was stopped with `docker stop -t 180` (**`Shutdown complete`**, 2026-11-25T19:21:43Z) and the stack taken down without `-v` (`shutdown-r1-r5.txt`). The data volume is kept (54 volumes, none removed); no `kill`, no `prune`, no `--purge`. The other lab was not touched.
