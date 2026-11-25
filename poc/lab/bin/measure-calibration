@@ -2,7 +2,7 @@
 # THE ONE ENTRY THAT MEASURES CALIBRATION RUNS on the lab (docs/simulator-spec.md sections 7.2 and 7.4.1). A calibration run is measured here and nowhere else.
 #
 #   poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=<id>:<plan.json> [--run=<id>:<plan.json> ...] [--scale=10000] [--run-scale=<id>:<n> ...]
-#       --measure=<id>[,<id>...] --request-timeout=<k6 duration> --statement-record=<capture.json> [--switch-scale] [--gate-tables=<a,b>] [--out=<dir>]
+#       --measure=<id>[,<id>...] --request-timeout=<k6 duration> --statement-record=<capture.json> [--switch-scale] [--gate-tables=<a,b>] [--gate-advisory] [--out=<dir>]
 #   poc/lab/bin/measure-calibration --estimate=<estimate dir> --run=<id>:<plan.json> ... --gate-only [--gate-tables=<a,b>] [--out=<dir>]
 #
 # --run names every run of the planned set (the plan of a run is what `load/make-plan.php` writes: one rate per route) and the count of rows it is
@@ -36,6 +36,14 @@
 # Bagisto lab's shared copy names `n_shared`, decisions.md D264 decision 3): the estimate, the gate and the simulator read that name, while the guard that
 # checks the N tables of the database (bin/check-tables) reads the real tables from PEAK_LAB_TABLES_FILE, whatever this option says.
 #
+# --gate-advisory makes the gate advisory for the search of a rate (decisions.md D270 decision 1: the gate in front of a search run is a reference and is
+# not a reason to refuse the search). It is for the runs that search a rate R and for those only. The gate is still called with the same inputs and
+# the same arithmetic, its degrees are printed and kept in <out>/calibration-gate.json (and in every run's directory), and if it refuses (exit 14) the
+# entry prints `GATE ADVISORY ... refused ... goes on`, writes <out>/gate-advisory.txt (the flag, the gate's exit code) and goes on to measure, instead
+# of stopping at 14. Any other failure of the gate (an unreadable plan, an unusable estimate: 2, 11, 20..25) still stops the entry, flag or not. It is
+# refused together with --gate-only (usage error, exit 2, before the gate). Not for the calibration itself, the rehearsal or the measurement: the gate
+# that counts is called after R is decided, with the real plans, and without this flag.
+#
 # --gate-only runs the gate and nothing else (no container is touched). The scale of a database is built before this (bin/build-db, bin/targets) and
 # its statistics are made with ANALYZE (decisions.md D181); this entry only reads them.
 #
@@ -48,7 +56,7 @@ bindir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() { sed -n '4,6p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 
-estimate="" ; runs=() ; run_scales=() ; scale=10000 ; measure="" ; request_timeout="" ; switch=0 ; out="" ; gate_only=0 ; statement_record= ; gate_tables=
+estimate="" ; runs=() ; run_scales=() ; scale=10000 ; measure="" ; request_timeout="" ; switch=0 ; out="" ; gate_only=0 ; statement_record= ; gate_tables= ; gate_advisory=0
 for arg in "$@"; do
   case "$arg" in
     --estimate=*) estimate="${arg#--estimate=}" ;;
@@ -61,6 +69,7 @@ for arg in "$@"; do
     --out=*) out="${arg#--out=}" ;;
     --gate-only) gate_only=1 ;;
     --gate-tables=*) gate_tables="${arg#--gate-tables=}" ;;
+    --gate-advisory) gate_advisory=1 ;;
     --statement-record=*) statement_record="${arg#--statement-record=}" ;;
     *) usage ;;
   esac
@@ -69,6 +78,10 @@ done
 [[ "$scale" =~ ^[0-9]+$ ]] || usage
 if [ -n "$gate_tables" ] && ! [[ "$gate_tables" =~ ^[a-z0-9_]+(,[a-z0-9_]+)*$ ]]; then
   echo "measure-calibration: --gate-tables must be table names (lower case, digits, _) separated by commas (got '$gate_tables')" >&2
+  exit 2
+fi
+if [ "$gate_advisory" = 1 ] && [ "$gate_only" = 1 ]; then
+  echo "measure-calibration: --gate-advisory cannot be given with --gate-only (the flag lets a refused gate go on to a measurement; --gate-only measures nothing)" >&2
   exit 2
 fi
 if [ "$gate_only" = 0 ]; then
@@ -110,9 +123,17 @@ for s in "${run_scales[@]}"; do gate_args+=(--run-scale="$s"); done
 for i in "${!ids[@]}"; do gate_args+=(--run="${ids[$i]}:${plans[$i]}"); done
 "$bindir/../scenarios/calibration-gate" "${gate_args[@]}"   # CALIBRATION-GATE
 gate_rc=$?
-if [ "$gate_rc" != 0 ]; then
+if [ "$gate_rc" != 0 ] && { [ "$gate_advisory" = 0 ] || [ "$gate_rc" != 14 ]; }; then
   echo "measure-calibration: the calibration gate did not open (exit $gate_rc); nothing was measured" >&2
   exit "$gate_rc"
+fi
+if [ "$gate_advisory" = 1 ]; then   # GATE-ADVISORY: only a refusal (14) gets here with the flag; it is recorded, not hidden
+  printf 'gate_advisory=1\ngate_exit=%s\n' "$gate_rc" >"$out/gate-advisory.txt"
+  if [ "$gate_rc" = 14 ]; then
+    echo "GATE ADVISORY: the calibration gate refused (exit 14) and --gate-advisory is given, so the search run goes on; the degrees are in $out/calibration-gate.json (decisions.md D270 decision 1)" >&2
+  else
+    echo "GATE ADVISORY: --gate-advisory is given; the calibration gate opened (exit 0)"
+  fi
 fi
 [ "$gate_only" = 1 ] && exit 0
 
@@ -160,6 +181,7 @@ for id in ${measure//,/ }; do
   fi
   rm -rf "$d"; mkdir -p "$d"
   cp "$plan" "$d/plan.json"; cp "$out/calibration-gate.json" "$d/calibration-gate.json"
+  [ "$gate_advisory" = 0 ] || cp "$out/gate-advisory.txt" "$d/gate-advisory.txt"
 
   # THE WRITE GUARD (iii), before: the count and the checksum of the N tables. A scale that has not been seen is refused here, before any query.
   "$bindir/check-tables" before --scale="$run_scale" --baseline="$d/tables-before.tsv"   # TABLES-BEFORE
