@@ -3,7 +3,7 @@
 #
 #   bin/variance-run --app=<dir> --tasks=<tasks.json> --scale=N --out=<dir> [options]
 #
-# The driver (bin/measure) builds a database, measures every route on it once and drops it. To see what changes between
+# The driver (bin/measure) builds a database and measures every route on it once (it keeps the database unless --purge). To see what changes between
 # repeats of the same request on the same database, and between two databases built the same way, this script does what
 # the driver does and nothing else, in the same way:
 #

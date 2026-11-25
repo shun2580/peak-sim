@@ -33,14 +33,14 @@ bin/measure --app=<app dir> --static=<analysis.json> [--expected=<expected.json>
 ```
 
 It brings the sealed stack up, requires `bin/preflight` to pass (exit 11 otherwise, nothing is measured), runs the driver
-inside the container, and removes the stack's containers and network (the database volume stays unless `--purge` is given,
-see [What a run leaves behind](#what-a-run-leaves-behind)). The driver:
+inside the container, and removes the stack's containers and network (the databases it measured on and their volume stay unless
+`--purge` is given, see [What a run leaves behind](#what-a-run-leaves-behind)). The driver:
 
 1. builds a small database, starts the app on it and turns each route of the analysis into a task: the URI with its
    `{parameters}` filled from the first row of the right table, the login (the first row of the guard's user model), and
    for a write a body built from the validation rules of its form request (an empty body without one);
 2. for every data plan a route needs, in a fixed order: builds the database of one scale (the app's migrations, then the
-   data), measures every route that uses it, drops it. The empty system (scale 0) comes first and is measured on the N axis;
+   data), measures every route that uses it, and keeps it (with `--purge` it drops it). The empty system (scale 0) comes first and is measured on the N axis;
    a route with a child table also gets a second sweep (children per parent row, scales 3, 30, 300) in databases of their own;
 3. measures one route at one scale in one process (`bin/measure-one`: a warm-up, then the cold attempt that decides, then a
    warm attempt), with every request in a transaction that is rolled back; a request that could not be rolled back makes the
@@ -101,10 +101,28 @@ When a run ends (normally, on a failure, or when interrupted), `bin/measure`, `b
 to build is never lost by a clean-up. The volume is named `<project>_measure-dbdata`; find it with
 `docker volume ls --filter label=com.docker.compose.project=<project>`.
 
+`bin/measure` and `bin/capture` also **keep the databases they measured on**. Dropping the volume is not the only way to lose a
+database: the driver used to drop each database as soon as its routes were measured, and `bin/inner/cleanup.php` ran at the end
+of every run and dropped whatever `peak_sim_measure_*` was left, so a volume could be kept with no database in it. Now:
+
+- without `--purge`, the driver does not drop a database it has measured on (`bin/inner/measure.php --drop-db=off`, the default),
+  and `bin/inner/cleanup.php` is not run. After the run, `SHOW DATABASES` still lists `peak_sim_measure_<run id>_<scale>` for each
+  scale of the run, with the tables as they were built;
+- with `--purge`, the script passes `--drop-db=on` to the driver and runs `bin/inner/cleanup.php` at the end, and the volume is removed;
+- the promise is about a database the run has *measured on*. The driver's other drops stay: a database a request changed and could
+  not be rolled back is dropped and built again before the next route (the rebuilt one is then kept), the small database the
+  inspection uses is dropped, and a build starts by dropping a database of the same name (names carry the run id, so it is never
+  one of an earlier run). `bin/cleanup` is a command you call yourself, and `bin/explain-at-scale` drops the databases it made for
+  its plans unless you give `--keep-db`; neither is part of what `bin/measure` and `bin/capture` do without `--purge`;
+- `bin/variance-run` never dropped a database (it builds one and repeats on it), so it keeps them as before.
+
+The databases of every scale stay, so a run with several `--scales` needs disk for all of them; look at `df -h` before you start.
+
 To remove it, say so: add `--purge` to the run, or run `PEAK_COMPOSE_PROJECT=<project> bin/stack down --purge` afterwards.
 `--purge` cannot be combined with `--keep-stack` (which leaves the whole stack up). A project whose volume is still there is
 not started again: `bin/stack up` and the runs refuse (exit 2), because the kept database was made with other throwaway
-passwords. Purge it, or use another `PEAK_COMPOSE_PROJECT`. No environment variable removes the volume; only the flag does.
+passwords. Purge it, or use another `PEAK_COMPOSE_PROJECT`. No environment variable removes the volume or the databases; only the
+flag does.
 
 Keep the database volumes built for a production measurement run until the final report is accepted, so that the cause of an
 outlier can be examined later. Purge them after that, not before.
@@ -244,7 +262,7 @@ The mark fits the left-out coefficients unrounded, where the estimate rounds the
 | `src/Backtest/` | the naive estimate, the comparison and the report of `bin/backtest`, and the reader that keeps the target's `observed` back until the prediction is written |
 | `src/Selfcheck/` | `EstimateSeal` (the order, kept in code), `SelfcheckJudge` (the comparison of the extrapolation test on the user's app), `SelfcheckCommand` and `SelfcheckReport` (the PHP half of `bin/selfcheck`: seal, gate, marked, judge) |
 | `bin/stack` | `up` / `down` / `ps` / `exec` for the stack; `down` keeps the database volume, `down --purge` removes it; `build-image` makes a PHP image with extra extensions |
-| `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container |
+| `bin/preflight`, `bin/cleanup`, `bin/canary-egress` | host-side entry points; the PHP half is in `bin/inner/` and runs inside the container. `bin/cleanup` drops every measurement database of the stack: you call it yourself, no run calls it without `--purge` |
 | `tests/Unit/` | no Docker, no database |
 | `tests/Docker/` | needs Docker; `run.sh` starts a driver container and runs them |
 
