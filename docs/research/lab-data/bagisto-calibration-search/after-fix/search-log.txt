@@ -17,3 +17,21 @@ DB log lines: 13; lines naming recovery or error: 0
 2026-11-26 09:31:06 END cal-7 name=cal7-r1 exit=0
 RESULT target=1.0 achieved=1.0042 status=valid db_util=18.2450% app_cpu=11.220752619200349 requests=482 dropped=0 http={'200': 482}
 2026-11-26 09:39:42 GATE grid R_3=0.3 R_4=1 (stand-in): set7 0/504 pass, set8 392/3024; stand-ins for R_0 runs R_1=16 R_2=5 R_5=32 opens at 1,1.41,2,2.83,4,5.66, refused at 8
+2026-11-26 09:40:18 PRESTATE cal1-r1: HEAD 43e0178; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 46 minutes peak-lab-bagisto-app:Up 46 minutes peak-lab-bagisto-k6:Up About an hour peak-lab-bagisto-tools:Up About an hour peak-lab-bagisto-db:Up About an hour (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 09:40:19 PRE free: total 15 available 8 df: 882G free
+2026-11-26 09:40:19 START cal-1 name=cal1-r1 R_0=1 R_1=16 R_2=5 R_3=0.3 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-26 09:52:24 END cal-1 name=cal1-r1 exit=0
+RESULT target=1.0 achieved=0.9979 status=valid db_util=6.8501% app_cpu=13.833584512597099 requests=479 dropped=0 http={'200': 479}
+2026-11-26 09:52:43 PRESTATE cal1-r2: HEAD c0b388e; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 12 minutes peak-lab-bagisto-app:Up 12 minutes peak-lab-bagisto-k6:Up 2 hours peak-lab-bagisto-tools:Up 2 hours peak-lab-bagisto-db:Up 2 hours (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 09:52:43 PRE free: total 15 available 8 df: 882G free
+2026-11-26 09:52:43 START cal-1 name=cal1-r2 R_0=2 R_1=16 R_2=5 R_3=0.3 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-26 10:04:31 END cal-1 name=cal1-r2 exit=0
+RESULT target=2.0 achieved=1.9979 status=valid db_util=13.5006% app_cpu=28.92523241268718 requests=959 dropped=0 http={'200': 959}
+2026-11-26 10:04:47 PRESTATE cal1-r4: HEAD c0b388e; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 24 minutes peak-lab-bagisto-app:Up 24 minutes peak-lab-bagisto-k6:Up 2 hours peak-lab-bagisto-tools:Up 2 hours peak-lab-bagisto-db:Up 2 hours (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 10:04:47 PRE free: total 15 available 8 df: 882G free
+2026-11-26 10:04:47 START cal-1 name=cal1-r4 R_0=4 R_1=16 R_2=5 R_3=0.3 R_4=1 R_5=32 (the one measured is cal-1; the other rates are real or stand-ins as the README says)
+2026-11-26 10:16:37 END cal-1 name=cal1-r4 exit=0
+RESULT target=4.0 achieved=4.0000 status=valid db_util=33.8993% app_cpu=66.64756955234846 requests=1920 dropped=0 http={'200': 1920}
