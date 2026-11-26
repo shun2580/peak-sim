@@ -1,0 +1,15 @@
+{
+  "dropped": [],
+  "rps_after": {
+    "GET /admin/customers/search": 0.2,
+    "GET /admin/customers/view/{id}": 0.05,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 0.05,
+    "GET /admin/settings/inventory-sources/edit/{id}": 0.2,
+    "GET /api/categories": 0.2,
+    "GET /api/categories/attributes/{attribute_id}/options": 0.2,
+    "GET /api/products": 0.05,
+    "GET /customer/account/addresses/create": 0.05
+  },
+  "scenario": "s-3",
+  "source": "~/projects/peak-sim-trials/_scratch/dryrun25/repo/poc/lab/predictions/ladder-prediction-dryrun25-b30k.json"
+}

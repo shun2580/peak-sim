@@ -1,0 +1,89 @@
+{
+ "captured_max": 30000,
+ "condition_1b": {
+  "item1_smaller_than_naive": false,
+  "item2_excess_points_over_5": null,
+  "item3_agree": 10,
+  "item3_short": 0,
+  "item3_valid_stages": 10,
+  "item4_scenarios_with_limit": 0,
+  "item4_short_goal": 0,
+  "item4_short_minimum": 0,
+  "item4_within_goal": 0,
+  "item4_within_minimum": 0
+ },
+ "condition_1b_counted": false,
+ "condition_1b_not_counted_because": [
+  "B is undecidable",
+  "the multiple of the capture is 1.000, below 5",
+  "the count is seen before"
+ ],
+ "counts": {
+  "scenarios": 5,
+  "scenarios_with_limit": 0,
+  "stages_measured": 10,
+  "usable_stages": 0,
+  "valid_stages": 10
+ },
+ "goal_met": false,
+ "items": {
+  "1": {
+   "mean_points": null,
+   "mean_points_naive": null,
+   "minimum": false,
+   "name": "mean absolute difference of the prediction is smaller than that of the naive estimate",
+   "target": false
+  },
+  "2": {
+   "line_minimum_points": 15,
+   "line_target_points": 5,
+   "mean_points": null,
+   "minimum": false,
+   "name": "mean absolute difference (points)",
+   "target": false
+  },
+  "3": {
+   "agree": 10,
+   "minimum": true,
+   "name": "agreement on \"exceeded the threshold\" over all valid stages",
+   "share": 1,
+   "share_naive": 1,
+   "target": true,
+   "valid_stages": 10
+  },
+  "4": {
+   "minimum": false,
+   "naive_used_for_the_verdict": false,
+   "naive_within_minimum": 0,
+   "naive_within_target": 0,
+   "name": "predicted limit rps (point) within the tolerance of the measured one, over scenarios whose limit was measured",
+   "safe_within_minimum": 0,
+   "safe_within_target": 0,
+   "scenarios_with_limit": 0,
+   "target": false,
+   "tolerance_minimum": 0.2,
+   "tolerance_target": 0.1,
+   "within_minimum": 0,
+   "within_target": 0
+  }
+ },
+ "ladders": [
+  "s-1-30000/ladder.json",
+  "s-2-30000/ladder.json",
+  "s-3-30000/ladder.json",
+  "s-4-30000/ladder.json",
+  "s-5-30000/ladder.json"
+ ],
+ "minimum_met": false,
+ "multiple_of_capture": 1.0,
+ "prediction_file": "prediction/ladder-prediction-dryrun25-b30k.json",
+ "rows": 30000,
+ "seen_state": "seen",
+ "tool_and_script_agree_on_undecidable": true,
+ "undecidable": true,
+ "undecidable_reasons": [
+  "usable steps 0, fewer than 10",
+  "scenarios whose limit rps was measured 0, fewer than 4"
+ ],
+ "verdict": "undecidable"
+}

@@ -1,0 +1,28 @@
+2026-11-26 18:58:05 the Bagisto lab stack of the backtest (the real one): stop the database with -t 180, then down without -v
+volumes before: 56
+2f44de9580f3ddf2
+db exit=0
+2026-11-26T09:58:06Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T09:58:06Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+ Container peak-lab-bagisto-app Removing 
+ Container peak-lab-bagisto-app Removed 
+ Container peak-lab-bagisto-db Stopping 
+ Container peak-lab-bagisto-db Stopped 
+ Container peak-lab-bagisto-db Removing 
+ Container peak-lab-bagisto-db Removed 
+ Network peak-lab-bagisto_lab-internal Removing 
+ Network peak-lab-bagisto_lab-internal Removed 
+down rc=0
+volumes after: 56
+2f44de9580f3ddf2
+1
+peak-dryrun25-web Exited (0) 22 seconds ago
+peak-dryrun25-app Exited (0) 22 seconds ago
+peak-dryrun25-k6 Exited (137) 53 seconds ago
+peak-dryrun25-tools Exited (137) 23 seconds ago
+peak-dryrun25-db Exited (0) 20 seconds ago
+lab-config-b status (not restored, on purpose):
+STATE B
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+Mem:              15           4           8           0           2          11

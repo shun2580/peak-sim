@@ -1,0 +1,19 @@
+2026-11-26 14:14:35 first step of the chain: ~/.cache/peak-dryrun25/out/ladder/s-1-30000/rung-01-0.025
+== settings-nginx.txt (lines naming keepalive / keep_conn / read_timeout)
+18:    keepalive_timeout 65;
+42:            fastcgi_read_timeout 1800s;
+== settings-fpm.txt (pm, max_children, terminate)
+[26-Nov-2026 05:13:38] NOTICE: 	pm = static
+[26-Nov-2026 05:13:38] NOTICE: 	pm.max_children = 16
+[26-Nov-2026 05:13:38] NOTICE: 	request_terminate_timeout = 0s
+== settings-ini.txt
+{"sapi":"fpm-fcgi","php":"8.4.28","max_execution_time":"0","memory_limit":"4G","default_socket_timeout":"3","ini_files":["/usr/local/etc/php/conf.d/docker-fpm.ini","/usr/local/etc/php/conf.d/docker-php-ext-bcmath.ini","/usr/local/etc/php/conf.d/docker-php-ext-calendar.ini","/usr/local/etc/php/conf.d/docker-php-ext-exif.ini","/usr/local/etc/php/conf.d/docker-php-ext-gd.ini","/usr/local/etc/php/conf.d/docker-php-ext-intl.ini","/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini","/usr/local/etc/php/conf.d/docker-php-ext-pcntl.ini","/usr/local/etc/php/conf.d/docker-php-ext-pdo_mysql.ini","/usr/local/etc/php/conf.d/docker-php-ext-sodium.ini","/usr/local/etc/php/conf.d/docker-php-ext-zip.ini","/usr/local/etc/php/conf.d/zz-lab.ini"]}
+== the real lab's files in the working tree: lines naming keepalive / keep_conn (expect none)
+0
+== diff of settings-nginx.txt against the real lab's live nginx -T (the lines that differ)
+0a1,2
+> nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+> nginx: configuration file /etc/nginx/nginx.conf test is successful
+diff rc done
+               total        used        free      shared  buff/cache   available
+Mem:              15           9           0           0           5           6

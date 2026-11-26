@@ -1,0 +1,96 @@
+{
+    "mix": "places1345",
+    "rps": 0.035,
+    "duration_sec": 1373,
+    "warmup_sec": 231,
+    "routes": [
+        {
+            "route": "GET /api/products",
+            "share": 0.19999999999999996,
+            "rps": 0.006999999999999999,
+            "rate": 7,
+            "time_unit": "1000s",
+            "start_offset_sec": 16.286,
+            "planned_window_requests": 8
+        },
+        {
+            "route": "GET /customer/account/addresses/create",
+            "share": 0.04999999999999999,
+            "rps": 0.0017499999999999998,
+            "rate": 1,
+            "time_unit": "571s",
+            "start_offset_sec": 516.47,
+            "planned_window_requests": 2
+        },
+        {
+            "route": "GET /admin/customers/view/{id}",
+            "share": 0.19999999999999996,
+            "rps": 0.006999999999999999,
+            "rate": 7,
+            "time_unit": "1000s",
+            "start_offset_sec": 16.286,
+            "planned_window_requests": 8
+        },
+        {
+            "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+            "share": 0.19999999999999996,
+            "rps": 0.006999999999999999,
+            "rate": 7,
+            "time_unit": "1000s",
+            "start_offset_sec": 16.286,
+            "planned_window_requests": 8
+        },
+        {
+            "route": "GET /admin/settings/inventory-sources/edit/{id}",
+            "share": 0.19999999999999996,
+            "rps": 0.006999999999999999,
+            "rate": 7,
+            "time_unit": "1000s",
+            "start_offset_sec": 16.286,
+            "planned_window_requests": 8
+        },
+        {
+            "route": "GET /admin/customers/search",
+            "share": 0.04999999999999999,
+            "rps": 0.0017499999999999998,
+            "rate": 1,
+            "time_unit": "571s",
+            "start_offset_sec": 516.47,
+            "planned_window_requests": 2
+        },
+        {
+            "route": "GET /api/categories",
+            "share": 0.04999999999999999,
+            "rps": 0.0017499999999999998,
+            "rate": 1,
+            "time_unit": "571s",
+            "start_offset_sec": 516.47,
+            "planned_window_requests": 2
+        },
+        {
+            "route": "GET /api/categories/attributes/{attribute_id}/options",
+            "share": 0.04999999999999999,
+            "rps": 0.0017499999999999998,
+            "rate": 1,
+            "time_unit": "571s",
+            "start_offset_sec": 516.47,
+            "planned_window_requests": 2
+        }
+    ],
+    "allocation": {
+        "routes_sent": [
+            "GET /api/products",
+            "GET /customer/account/addresses/create",
+            "GET /admin/customers/view/{id}",
+            "GET /admin/marketing/communications/campaigns/edit/{id}",
+            "GET /admin/settings/inventory-sources/edit/{id}",
+            "GET /admin/customers/search",
+            "GET /api/categories",
+            "GET /api/categories/attributes/{attribute_id}/options"
+        ],
+        "routes_not_sent": [],
+        "rule": "the shares are the prediction's allocation (rps_after of the scenario), not the mix's: a route's share is its rps there over the sum; a route of the list that is not there is not sent"
+    },
+    "scheme": "B",
+    "window_sec": 1142
+}

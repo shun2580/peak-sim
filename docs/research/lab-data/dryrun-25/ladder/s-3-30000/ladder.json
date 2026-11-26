@@ -1,0 +1,360 @@
+{
+    "scenario": "s-3",
+    "scale": 30000,
+    "mix": "last80",
+    "rungs_measured": 2,
+    "trial": false,
+    "rungs_in_ladder": 15,
+    "stopped_after_rung": null,
+    "stop_reasons": [],
+    "rungs": [
+        {
+            "scenario": "s-3",
+            "scale": 30000,
+            "mix": "last80",
+            "scheme": "B",
+            "rung": 1,
+            "decided_rps": 0.025,
+            "achieved_rps": 0.025,
+            "rps_ratio": 1.0,
+            "rps_valid": true,
+            "rps_status": "valid",
+            "rps_counted": "sent",
+            "rps_invalid_reasons": [],
+            "requests_sent_in_window": 40,
+            "end_of_step": {
+                "wait_for_running_requests": "1800s",
+                "requests_finished_after_window": 0,
+                "longest_after_window_ms": 0.0,
+                "note": "The load tool waits at the end of the step for requests still running (as long as the request timeout). The database work of those requests happens after the kept window and is outside the step's database utilization."
+            },
+            "db_utilization": 0.01154598986116726,
+            "db_utilization_percent": 1.154598986116726,
+            "app_cpu_utilization": 0.004739741711828595,
+            "app_cpu_percent": 0.47397417118285945,
+            "k6_dropped_iterations": 0,
+            "requests_in_window": 40,
+            "requests_not_2xx": 0,
+            "http_status": {
+                "200": 40
+            },
+            "http_status_by_route": {
+                "GET /api/products": {
+                    "200": 2
+                },
+                "GET /customer/account/addresses/create": {
+                    "200": 2
+                },
+                "GET /admin/customers/view/{id}": {
+                    "200": 2
+                },
+                "GET /admin/marketing/communications/campaigns/edit/{id}": {
+                    "200": 2
+                },
+                "GET /admin/settings/inventory-sources/edit/{id}": {
+                    "200": 8
+                },
+                "GET /admin/customers/search": {
+                    "200": 8
+                },
+                "GET /api/categories": {
+                    "200": 8
+                },
+                "GET /api/categories/attributes/{attribute_id}/options": {
+                    "200": 8
+                }
+            },
+            "warmup_sec": 231,
+            "window_sec": 1600,
+            "window_epoch": {
+                "from": 1795677060.4593267,
+                "to": 1795678660.4593267
+            },
+            "running_requests": {
+                "at_window_start": {
+                    "GET /api/products": 0,
+                    "GET /customer/account/addresses/create": 0,
+                    "GET /admin/customers/view/{id}": 0,
+                    "GET /admin/marketing/communications/campaigns/edit/{id}": 0,
+                    "GET /admin/settings/inventory-sources/edit/{id}": 0,
+                    "GET /admin/customers/search": 0,
+                    "GET /api/categories": 0,
+                    "GET /api/categories/attributes/{attribute_id}/options": 0
+                },
+                "at_window_end": {
+                    "GET /api/products": 0,
+                    "GET /customer/account/addresses/create": 0,
+                    "GET /admin/customers/view/{id}": 0,
+                    "GET /admin/marketing/communications/campaigns/edit/{id}": 0,
+                    "GET /admin/settings/inventory-sources/edit/{id}": 0,
+                    "GET /admin/customers/search": 0,
+                    "GET /api/categories": 0,
+                    "GET /api/categories/attributes/{attribute_id}/options": 0
+                },
+                "counted_by": "k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)"
+            },
+            "started_at": "2026-11-26T16:07:04+09:00",
+            "ended_at": "2026-11-26T16:38:39+09:00",
+            "decision": {
+                "stop": false,
+                "reasons": [],
+                "note": null
+            },
+            "trial": false,
+            "prediction": {
+                "file": "poc/lab/predictions/ladder-prediction-dryrun25-b30k.json",
+                "commit": "ca8a47783ef9ff984f0d7b8db682602abbbef6b2",
+                "commit_time": "2026-11-26T14:10:39+09:00"
+            },
+            "settings": {
+                "php_max_execution_time": "0",
+                "php_memory_limit": "4G",
+                "php_fpm_request_terminate_timeout": "0s",
+                "nginx_fastcgi_read_timeout": "1800s",
+                "k6_request_timeout": "1800s",
+                "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+                "k6_request_timeout_seen_by_k6": "1800s"
+            },
+            "per_route": [
+                {
+                    "route": "GET /api/products",
+                    "target_rps": 0.0012500000000000002,
+                    "achieved_rps": 0.00125,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /customer/account/addresses/create",
+                    "target_rps": 0.0012500000000000002,
+                    "achieved_rps": 0.00125,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/customers/view/{id}",
+                    "target_rps": 0.0012500000000000002,
+                    "achieved_rps": 0.00125,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+                    "target_rps": 0.0012500000000000002,
+                    "achieved_rps": 0.00125,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/settings/inventory-sources/edit/{id}",
+                    "target_rps": 0.005000000000000001,
+                    "achieved_rps": 0.005,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /admin/customers/search",
+                    "target_rps": 0.005000000000000001,
+                    "achieved_rps": 0.005,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /api/categories",
+                    "target_rps": 0.005000000000000001,
+                    "achieved_rps": 0.005,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /api/categories/attributes/{attribute_id}/options",
+                    "target_rps": 0.005000000000000001,
+                    "achieved_rps": 0.005,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                }
+            ]
+        },
+        {
+            "scenario": "s-3",
+            "scale": 30000,
+            "mix": "last80",
+            "scheme": "B",
+            "rung": 2,
+            "decided_rps": 0.035,
+            "achieved_rps": 0.03502626970227671,
+            "rps_ratio": 1.0007505629221916,
+            "rps_valid": true,
+            "rps_status": "valid",
+            "rps_counted": "sent",
+            "rps_invalid_reasons": [],
+            "requests_sent_in_window": 40,
+            "end_of_step": {
+                "wait_for_running_requests": "1800s",
+                "requests_finished_after_window": 0,
+                "longest_after_window_ms": 0.0,
+                "note": "The load tool waits at the end of the step for requests still running (as long as the request timeout). The database work of those requests happens after the kept window and is outside the step's database utilization."
+            },
+            "db_utilization": 0.012747894032284487,
+            "db_utilization_percent": 1.2747894032284486,
+            "app_cpu_utilization": 0.006459226301857075,
+            "app_cpu_percent": 0.6459226301857075,
+            "k6_dropped_iterations": 0,
+            "requests_in_window": 40,
+            "requests_not_2xx": 0,
+            "http_status": {
+                "200": 40
+            },
+            "http_status_by_route": {
+                "GET /api/products": {
+                    "200": 2
+                },
+                "GET /customer/account/addresses/create": {
+                    "200": 2
+                },
+                "GET /admin/customers/view/{id}": {
+                    "200": 2
+                },
+                "GET /admin/marketing/communications/campaigns/edit/{id}": {
+                    "200": 2
+                },
+                "GET /admin/settings/inventory-sources/edit/{id}": {
+                    "200": 8
+                },
+                "GET /admin/customers/search": {
+                    "200": 8
+                },
+                "GET /api/categories": {
+                    "200": 8
+                },
+                "GET /api/categories/attributes/{attribute_id}/options": {
+                    "200": 8
+                }
+            },
+            "warmup_sec": 231,
+            "window_sec": 1142,
+            "window_epoch": {
+                "from": 1795678958.3402164,
+                "to": 1795680100.3402164
+            },
+            "running_requests": {
+                "at_window_start": {
+                    "GET /api/products": 0,
+                    "GET /customer/account/addresses/create": 0,
+                    "GET /admin/customers/view/{id}": 0,
+                    "GET /admin/marketing/communications/campaigns/edit/{id}": 0,
+                    "GET /admin/settings/inventory-sources/edit/{id}": 0,
+                    "GET /admin/customers/search": 0,
+                    "GET /api/categories": 0,
+                    "GET /api/categories/attributes/{attribute_id}/options": 0
+                },
+                "at_window_end": {
+                    "GET /api/products": 0,
+                    "GET /customer/account/addresses/create": 0,
+                    "GET /admin/customers/view/{id}": 0,
+                    "GET /admin/marketing/communications/campaigns/edit/{id}": 0,
+                    "GET /admin/settings/inventory-sources/edit/{id}": 0,
+                    "GET /admin/customers/search": 0,
+                    "GET /api/categories": 0,
+                    "GET /api/categories/attributes/{attribute_id}/options": 0
+                },
+                "counted_by": "k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)"
+            },
+            "started_at": "2026-11-26T16:38:42+09:00",
+            "ended_at": "2026-11-26T17:02:35+09:00",
+            "decision": {
+                "stop": false,
+                "reasons": [],
+                "note": null
+            },
+            "trial": false,
+            "prediction": {
+                "file": "poc/lab/predictions/ladder-prediction-dryrun25-b30k.json",
+                "commit": "ca8a47783ef9ff984f0d7b8db682602abbbef6b2",
+                "commit_time": "2026-11-26T14:10:39+09:00"
+            },
+            "settings": {
+                "php_max_execution_time": "0",
+                "php_memory_limit": "4G",
+                "php_fpm_request_terminate_timeout": "0s",
+                "nginx_fastcgi_read_timeout": "1800s",
+                "k6_request_timeout": "1800s",
+                "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)",
+                "k6_request_timeout_seen_by_k6": "1800s"
+            },
+            "per_route": [
+                {
+                    "route": "GET /api/products",
+                    "target_rps": 0.0017500000000000003,
+                    "achieved_rps": 0.0017513134851138354,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /customer/account/addresses/create",
+                    "target_rps": 0.0017500000000000003,
+                    "achieved_rps": 0.0017513134851138354,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/customers/view/{id}",
+                    "target_rps": 0.0017500000000000003,
+                    "achieved_rps": 0.0017513134851138354,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+                    "target_rps": 0.0017500000000000003,
+                    "achieved_rps": 0.0017513134851138354,
+                    "requests": 2,
+                    "requests_sent": 2,
+                    "planned_requests": 2
+                },
+                {
+                    "route": "GET /admin/settings/inventory-sources/edit/{id}",
+                    "target_rps": 0.007000000000000001,
+                    "achieved_rps": 0.0070052539404553416,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /admin/customers/search",
+                    "target_rps": 0.007000000000000001,
+                    "achieved_rps": 0.0070052539404553416,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /api/categories",
+                    "target_rps": 0.007000000000000001,
+                    "achieved_rps": 0.0070052539404553416,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                },
+                {
+                    "route": "GET /api/categories/attributes/{attribute_id}/options",
+                    "target_rps": 0.007000000000000001,
+                    "achieved_rps": 0.0070052539404553416,
+                    "requests": 8,
+                    "requests_sent": 8,
+                    "planned_requests": 8
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+scenario	rung	rps	started_at	ended_at	seconds	window_sec	warmup_sec	outside_sec	end_wait_sec	gap_since_previous_step_sec
+s-1	1	0.025	2026-11-26T14:13:39+09:00	2026-11-26T14:45:14+09:00	1895	1600	231	64	0 finished after the window, longest 0 ms	
+s-1	2	0.035	2026-11-26T14:45:17+09:00	2026-11-26T15:09:10+09:00	1433	1142	231	60	0 finished after the window, longest 0 ms	3
+s-2	1	0.025	2026-11-26T15:10:20+09:00	2026-11-26T15:41:55+09:00	1895	1600	231	64	0 finished after the window, longest 0 ms	
+s-2	2	0.035	2026-11-26T15:41:57+09:00	2026-11-26T16:05:54+09:00	1437	1142	231	64	0 finished after the window, longest 0 ms	2
+s-3	1	0.025	2026-11-26T16:07:04+09:00	2026-11-26T16:38:39+09:00	1895	1600	231	64	0 finished after the window, longest 0 ms	
+s-3	2	0.035	2026-11-26T16:38:42+09:00	2026-11-26T17:02:35+09:00	1433	1142	231	60	0 finished after the window, longest 0 ms	3
+s-4	1	0.025	2026-11-26T17:03:45+09:00	2026-11-26T17:35:20+09:00	1895	1600	231	64	0 finished after the window, longest 0 ms	
+s-4	2	0.035	2026-11-26T17:35:23+09:00	2026-11-26T17:59:16+09:00	1433	1142	231	60	0 finished after the window, longest 0 ms	3
+s-5	1	0.025	2026-11-26T18:00:26+09:00	2026-11-26T18:32:01+09:00	1895	1600	231	64	0 finished after the window, longest 0 ms	
+s-5	2	0.035	2026-11-26T18:32:04+09:00	2026-11-26T18:55:57+09:00	1433	1142	231	60	0 finished after the window, longest 0 ms	3

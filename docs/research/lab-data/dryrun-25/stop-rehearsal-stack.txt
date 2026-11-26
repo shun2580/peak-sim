@@ -1,0 +1,11 @@
+2026-11-26 18:56:46 stop the rehearsal stack (no down, no volume removed; the database last, -t 180)
+stopped k6 exit=137
+stopped tools exit=137
+stopped web exit=0
+stopped app exit=0
+stopped db exit=0
+2026-11-26T09:57:48Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T09:57:48Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+volumes: 56
+2
+Mem:              15           7           5           0           2           8

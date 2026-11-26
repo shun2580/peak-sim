@@ -1,0 +1,26 @@
+2026-11-26 14:13:26 live nginx of the rehearsal web container (nginx -T), lines naming keepalive / fastcgi_keep_conn / read_timeout:
+16:    keepalive_timeout 65;
+24:    # time (seconds since the epoch, milliseconds), status, request seconds, upstream seconds, method, uri
+25:    log_format lab '$msec $status $request_time $upstream_response_time $request_method $request_uri';
+27:    upstream lab_app {
+40:            fastcgi_read_timeout 1800s;
+== mount source of the web container's nginx.conf
+~/projects/peak-sim-trials/_scratch/dryrun25/repo/poc/lab/compose/nginx/lab-bagisto.conf
+== php-fpm pool
+[26-Nov-2026 05:13:26] NOTICE: 	syslog.ident = php-fpm
+[26-Nov-2026 05:13:26] NOTICE: 	pm = static
+[26-Nov-2026 05:13:26] NOTICE: 	pm.max_children = 16
+[26-Nov-2026 05:13:26] NOTICE: 	pm.start_servers = 2
+[26-Nov-2026 05:13:26] NOTICE: 	pm.min_spare_servers = 1
+[26-Nov-2026 05:13:26] NOTICE: 	pm.max_spare_servers = 3
+[26-Nov-2026 05:13:26] NOTICE: 	pm.max_spawn_rate = 32
+[26-Nov-2026 05:13:26] NOTICE: 	pm.process_idle_timeout = 10
+[26-Nov-2026 05:13:26] NOTICE: 	pm.max_requests = 0
+[26-Nov-2026 05:13:26] NOTICE: 	pm.status_path = undefined
+[26-Nov-2026 05:13:26] NOTICE: 	pm.status_listen = undefined
+[26-Nov-2026 05:13:26] NOTICE: 	request_terminate_timeout = 0s
+[26-Nov-2026 05:13:26] NOTICE: 	request_terminate_timeout_track_finished = no
+[26-Nov-2026 05:13:26] NOTICE: configuration file /usr/local/etc/php-fpm.conf test is successful
+== free
+               total        used        free      shared  buff/cache   available
+Mem:              15           9           0           0           5           6

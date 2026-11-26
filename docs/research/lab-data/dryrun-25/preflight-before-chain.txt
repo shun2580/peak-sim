@@ -1,0 +1,5 @@
+2026-11-26 14:12:48 DB log lines naming recovery/error before the chain:
+(count) 0
+Mem:              15           9           1           0           5           6
+/dev/sdd       1007G   75G  882G   8% /
+56
