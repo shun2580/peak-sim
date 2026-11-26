@@ -1,0 +1,13 @@
+check of cal8-r16 (cal-8) at 2026-11-26 13:04:28
+B3 settings-ini.txt: same
+B3 settings-nginx.txt: same
+B3 limits.txt: same
+B3 settings-fpm.txt (time at line start taken off): same
+B3 overall: SAME
+rows: first line of tables-before.tsv says 1000, the run's count is 1000: same
+steps: window end at k6 t=600.8s; after: 1 rows to t=600.8s; last VUs=0; complete 9607 -> 9607
+steps: steps (t, size): []
+steps: 15-16 steps: 0; longest link of 55-70 s gaps: 0; 13-18 runs: 0
+steps: type iii: none
+Recv-Q of :9000 now (hex rx_queue of the listening socket): 00000000
+window start to end of tail: 664 s (2026-11-26T12:53:09+09:00 to 2026-11-26T13:04:13+09:00); confirming run: 662 s

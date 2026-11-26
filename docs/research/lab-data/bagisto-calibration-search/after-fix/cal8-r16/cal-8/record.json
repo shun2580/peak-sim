@@ -1,0 +1,155 @@
+{
+    "mix": "even",
+    "scheme": "spec",
+    "rps": {
+        "target_rps": 16.0,
+        "achieved_rps": 15.997916666666667,
+        "ratio": 0.9998697916666667,
+        "deviation": -0.00013020833333332593,
+        "valid": true,
+        "status": "valid",
+        "counted": "sent",
+        "dropped_iterations": 0,
+        "invalid_reasons": []
+    },
+    "warmup_sec": 120,
+    "window_sec": 480,
+    "window_epoch": {
+        "from": 1795665315.248,
+        "to": 1795665795.248
+    },
+    "db_utilization": {
+        "utilization": 0.1768360832983474,
+        "percent": 17.68360832983474,
+        "delta_usage_usec": 169762639.9664135,
+        "delta_sec": 480.0,
+        "cpus": 2
+    },
+    "requests": {
+        "in_window": 7679,
+        "failed": 0,
+        "dropped_iterations": 0,
+        "http_status": {
+            "200": 7679
+        },
+        "http_status_by_route": {
+            "GET /api/products": {
+                "200": 960
+            },
+            "GET /customer/account/addresses/create": {
+                "200": 960
+            },
+            "GET /admin/customers/view/{id}": {
+                "200": 960
+            },
+            "GET /admin/marketing/communications/campaigns/edit/{id}": {
+                "200": 960
+            },
+            "GET /admin/settings/inventory-sources/edit/{id}": {
+                "200": 960
+            },
+            "GET /admin/customers/search": {
+                "200": 960
+            },
+            "GET /api/categories": {
+                "200": 960
+            },
+            "GET /api/categories/attributes/{attribute_id}/options": {
+                "200": 959
+            }
+        },
+        "request_timeout": "1800s",
+        "sent_in_window": 7679,
+        "finished_after_window": 8,
+        "longest_after_window_ms": 764.0,
+        "graceful_stop": "1800s"
+    },
+    "per_route": [
+        {
+            "route": "GET /api/products",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /customer/account/addresses/create",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /admin/customers/view/{id}",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /admin/settings/inventory-sources/edit/{id}",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /admin/customers/search",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /api/categories",
+            "target_rps": 2.0,
+            "achieved_rps": 2,
+            "requests": 960,
+            "requests_sent": 960
+        },
+        {
+            "route": "GET /api/categories/attributes/{attribute_id}/options",
+            "target_rps": 2.0,
+            "achieved_rps": 1.9979166666666666,
+            "requests": 959,
+            "requests_sent": 959
+        }
+    ],
+    "running_requests": {
+        "at_window_start": {
+            "GET /api/products": 2,
+            "GET /customer/account/addresses/create": 1,
+            "GET /admin/customers/view/{id}": 1,
+            "GET /admin/marketing/communications/campaigns/edit/{id}": 1,
+            "GET /admin/settings/inventory-sources/edit/{id}": 1,
+            "GET /admin/customers/search": 1,
+            "GET /api/categories": 1,
+            "GET /api/categories/attributes/{attribute_id}/options": 1
+        },
+        "at_window_end": {
+            "GET /api/products": 2,
+            "GET /customer/account/addresses/create": 1,
+            "GET /admin/customers/view/{id}": 1,
+            "GET /admin/marketing/communications/campaigns/edit/{id}": 1,
+            "GET /admin/settings/inventory-sources/edit/{id}": 1,
+            "GET /admin/customers/search": 1,
+            "GET /api/categories": 1,
+            "GET /api/categories/attributes/{attribute_id}/options": 0
+        },
+        "counted_by": "k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)"
+    },
+    "app_cpu_utilization": {
+        "utilization": 0.30149312437472975,
+        "percent": 30.149312437472975,
+        "delta_usage_usec": 1447166996.9987028,
+        "delta_sec": 480.0,
+        "cpus": 10
+    }
+}
