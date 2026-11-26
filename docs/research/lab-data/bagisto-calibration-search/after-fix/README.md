@@ -61,3 +61,16 @@ Each run's output goes to a directory made new for it; no directory of the earli
 Each window is written in `search-log.txt` with its start and end. The scripts are `search8.sh` (a run), `gate_only.sh` and `gate_real.sh` (the gate on inputs alone), `check_run.sh` and `read_steps.py` (the checks).
 
 ## Results
+
+### R_3: cal-6 at 0.45 rps, then 0.3 rps (`cal6-r0.45/`, `cal6-r0.3/`; 2026-11-26 08:53 to 09:18)
+
+Run through `run_one.sh` with the stand-ins written above (R_0 = 1, R_1 = 4, R_2 = 0.2, R_4 = 0.3, cal-8 at R_5 = 8 asked of the gate only), no flag, 30,000 rows, request timeout 1800 s. Before each: the lab was left up from the confirming run (HEAD `5bec431`, `git status --short -- poc/lab` = the two B files), 15 GiB total and 7 to 10 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window | Taken |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.45 | 0.4250 (**invalid**: `load_tool_dropped_arrivals`) | 11 | 47.6212% | 99.92% | 204, all 200 | no (D270, decision 2) |
+| **0.3** | 0.3000 (**valid**) | 0 | **24.6619%** | 58.95% | 144, all 200 | **R_3 = 0.3** |
+
+Both runs passed the entry's guards (the gate opened, the write check, the limits guard, the N tables identical before and after). `check_run.sh` (`cal6-r0.45/check.txt`, `cal6-r0.3/check.txt`): settings of the run the same as the confirming run's in the four files; the count 30,000; steps after the window: at 0.3 none (7 requests finished after the window), at 0.45 one bundle of 13 and a few of 1 to 4, none of 15 to 16 (type iii none); receive queue of port 9000 after the run 0 both times; window start to end of tail 664 s and 685 s (the confirming run 662 s).
+By the rule (D270 decision 2: a run whose rate is not reached is invalid even if it is in the band; D183: the next value down) **0.45 is not taken and 0.3 is the first valid run inside 20% to 30%: R_3 = 0.3**, and by rule 5 that run is cal-6's calibration run and is not measured again.
+The app was at its limit (99.92%) at 0.45 and not at 0.3 (58.95%). Written at 2026-11-26 09:18:41.

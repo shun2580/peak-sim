@@ -1,1 +1,13 @@
 2026-11-26 08:52:37 PLAN written before any run of this search is measured: README.md "Before the first run" (rules, starting values R_3 0.45, R_4 1.0, R_0 1, R_2 1.5, R_1 1, R_5 1, the stand-ins of the R_3 runs). peak-sim HEAD f7dab84.
+2026-11-26 08:53:10 PRESTATE cal6-r0.45: HEAD 5bec431; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 31 minutes peak-lab-bagisto-app:Up 31 minutes peak-lab-bagisto-k6:Up 32 minutes peak-lab-bagisto-tools:Up 32 minutes peak-lab-bagisto-db:Up 32 minutes (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 08:53:10 PRE free: total 15 available 10 df: 882G free
+2026-11-26 08:53:10 START cal-6 name=cal6-r0.45 R_0=1 R_1=4 R_2=0.2 R_3=0.45 R_4=0.3 R_5=8 (the one measured is cal-6; the other rates are real or stand-ins as the README says)
+2026-11-26 09:05:43 END cal-6 name=cal6-r0.45 exit=0
+RESULT target=0.45 achieved=0.4250 status=invalid db_util=47.6212% app_cpu=99.92495115509577 requests=204 dropped=11 http={'200': 204}
+2026-11-26 09:05:56 PRESTATE cal6-r0.3: HEAD 5bec431; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 12 minutes peak-lab-bagisto-app:Up 12 minutes peak-lab-bagisto-k6:Up 45 minutes peak-lab-bagisto-tools:Up 44 minutes peak-lab-bagisto-db:Up 45 minutes (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 09:05:56 PRE free: total 15 available 7 df: 882G free
+2026-11-26 09:05:56 START cal-6 name=cal6-r0.3 R_0=1 R_1=4 R_2=0.2 R_3=0.3 R_4=0.3 R_5=8 (the one measured is cal-6; the other rates are real or stand-ins as the README says)
+2026-11-26 09:17:49 END cal-6 name=cal6-r0.3 exit=0
+RESULT target=0.3 achieved=0.3000 status=valid db_util=24.6619% app_cpu=58.94910031153172 requests=144 dropped=0 http={'200': 144}
