@@ -1,0 +1,17 @@
+== 2026-11-27 02:17:06 stop the rehearsal stack (docker stop; no compose down, no volume touched)
+peak-dryrun2400-k6 exit=137
+peak-dryrun2400-tools exit=137
+peak-dryrun2400-web exit=0
+peak-dryrun2400-app exit=0
+peak-dryrun2400-db exit=0
+== db log tail
+2026-11-26T16:16:44.960378Z 33 [Warning] [MY-014084] [InnoDB] Threads are unable to reserve space in redo log which can't be reclaimed due to the 'log_checkpointer' consumer still lagging behind at LS
+2026-11-26T17:18:07.848978Z 0 [System] [MY-013172] [Server] Received SHUTDOWN from user <via user signal>. Shutting down mysqld (Version: 8.4.7).
+2026-11-26T17:18:09.013191Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T17:18:09.013223Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+== 2026-11-27 02:18:09 after
+Mem:              15           3           7           0           4          11
+/dev/sdd       1007G   75G  881G   8% /
+volumes: 58
+2cb7656da6e4ec5fa7d527b31f0875071b329bdaf7f3fe2f3fc41743673e1e2a  -
+0

@@ -7,3 +7,7 @@
 2026-11-27 01:18:17 PREDICT END rc=0
 2026-11-27 01:18:33 GATE START
 2026-11-27 01:18:33 GATE END rc=0
+2026-11-27 01:19:42 CHAIN START
+2026-11-27 02:16:21 CHAIN END exit=0 (the chain's own end, from chain-ends.txt; this line was added after the chain)
+2026-11-27 02:17:06 STOP START (docker stop one by one, the database last with a 180 s grace)
+2026-11-27 02:18:09 STOP END (database log: Shutdown complete)

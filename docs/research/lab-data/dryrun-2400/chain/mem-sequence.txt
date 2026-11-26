@@ -1,0 +1,3 @@
+at=2026-11-27T01:19:42+09:00 label=before-recreate-s-1 mem_available_kib=10592896 app_memory_current=26365952 app_memory_peak=41807872 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-27T01:19:58+09:00 label=before-s-1 mem_available_kib=10589188 app_memory_current=25817088 app_memory_peak=40763392 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
+at=2026-11-27T02:16:21+09:00 label=after-s-1 mem_available_kib=8731040 app_memory_current=1855578112 app_memory_peak=2618388480 app_memory_max=6442450944 app_oom=0 app_oom_kill=0 db_oom=0 db_oom_kill=0
