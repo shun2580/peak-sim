@@ -1,0 +1,92 @@
+== 2026-11-27 01:17:00 before
+STATE default
+f61b6e47eb4db5e8aa3be51494c98567bb5f6812968e5dc443bdb5b1acdc14a5  poc/lab/compose/nginx/lab-bagisto.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+== apply
+B ON: ladder-b-2400s-bagisto.diff applied at 2026-11-27T01:17:00+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+3eb993c7891a358e723cbd0a664638a808697ee9c6507668598eb683b4016eaa  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE B
+3eb993c7891a358e723cbd0a664638a808697ee9c6507668598eb683b4016eaa  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+== real working tree (the files the real lab reads)
+3eb993c7891a358e723cbd0a664638a808697ee9c6507668598eb683b4016eaa  <real>/poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  <real>/poc/lab/compose/php/zz-lab.ini
+== copy
+3eb993c7891a358e723cbd0a664638a808697ee9c6507668598eb683b4016eaa  <copy>/poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  <copy>/poc/lab/compose/php/zz-lab.ini
+== the nginx line
+39:            fastcgi_read_timeout 2400s;
+== use-db 30000 2026-11-27 01:17:07
+ Container peak-dryrun2400-app Recreate 
+ Container peak-dryrun2400-app Recreated 
+ Container peak-dryrun2400-web Recreate 
+ Container peak-dryrun2400-web Recreated 
+ Container peak-dryrun2400-app Starting 
+ Container peak-dryrun2400-app Started 
+ Container peak-dryrun2400-web Starting 
+ Container peak-dryrun2400-web Started 
+PASS container: peak-dryrun2400-db is running
+PASS container: peak-dryrun2400-app is running
+PASS container: peak-dryrun2400-web is running
+PASS container: peak-dryrun2400-k6 is running
+PASS container: peak-dryrun2400-tools is running
+PASS network: peak-dryrun2400_lab-internal internal=true
+PASS peak-dryrun2400-db: network mode peak-dryrun2400_lab-internal
+PASS peak-dryrun2400-db: no published port
+PASS peak-dryrun2400-app: network mode peak-dryrun2400_lab-internal
+PASS peak-dryrun2400-app: no published port
+PASS peak-dryrun2400-web: network mode peak-dryrun2400_lab-internal
+PASS peak-dryrun2400-web: no published port
+PASS peak-dryrun2400-k6: network mode peak-dryrun2400_lab-internal
+PASS peak-dryrun2400-k6: no published port
+PASS peak-dryrun2400-tools: network mode peak-dryrun2400_lab-internal
+PASS peak-dryrun2400-tools: no published port
+peak-dryrun2400-app: PASS negative dns:example.com              did not resolve
+peak-dryrun2400-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun2400-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun2400-app: PASS negative http:example.com             no response
+peak-dryrun2400-app: PASS negative default-route                no default route
+peak-dryrun2400-app: PASS positive tcp:measure-db:3306          connected
+peak-dryrun2400-app: PASS positive dns:measure-db               resolved to 172.28.0.2
+peak-dryrun2400-app: PASS positive login:measure                logged in as the measurement user
+peak-dryrun2400-app: PREFLIGHT OK
+peak-dryrun2400-tools: PASS negative dns:example.com              did not resolve
+peak-dryrun2400-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun2400-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun2400-tools: PASS negative http:example.com             no response
+peak-dryrun2400-tools: PASS negative default-route                no default route
+peak-dryrun2400-tools: PASS positive tcp:measure-db:3306          connected
+peak-dryrun2400-tools: PASS positive dns:measure-db               resolved to 172.28.0.2
+peak-dryrun2400-tools: PASS positive login:measure                logged in as the measurement user
+peak-dryrun2400-tools: PREFLIGHT OK
+PASS peak-dryrun2400-web: 1.1.1.1:443 is unreachable
+PASS peak-dryrun2400-web: 8.8.8.8:53 is unreachable
+PASS peak-dryrun2400-web: http://example.com is unreachable
+PASS peak-dryrun2400-web: the app (lab-app:9000) (positive control)
+PASS peak-dryrun2400-k6: 1.1.1.1:443 is unreachable
+PASS peak-dryrun2400-k6: 8.8.8.8:53 is unreachable
+PASS peak-dryrun2400-k6: http://example.com is unreachable
+PASS peak-dryrun2400-k6: the web server (/__lab/health) (positive control)
+PASS peak-dryrun2400-db: 1.1.1.1:443 is unreachable
+PASS peak-dryrun2400-db: 8.8.8.8:53 is unreachable
+PASS peak-dryrun2400-db: the name example.com is unreachable
+PASS peak-dryrun2400-db: its own port (3306) (positive control)
+PREFLIGHT OK
+rc=0
+== check-limits
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "2400s", "k6_request_timeout": "2400s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+rc=0
+== 2026-11-27 01:17:45 targets
+8 of 8 routes filled; unfilled 0; not in the static analysis 0; written to /out/targets-30000.json
+rc=0
+== mounts/cpusets
+db 0-1 cpus=2000000000
+app 2-7,12-15 cpus=10000000000
+web 2-7,12-15 cpus=10000000000
+k6 8-9 cpus=2000000000
+tools 10-11 cpus=2000000000
+== free/df
+Mem:              15           5           5           0           4          10
+/dev/sdd       1007G   75G  881G   8% /

@@ -1,0 +1,40 @@
+2026-11-27 01:13:41 JST
+== free -g
+               total        used        free      shared  buff/cache   available
+Mem:              15           3           8           0           3          11
+Swap:              4           0           4
+== df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   75G  881G   8% /
+== volumes (count, sorted-list sha256)
+57
+ac019e9e38ae4c8114d8eb1f0044621223f326140f6c2b96594d5a1ad7d835ac  -
+== containers
+peak-bagisto-b-eas-n190000-measure-php-1 Exited (137) 6 hours ago
+peak-bagisto-b-eas-n190000-measure-db-1 Exited (0) 6 hours ago
+peak-lab-bagisto-k6 Exited (137) 6 hours ago
+peak-lab-bagisto-tools Exited (137) 6 hours ago
+peak-lab-bagisto-web Exited (0) 6 hours ago
+peak-lab-bagisto-app Exited (0) 6 hours ago
+peak-lab-bagisto-db Exited (0) 6 hours ago
+peak-dryrun25-web Exited (0) 6 hours ago
+peak-dryrun25-app Exited (0) 6 hours ago
+dryrun25eas-n30000-measure-php-1 Exited (137) 11 hours ago
+dryrun25eas-n30000-measure-db-1 Exited (0) 11 hours ago
+peak-dryrun25-k6 Exited (137) 6 hours ago
+peak-dryrun25-tools Exited (137) 6 hours ago
+peak-dryrun25-db Exited (0) 6 hours ago
+peak-measure-dev-t1real-measure-db-1 Exited (0) 37 hours ago
+peak-lab-web Exited (0) 6 days ago
+peak-lab-app Exited (0) 6 days ago
+peak-lab-k6 Exited (137) 6 days ago
+peak-lab-tools Exited (137) 6 days ago
+peak-lab-db Exited (0) 6 days ago
+peak-sim-dev-php-dev-1 Exited (255) 3 weeks ago
+peak-sim-dev-mysql-1 Exited (255) 3 weeks ago
+beautiful_knuth Created
+rstools-testserver-1 Exited (255) 5 weeks ago
+php-practice-app-1 Exited (137) 5 months ago
+tug-traefik Exited (0) 5 months ago
+== running
+0
