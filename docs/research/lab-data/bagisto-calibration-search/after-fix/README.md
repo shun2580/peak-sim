@@ -278,3 +278,14 @@ Run through `run_one.sh` with the same stand-ins and flag as before (R_0 = 2.83,
 
 `check_run.sh` (`cal8-r4/check.txt`): all four settings files the same as the confirming run's (`recheck_nginx.sh` gives SAME as well), the first line of `tables-before.tsv` says 1,000 and the run's count is 1,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
 Valid and below the band: by the doubling rule the next rate is **8 rps**. Written 2026-11-26 12:40:31; committed before the next run starts.
+
+### R_5: cal-8 at 8 rps (2026-11-26 12:40 to 12:52; `cal8-r8/`)
+
+Run through `run_one.sh` with the same stand-ins and flag as before (R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 as decided by D283), 1,000 rows, request timeout 1800 s. The entry's gate opened (smallest degree 0.546895, as the grid said).
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 7.9979 (valid) | 0 | **8.9485%** (below the band) | 14.43% | 3839, all 200 |
+
+`check_run.sh` (`cal8-r8/check.txt`): all four settings files the same as the confirming run's (`recheck_nginx.sh` gives SAME as well), the first line of `tables-before.tsv` says 1,000 and the run's count is 1,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 662 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+Valid and below the band: by the doubling rule the next rate is **16 rps**. Written 2026-11-26 12:52:40; committed before the next run starts.

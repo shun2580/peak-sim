@@ -1,0 +1,88 @@
+{
+  "scenario_start_ms": 1795664467014,
+  "measure_requests": 3839,
+  "measure_sent": 3839,
+  "sent_after_window": 0,
+  "finished_after_window": 7,
+  "longest_after_window_ms": 776,
+  "graceful_stop": "1800s",
+  "measure_failed": 0,
+  "measure_ok": 3839,
+  "dropped_iterations": 0,
+  "http_status": {
+    "200": 3839
+  },
+  "http_status_by_route": {
+    "GET /api/products": {
+      "200": 480
+    },
+    "GET /customer/account/addresses/create": {
+      "200": 479
+    },
+    "GET /admin/customers/view/{id}": {
+      "200": 480
+    },
+    "GET /admin/marketing/communications/campaigns/edit/{id}": {
+      "200": 480
+    },
+    "GET /admin/settings/inventory-sources/edit/{id}": {
+      "200": 480
+    },
+    "GET /admin/customers/search": {
+      "200": 480
+    },
+    "GET /api/categories": {
+      "200": 480
+    },
+    "GET /api/categories/attributes/{attribute_id}/options": {
+      "200": 480
+    }
+  },
+  "request_timeout": "1800s",
+  "duration_ms": {
+    "avg": 203.73751222401623,
+    "p95": 780.4394288,
+    "max": 892.482725
+  },
+  "per_route": {
+    "GET /api/products": 480,
+    "GET /customer/account/addresses/create": 479,
+    "GET /admin/customers/view/{id}": 480,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 480,
+    "GET /admin/settings/inventory-sources/edit/{id}": 480,
+    "GET /admin/customers/search": 480,
+    "GET /api/categories": 480,
+    "GET /api/categories/attributes/{attribute_id}/options": 480
+  },
+  "per_route_sent": {
+    "GET /api/products": 480,
+    "GET /customer/account/addresses/create": 479,
+    "GET /admin/customers/view/{id}": 480,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 480,
+    "GET /admin/settings/inventory-sources/edit/{id}": 480,
+    "GET /admin/customers/search": 480,
+    "GET /api/categories": 480,
+    "GET /api/categories/attributes/{attribute_id}/options": 480
+  },
+  "running_at_window_start": {
+    "GET /api/products": 1,
+    "GET /customer/account/addresses/create": 1,
+    "GET /admin/customers/view/{id}": 1,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 1,
+    "GET /admin/settings/inventory-sources/edit/{id}": 1,
+    "GET /admin/customers/search": 1,
+    "GET /api/categories": 1,
+    "GET /api/categories/attributes/{attribute_id}/options": 1
+  },
+  "running_at_window_end": {
+    "GET /api/products": 1,
+    "GET /customer/account/addresses/create": 0,
+    "GET /admin/customers/view/{id}": 1,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 1,
+    "GET /admin/settings/inventory-sources/edit/{id}": 1,
+    "GET /admin/customers/search": 1,
+    "GET /api/categories": 1,
+    "GET /api/categories/attributes/{attribute_id}/options": 1
+  },
+  "running_counted_by": "k6 sending side: requests sent before the instant and not answered until at or after it, timed by the load tool (not php-fpm)"
+}
