@@ -127,3 +127,14 @@ The search of R_0 is stopped on a ruling (above), so for the cal-5 runs R_0 is a
 They are chosen from the grid (`gate-grid-r3-0.3-r4-1/grid-set8.tsv`): among the points that open the gate for R_2 of 1.5, 1.0, 0.7, 0.45, 0.3 and 0.2 alike, the largest smallest degree is at R_0 1, R_1 8, R_5 16 (0.619808).
 Asked of the gate by `gate_only.sh` (inputs only, nothing measured; records `gate-only-r0_1_r1_8_r2_*_r3_0.3_r4_1_r5_16/`) with cal-5 at each stage value the search can reach, the entry's gate opens every time: 1.5 → smallest degree 0.653823; 1.0 → 0.649478; 0.7 → 0.645565; 0.45 → 0.632571; 0.3 → 0.623932; 0.2 → 0.619808; 0.15 → 0.618319; 0.1 → 0.617242; all at or above 0.50. A geometric mean of two stage values has a plan file made for it and is asked of the gate first, with the same stand-ins, before it is measured.
 The search of R_2 starts at 1.5 rps, the value the desk estimate of the first search puts nearest the band from above (`../ten-cpus/README.md`), and goes down by the rule above, with the readings of D280 and its addenda for the stops.
+
+### R_2: cal-5 at 1.5 rps (2026-11-26 10:20 to 10:32; `cal5-r1.5/`) — the first stage value
+
+Run through `run_one.sh` with the stand-ins written above (R_0 = 1, R_1 = 8, cal-8 at R_5 = 16 asked of the gate only; R_3 = 0.3 real, R_4 = 1.0 a stand-in), no flag, 30,000 rows, request timeout 1800 s. Before it: the lab was left up (the two B files changed, nothing else in `poc/lab`), 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 1.5 | 1.5000 (valid) | 0 | **45.4000%** (above the band) | 83.89% | 720, all 200 |
+
+It passed the entry's guards (the write check, the limits guard and the N tables identical before and after) and the checks of `check_run.sh` (`cal5-r1.5/check.txt`): the four settings files the same as the confirming run's, the count 30,000, no step after the window, the receive queue of port 9000 after the run 0, window start to end of tail 662 s.
+By "The rules" above, the first value of the stage search above 30% goes to the next stage value down, **1.0 rps**; the stop for a second value above 30% is not reached yet. No value of 1.0 rps has been measured at this point. This record is committed before the 1.0 rps run starts. Written 2026-11-26 10:38:43.
