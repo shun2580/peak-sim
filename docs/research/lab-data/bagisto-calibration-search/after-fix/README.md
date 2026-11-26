@@ -316,3 +316,37 @@ Run through `run_one.sh` with the same stand-ins and flag as before (R_0 = 2.83,
 The doubling search of R_5 crossed the band: 16 rps is valid and below it (17.6836%), the next rate, 32 rps, is valid and above it (42.4615%), and no rate of the doubling is inside the band. By D283 (the maintainer's ruling, with its addendum, section 6 point 2) the geometric mean is not measured; the valid run whose database utilization is nearest to 25% is taken as "outside the band". The distances, to four decimals: 16 rps 17.6836% is 7.3164 points from 25%; 32 rps 42.4615% is 17.4615 points; they are not equal. **R_5 = 16 rps (cal8-r16), outside the band (below it), database 17.6836%.** It is at least 10% and at most 40%, so the stop of that ruling does not apply; the run is not measured again. Valid runs of the search: 1:1.9045%, 2:2.9873%, 4:4.8429%, 8:8.9485%, 16:17.6836%, 32:42.4615%.
 The gate at R_5 = 16 (R_4 = 1.0): smallest degree 0.546895, open, so the stop for a closed gate (R_5 of 1 or 2) does not apply. R_4 = 1.0 is decided by D283 (ruling of 2026-11-26 11:58).
 With this, **R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0, R_5 = 16** are all decided. This task stops here: the effective gate and the calibration runs are not called.
+
+### The R table (written 2026-11-26 13:24:09; before the effective gate and before any calibration run)
+
+The six rates, with each run the rule measured. "Inside" or "outside" is read against the band of 20% to 30% of the database's utilization (2 CPUs). All the runs below are valid unless marked.
+
+| R | Rate (rps) | Run taken | Inside or outside the band | Database utilization of the run taken | Runs measured by the rule (rps: database utilization) |
+| --- | --- | --- | --- | --- | --- |
+| R_0 | 2.83 | cal-1 (`cal1-r2.83/`) | inside | 20.4348% | 1: 6.8501%; 2: 13.5006%; 4: 33.8993%; 2.83: 20.4348% |
+| R_1 | 8 | cal-4 (`cal4-r8/`) | inside | 20.1003% | 1: 3.0625%; 2: 5.0240%; 4: 9.5525%; 8: 20.1003% |
+| R_2 | 1.0 | cal-5 (`cal5-r1/`) | inside | 23.8785% | 1.5: 45.4000%; 1.0: 23.8785% |
+| R_3 | 0.3 | cal-6 (`cal6-r0.3/`) | inside | 24.6619% | 0.45: 47.6212% (invalid: 0.4250 reached); 0.3: 24.6619% |
+| R_4 | 1.0 | cal-7 (`cal7-r1/`) | **outside, below the band** | **18.2450%** | 1.0: 18.2450% (no other value measured; the maintainer's ruling of 2026-11-26 11:58, point 1 of D283 section 2, took it as just below the band) |
+| R_5 | 16 | cal-8 (`cal8-r16/`) | **outside, below the band** | **17.6836%** | 1: 1.9045%; 2: 2.9873%; 4: 4.8429%; 8: 8.9485%; 16: 17.6836%; 32: 42.4615% (the run nearest 25% is 16, 7.3164 points away; 32 is 17.4615 points away) |
+
+Both outside runs are at least 10% and at most 40%, so the stops of that ruling do not apply. The app's CPU use on each run taken is in its `record.json`.
+
+### The eight runs of the calibration, and how each is handed over (written 2026-11-26 13:24:09, before any calibration run)
+
+By D274 (decisions 1 and 2): a run found inside the band, or taken by the ruling above, in the conditions of a run is the calibration run itself and is **not measured again**. For the formula (`make-calibration-scenario`) its directory is handed over as `--run=<id>:<dir>`; the directory holds `plan.json` and `record.json`. For the entry that measures (`measure-calibration`) its plan is handed over to the gate and it is left out of `--measure`. Only cal-2 and cal-3 are measured, at R_0 = 2.83 rps.
+
+| Run | Mix | Rows | Rate (rps) | Where the run comes from | `--run-scale` | The first line of `tables-before.tsv` (second column) |
+| --- | --- | --- | --- | --- | --- | --- |
+| cal-1 | even | 10,000 | 2.83 | the search (`cal1-r2.83/cal-1`) | `cal-1:10000` (the default, written out) | 10000 (read) |
+| cal-2 | first four routes at 80% | 10,000 | 2.83 | **measured** | `cal-2:10000` (the default, written out) | to be read after the run |
+| cal-3 | routes 1, 3, 5, 7 at 80% | 10,000 | 2.83 | **measured** | `cal-3:10000` (the default, written out) | to be read after the run |
+| cal-4 | even | 3,000 | 8 | the search (`cal4-r8/cal-4`) | `cal-4:3000` | 3000 (read) |
+| cal-5 | even | 30,000 | 1.0 | the search (`cal5-r1/cal-5`) | `cal-5:30000` | 30000 (read) |
+| cal-6 | route ranked 1 at 80% | 30,000 | 0.3 | the search (`cal6-r0.3/cal-6`) | `cal-6:30000` | 30000 (read) |
+| cal-7 | route ranked 2 at 80% | 30,000 | 1.0 | the search (`cal7-r1/cal-7`; outside the band, taken by the ruling) | `cal-7:30000` | 30000 (read) |
+| cal-8 | even | 1,000 | 16 | the search (`cal8-r16/cal-8`; outside the band, taken by the ruling) | `cal-8:1000` | 1000 (read) |
+
+The plan of each of the six runs taken is byte for byte the plan file the entry is given for it (`cmp`). The measured runs go to `../bagisto-calibration/` (`measure_cal.sh` there), with the gate **without** the advisory flag: if the gate refuses (exit 14), nothing is measured and the work stops.
+
+`check_run.sh` now prints, next to its raw-byte line for the web server's settings file, the reading of D282 (`recheck_nginx.sh`: the two notice lines of the config test each exactly once as a whole line, and the rest the same byte for byte). The raw-byte line is kept as it was. It is committed before the first calibration run.

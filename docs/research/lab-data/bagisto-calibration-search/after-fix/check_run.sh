@@ -4,6 +4,8 @@
 #      settings-fpm.txt with the time at the start of each line taken off.
 #  (2) the steps after the load window, read as in the confirming run (read_steps.py): "none" is expected.
 #  (3) the receive queue of port 9000 in the app container now (the load tool has ended): 0 is expected.
+#  (1b) the same nginx file read as D282 reads it (recheck_nginx.sh): the two notice lines of the config test each exactly once as a whole line, and the rest the same byte for byte.
+#       It is printed next to the raw-byte line; the raw-byte line is kept as it was.
 #  (0) with <rows>, the count in the first line of tables-before.tsv against the run's count (D274 decision 2).
 #  (4) how long the run took from the start of the window (started_at) to the end of the tail (ended_at): the confirming run took 11 min 2 s.
 # It writes <out>/<name>/check.txt and prints it. Needs PEAK_SIM_REPO.
@@ -21,6 +23,8 @@ for x in settings-ini.txt settings-nginx.txt limits.txt; do
 done
 if diff <(sed 's/^\[[^]]*\] //' "$REF/settings-fpm.txt") <(sed 's/^\[[^]]*\] //' "$D/settings-fpm.txt") >/dev/null; then echo "B3 settings-fpm.txt (time at line start taken off): same"; else echo "B3 settings-fpm.txt (time at line start taken off): DIFFERENT"; b3=DIFFERENT; fi
 echo "B3 overall: $b3"
+echo "B3 settings-nginx.txt read as D282 reads it (notice lines exactly once, the rest byte for byte):"
+bash "$HERE/recheck_nginx.sh" "$D" 2>&1 | sed 's/^/  /'
 if [ -n "$rows" ]; then
   got=$(head -1 "$D/tables-before.tsv" 2>/dev/null | cut -f2)
   if [ "$got" = "$rows" ]; then echo "rows: first line of tables-before.tsv says $got, the run's count is $rows: same"; else echo "rows: first line of tables-before.tsv says '${got}', the run's count is $rows: DIFFERENT"; fi
