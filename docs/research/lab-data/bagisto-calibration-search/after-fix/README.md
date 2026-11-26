@@ -179,3 +179,14 @@ Asked of the gate by `gate_real.sh` (inputs only, nothing measured; records `gat
 | 32 | 0.349805 | 0.350595 | 0.353693 | 0.365180 | 0.400221 | 0.402131 |
 
 The gate does not open (below 0.50) at R_1 of 1 to 4 for any R_5, which is the case the flag is for; it is not read as a reason to change any rule. The stand-in R_5 = **16** is taken: it has the largest smallest degree (tied with 32) at every R_1 from 1 to 16 and is the stand-in the first search used nearest to it. The set given to the entry for every cal-4 run is R_0 = 2.83, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 (stand-in), cal-8 at R_5 = 16 (asked of the gate only). The search starts at 1 rps and doubles by the rule above; a rate not reached has the geometric mean tried once, and a plan file for it is made first.
+
+### R_1: cal-4 at 1 rps (2026-11-26 10:59 to 11:11; `cal4-r1/`)
+
+Run through `run_one.sh` with the stand-ins written above, the flag `--search-gate-advisory` on, 3,000 rows, request timeout 1800 s.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0.9979 (valid) | 0 | **3.0625%** (below the band) | 4.41% | 479, all 200 |
+
+The checks of `check_run.sh` (`cal4-r1/check.txt`): the four settings files the same as the confirming run's, the count 3,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. The gate's refusal, if any, is in `cal4-r1.out.txt`.
+Valid and below the band: by the doubling rule the next rate is **2 rps**. Written 2026-11-26 11:12:05; committed before that run starts.

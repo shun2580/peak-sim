@@ -1,0 +1,7 @@
+search_gate_advisory=1
+gate_exit=14
+gate_passed=false
+min_degree=0.35646232756738744
+min_left_out=cal-8
+threshold=0.5
+note=this run was made with --search-gate-advisory: a refused gate (14) did not stop it; if this run is taken as the rate, it is the calibration run itself and is not measured again (D274, D277)
