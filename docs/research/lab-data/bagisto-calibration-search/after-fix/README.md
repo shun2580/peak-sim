@@ -201,3 +201,14 @@ Run through `run_one.sh` with the stand-ins written above, the flag `--search-ga
 
 The checks of `check_run.sh` (`cal4-r2/check.txt`): the four settings files the same as the confirming run's, the count 3,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 662 s. The gate's refusal, if any, is in `cal4-r2.out.txt`.
 Valid and below the band: by the doubling rule the next rate is **4 rps**. Written 2026-11-26 11:24:14; committed before any next run starts.
+
+### R_1: cal-4 at 4 rps (`cal4-r4/`)
+
+Run through `run_one.sh` with the stand-ins written above, the flag `--search-gate-advisory` on, 3,000 rows, request timeout 1800 s.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 4 | 4.0000 (valid) | 0 | **9.5525%** (below the band) | 17.78% | 1920, all 200 |
+
+The checks of `check_run.sh` (`cal4-r4/check.txt`): the four settings files the same as the confirming run's, the count 3,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. The gate's refusal, if any, is in `cal4-r4.out.txt`.
+Valid and below the band: by the doubling rule the next rate is **8 rps**. Written 2026-11-26 11:36:17; committed before any next run starts.

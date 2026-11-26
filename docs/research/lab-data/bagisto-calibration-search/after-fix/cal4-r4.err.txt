@@ -1,0 +1,2 @@
+CALIBRATION GATE REFUSED: the smallest degree 0.463913 (without cal-8) is below 0.50; the set of runs cannot tell the two coefficients apart. Nothing may be measured.
+GATE ADVISORY: the calibration gate refused (exit 14) and --search-gate-advisory is given, so the search run goes on; the degrees are in <out>/cal4-r4/calibration-gate.json (decisions.md D270 decision 1)
