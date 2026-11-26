@@ -4,7 +4,9 @@
 # poc/lab/config/ladder-b-1800s.diff: PHP max_execution_time 0, PHP memory_limit 4G, nginx fastcgi_read_timeout 1800s. The default
 # files are never edited by hand and never committed with the diff on.
 # The Bagisto lab (bin/with-bagisto) has an nginx file of its own, compose/nginx/lab-bagisto.conf (no upstream keepalive); there PEAK_LAB_NGINX_CONF
-# names it and the diff is config/ladder-b-1800s-bagisto.diff, the same settings on that file. Without the variable nothing here is different.
+# names it and the diff is config/ladder-b-2400s-bagisto.diff: the same PHP settings, and nginx fastcgi_read_timeout 2400s on that file (the
+# maintainer's ruling of 2026-11-27: the request timeout of the Bagisto B is 2,400 s, not 1,800 s). config/ladder-b-1800s-bagisto.diff is what the
+# Bagisto calibration was measured with; it is kept, and `--diff=` names it. Without the variable nothing here is different.
 #
 #   poc/lab/bin/lab-config-b apply     # git apply; refuses unless poc/lab/compose has no change at all
 #   poc/lab/bin/lab-config-b restore   # git apply -R; refuses unless the diff is exactly what is on the files; then no change is left
@@ -17,14 +19,14 @@
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lab.sh"
 
-usage() { sed -n '10,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+usage() { sed -n '12,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 cmd="${1:-}"; [ -n "$cmd" ] || usage
 shift
 # The nginx file the web container of this stack reads (a path inside the repository); only the Bagisto wrapper sets it.
 nginx_conf="${PEAK_LAB_NGINX_CONF:-poc/lab/compose/nginx/lab.conf}"
 case "$nginx_conf" in
   poc/lab/compose/nginx/lab.conf) diff_file="$LAB_DIR/config/ladder-b-1800s.diff" ;;
-  poc/lab/compose/nginx/lab-bagisto.conf) diff_file="$LAB_DIR/config/ladder-b-1800s-bagisto.diff" ;;
+  poc/lab/compose/nginx/lab-bagisto.conf) diff_file="$LAB_DIR/config/ladder-b-2400s-bagisto.diff" ;;
   *) echo "lab-config-b: no diff for the nginx file $nginx_conf" >&2; exit 2 ;;
 esac
 for arg in "$@"; do

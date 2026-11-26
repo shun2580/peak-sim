@@ -14,6 +14,8 @@
 #  5. with the flag at 150,000 rows a marked route is taken out, the sum of rps is unchanged, the naive limit is unchanged, and the route is out of every stage
 #  6. a group left with no route (the marked route alone at its rps) stops with exit 38 and writes no prediction
 #  7. a request timeout under which a request is predicted over half of it stops with exit 39 and writes no prediction
+#  7d-7h. the Bagisto B's request timeout of 2,400 s (the maintainer's ruling of 2026-11-27): accepted; the stop line is half of it, 1,200 s; the output is the 1,800 s one in
+#     nothing but the timeout and its half, also with --warmup-from-marks (warmup_sec does not depend on the timeout)
 #  8. a scenario file with no placeholder limit (or no memory limit) stops with exit 40 and writes no prediction
 #  9. --warmup-from-marks (section 7.4.5): refused without --drop-marked-routes (2); with it every stage has warmup_sec (a whole number, at least 60, the largest CPU-time
 #     bound of the routes that stay, rounded up) and warmup_basis, nothing else in the output changes, a request over half of the timeout still stops (39), the same input
@@ -109,6 +111,29 @@ grep -q 'a group is left with no route' "$work/e38/stderr.txt" && pass "6c ... a
 predict "$work/e39" "$est150" "$in150" --drop-marked-routes --request-timeout-s=100; expect_code "7a a request over half of the timeout: exit 39" 39 $?
 [ ! -e "$work/e39/ladder-prediction.json" ] && pass "7b ... and no prediction is written" || fail "7b ... and no prediction is written"
 grep -q 'more than half of the request timeout' "$work/e39/stderr.txt" && pass "7c ... and it says why" || fail "7c ... and it says why"
+
+# 7d: the Bagisto B's request timeout is 2,400 s (the maintainer's ruling of 2026-11-27): the same step at 2,400 passes, the stop line is half of it (1,200 s),
+# and nothing else in the output differs from the one made at 1,800 s: the rule is the same, only the input timeout is
+predict "$work/t1800" "$est150" "$in150" --drop-marked-routes --request-timeout-s=1800; expect_code "7d at 1,800 s: exit 0" 0 $?
+predict "$work/t2400" "$est150" "$in150" --drop-marked-routes --request-timeout-s=2400; expect_code "7e at 2,400 s: exit 0" 0 $?
+python3 - "$work/t1800/ladder-prediction.json" "$work/t2400/ladder-prediction.json" <<'PY' && pass "7f at 2,400 s the stop line is 1,200 s, and the output is the 1,800 s one in nothing else" || fail "7f the 2,400 s output differs from the 1,800 s one in more than the timeout and its half"
+import json, sys
+a, b = (json.load(open(p)) for p in sys.argv[1:3])
+assert a["allocation"]["request_timeout_s"] == 1800.0 and a["allocation"]["half_request_timeout_s"] == 900.0, a["allocation"]
+assert b["allocation"]["request_timeout_s"] == 2400.0 and b["allocation"]["half_request_timeout_s"] == 1200.0, b["allocation"]
+for d in (a, b):
+    d["allocation"].pop("request_timeout_s"); d["allocation"].pop("half_request_timeout_s")
+assert a == b
+PY
+predict "$work/t2400w" "$est150" "$in150" --drop-marked-routes --warmup-from-marks --request-timeout-s=2400; expect_code "7g at 2,400 s with --warmup-from-marks: exit 0" 0 $?
+predict "$work/t1800w" "$est150" "$in150" --drop-marked-routes --warmup-from-marks --request-timeout-s=1800
+python3 - "$work/t1800w/ladder-prediction.json" "$work/t2400w/ladder-prediction.json" <<'PY' && pass "7h the discarded start (warmup_sec) does not depend on the request timeout: the same at 1,800 s and 2,400 s" || fail "7h warmup_sec differs between 1,800 s and 2,400 s"
+import json, sys
+a, b = (json.load(open(p)) for p in sys.argv[1:3])
+wa = [[st["warmup_sec"] for st in s["stages"]] for s in a["scenarios"]]
+wb = [[st["warmup_sec"] for st in s["stages"]] for s in b["scenarios"]]
+assert wa == wb and wa and all(w for w in wa), (wa, wb)
+PY
 
 # 8
 grep -v 'db_placeholder_limit' "$in150" >"$work/no-ph.yaml"

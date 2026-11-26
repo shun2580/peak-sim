@@ -9,7 +9,8 @@
 #
 # A  the chain, with every tool it calls replaced by a recorder (the chain itself is the real script):
 #    1  no mark: s-1 .. s-5 run in order, each after a recreation and a read of the limits; exit 0; chain.done; no chain.stopped
-#    2  the request timeout reaches check-limits and measure-ladder: 1800s by default; 600s when given (the chain of the fourth round)
+#    2  the request timeout reaches check-limits and measure-ladder: 1800s by default; 600s when given (the chain of the fourth round); under the Bagisto
+#       wrapper's PEAK_LAB_NGINX_CONF the default is 2400s (2e), and a value given still wins there (2f)
 #    3  a mark there from the start: no scenario is entered and nothing is recreated; the memory, the statistics and the logs are read;
 #       the stop is written to chain.log and chain.stopped; exit 0
 #    4  a mark made while s-2 runs: s-2 is finished and read after, s-3 is not entered and not recreated; chain.stopped lists s-3 s-4 s-5
@@ -23,10 +24,12 @@
 # B  the real measure-ladder and check-limits behind a stand-in docker, B's settings taken from the diff itself:
 #   10  the lab left at the default, or at the 600 s of the fourth round, with 1800s asked: 13 before the load tool
 #   11  the lab as the diff makes it, with 1800s asked: the load tool is called with REQUEST_TIMEOUT=1800s, and the step's settings say 1800s
-#       for nginx and for the load tool
+#       for nginx and for the load tool; and the same for the Bagisto lab's diff (config/ladder-b-2400s-bagisto.diff, read from the diff itself):
+#       2400s asked on a lab as that diff makes it reaches the load tool as REQUEST_TIMEOUT=2400s and the settings say 2400s (11c, 11d); the Bagisto
+#       lab left at the earlier 1800s with 2400s asked is refused (13, naming fastcgi_read_timeout) before the load tool (10c)
 #   12  without the flag nothing changed: 600s asked on a 600 s lab still reaches the load tool with REQUEST_TIMEOUT=600s; a scenario with no
 #       --request-timeout is refused (2) as before
-# C  the wait at the end of a step: the real k6 (`inspect`) gives gracefulStop 30m0s for 1800s, 10m0s for 600s
+# C  the wait at the end of a step: the real k6 (`inspect`) gives gracefulStop 30m0s for 1800s, 40m0s for 2400s, 10m0s for 600s
 # E  the allocation (D226, D227): the real measure-ladder reads the prediction's allocation and sends that, not the mix:
 #   13  a prediction with an allocation: the plan sends 7 routes at the shares of rps_after and the dropped route is not sent; the ALLOCATION line is
 #       printed and allocation.json is kept; a prediction with none then removes the stale allocation.json
@@ -149,6 +152,13 @@ for s in s-1 s-5; do [ -s "$d/$s.output.txt" ] || fail "1f no output file of $s"
 grep '^measure-ladder ' "$A/calls" | head -1 | grep -q -- "--scale=$SCALE --predictions=$work/pred.json --statement-record=$work/rec.json" && pass "2c it also gets the scale, the prediction and the statement record" || fail "2c $(grep '^measure-ladder ' "$A/calls" | head -1)"
 reset_a; chain_dir; run_chain "$d" --request-timeout=600s --scenarios="s-1 s-2"
 [ "$(grep -c -- '--request-timeout=600s' "$A/calls")" = 4 ] && ! grep -q -- '1800s' "$A/calls" && pass "2d --request-timeout=600s reaches both tools and 1800s is nowhere (the chain of the fourth round)" || fail "2d $(cat "$A/calls" | head -4)"
+reset_a; chain_dir; PEAK_LAB_NGINX_CONF=poc/lab/compose/nginx/lab-bagisto.conf run_chain "$d" --scenarios="s-1 s-2"
+[ "$(grep '^check-limits ' "$A/calls" | grep -c -- '--require=unlimited --request-timeout=2400s')" = 2 ] && [ "$(grep '^measure-ladder ' "$A/calls" | grep -c -- '--scheme=B --request-timeout=2400s')" = 2 ] && ! grep -q -- '1800s' "$A/calls" && has "$d/chain.log" 'request_timeout=2400s' \
+  && pass "2e under the Bagisto wrapper's nginx file the default is 2400s: both tools get it, 1800s is nowhere, chain.log says 2400s" || fail "2e $(head -4 "$A/calls")"
+reset_a; chain_dir; PEAK_LAB_NGINX_CONF=poc/lab/compose/nginx/lab-bagisto.conf run_chain "$d" --request-timeout=600s --scenarios="s-1 s-2"
+[ "$(grep -c -- '--request-timeout=600s' "$A/calls")" = 4 ] && ! grep -q -- '2400s' "$A/calls" && pass "2f a value given with --request-timeout wins under the Bagisto wrapper too (600s, 2400s nowhere)" || fail "2f $(head -4 "$A/calls")"
+reset_a; chain_dir; PEAK_LAB_NGINX_CONF=poc/lab/compose/nginx/lab.conf run_chain "$d" --scenarios="s-1 s-2"
+[ "$(grep -c -- '--request-timeout=1800s' "$A/calls")" = 4 ] && ! grep -q -- '2400s' "$A/calls" && pass "2g with the BookStack lab's nginx file named the default stays 1800s (nothing changed for it)" || fail "2g $(head -4 "$A/calls")"
 
 # 3 --------------------------------------------------------------------------------------------------------------------
 reset_a; chain_dir; mkdir -p "$d"; touch "$d/STOP"; run_chain "$d"; rc=$?
@@ -223,6 +233,8 @@ expect_code "16c measure-ladder refusing the prediction (2) stops the chain with
 # ================================================================================================================================
 # D (first: B's values are read from the diff for B and C)
 # ================================================================================================================================
+# the compose files of this repository as they are when the test starts (the working tree may have B on while a measurement is prepared)
+compose_before="$(git -C "$repo_real" diff -- poc/lab/compose | sha256sum)"
 Drepo="$work/drepo"; mkdir -p "$Drepo/poc/lab/compose/nginx" "$Drepo/poc/lab/compose/php"
 git -C "$repo_real" show HEAD:poc/lab/compose/nginx/lab.conf >"$Drepo/poc/lab/compose/nginx/lab.conf"
 git -C "$repo_real" show HEAD:poc/lab/compose/php/zz-lab.ini >"$Drepo/poc/lab/compose/php/zz-lab.ini"
@@ -253,7 +265,7 @@ cfgb restore; expect_code "D8 restore when the files are not exactly the default
 [ "$(sha_files)" = "$edited_sha" ] && pass "D8b ... and the files are as they were" || fail "D8b"
 git -C "$Drepo" checkout -q -- poc/lab/compose/php/zz-lab.ini poc/lab/compose/nginx/lab.conf
 cfgb frobnicate; expect_code "D9 an unknown command: usage, 2" 2 $?
-git -C "$repo_real" diff --quiet -- poc/lab/compose && pass "D10 the lab's own compose files in this repository were never touched by the test" || fail "D10 the compose files of the repository differ from HEAD"
+[ "$(git -C "$repo_real" diff -- poc/lab/compose | sha256sum)" = "$compose_before" ] && pass "D10 the lab's own compose files in this repository are what they were when the test started (never touched by it)" || fail "D10 the compose files of the repository changed during the test"
 
 # ================================================================================================================================
 # B. the real measure-ladder and check-limits behind a stand-in docker; B's values are the ones the diff made
@@ -339,6 +351,18 @@ ml_b --scenario=s-1 --predictions="$bpred" --scheme=B; rc=$?
 expect_code "12b s-1 with no --request-timeout is refused as before (2)" 2 $rc
 has "$Bdir/ml.err" 'needs --request-timeout' && pass "12c ... and says why" || fail "12c ($(head -2 "$Bdir/ml.err"))"
 
+# 10c, 11c, 11d: the Bagisto lab's B (config/ladder-b-2400s-bagisto.diff). Its nginx value is read from the diff itself, as the others are.
+bag_nginx_val="$(sed -n 's/^+ *fastcgi_read_timeout \([^;]*\);.*/\1/p' "$lab/config/ladder-b-2400s-bagisto.diff")"
+[ "$bag_nginx_val" = 2400s ] && pass "11c the Bagisto diff makes nginx fastcgi_read_timeout 2400s" || fail "11c the Bagisto diff says '$bag_nginx_val'"
+set_b php=0 pool=0s nginx=1800s mem=4G
+ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=2400s; rc=$?
+[ "$rc" = 13 ] && [ "$(k6_calls)" = 0 ] && has "$Bdir/ml.err" 'fastcgi_read_timeout' && pass "10c the Bagisto lab left at the earlier 1800s, 2400s asked: 13 naming fastcgi_read_timeout, before the load tool" || fail "10c rc $rc ($(head -2 "$Bdir/ml.err"))"
+set_b php=0 pool=0s nginx="$bag_nginx_val" mem=4G
+ml_b --scenario=s-1 --predictions="$bpred" --scheme=B --request-timeout=2400s; rc=$?
+[ "$(k6_calls)" -ge 1 ] && grep 'peak-lab-k6' "$Bdir/docker.calls" | head -1 | grep -q -- '-e REQUEST_TIMEOUT=2400s' && pass "11d the Bagisto lab as its diff makes it, 2400s asked: the load tool is called with REQUEST_TIMEOUT=2400s" || fail "11d k6 calls $(k6_calls) ($(head -2 "$Bdir/ml.err"))"
+has "$Bdir/ml.out" '"nginx_fastcgi_read_timeout": "2400s"' && has "$Bdir/ml.out" '"k6_request_timeout": "2400s"' && has "$Bdir/ml.out" '"php_max_execution_time": "0"' && has "$Bdir/ml.out" '"php_memory_limit": "4G"' \
+  && pass "11e the step's settings say nginx 2400s, k6 2400s, max_execution_time 0, memory_limit 4G" || fail "11e $(grep 'RUNG SETTINGS' "$Bdir/ml.out")"
+
 # ================================================================================================================================
 # C. the wait at the end of a step, from the real k6
 # ================================================================================================================================
@@ -359,6 +383,7 @@ k6_graceful() {  # k6_graceful <REQUEST_TIMEOUT or "-">: the gracefulStop values
 }
 [ "$(k6_graceful 1800s)" = "30m0s" ] && pass "C1 REQUEST_TIMEOUT=1800s: every stream waits 30m0s at the end of a step (gracefulStop)" || fail "C1 got '$(k6_graceful 1800s)'"
 [ "$(k6_graceful 600s)" = "10m0s" ] && pass "C2 REQUEST_TIMEOUT=600s: 10m0s, as in the fourth round" || fail "C2 got '$(k6_graceful 600s)'"
+[ "$(k6_graceful 2400s)" = "40m0s" ] && pass "C4 REQUEST_TIMEOUT=2400s: every stream waits 40m0s at the end of a step (gracefulStop)" || fail "C4 got '$(k6_graceful 2400s)'"
 [ -z "$(k6_graceful -)" ] && pass "C3 no REQUEST_TIMEOUT: no gracefulStop is set, k6's own default stays" || fail "C3 got '$(k6_graceful -)'"
 
 # ================================================================================================================================

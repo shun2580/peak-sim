@@ -11,8 +11,9 @@
 #    mounts and entry is the same
 # 3  the Bagisto wrapper does not take the file or the compose files from the environment
 # 4  nginx reads both files (`nginx -t`), and the Bagisto one has no keepalive and no fastcgi_keep_conn in the configuration it prints (`nginx -T`)
-# 5  bin/lab-config-b under the Bagisto wrapper puts B on lab-bagisto.conf (timeout 1800s, the PHP ini) and leaves lab.conf alone; restore gives back
+# 5  bin/lab-config-b under the Bagisto wrapper puts B on lab-bagisto.conf (timeout 2400s, the PHP ini) and leaves lab.conf alone; restore gives back
 #    the bytes; without the wrapper it works on lab.conf as before; the two files still differ by the same two lines while B is on
+#    (5l-5o: the 1800s diff of the calibration is kept and named with --diff=; a lab-bagisto.conf at 1800s reads as other, not B; apply, status B, restore)
 # No test is skipped: a precondition that is not met is a failure, not a skip.
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -26,7 +27,10 @@ fail() { failed=$((failed + 1)); printf 'FAIL %s\n' "$1"; }
 check() { local label="$1"; shift; if "$@"; then pass "$label"; else fail "$label"; fi; }
 
 work="$(mktemp -d)"; trap 'rm -rf "$work"' EXIT
-a="$lab/compose/nginx/lab.conf"; b="$lab/compose/nginx/lab-bagisto.conf"
+# The files are read from HEAD, not from the working tree: while a measurement is being prepared the working tree has B on (lab-config-b apply; never committed
+# with it on), and these tests are about the default files and about applying B to them.
+a="$work/lab.conf"; b="$work/lab-bagisto.conf"; ini_head="$work/zz-lab.ini"
+git -C "$repo" show HEAD:poc/lab/compose/nginx/lab.conf >"$a"; git -C "$repo" show HEAD:poc/lab/compose/nginx/lab-bagisto.conf >"$b"; git -C "$repo" show HEAD:poc/lab/compose/php/zz-lab.ini >"$ini_head"
 
 # 1 ------------------------------------------------------------------------------------------------------------------------------
 diff "$a" "$b" | grep -E '^[<>]' | sed 's/^\(.\) */\1 /' | sort >"$work/d.txt"
@@ -80,7 +84,7 @@ check "4d and on lab.conf it prints both (the BookStack lab is unchanged)" bash 
 
 # 5 ------------------------------------------------------------------------------------------------------------------------------
 R="$work/repo"; mkdir -p "$R/poc/lab/compose/nginx" "$R/poc/lab/compose/php"
-cp "$a" "$R/poc/lab/compose/nginx/lab.conf"; cp "$b" "$R/poc/lab/compose/nginx/lab-bagisto.conf"; cp "$lab/compose/php/zz-lab.ini" "$R/poc/lab/compose/php/zz-lab.ini"
+cp "$a" "$R/poc/lab/compose/nginx/lab.conf"; cp "$b" "$R/poc/lab/compose/nginx/lab-bagisto.conf"; cp "$ini_head" "$R/poc/lab/compose/php/zz-lab.ini"
 git -C "$R" init -q . && git -C "$R" config user.email t@example.invalid && git -C "$R" config user.name t && git -C "$R" add -A && git -C "$R" commit -q -m "chore: seed"
 sha_all() { (cd "$R" && sha256sum poc/lab/compose/nginx/lab.conf poc/lab/compose/nginx/lab-bagisto.conf poc/lab/compose/php/zz-lab.ini); }
 cfg_env() { PEAK_REPO_ROOT="$R" PEAK_LAB_STATE_DIR="$work/state" PEAK_LAB_OUT_DIR="$work/out" "$@"; }
@@ -90,11 +94,11 @@ check "5a under the Bagisto wrapper, status says default" grep -q '^STATE defaul
 check "5a2 and it names lab-bagisto.conf, not lab.conf" bash -c 'grep -q "nginx/lab-bagisto.conf" "$1" && ! grep -q "nginx/lab.conf" "$1"' _ "$work/o"
 cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" apply >"$work/o" 2>&1; rc=$?
 check "5b apply under the Bagisto wrapper: 0" test "$rc" -eq 0
-check "5c lab-bagisto.conf now has fastcgi_read_timeout 1800s" grep -q '^ *fastcgi_read_timeout 1800s;' "$R/poc/lab/compose/nginx/lab-bagisto.conf"
+check "5c lab-bagisto.conf now has fastcgi_read_timeout 2400s" grep -q '^ *fastcgi_read_timeout 2400s;' "$R/poc/lab/compose/nginx/lab-bagisto.conf"
 check "5d lab.conf is untouched (still 120s, same bytes as the seed)" bash -c 'cd "$1" && git diff --quiet -- poc/lab/compose/nginx/lab.conf && grep -q "^ *fastcgi_read_timeout 120s;" poc/lab/compose/nginx/lab.conf' _ "$R"
 check "5e the PHP ini has max_execution_time=0 and memory_limit=4G" bash -c 'grep -q "^max_execution_time=0$" "$1" && grep -q "^memory_limit=4G$" "$1"' _ "$R/poc/lab/compose/php/zz-lab.ini"
 diff "$R/poc/lab/compose/nginx/lab.conf" "$R/poc/lab/compose/nginx/lab-bagisto.conf" | grep -E '^[<>]' | sed 's/^\(.\) */\1 /' | sort >"$work/d2.txt"
-printf '%s\n' '< fastcgi_keep_conn on;' '< fastcgi_read_timeout 120s;' '< keepalive 64;' '> fastcgi_read_timeout 1800s;' | sort >"$work/want2.txt"
+printf '%s\n' '< fastcgi_keep_conn on;' '< fastcgi_read_timeout 120s;' '< keepalive 64;' '> fastcgi_read_timeout 2400s;' | sort >"$work/want2.txt"
 check "5f with B on, the two nginx files differ by the two lines and the timeout, nothing else" cmp -s "$work/d2.txt" "$work/want2.txt"
 cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" restore >"$work/o" 2>&1; rc=$?
 check "5g restore under the Bagisto wrapper: 0" test "$rc" -eq 0
@@ -105,6 +109,18 @@ cfg_env "$lab/bin/lab-config-b" restore >"$work/o" 2>&1
 check "5j and restore gives the bytes back" bash -c '[ "$1" = "$2" ]' _ "$before" "$(sha_all)"
 cfg_env env PEAK_LAB_NGINX_CONF=poc/lab/compose/nginx/other.conf "$lab/bin/lab-config-b" status >"$work/o" 2>&1; rc=$?
 check "5k a nginx file with no diff is refused (2)" test "$rc" -eq 2
+# 5l, 5m: the 1800s of the Bagisto calibration is kept as a diff of its own (`--diff=` names it); a lab-bagisto.conf at 1800s is not B any more
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" apply --diff="$lab/config/ladder-b-1800s-bagisto.diff" >"$work/o" 2>&1; rc=$?
+check "5l the earlier diff still applies when named: lab-bagisto.conf has 1800s" bash -c '[ "$1" = 0 ] && grep -q "^ *fastcgi_read_timeout 1800s;" "$2/poc/lab/compose/nginx/lab-bagisto.conf"' _ "$rc" "$R"
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" status >"$work/o" 2>&1
+check "5l2 and then status (the 2400s diff) says other, not B" grep -q '^STATE other' "$work/o"
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" restore --diff="$lab/config/ladder-b-1800s-bagisto.diff" >"$work/o" 2>&1
+check "5m restoring with the earlier diff gives the bytes back" bash -c '[ "$1" = "$2" ] && git -C "$3" diff --quiet' _ "$before" "$(sha_all)" "$R"
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" apply >"$work/o" 2>&1
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" status >"$work/o" 2>&1
+check "5n apply then status under the Bagisto wrapper says B" grep -q '^STATE B' "$work/o"
+cfg_env "$lab/bin/with-bagisto" "$lab/bin/lab-config-b" restore >"$work/o" 2>&1
+check "5o and restore gives the bytes back" bash -c '[ "$1" = "$2" ]' _ "$before" "$(sha_all)"
 
 echo "passed=$passed failed=$failed skipped=$skipped"
 [ "$failed" -eq 0 ] && [ "$skipped" -eq 0 ]
