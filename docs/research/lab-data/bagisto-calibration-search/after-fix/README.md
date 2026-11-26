@@ -245,3 +245,14 @@ Reading: at every one of the six R_5 points the three candidates agree on open o
 ### The stand-ins of the R_5 runs (written 2026-11-26 12:02:07, nothing of R_5 measured)
 
 R_0 = 2.83, R_1 = 8, R_2 = 1.0 and R_3 = 0.3 are found and used as they are. R_4 is not decided (the maintainer's ruling is pending); R_4 = 1.0 is used as a stand-in in the set given to the entry, and the grid above shows the gate's open or closed at every R_5 point is the same for 1.0, 1.22 and 1.5. The search of R_5 is the doubling search from 1 rps (cal-8, 1,000 rows, no cal-8 value taken from any earlier figure) with the flag `--search-gate-advisory` (D275, D277): a refusal is recorded and the run goes on. The gate readings of the set with cal-8 at the rate asked and R_4 = 1.0 are those of `gate-r5grid.txt`: 1 rps 0.361470 (closed), 2 rps 0.405622 (closed), 4 rps 0.512472 (open), 8, 16 and 32 rps 0.546895 (open). The first run is cal-8 at 1 rps; a rate not reached has the geometric mean of the previous rate and this one tried once, with its plan file made first. After each run its result is written and committed before the next run starts.
+
+### R_5: cal-8 at 1 rps (2026-11-26 12:02 to 12:14; `cal8-r1/`)
+
+Run through `run_one.sh` with the stand-ins written above (R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3 found; R_4 = 1.0, which the maintainer's ruling (D283, 2026-11-26 11:58) has since adopted as R_4; cal-8 at the rate asked), the flag `--search-gate-advisory` on, 1,000 rows, request timeout 1800 s. The entry's gate was closed as the grid said (smallest degree 0.361470, set member left out: cal-4); the flag recorded the refusal and the run went on (`cal8-r1/search-gate-advisory.txt`).
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 1.0000 (valid) | 0 | **1.9045%** (below the band) | 1.86% | 480, all 200 |
+
+`check_run.sh` (`cal8-r1/check.txt`): `settings-ini.txt` and `limits.txt` the same, `settings-fpm.txt` the same with the time at the line start taken off, `settings-nginx.txt` DIFFERENT by the byte-for-byte reading it wrote; read as D282 reads it (`recheck_nginx.sh`, `recheck-nginx.txt`): both notice lines once each, the rest the same byte for byte (192 lines against 192) → **SAME**. The first line of `tables-before.tsv` says 1,000 and the run's count is 1,000; no step after the window ("type iii: none"); the receive queue of port 9000 after the run 0; window start to end of tail 662 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+Valid and below the band: by the doubling rule the next rate is **2 rps**. (R_4 = 1.0 is decided by D283; the earlier line "R_4 is not decided" is as it was written before the ruling.) Written 2026-11-26 12:15:58; committed before the next run starts.

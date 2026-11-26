@@ -1,0 +1,10 @@
+CALIBRATION GATE REFUSED: the smallest degree 0.361470 (without cal-4) is below 0.50; the set of runs cannot tell the two coefficients apart. Nothing may be measured.
+GATE ADVISORY: the calibration gate refused (exit 14) and --search-gate-advisory is given, so the search run goes on; the degrees are in <out>/cal8-r1/calibration-gate.json (decisions.md D270 decision 1)
+ Container peak-lab-bagisto-app Recreate 
+ Container peak-lab-bagisto-app Recreated 
+ Container peak-lab-bagisto-web Recreate 
+ Container peak-lab-bagisto-web Recreated 
+ Container peak-lab-bagisto-app Starting 
+ Container peak-lab-bagisto-app Started 
+ Container peak-lab-bagisto-web Starting 
+ Container peak-lab-bagisto-web Started 
