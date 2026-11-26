@@ -1,0 +1,1 @@
+{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":true,"Dead":false,"Pid":33417,"ExitCode":0,"Error":"","StartedAt":"2026-11-26T17:35:57.429104481Z","FinishedAt":"0001-01-01T00:00:00Z"} mem=6442450944

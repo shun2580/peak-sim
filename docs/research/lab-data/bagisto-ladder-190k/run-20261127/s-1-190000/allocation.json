@@ -1,0 +1,16 @@
+{
+  "dropped": [
+    "GET /admin/customers/view/{id}"
+  ],
+  "rps_after": {
+    "GET /admin/customers/search": 0.14285714285714285,
+    "GET /admin/marketing/communications/campaigns/edit/{id}": 0.14285714285714285,
+    "GET /admin/settings/inventory-sources/edit/{id}": 0.14285714285714285,
+    "GET /api/categories": 0.14285714285714285,
+    "GET /api/categories/attributes/{attribute_id}/options": 0.14285714285714285,
+    "GET /api/products": 0.14285714285714285,
+    "GET /customer/account/addresses/create": 0.14285714285714285
+  },
+  "scenario": "s-1",
+  "source": "~/projects/peak-sim/poc/lab/predictions/ladder-prediction-bagisto-b.json"
+}

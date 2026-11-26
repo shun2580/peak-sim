@@ -1,0 +1,17 @@
+[26-Nov-2026 17:35:57] NOTICE: [pool www] 'user' directive is ignored when FPM is not running as root
+[26-Nov-2026 17:35:57] NOTICE: [pool www] 'group' directive is ignored when FPM is not running as root
+[26-Nov-2026 17:35:57] NOTICE: fpm is running, pid 1
+[26-Nov-2026 17:35:57] NOTICE: ready to handle connections
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 17:39:27 UTC] PHP Warning:  mkdir(): File exists in /peak-sim/poc/runtime/src/Boot/ScratchDir.php on line 47
+[26-Nov-2026 21:14:04] WARNING: [pool www] child 14 exited on signal 9 (SIGKILL) after 13087.535727 seconds from start
+[26-Nov-2026 21:14:04] NOTICE: [pool www] child 15529 started
+[26-Nov-2026 21:20:29] WARNING: [pool www] child 13 exited on signal 9 (SIGKILL) after 13472.681175 seconds from start
+[26-Nov-2026 21:20:29] NOTICE: [pool www] child 15987 started
+[26-Nov-2026 21:30:24] WARNING: [pool www] child 9 exited on signal 9 (SIGKILL) after 14067.698605 seconds from start
+[26-Nov-2026 21:30:24] NOTICE: [pool www] child 16686 started

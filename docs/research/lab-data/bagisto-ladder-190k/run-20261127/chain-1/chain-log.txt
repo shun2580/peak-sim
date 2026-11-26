@@ -1,0 +1,6 @@
+2026-11-27T02:35:55+09:00 CHAIN START scale=190000 scenarios='s-1 s-2 s-3 s-4 s-5' request_timeout=2400s stop_mark=~/.cache/peak-lab-bagisto/out/chain-b/STOP require_allocation=1
+2026-11-27T02:35:55+09:00 RECREATE app/web before s-1 (use-db 190000)
+2026-11-27T02:36:10+09:00 recreated and checked before s-1
+2026-11-27T02:36:11+09:00 START s-1 scale=190000 request_timeout=2400s
+2026-11-27T06:35:09+09:00 END s-1 exit=19
+2026-11-27T06:35:10+09:00 CHAIN STOP at s-1 exit=19
