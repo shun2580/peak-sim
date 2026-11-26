@@ -1,0 +1,9 @@
+== 2026-11-27 02:25:16 db log recovery/error lines
+0
+-- InnoDB lines (tail)
+2026-11-26T10:22:30.700221Z 0 [Warning] [MY-014084] [InnoDB] Threads are unable to reserve space in redo log which can't be reclaimed due to the 'log_checkpointer' consumer still lagging behind at LSN = 7073322150. Consider increasing innodb_redo_log_capacity.
+2026-11-26T10:23:25.533607Z 0 [Warning] [MY-014084] [InnoDB] Threads are unable to reserve space in redo log which can't be reclaimed due to the 'log_checkpointer' consumer still lagging behind at LSN = 7537899188. Consider increasing innodb_redo_log_capacity.
+2026-11-26T10:24:38.341353Z 39 [Warning] [MY-014084] [InnoDB] Threads are unable to reserve space in redo log which can't be reclaimed due to the 'log_checkpointer' consumer still lagging behind at LSN = 8521795852. Consider increasing innodb_redo_log_capacity.
+2026-11-26T10:25:10.336252Z 39 [Warning] [MY-014084] [InnoDB] Threads are unable to reserve space in redo log which can't be reclaimed due to the 'log_checkpointer' consumer still lagging behind at LSN = 8842813798. Consider increasing innodb_redo_log_capacity.
+2026-11-26T17:24:50.853681Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-11-26T17:24:51.734879Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.

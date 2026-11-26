@@ -1,0 +1,13 @@
+== 2026-11-27 02:32:34 before the chain
+               total        used        free      shared  buff/cache   available
+Mem:              15           5           5           0           5          10
+Swap:              4           0           4
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   75G  881G   8% /
+volumes: 58
+2cb7656da6e4ec5fa7d527b31f0875071b329bdaf7f3fe2f3fc41743673e1e2a  -
+peak-lab-bagisto-tools
+peak-lab-bagisto-app
+peak-lab-bagisto-k6
+peak-lab-bagisto-web
+peak-lab-bagisto-db

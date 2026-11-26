@@ -1,0 +1,5 @@
+cb955d5bfb247d48c59d87992f5acb73729a3819f0eed6c4ccb9c8ef69f30028  run1: ladder-prediction.json
+cb955d5bfb247d48c59d87992f5acb73729a3819f0eed6c4ccb9c8ef69f30028  run2: ladder-prediction.json
+run1 vs run2: cmp of ladder-prediction.json: same bytes
+committed file: cb955d5bfb247d48c59d87992f5acb73729a3819f0eed6c4ccb9c8ef69f30028 (poc/lab/predictions/ladder-prediction-bagisto-b.json)
+input file: 8eb2f80db4bb09f4160b721588348f98b1b041429a3c41729709739f52bea41e = stop/scenario-input.sha256: 8eb2f80db4bb09f4160b721588348f98b1b041429a3c41729709739f52bea41e

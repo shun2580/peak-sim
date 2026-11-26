@@ -1,0 +1,7 @@
+allocation.request_timeout_s 2400.0  half_request_timeout_s 1200.0
+stages (rps total): [0.025, 0.035, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.45, 0.7, 1.0, 1.5, 2.2, 3.3, 5.0]
+s-1 routes taken out: ['GET /admin/customers/view/{id}'] | warmup_sec per step: [1149] | basis: GET /api/products 1148.9 s | limit rps point/safe/naive: 0.5761/0.0816/6.1221 | first step over the line (point/upper): 10 5
+s-2 routes taken out: ['GET /admin/customers/view/{id}'] | warmup_sec per step: [1149] | basis: GET /api/products 1148.9 s | limit rps point/safe/naive: 0.3663/0.0451/6.1221 | first step over the line (point/upper): 9 3
+s-3 routes taken out: ['GET /admin/customers/view/{id}'] | warmup_sec per step: [1149] | basis: GET /api/products 1148.9 s | limit rps point/safe/naive: 0.8895/0.1629/6.1221 | first step over the line (point/upper): 11 7
+s-4 routes taken out: ['GET /admin/customers/view/{id}'] | warmup_sec per step: [1149] | basis: GET /api/products 1148.9 s | limit rps point/safe/naive: 0.3663/0.0451/6.1221 | first step over the line (point/upper): 9 3
+s-5 routes taken out: ['GET /admin/customers/view/{id}'] | warmup_sec per step: [1149] | basis: GET /api/products 1148.9 s | limit rps point/safe/naive: 0.4244/0.0459/6.1221 | first step over the line (point/upper): 9 3

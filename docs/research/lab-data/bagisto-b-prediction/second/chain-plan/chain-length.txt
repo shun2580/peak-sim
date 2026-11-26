@@ -1,0 +1,29 @@
+Length of the measurement chain, worked out before it is started (2026-11-27 02:32:34). Per step: window (scheme B, from the tool's dry-run table for each scenario) + preparation 1149 s (the prediction) + about 60 s to start and read; optionally the wait at the end of a step (up to 2400 s); per scenario about 600 s to make the containers again and read the settings.
+K = the step at which the scenario stops by the rule (first step at 80% database utilization or with its rate not out). It is not known before the measurement: three readings are given. K_point = first step over the line by the point reading of the prediction; K_upper = by the upper reading; 15 = no stop (every step).
+
+s-1 windows of steps 1-15 (s): [1600, 1142, 800, 571, 400, 533, 400, 400, 356, 343, 320, 320, 309, 303, 304]
+   K_upper =  5 : 3.1 h without the end waits, 6.4 h with every end wait at its 2400 s limit
+   K_point = 10 : 5.3 h without the end waits, 12.0 h with every end wait at its 2400 s limit
+   K_all   = 15 : 7.5 h without the end waits, 17.5 h with every end wait at its 2400 s limit
+s-2 windows of steps 1-15 (s): [1600, 1142, 800, 571, 400, 533, 400, 400, 356, 343, 320, 320, 309, 303, 304]
+   K_upper =  3 : 2.2 h without the end waits, 4.2 h with every end wait at its 2400 s limit
+   K_point =  9 : 4.9 h without the end waits, 10.9 h with every end wait at its 2400 s limit
+   K_all   = 15 : 7.5 h without the end waits, 17.5 h with every end wait at its 2400 s limit
+s-3 windows of steps 1-15 (s): [1600, 1142, 800, 571, 400, 533, 400, 400, 356, 343, 320, 320, 309, 303, 304]
+   K_upper =  7 : 4.0 h without the end waits, 8.7 h with every end wait at its 2400 s limit
+   K_point = 11 : 5.8 h without the end waits, 13.1 h with every end wait at its 2400 s limit
+   K_all   = 15 : 7.5 h without the end waits, 17.5 h with every end wait at its 2400 s limit
+s-4 windows of steps 1-15 (s): [1600, 1142, 800, 571, 400, 533, 400, 400, 356, 343, 320, 320, 309, 303, 304]
+   K_upper =  3 : 2.2 h without the end waits, 4.2 h with every end wait at its 2400 s limit
+   K_point =  9 : 4.9 h without the end waits, 10.9 h with every end wait at its 2400 s limit
+   K_all   = 15 : 7.5 h without the end waits, 17.5 h with every end wait at its 2400 s limit
+s-5 windows of steps 1-15 (s): [1600, 1142, 800, 571, 400, 533, 400, 400, 356, 343, 320, 320, 309, 303, 304]
+   K_upper =  3 : 2.2 h without the end waits, 4.2 h with every end wait at its 2400 s limit
+   K_point =  9 : 4.9 h without the end waits, 10.9 h with every end wait at its 2400 s limit
+   K_all   = 15 : 7.5 h without the end waits, 17.5 h with every end wait at its 2400 s limit
+
+Chain of five, K_upper               : 13.6 h -> ends 2026-11-27 16:08 (no end waits) ; 27.6 h -> ends 2026-11-28 06:08 (every end wait at 2400 s)
+Chain of five, K_point               : 25.8 h -> ends 2026-11-28 04:23 (no end waits) ; 57.8 h -> ends 2026-11-29 12:23 (every end wait at 2400 s)
+Chain of five, K = 15 (every step)   : 37.3 h -> ends 2026-11-28 15:48 (no end waits) ; 87.3 h -> ends 2026-11-30 17:48 (every end wait at 2400 s)
+
+Start planned at 2026-11-27 02:32:34. The longest case above ends before 2026-12-05 00:00 (the end of the pause of the operating system's updates): yes

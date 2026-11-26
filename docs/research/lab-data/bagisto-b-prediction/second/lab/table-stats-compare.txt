@@ -1,0 +1,1 @@
+== 2026-11-27 02:25:30 compare of innodb_table_stats (152 tables) now vs the record after ANALYZE (lab/analyze/analyze-table-stats-after.tsv): identical in table, n_rows and last_update

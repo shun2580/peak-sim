@@ -1,0 +1,33 @@
+loaded: 13 scenario(s), estimate made at N=190000
+  cal-1 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-2 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-3 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-4 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-5 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-6 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-7 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-8 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-1 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-2 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-3 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-4 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-5 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+
+ladder prediction: 15 stage(s) x 5 scenario(s), calibration two_coefficient
+  estimate commit: 58107a2ce360eeaa8991bffd933a81337b29bdd7 (git), as expected (58107a2)
+  naive basis: cal-2 among cal-1, cal-2, cal-3
+  s-1 safe side: marks of the estimate made at 190,000 rows (estimate_at_count) for 190,000 rows
+  s-2 safe side: marks of the estimate made at 190,000 rows (estimate_at_count) for 190,000 rows
+  s-3 safe side: marks of the estimate made at 190,000 rows (estimate_at_count) for 190,000 rows
+  s-4 safe side: marks of the estimate made at 190,000 rows (estimate_at_count) for 190,000 rows
+  s-5 safe side: marks of the estimate made at 190,000 rows (estimate_at_count) for 190,000 rows
+  s-1: GET /admin/customers/view/{id} taken out of the mix (memory); its share goes to the rest of its group
+  s-2: GET /admin/customers/view/{id} taken out of the mix (memory); its share goes to the rest of its group
+  s-3: GET /admin/customers/view/{id} taken out of the mix (memory); its share goes to the rest of its group
+  s-4: GET /admin/customers/view/{id} taken out of the mix (memory); its share goes to the rest of its group
+  s-5: GET /admin/customers/view/{id} taken out of the mix (memory); its share goes to the rest of its group
+  s-1: limit rps point 0.5761 / safe 0.0816 / naive 6.1221
+  s-2: limit rps point 0.3663 / safe 0.0451 / naive 6.1221
+  s-3: limit rps point 0.8895 / safe 0.1629 / naive 6.1221
+  s-4: limit rps point 0.3663 / safe 0.0451 / naive 6.1221
+  s-5: limit rps point 0.4244 / safe 0.0459 / naive 6.1221

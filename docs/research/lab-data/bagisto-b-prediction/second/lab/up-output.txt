@@ -1,0 +1,119 @@
+ Image peak-lab-bagisto-php:8.4 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 668B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.fpm
+#2 transferring dockerfile: 1.23kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/php:8.4-fpm
+#3 DONE 2.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/4] FROM docker.io/library/php:8.4-fpm@sha256:89598ce2b089ebe8dd3772f7188a2d47300145fbcea6578de2db96c8e8f026bb
+#5 resolve docker.io/library/php:8.4-fpm@sha256:89598ce2b089ebe8dd3772f7188a2d47300145fbcea6578de2db96c8e8f026bb 0.0s done
+#5 DONE 0.0s
+
+#6 [2/4] RUN apt-get update  && apt-get install -y --no-install-recommends libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev  && docker-php-ext-configure gd --with-jpeg --with-freetype  && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd  && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/4] RUN if [ -n "calendar" ]; then docker-php-ext-install $(echo "calendar" | tr ',' ' '); fi
+#7 CACHED
+
+#8 [4/4] WORKDIR /peak-sim
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 exporting manifest sha256:5f07421fd2bb3cb32d1fa49842c54236f980f604f83d4df41ecec42120bd5a7d done
+#9 exporting config sha256:7bec95034e8e1210e6c8ea36655969792edb5f2ce2ac19022cb903bf48bf2f90 done
+#9 exporting attestation manifest sha256:0f8d91e385b14b5a4ac539fc8f802f625334a1fd33c3ba76cf914845fac986be 0.0s done
+#9 exporting manifest list sha256:2f47980d64e71fe9a439091f2ce697351f88ffdc1fb0fabc2bebd0c4e33994ca done
+#9 naming to docker.io/library/peak-lab-bagisto-php:8.4 done
+#9 unpacking to docker.io/library/peak-lab-bagisto-php:8.4 done
+#9 DONE 0.1s
+
+#10 resolving provenance for metadata file
+#10 DONE 0.0s
+ Image peak-lab-bagisto-php:8.4 Built 
+ Container peak-lab-bagisto-app Recreate 
+ Container peak-lab-bagisto-app Recreated 
+ Container peak-lab-bagisto-tools Recreate 
+ Container peak-lab-bagisto-tools Recreated 
+ Container peak-lab-bagisto-db Starting 
+ Container peak-lab-bagisto-db Started 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-app Starting 
+ Container peak-lab-bagisto-app Started 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-web Starting 
+ Container peak-lab-bagisto-web Started 
+ Container peak-lab-bagisto-k6 Starting 
+ Container peak-lab-bagisto-k6 Started 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-tools Starting 
+ Container peak-lab-bagisto-tools Started 
+ Container peak-lab-bagisto-db Waiting 
+ Container peak-lab-bagisto-app Waiting 
+ Container peak-lab-bagisto-web Waiting 
+ Container peak-lab-bagisto-k6 Waiting 
+ Container peak-lab-bagisto-tools Waiting 
+ Container peak-lab-bagisto-db Healthy 
+ Container peak-lab-bagisto-web Healthy 
+ Container peak-lab-bagisto-tools Healthy 
+ Container peak-lab-bagisto-app Healthy 
+ Container peak-lab-bagisto-k6 Healthy 
+PASS container: peak-lab-bagisto-db is running
+PASS container: peak-lab-bagisto-app is running
+PASS container: peak-lab-bagisto-web is running
+PASS container: peak-lab-bagisto-k6 is running
+PASS container: peak-lab-bagisto-tools is running
+PASS network: peak-lab-bagisto_lab-internal internal=true
+PASS peak-lab-bagisto-db: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-db: no published port
+PASS peak-lab-bagisto-app: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-app: no published port
+PASS peak-lab-bagisto-web: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-web: no published port
+PASS peak-lab-bagisto-k6: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-k6: no published port
+PASS peak-lab-bagisto-tools: network mode peak-lab-bagisto_lab-internal
+PASS peak-lab-bagisto-tools: no published port
+peak-lab-bagisto-app: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-app: PASS negative http:example.com             no response
+peak-lab-bagisto-app: PASS negative default-route                no default route
+peak-lab-bagisto-app: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-app: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-app: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-app: PREFLIGHT OK
+peak-lab-bagisto-tools: PASS negative dns:example.com              did not resolve
+peak-lab-bagisto-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-lab-bagisto-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-lab-bagisto-tools: PASS negative http:example.com             no response
+peak-lab-bagisto-tools: PASS negative default-route                no default route
+peak-lab-bagisto-tools: PASS positive tcp:measure-db:3306          connected
+peak-lab-bagisto-tools: PASS positive dns:measure-db               resolved to 172.24.0.2
+peak-lab-bagisto-tools: PASS positive login:measure                logged in as the measurement user
+peak-lab-bagisto-tools: PREFLIGHT OK
+PASS peak-lab-bagisto-web: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-web: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-web: http://example.com is unreachable
+PASS peak-lab-bagisto-web: the app (lab-app:9000) (positive control)
+PASS peak-lab-bagisto-k6: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-k6: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-k6: http://example.com is unreachable
+PASS peak-lab-bagisto-k6: the web server (/__lab/health) (positive control)
+PASS peak-lab-bagisto-db: 1.1.1.1:443 is unreachable
+PASS peak-lab-bagisto-db: 8.8.8.8:53 is unreachable
+PASS peak-lab-bagisto-db: the name example.com is unreachable
+PASS peak-lab-bagisto-db: its own port (3306) (positive control)
+PREFLIGHT OK
+lab is up and sealed. scale=10000  web (from inside the network only): http://lab-web:8080
+rc=0 2026-11-27 02:25:10
