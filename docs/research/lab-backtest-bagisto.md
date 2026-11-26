@@ -181,6 +181,8 @@ All the runs of this table were made with the application at 10 cores (section 1
 
 **The effective gate** is the one the measuring entry calls on the real plan after R has been decided. It was called without the search flag, before each of cal-2 and cal-3 and again alone with `--gate-only` (`bagisto-calibration/fit/gate-only.out.txt`): **open** (exit 0), smallest degree **0.546895** (the set without cal-8), threshold 0.50; the other sets' degrees are 0.671844 to 0.737940. The tool's entry does not measure if the gate refuses. Its output was printed by the tool before each of the two runs began, and it was committed afterwards, with the results (`fec43eb7`, 2026-11-26 13:50:07); the commit that precedes the runs (`20a3e407`, 13:24:25) holds the rule and the plan and not the gate's result. So the order "gate, then measurement" is shown by the tool's behaviour and by the calibration log (the start of cal-2 at 13:24:33), and not by a commit that holds the gate's result before the measurement.
 
+This does not meet the form that decision D264 (6) set, which was to record the effective gate's result before the calibration runs and to show the order in git; it does not change any value, the calibration or the prediction, and the order is shown by line 20 of `bagisto-calibration/cal2-r2.83.out.txt` (`CALIBRATION GATE OK`, printed before that run's result) and is noted in an addendum to D264.
+
 **The eight runs**, and how each was handed to the formula (D274; `--run-scale` written out for all eight and checked against the first line of each run's `tables-before.tsv`):
 
 | run | mix | rows | rate (rps) | database | where it comes from |
