@@ -1,0 +1,7 @@
+predict-ladder: stop and report (no prediction is written):
+a request is predicted to take more than half of the request timeout (1800 s, so over 900 s of php CPU time):
+  s-1: GET /api/products, 1148.9 s of php CPU time for one request
+  s-2: GET /api/products, 1148.9 s of php CPU time for one request
+  s-3: GET /api/products, 1148.9 s of php CPU time for one request
+  s-4: GET /api/products, 1148.9 s of php CPU time for one request
+  s-5: GET /api/products, 1148.9 s of php CPU time for one request

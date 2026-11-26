@@ -27,4 +27,23 @@ The calibration (the two coefficients), the formulas, the rules of the marks, th
 
 ## Results
 
-(added after the work)
+Added 2026-11-26 19:31. **The prediction tool stopped with exit 39. No prediction file exists. Nothing is measured.**
+
+### What was done (times are the host clock, JST; `lab/step-times.tsv`, `estimate/order_record.txt`)
+
+- **The lab stack** was started with the wrapper (`lab/up-output.txt`); the settings for B were already on (`lab-config-b status` = B; the two files' sha256 as recorded before); the database's log had no recovery or error line (`lab/db-state-after-up.txt`). No database, volume, directory or record of the count of 190,000 existed before (`lab/unused-190000-check.txt`).
+- **The lab database of 190,000 rows** was built 19:12:13 to 19:25:49 (802.89 s by the builder: migrations 17.5 s, filling 760.83 s; `lab/build-db-output.txt`), then `ANALYZE TABLE` once: 152 of 152 tables `status OK` (`lab/analyze/`). The database's log has no recovery or error line after the build (`lab/db-log-after-build.txt`).
+- **The plans** (`bin/explain-at-scale`, flags as fixed above, run once): 19:13:09 to 19:28:48, exit 0. 432 statement types, 192 sent as EXPLAIN, 3 `plan_unstable`, 56 `plan_changes_at_scale`, 0 `explain_unavailable` (`explain/`; the sha256 of `explain.json` is in `explain/explain.json.sha256`; the file itself is 8 MB and is kept outside the repository).
+- **The estimate and the marks**: `bin/predict --at=190000`, `bin/estimate` and `bin/marked-routes` each made twice; the two outputs are the same bytes (`estimate/two-runs.sha256`). 41 of the 63 routes are marked. The committed files are run 1.
+- **The shared-table copy** (`shared/`): 119 of the 120 route-index entries changed, every changed line a table line, equal to the original after resetting those fields (`shared/share-proof.json`). The scenario file was made from the calibration file of the eight runs, unchanged, and the five target scenarios (`stop/scenario-input.yaml`, with its sha256).
+- **The prediction tool** was run once, with the fixed flags, on the committed shared copy (`stop/order.txt`, `stop/predict-ladder.stdout`, `stop/predict-ladder.stderr`).
+
+### The stop
+
+`bin/predict-ladder` ended with **exit 39**: "a request is predicted to take more than half of the request timeout (1800 s, so over 900 s of php CPU time)". For each of s-1 to s-5 the route is `GET /api/products` with **1148.9 s** of php CPU time for one request. This is the strict reading fixed above (simulator-spec section 7.4.4): the check covers every route of the scenario before the allocation.
+
+Following what was fixed above: it was **not run again**, no flag, count, calibration, time limit or route was changed, nothing was deleted (the database, the plans, the estimate, the shared copy and the standard error output are kept), nothing is measured, and the maintainers are asked what to do. The prediction gate was not run: there is no prediction file to give it.
+
+### The state left
+
+The two input files of the prediction tool are in `stop/`; the copy of the scenario file under `poc/lab/predictions/` (`ladder-prediction-bagisto-b-input.yaml`) is left where it was made and is not committed, so that the directory holds no prediction file.
