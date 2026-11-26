@@ -1,0 +1,6 @@
+== 2026-11-27 02:35:33 targets
+8 of 8 routes filled; unfilled 0; not in the static analysis 0; written to /out/targets-190000.json
+rc=0
+d04395480720e547
+
+The first start of the chain (02:33:07) ended at 02:34:19 with exit 2 before any request was sent: `measure-ladder: .../targets-190000.json is missing (make it with: bin/targets --static=<analysis.json> --scale=190000)` (`first-start-chain.log`, `first-start-s-1.output.txt`). The file of the concrete paths of the routes for this database had not been made yet (the rehearsal made it at its preparation). It was made at 02:35:33 with the same static analysis as the rehearsal (sha256 `d0439548...`), 8 of 8 routes filled, no request sent. Nothing was measured before, the prediction and every setting were unchanged, and the chain was started again at 02:35:55 (the same command, the same output directory name; the first start's directory is kept as `chain-b-attempt1`).
