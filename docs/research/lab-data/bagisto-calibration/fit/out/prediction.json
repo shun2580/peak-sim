@@ -1,0 +1,1314 @@
+{
+    "schema_version": "0.1",
+    "app": "bagisto",
+    "estimate_at": 240000,
+    "resources": {
+        "cores": 2.0,
+        "threshold": 0.8,
+        "php_memory_limit_bytes": null
+    },
+    "estimate_basis_note": "the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ; they also assume that the database the statements were captured on and the database the estimate is used on are in the same maintenance state: the rebuild and aggregate processes of the application (for BookStack, regenerate-references) were run on both or on neither, and then ANALYZE TABLE was run on both, because a table such a process rewrites can hold different rows in another state",
+    "low_coverage_scenarios": [],
+    "calibration": {
+        "method": "two_coefficient",
+        "calibration_scenarios": 8,
+        "cut_coefficients": false,
+        "warnings": [],
+        "unknown_cost_routes": 0,
+        "fits": [
+            {
+                "kind": "two_coefficient",
+                "c_query": 0.0003799621803243519,
+                "c_row": 8.52974182451201e-7,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.13060733718475553,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4086955612016012,
+                        "fitted_load": 0.4381615611815354,
+                        "residual_load": -0.029465999979934154,
+                        "observed_utilization": 0.2043477806008006,
+                        "fitted_utilization": 0.2190807805907677,
+                        "residual_utilization": -0.014732999989967077
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.739611547795999,
+                        "fitted_load": 0.6059662590638809,
+                        "residual_load": 0.13364528873211812,
+                        "observed_utilization": 0.3698057738979995,
+                        "fitted_utilization": 0.30298312953194045,
+                        "residual_utilization": 0.06682264436605906
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.6565986218472898,
+                        "fitted_load": 0.517337166422622,
+                        "residual_load": 0.13926145542466783,
+                        "observed_utilization": 0.3282993109236449,
+                        "fitted_utilization": 0.258668583211311,
+                        "residual_utilization": 0.06963072771233392
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.4020061816472441,
+                        "fitted_load": 0.4184948642936678,
+                        "residual_load": -0.01648868264642367,
+                        "observed_utilization": 0.20100309082362205,
+                        "fitted_utilization": 0.2092474321468339,
+                        "residual_utilization": -0.008244341323211835
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.47757039525061645,
+                        "fitted_load": 0.45084111746993943,
+                        "residual_load": 0.02672927778067702,
+                        "observed_utilization": 0.23878519762530823,
+                        "fitted_utilization": 0.22542055873496972,
+                        "residual_utilization": 0.01336463889033851
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4932379070459808,
+                        "fitted_load": 0.38225742139891783,
+                        "residual_load": 0.11098048564706298,
+                        "observed_utilization": 0.2466189535229904,
+                        "fitted_utilization": 0.19112871069945891,
+                        "residual_utilization": 0.05549024282353149
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.3649004501722003,
+                        "fitted_load": 0.6457770374830033,
+                        "residual_load": -0.280876587310803,
+                        "observed_utilization": 0.18245022508610015,
+                        "fitted_utilization": 0.32288851874150165,
+                        "residual_utilization": -0.1404382936554015
+                    },
+                    {
+                        "id": "cal-8",
+                        "observed_load": 0.3536721665966948,
+                        "fitted_load": 0.3706903751609922,
+                        "residual_load": -0.017018208564297366,
+                        "observed_utilization": 0.1768360832983474,
+                        "fitted_utilization": 0.1853451875804961,
+                        "residual_utilization": -0.008509104282148683
+                    }
+                ]
+            },
+            {
+                "kind": "queries_only",
+                "c_query": 0.001930366976610839,
+                "c_row": 0.0,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 1.359202890650583,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4086955612016012,
+                        "fitted_load": 0.12718959197686172,
+                        "residual_load": 0.28150596922473947,
+                        "observed_utilization": 0.2043477806008006,
+                        "fitted_utilization": 0.06359479598843086,
+                        "residual_utilization": 0.14075298461236974
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.739611547795999,
+                        "fitted_load": 0.1451115266714443,
+                        "residual_load": 0.5945000211245547,
+                        "observed_utilization": 0.3698057738979995,
+                        "fitted_utilization": 0.07255576333572215,
+                        "residual_utilization": 0.29725001056227734
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.6565986218472898,
+                        "fitted_load": 0.11806998087959139,
+                        "residual_load": 0.5385286409676984,
+                        "observed_utilization": 0.3282993109236449,
+                        "fitted_utilization": 0.059034990439795695,
+                        "residual_utilization": 0.2692643204838492
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.4020061816472441,
+                        "fitted_load": 0.3549989251517378,
+                        "residual_load": 0.0470072564955063,
+                        "observed_utilization": 0.20100309082362205,
+                        "fitted_utilization": 0.1774994625758689,
+                        "residual_utilization": 0.02350362824775315
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.47757039525061645,
+                        "fitted_load": 0.04555966342552854,
+                        "residual_load": 0.4320107318250879,
+                        "observed_utilization": 0.23878519762530823,
+                        "fitted_utilization": 0.02277983171276427,
+                        "residual_utilization": 0.21600536591254396
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4932379070459808,
+                        "fitted_load": 0.011165448497460824,
+                        "residual_load": 0.48207245854852,
+                        "observed_utilization": 0.2466189535229904,
+                        "fitted_utilization": 0.005582724248730412,
+                        "residual_utilization": 0.24103622927426
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.3649004501722003,
+                        "fitted_load": 0.05955526524469961,
+                        "residual_load": 0.3053451849275007,
+                        "observed_utilization": 0.18245022508610015,
+                        "fitted_utilization": 0.029777632622349805,
+                        "residual_utilization": 0.15267259246375034
+                    },
+                    {
+                        "id": "cal-8",
+                        "observed_load": 0.3536721665966948,
+                        "fitted_load": 0.7030164321244179,
+                        "residual_load": -0.3493442655277231,
+                        "observed_utilization": 0.1768360832983474,
+                        "fitted_utilization": 0.35150821606220894,
+                        "residual_utilization": -0.17467213276386154
+                    }
+                ]
+            },
+            {
+                "kind": "rows_only",
+                "c_query": 0.0,
+                "c_row": 9.078043128308617e-7,
+                "negative_unconstrained": [],
+                "at_zero": [],
+                "notes": [],
+                "sum_squared_residual_load": 0.14996208867068406,
+                "residuals": [
+                    {
+                        "id": "cal-1",
+                        "observed_load": 0.4086955612016012,
+                        "fitted_load": 0.4396825223738247,
+                        "residual_load": -0.030986961172223493,
+                        "observed_utilization": 0.2043477806008006,
+                        "fitted_utilization": 0.21984126118691236,
+                        "residual_utilization": -0.015493480586111746
+                    },
+                    {
+                        "id": "cal-2",
+                        "observed_load": 0.739611547795999,
+                        "fitted_load": 0.6145194827722755,
+                        "residual_load": 0.1250920650237235,
+                        "observed_utilization": 0.3698057738979995,
+                        "fitted_utilization": 0.30725974138613776,
+                        "residual_utilization": 0.06254603251186175
+                    },
+                    {
+                        "id": "cal-3",
+                        "observed_load": 0.6565986218472898,
+                        "fitted_load": 0.5258580626523397,
+                        "residual_load": 0.1307405591949501,
+                        "observed_utilization": 0.3282993109236449,
+                        "fitted_utilization": 0.26292903132616985,
+                        "residual_utilization": 0.06537027959747505
+                    },
+                    {
+                        "id": "cal-4",
+                        "observed_load": 0.4020061816472441,
+                        "fitted_load": 0.3710285598312258,
+                        "residual_load": 0.03097762181601832,
+                        "observed_utilization": 0.20100309082362205,
+                        "fitted_utilization": 0.1855142799156129,
+                        "residual_utilization": 0.01548881090800916
+                    },
+                    {
+                        "id": "cal-5",
+                        "observed_load": 0.47757039525061645,
+                        "fitted_load": 0.4702775344372812,
+                        "residual_load": 0.007292860813335245,
+                        "observed_utilization": 0.23878519762530823,
+                        "fitted_utilization": 0.2351387672186406,
+                        "residual_utilization": 0.0036464304066676223
+                    },
+                    {
+                        "id": "cal-6",
+                        "observed_load": 0.4932379070459808,
+                        "fitted_load": 0.4044903390857677,
+                        "residual_load": 0.0887475679602131,
+                        "observed_utilization": 0.2466189535229904,
+                        "fitted_utilization": 0.20224516954288385,
+                        "residual_utilization": 0.04437378398010655
+                    },
+                    {
+                        "id": "cal-7",
+                        "observed_load": 0.3649004501722003,
+                        "fitted_load": 0.6748122573992222,
+                        "residual_load": -0.30991180722702194,
+                        "observed_utilization": 0.18245022508610015,
+                        "fitted_utilization": 0.3374061286996111,
+                        "residual_utilization": -0.15495590361351097
+                    },
+                    {
+                        "id": "cal-8",
+                        "observed_load": 0.3536721665966948,
+                        "fitted_load": 0.2472460400689617,
+                        "residual_load": 0.10642612652773312,
+                        "observed_utilization": 0.1768360832983474,
+                        "fitted_utilization": 0.12362302003448085,
+                        "residual_utilization": 0.05321306326386656
+                    }
+                ]
+            }
+        ],
+        "width": {
+            "status": "leave_one_out",
+            "reason": "the range of the two-coefficient fits made by leaving each of the 8 calibration scenarios out",
+            "notes": [],
+            "fits": [
+                {
+                    "label": "all",
+                    "c_query": 0.0003799621803243519,
+                    "c_row": 8.52974182451201e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-1",
+                    "c_query": 0.00037898177443603746,
+                    "c_row": 8.600631534076131e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-2",
+                    "c_query": 0.00040815278451388854,
+                    "c_row": 7.992570551045325e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-3",
+                    "c_query": 0.00040737940692164523,
+                    "c_row": 8.07540698711888e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-4",
+                    "c_query": 0.0003989165223515072,
+                    "c_row": 8.538708747067737e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-5",
+                    "c_query": 0.00039177689113875186,
+                    "c_row": 8.442617826876126e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-6",
+                    "c_query": 0.00043452733100997706,
+                    "c_row": 8.207653757988599e-7,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-7",
+                    "c_query": 0.0001560600021303466,
+                    "c_row": 1.012845045035898e-6,
+                    "cut_coefficient": false
+                },
+                {
+                    "label": "without:cal-8",
+                    "c_query": 0.0006087425924521439,
+                    "c_row": 8.311927597482706e-7,
+                    "cut_coefficient": false
+                }
+            ]
+        }
+    },
+    "scenarios": [],
+    "peak_memory": {
+        "line_share_of_limit": 0.8,
+        "accuracy_source": "none",
+        "routes": [
+            {
+                "route": "DELETE /admin/customers/groups/delete/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /admin/marketing/search-seo/sitemaps/edit/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "DELETE /admin/sales/rma/rules/delete/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /admin/settings/locales/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/checkout/cart",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/compare-items",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/compare-items/all",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /api/customer/wishlist/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /customer/account/addresses/delete/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "DELETE /customer/logout",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/catalog/products/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/catalog/products/search",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/configuration/{slug?}/{slug2?}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/customers/gdpr/edit/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/customers/login-as-customer/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/customers/search",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/customers/view/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/customers/{id}/addresses",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/marketing/communications/campaigns",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/marketing/promotions/cart-rules/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/reporting/sales/view",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/sales/invoices/print/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/sales/orders/view/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/sales/rma/reasons/edit/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/sales/shipments/view/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/settings/currencies",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/settings/exchange-rates/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /admin/settings/inventory-sources/edit/{id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /admin/settings/roles",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /api/categories",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/categories/attributes",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/categories/attributes/{attribute_id}/options",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/categories/tree",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/core/countries",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/customer/addresses",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/customer/addresses/allowed-countries",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/customer/addresses/allowed-states",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/customer/wishlist",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/product/{id}/reviews",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/product/{id}/reviews/{review_id}/translate",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/products",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/products/{id}/related",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /api/products/{id}/up-sell",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /appearance-preview",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /booking-slots/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /cache/{template}/{filename}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/addresses/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/downloadable-products",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/gdpr",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/gdpr/pdf-view",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/orders/view/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/orders/{orderId}/withdraw",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/profile/edit",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/reviews",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/rma",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/rma/get-messages",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/rma/get-order-items/{orderId}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/rma/images/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/wishlist",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/account/your-cookie-consent-preferences",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/datagrid/look-up",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/resend/verification/{email}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/social-login/{provider}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/social-login/{provider}/callback",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /customer/verify-account/{token}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /downloadable/download-sample/{type}/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /payu/redirect",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /phonepe/redirect",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /razorpay/payment/redirect",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /search",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /sitemap.xml",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /stripe/redirect",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "GET /subscription/{token}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /webmcp/product",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "GET /withdraw",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PATCH /customer/account/addresses/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/appearance/themes/{code}/sections",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/cms/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/customers/addresses/default/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/marketing/communications/events/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/marketing/search-seo/search-synonyms/create",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/cart/{id}/shipping-methods",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/eu-withdrawals/{id}/resend-confirmation",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/invoices/create/{order_id}",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/rma/custom-fields/update/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/rma/reasons/mass-update",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "POST /admin/sales/rma/rma-status/mass-delete",
+                "table": "n_shared",
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "php_memory_limit_unknown",
+                "n": null
+            },
+            {
+                "route": "POST /admin/settings/exchange-rates/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/cart/coupon",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/cart/move-to-wishlist",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/onepage/addresses",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/onepage/orders",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/onepage/payment-methods",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/checkout/onepage/shipping-methods",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/compare-items",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/customer/addresses",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /api/customer/wishlist",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/addresses/create",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/gdpr",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/gdpr/revoke/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/orders/cancel/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/orders/{orderId}/withdraw",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/profile/destroy",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/profile/edit",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/rma/cancel/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/rma/reopen/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /customer/account/rma/store",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /paypal/standard/ipn",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /search/upload",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /withdraw/lookup",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "POST /withdraw/{orderId}/store",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /admin/sales/rma/reasons/update/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /admin/settings/channels/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /admin/settings/currencies/edit",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /admin/settings/users/edit",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /api/checkout/cart",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            },
+            {
+                "route": "PUT /customer/account/addresses/edit/{id}",
+                "table": null,
+                "line_bytes": null,
+                "status": "not_shown",
+                "reason": "no_formula",
+                "n": null
+            }
+        ]
+    },
+    "accuracy_on_this_app": {
+        "status": "not_checked",
+        "text": "not checked",
+        "why": "no selfcheck result at selfcheck-result.json"
+    },
+    "sources": {
+        "static": "the static analysis fixed the value",
+        "explain": "the EXPLAIN estimate gave the value (the upper side of a marked statement)",
+        "fit": "a formula fitted to measurements at small sizes",
+        "unknown": "no cost (listed apart, never counted as 0)"
+    },
+    "n_marks": {
+        "measured": "the count is one of the sizes measured",
+        "interpolated": "the count is between measured sizes",
+        "extrapolated": "the count is outside the measured sizes"
+    }
+}

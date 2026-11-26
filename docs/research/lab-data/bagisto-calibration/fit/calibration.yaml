@@ -1,0 +1,139 @@
+# Calibration scenarios of the lab backtest, and nothing else (docs/simulator-spec.md sections 3.4 and 7.2).
+#
+# Made by poc/lab/scenarios/make-calibration-scenario from the plan and the record of each calibration run; nothing in it is typed
+# by hand. There is NO `target` scenario: bin/simulate has nothing to predict and stops after the calibration.
+# `observed` is the utilization of the database CPU over the kept window of the run (0 to 1).
+#
+# Inputs (sha256 of the files as read):
+#   cal-1: plan 973b688d6b32072d090692101eb2a5d002f04a2e8d198426fc4378659ab81343, record 0dfe92dae2dfea9d9b30ebfb0e9f62323c1d45663c6536ac895c1574dfd936fa
+#   cal-2: plan 8458f40c254d062313159ff593ccbbd875a21ac2a0e07b787e0d3ec89e0c7e6d, record d229c45532761e0c96c4c0c3868fe634fdc0218bddfb37139ad491c58e186e57
+#   cal-3: plan 6001b558d02d411c4eb8998b52c908fb9952a83e0a00d595c69b850ccab3f60a, record 23dbc06bb54ac544ec5d28e6d9a09f663581870c8efe8b1c5f540ad72d7ed7d5
+#   cal-4: plan 8175027378b72725b34ed73f6737340e9dc54fb17b6687c8e690f1df25d65a02, record 27700aff3092f59d6e7590086e7ea05fa9f784ff1fd4ab7f22efc54f18dc6dae
+#   cal-5: plan dcbb2be272fa5849f8269fb8f0b40346702b224101684ccc28a702957e63716e, record 20f6081e910adbef3c8ab539122c76ecbb6017aba3444f1f7bf5c414ff8bdc23
+#   cal-6: plan db9e382ce0efe8c53dd50c464b26598766d2597a4ee60474c493808816de6f7e, record 5cd7c4c6b5ae0243138d2a20297cf852630812cd8ba2d33c50d42aebc5e9a6a7
+#   cal-7: plan f27b477b9412f9f1cf9db45814796b595fd4472d93bccc3a5d7fd985134a0569, record 2284ad5f5cf068e32a73b07c42e0f2bb2ce0fc725aca522c7f83e1f3d1af2c9d
+#   cal-8: plan 3d092848c1cd824518602f40c75c55fbc94416fb24f442109179fbf165b24235, record fe53ce2d849bf22f8d74ad12eac3bb82b224c360bfd8c5567f4f99cf6b7ac116
+schema_version: "0.1"
+
+resources:
+  db_cpu:
+    cores: 2
+
+scenarios:
+  - id: cal-1
+    # mix of routes: even, total 2.83 rps
+    kind: calibration
+    tables: { n_shared: 10000 }
+    rps:
+      "GET /api/products": 0.35375
+      "GET /customer/account/addresses/create": 0.35375
+      "GET /admin/customers/view/{id}": 0.35375
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.35375
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.35375
+      "GET /admin/customers/search": 0.35375
+      "GET /api/categories": 0.35375
+      "GET /api/categories/attributes/{attribute_id}/options": 0.35375
+    observed: { db_cpu_utilization: 0.2043477806008006 }
+
+  - id: cal-2
+    # mix of routes: first80, total 2.830000000000001 rps
+    kind: calibration
+    tables: { n_shared: 10000 }
+    rps:
+      "GET /api/products": 0.5660000000000001
+      "GET /customer/account/addresses/create": 0.5660000000000001
+      "GET /admin/customers/view/{id}": 0.5660000000000001
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.5660000000000001
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.14150000000000001
+      "GET /admin/customers/search": 0.14150000000000001
+      "GET /api/categories": 0.14150000000000001
+      "GET /api/categories/attributes/{attribute_id}/options": 0.14150000000000001
+    observed: { db_cpu_utilization: 0.3698057738979995 }
+
+  - id: cal-3
+    # mix of routes: odd80, total 2.8300000000000005 rps
+    kind: calibration
+    tables: { n_shared: 10000 }
+    rps:
+      "GET /api/products": 0.5660000000000001
+      "GET /customer/account/addresses/create": 0.14150000000000001
+      "GET /admin/customers/view/{id}": 0.5660000000000001
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.14150000000000001
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.5660000000000001
+      "GET /admin/customers/search": 0.14150000000000001
+      "GET /api/categories": 0.5660000000000001
+      "GET /api/categories/attributes/{attribute_id}/options": 0.14150000000000001
+    observed: { db_cpu_utilization: 0.3282993109236449 }
+
+  - id: cal-4
+    # mix of routes: even, total 8.0 rps
+    kind: calibration
+    tables: { n_shared: 3000 }
+    rps:
+      "GET /api/products": 1.0
+      "GET /customer/account/addresses/create": 1.0
+      "GET /admin/customers/view/{id}": 1.0
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 1.0
+      "GET /admin/settings/inventory-sources/edit/{id}": 1.0
+      "GET /admin/customers/search": 1.0
+      "GET /api/categories": 1.0
+      "GET /api/categories/attributes/{attribute_id}/options": 1.0
+    observed: { db_cpu_utilization: 0.20100309082362205 }
+
+  - id: cal-5
+    # mix of routes: even, total 1.0 rps
+    kind: calibration
+    tables: { n_shared: 30000 }
+    rps:
+      "GET /api/products": 0.125
+      "GET /customer/account/addresses/create": 0.125
+      "GET /admin/customers/view/{id}": 0.125
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.125
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.125
+      "GET /admin/customers/search": 0.125
+      "GET /api/categories": 0.125
+      "GET /api/categories/attributes/{attribute_id}/options": 0.125
+    observed: { db_cpu_utilization: 0.23878519762530823 }
+
+  - id: cal-6
+    kind: calibration
+    tables: { n_shared: 30000 }
+    rps:
+      "GET /api/products": 0.24
+      "GET /customer/account/addresses/create": 0.008571428571428572
+      "GET /admin/customers/view/{id}": 0.008571428571428572
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.008571428571428572
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.008571428571428572
+      "GET /admin/customers/search": 0.008571428571428572
+      "GET /api/categories": 0.008571428571428572
+      "GET /api/categories/attributes/{attribute_id}/options": 0.008571428571428572
+    observed: { db_cpu_utilization: 0.2466189535229904 }
+
+  - id: cal-7
+    kind: calibration
+    tables: { n_shared: 30000 }
+    rps:
+      "GET /api/products": 0.028571428571428574
+      "GET /customer/account/addresses/create": 0.8
+      "GET /admin/customers/view/{id}": 0.028571428571428574
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 0.028571428571428574
+      "GET /admin/settings/inventory-sources/edit/{id}": 0.028571428571428574
+      "GET /admin/customers/search": 0.028571428571428574
+      "GET /api/categories": 0.028571428571428574
+      "GET /api/categories/attributes/{attribute_id}/options": 0.028571428571428574
+    observed: { db_cpu_utilization: 0.18245022508610015 }
+
+  - id: cal-8
+    # mix of routes: even, total 16.0 rps
+    kind: calibration
+    tables: { n_shared: 1000 }
+    rps:
+      "GET /api/products": 2.0
+      "GET /customer/account/addresses/create": 2.0
+      "GET /admin/customers/view/{id}": 2.0
+      "GET /admin/marketing/communications/campaigns/edit/{id}": 2.0
+      "GET /admin/settings/inventory-sources/edit/{id}": 2.0
+      "GET /admin/customers/search": 2.0
+      "GET /api/categories": 2.0
+      "GET /api/categories/attributes/{attribute_id}/options": 2.0
+    observed: { db_cpu_utilization: 0.1768360832983474 }

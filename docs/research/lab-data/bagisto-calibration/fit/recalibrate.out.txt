@@ -1,0 +1,23 @@
+loaded: 8 scenario(s), estimate made at N=240000
+  cal-1 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-2 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-3 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-4 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-5 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-6 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-7 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-8 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+
+peak-sim simulate of bagisto: 2 cores, threshold 80.0%, calibrated by two_coefficient on 8 scenario(s)
+NOTE the row estimates assume a database whose optimizer statistics are up to date (ANALYZE TABLE was run after the data was built); on a database with stale or missing statistics the plans, and so the estimates, can differ; they also assume that the database the statements were captured on and the database the estimate is used on are in the same maintenance state: the rebuild and aggregate processes of the application (for BookStack, regenerate-references) were run on both or on neither, and then ANALYZE TABLE was run on both, because a table such a process rewrites can hold different rows in another state
+  fit two_coefficient  c_query 0.000379962  c_row 8.52974e-7  squared residual (load) 0.130607
+  fit queries_only     c_query 0.00193037  c_row 0  squared residual (load) 1.3592  (shown only; not used for the point or the width)
+  fit rows_only        c_query 0  c_row 9.07804e-7  squared residual (load) 0.149962  (shown only; not used for the point or the width)
+  width of the calibration: leave_one_out (all, without:cal-1, without:cal-2, without:cal-3, without:cal-4, without:cal-5, without:cal-6, without:cal-7, without:cal-8)
+
+PHP memory (line = 80.0% of the limit; shown only for routes whose formula held within +-30%):
+  97 route(s) not shown: no_formula
+  23 route(s) not shown: php_memory_limit_unknown
+
+accuracy on this app: not checked (no selfcheck result at selfcheck-result.json)
+ok: calibrated (two_coefficient on 8 scenarios), 0 predictions

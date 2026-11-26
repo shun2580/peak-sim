@@ -1,0 +1,64 @@
+{
+    "mix": "first80",
+    "rps": 2.83,
+    "duration_sec": 600,
+    "warmup_sec": 120,
+    "routes": [
+        {
+            "route": "GET /api/products",
+            "share": 0.2,
+            "rps": 0.5660000000000001,
+            "rate": 566,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /customer/account/addresses/create",
+            "share": 0.2,
+            "rps": 0.5660000000000001,
+            "rate": 566,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /admin/customers/view/{id}",
+            "share": 0.2,
+            "rps": 0.5660000000000001,
+            "rate": 566,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /admin/marketing/communications/campaigns/edit/{id}",
+            "share": 0.2,
+            "rps": 0.5660000000000001,
+            "rate": 566,
+            "time_unit": "1000s"
+        },
+        {
+            "route": "GET /admin/settings/inventory-sources/edit/{id}",
+            "share": 0.05,
+            "rps": 0.14150000000000001,
+            "rate": 14,
+            "time_unit": "99s"
+        },
+        {
+            "route": "GET /admin/customers/search",
+            "share": 0.05,
+            "rps": 0.14150000000000001,
+            "rate": 14,
+            "time_unit": "99s"
+        },
+        {
+            "route": "GET /api/categories",
+            "share": 0.05,
+            "rps": 0.14150000000000001,
+            "rate": 14,
+            "time_unit": "99s"
+        },
+        {
+            "route": "GET /api/categories/attributes/{attribute_id}/options",
+            "share": 0.05,
+            "rps": 0.14150000000000001,
+            "rate": 14,
+            "time_unit": "99s"
+        }
+    ]
+}

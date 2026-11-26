@@ -1,0 +1,12 @@
+2026-11-26 13:24:33 PRESTATE cal2-r2.83: HEAD 20a3e40; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up About an hour peak-lab-bagisto-app:Up About an hour peak-lab-bagisto-k6:Up 5 hours peak-lab-bagisto-tools:Up 5 hours peak-lab-bagisto-db:Up 5 hours (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 13:24:33 PRE free: total 15 available 8 df: 882G free
+2026-11-26 13:24:33 START cal-2 name=cal2-r2.83 (the one measured is cal-2; the set is the eight plans named in this file's header; the gate has no advisory flag)
+2026-11-26 13:36:36 END cal-2 name=cal2-r2.83 exit=0
+RESULT target=2.83 achieved=2.8333 status=valid db_util=36.9806% app_cpu=81.84362730974128 requests=1360 dropped=0 http={'200': 1360}
+2026-11-26 13:36:51 PRESTATE cal3-r2.83: HEAD 20a3e40; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 12 minutes peak-lab-bagisto-app:Up 12 minutes peak-lab-bagisto-k6:Up 5 hours peak-lab-bagisto-tools:Up 5 hours peak-lab-bagisto-db:Up 5 hours (healthy) 
+DB log lines: 13; lines naming recovery or error: 0
+2026-11-26 13:36:51 PRE free: total 15 available 8 df: 882G free
+2026-11-26 13:36:51 START cal-3 name=cal3-r2.83 (the one measured is cal-3; the set is the eight plans named in this file's header; the gate has no advisory flag)
+2026-11-26 13:48:39 END cal-3 name=cal3-r2.83 exit=0
+RESULT target=2.83 achieved=2.8333 status=valid db_util=32.8299% app_cpu=78.33474419248296 requests=1360 dropped=0 http={'200': 1360}
