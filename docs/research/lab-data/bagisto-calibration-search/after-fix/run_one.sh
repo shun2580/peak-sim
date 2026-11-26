@@ -9,7 +9,7 @@ id="$1"; name="$2"; r0="$3"; r1="$4"; r2="$5"; r3="$6"; r4="$7"; r5="$8"; rows="
 REC=$HOME/.cache/peak-lab-bagisto/out/calibration-search; OUT=$REC/t5s; log=$OUT/search-log.txt
 HERE=$PEAK_SIM_REPO/docs/research/lab-data/bagisto-calibration-search/after-fix
 notify() { $NOTIFY_CMD "$1" >/dev/null 2>&1; }
-if [ -e "$OUT/$name" ]; then echo "STOP: $OUT/$name exists" ; notify "bgjob: $name を始められぬ(置き場が既に在る)"; exit 90; fi
+if [ -e "$OUT/$name" ]; then echo "STOP: $OUT/$name exists" ; notify "bgjob: $name not started (the output place exists)"; exit 90; fi
 cd "$PEAK_SIM_REPO"
 echo "$(date '+%F %T') PRESTATE $name: HEAD $(git rev-parse --short HEAD); poc/lab changed files: $(git status --short -- poc/lab | tr '\n' ';'); containers: $(docker ps --format '{{.Names}}:{{.Status}}' | tr '\n' ' ')" >>"$log"
 python3 -I - >>"$log" <<'PY'
@@ -25,5 +25,5 @@ bash "$HERE/search8.sh" "$id" "$name" "$r0" "$r1" "$r2" "$r3" "$r4" "$r5"
 rc=$?
 bash "$HERE/check_run.sh" "$name" "$id" "$rows" >/dev/null 2>&1
 res=$(grep '^RESULT' "$log" | tail -1 | cut -c1-200)
-notify "bgjob: $name 終了 exit=$rc。$res。check=$OUT/$name/check.txt と search-log を読め"
+notify "bgjob: $name ended exit=$rc. $res. Read $OUT/$name/check.txt and the search-log"
 exit $rc
