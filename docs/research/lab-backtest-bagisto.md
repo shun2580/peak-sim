@@ -326,7 +326,7 @@ The chain was first started at 02:33:07 and stopped at 02:34:19 with exit 2 **be
 
 ## 7. The measurement: s-1
 
-The record of the chain is `docs/research/lab-data/bagisto-b-prediction/second/chain-stop/` (the chain's log, the memory and out-of-memory records before and after, the application's log lines, a read-only `docker inspect`). The per-step records are those the tools wrote in the chain's output directory (`ladder-b/s-1-190000/rung-*/record.json`); **they are not yet copied into the repository** (the path of the copy is to be set before this file is final). The application and web containers were made again before s-1 (02:36:10). The limits read before each step were those of B.
+The record of the chain is `docs/research/lab-data/bagisto-b-prediction/second/chain-stop/` (the chain's log, the memory and out-of-memory records before and after, the application's log lines, a read-only `docker inspect`). The per-step records are those the tools wrote in the chain's output directory (`ladder-b/s-1-190000/rung-*/record.json`); **they are copied into the repository** at `docs/research/lab-data/bagisto-ladder-190k/run-20261127/` (`s-1-190000/` for the per-step records and `chain-1/` for the chain's records; the README is `docs/research/lab-data/bagisto-ladder-190k/README.md`; commit `eb929a21`). The application and web containers were made again before s-1 (02:36:10). The limits read before each step were those of B.
 
 ### 7.1 Steps 1 to 6
 
