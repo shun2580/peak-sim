@@ -3,12 +3,12 @@
 #   - refuses to start if the output name already exists (no earlier directory is ever named) or if the guards before a run fail;
 #   - writes the machine and the lab's state to search-log.txt (the record of the run's start), runs search8.sh, runs check_run.sh;
 #   - the flag is 1 only for the searches of R_1 and R_5 (D275, D277).
-# Needs PEAK_SIM_REPO, PEAK_CAPTURE_JSON and SHOGUN_REPO (where scripts/inbox_write.sh is). It does not touch any container but through the entry.
+# Needs PEAK_SIM_REPO, PEAK_CAPTURE_JSON and NOTIFY_CMD (a command that takes one message argument and tells the one who started the run). It does not touch any container but through the entry.
 set -uo pipefail
 id="$1"; name="$2"; r0="$3"; r1="$4"; r2="$5"; r3="$6"; r4="$7"; r5="$8"; rows="$9"; flag="${10}"
 REC=$HOME/.cache/peak-lab-bagisto/out/calibration-search; OUT=$REC/t5s; log=$OUT/search-log.txt
 HERE=$PEAK_SIM_REPO/docs/research/lab-data/bagisto-calibration-search/after-fix
-notify() { ( cd "$SHOGUN_REPO" && bash scripts/inbox_write.sh ashigaru5 "$1" info bgjob ) >/dev/null 2>&1; }
+notify() { $NOTIFY_CMD "$1" >/dev/null 2>&1; }
 if [ -e "$OUT/$name" ]; then echo "STOP: $OUT/$name exists" ; notify "bgjob: $name を始められぬ(置き場が既に在る)"; exit 90; fi
 cd "$PEAK_SIM_REPO"
 echo "$(date '+%F %T') PRESTATE $name: HEAD $(git rev-parse --short HEAD); poc/lab changed files: $(git status --short -- poc/lab | tr '\n' ';'); containers: $(docker ps --format '{{.Names}}:{{.Status}}' | tr '\n' ' ')" >>"$log"
