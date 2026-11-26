@@ -256,3 +256,14 @@ Run through `run_one.sh` with the stand-ins written above (R_0 = 2.83, R_1 = 8, 
 
 `check_run.sh` (`cal8-r1/check.txt`): `settings-ini.txt` and `limits.txt` the same, `settings-fpm.txt` the same with the time at the line start taken off, `settings-nginx.txt` DIFFERENT by the byte-for-byte reading it wrote; read as D282 reads it (`recheck_nginx.sh`, `recheck-nginx.txt`): both notice lines once each, the rest the same byte for byte (192 lines against 192) → **SAME**. The first line of `tables-before.tsv` says 1,000 and the run's count is 1,000; no step after the window ("type iii: none"); the receive queue of port 9000 after the run 0; window start to end of tail 662 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
 Valid and below the band: by the doubling rule the next rate is **2 rps**. (R_4 = 1.0 is decided by D283; the earlier line "R_4 is not decided" is as it was written before the ruling.) Written 2026-11-26 12:15:58; committed before the next run starts.
+
+### R_5: cal-8 at 2 rps (2026-11-26 12:16 to 12:28; `cal8-r2/`)
+
+Run through `run_one.sh` with the same stand-ins and flag as the 1 rps run (R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 as decided by D283), 1,000 rows, request timeout 1800 s. The entry's gate was closed as the grid said (smallest degree 0.405622); the flag recorded the refusal and the run went on.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 1.9979 (valid) | 0 | **2.9873%** (below the band) | 3.69% | 959, all 200 |
+
+`check_run.sh` (`cal8-r2/check.txt`): all four settings files the same as the confirming run's (`settings-nginx.txt` also by the byte-for-byte reading; `recheck_nginx.sh` gives SAME as well), the first line of `tables-before.tsv` says 1,000 and the run's count is 1,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+Valid and below the band: by the doubling rule the next rate is **4 rps**. Written 2026-11-26 12:28:22; committed before the next run starts.
