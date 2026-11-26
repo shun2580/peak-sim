@@ -1,0 +1,9 @@
+== 2026-11-27 06:36:58 docker inspect (State, memory limits) of the app container
+State: {"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":true,"Dead":false,"Pid":33417,"ExitCode":0,"Error":"","StartedAt":"2026-11-26T17:35:57.429104481Z","FinishedAt":"0001-01-01T00:00:00Z"}
+HostConfig.Memory=6442450944 MemorySwap=6442450944 MemoryReservation=0 PidsLimit=<nil>
+== docker stats (one snapshot)
+peak-lab-bagisto-web 10.75MiB / 15.56GiB 0.07%
+peak-lab-bagisto-app 4.4GiB / 6GiB 73.33%
+peak-lab-bagisto-tools 11.27MiB / 15.56GiB 0.07%
+peak-lab-bagisto-k6 9.645MiB / 15.56GiB 0.06%
+peak-lab-bagisto-db 2.879GiB / 15.56GiB 18.50%
