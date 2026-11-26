@@ -138,3 +138,14 @@ Run through `run_one.sh` with the stand-ins written above (R_0 = 1, R_1 = 8, cal
 
 It passed the entry's guards (the write check, the limits guard and the N tables identical before and after) and the checks of `check_run.sh` (`cal5-r1.5/check.txt`): the four settings files the same as the confirming run's, the count 30,000, no step after the window, the receive queue of port 9000 after the run 0, window start to end of tail 662 s.
 By "The rules" above, the first value of the stage search above 30% goes to the next stage value down, **1.0 rps**; the stop for a second value above 30% is not reached yet. No value of 1.0 rps has been measured at this point. This record is committed before the 1.0 rps run starts. Written 2026-11-26 10:38:43.
+
+### R_0: cal-1 at 2.83 rps, the geometric mean of 2 and 4 (2026-11-26 10:33 to 10:45; `cal1-r2.83/`)
+
+Run as the record of the rule written before it says (the geometric mean of 2 and 4, once), through `run_one.sh` with the stand-ins written above (R_1 = 16, R_2 = 5, cal-8 at R_5 = 32 asked of the gate only; R_3 = 0.3 real, R_4 = 1.0 a stand-in), no flag, 10,000 rows, request timeout 1800 s. The gate of the entry opened (inputs-only reading before it: 0.620080).
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 2.83 | 2.8333 (valid) | 0 | **20.4348%** (inside the band) | 42.20% | 1,360, all 200 |
+
+It passed the checks of `check_run.sh` (`cal1-r2.83/check.txt`): the four settings files the same as the confirming run's, the count 10,000, no step after the window, the receive queue of port 9000 after the run 0, window start to end of tail 663 s.
+The utilization is inside the band (20% to 30%) and the run is valid, so by the rule written before the run **R_0 = 2.83 rps** and this run is the calibration run of R_0 (it is not measured again). The run is 0.4348 points above the lower edge of the band. Written 2026-11-26 10:45:39; the next run (cal-5 at 1.0 rps) is not started before this is committed.
