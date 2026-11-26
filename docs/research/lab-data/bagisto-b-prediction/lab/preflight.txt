@@ -1,0 +1,38 @@
+2026-11-26 19:11:21 JST
+== free -g
+               total        used        free      shared  buff/cache   available
+Mem:              15           4           8           0           2          11
+Swap:              4           0           3
+== df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   75G  882G   8% /
+== volumes (count, sorted-list sha256)
+56
+2f44de9580f3ddf26b00cfda3338499f16607d04a49f4b7cc1e532fb57e1767e  -
+/bin/bash: line 1: /tmp/x: Is a directory
+== containers
+peak-dryrun25-web Exited (0) 13 minutes ago
+peak-dryrun25-app Exited (0) 13 minutes ago
+dryrun25eas-n30000-measure-php-1 Exited (137) 5 hours ago
+dryrun25eas-n30000-measure-db-1 Exited (0) 5 hours ago
+peak-dryrun25-k6 Exited (137) 14 minutes ago
+peak-dryrun25-tools Exited (137) 13 minutes ago
+peak-dryrun25-db Exited (0) 13 minutes ago
+peak-measure-dev-t1real-measure-db-1 Exited (0) 31 hours ago
+peak-lab-web Exited (0) 6 days ago
+peak-lab-app Exited (0) 6 days ago
+peak-lab-k6 Exited (137) 6 days ago
+peak-lab-tools Exited (137) 6 days ago
+peak-lab-db Exited (0) 6 days ago
+peak-sim-dev-php-dev-1 Exited (255) 3 weeks ago
+peak-sim-dev-mysql-1 Exited (255) 3 weeks ago
+beautiful_knuth Created
+rstools-testserver-1 Exited (255) 5 weeks ago
+php-practice-app-1 Exited (137) 5 months ago
+tug-traefik Exited (0) 5 months ago
+== running
+0
+== lab-config-b status
+STATE B
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini

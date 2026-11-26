@@ -1,0 +1,6 @@
+label=n190000
+started=2026-11-26T19:13:09+0900
+source_commit=0e7a540b66276c8d4481529063a678ca1579ccb8 uncommitted_files_in_poc_runtime=0
+scale=190000 small_scale=10000
+php_image=peak-measure-php-bagisto:8.4
+finished=2026-11-26T19:28:48+0900 exit=0
