@@ -149,3 +149,14 @@ Run as the record of the rule written before it says (the geometric mean of 2 an
 
 It passed the checks of `check_run.sh` (`cal1-r2.83/check.txt`): the four settings files the same as the confirming run's, the count 10,000, no step after the window, the receive queue of port 9000 after the run 0, window start to end of tail 663 s.
 The utilization is inside the band (20% to 30%) and the run is valid, so by the rule written before the run **R_0 = 2.83 rps** and this run is the calibration run of R_0 (it is not measured again). The run is 0.4348 points above the lower edge of the band. Written 2026-11-26 10:45:39; the next run (cal-5 at 1.0 rps) is not started before this is committed.
+
+### R_2: cal-5 at 1.0 rps, the second stage value (2026-11-26 10:45 to 10:58; `cal5-r1/`)
+
+Run through `run_one.sh` with the same stand-ins as the 1.5 rps run (R_0 = 1, R_1 = 8, cal-8 at R_5 = 16 asked of the gate only; R_3 = 0.3 real, R_4 = 1.0 a stand-in), no flag, 30,000 rows, request timeout 1800 s. The gate of the entry opened (inputs-only reading before it: 0.649478).
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 1.0 | 1.0000 (valid) | 0 | **23.8785%** (inside the band) | 45.13% | 480, all 200 |
+
+It passed the checks of `check_run.sh` (`cal5-r1/check.txt`): the four settings files the same as the confirming run's, the count 30,000, the receive queue of port 9000 after the run 0, window start to end of tail 663 s. The steps after the window: one step of size 1 at t = 624 s (the last row of the tail; completions 600 to 608 over the tail); the mark of the stall reads "type iii: none" (no step of 13 to 18, no link of steps 55 to 70 s apart), so no stop of the rule is reached. It is written here as seen and is not read further.
+The utilization is inside the band and the run is valid, so by the rule written before the run **R_2 = 1.0 rps**, and this run is the calibration run of R_2 (not measured again). The 1.5 rps run above it (45.4000%) stays recorded as the first value. Written 2026-11-26 10:58:19.
