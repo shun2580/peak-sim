@@ -52,4 +52,4 @@ The queries-only fit (`c_query` 1.93037e-3, squared residual 1.35920) and the ro
 | cal-7 | 18.2450 | 32.2889 | -14.0438 |
 | cal-8 | 17.6836 | 18.5345 | -0.8509 |
 
-The residuals of cal-7 (-14.04 points), cal-3 (+6.96), cal-2 (+6.68) and cal-6 (+5.55) are large next to the first four runs of the BookStack seven-run calibration (\`../calibration-r4/\`), whose residuals were at most 0.47 point. Nothing was changed in response; the dry run of the rehearsal, the prediction and the measurement are not made here.
+The residuals of cal-7 (-14.04 points), cal-3 (+6.96), cal-2 (+6.68) and cal-6 (+5.55) are large next to the first four runs of the BookStack seven-run calibration (`../calibration-r4/`), whose residuals were at most 0.47 point. Nothing was changed in response; the dry run of the rehearsal, the prediction and the measurement are not made here.
