@@ -1,0 +1,23 @@
+2026-11-26 19:30:48 stopping
+peak-bagisto-b-eas-n190000-measure-php-1
+peak-bagisto-b-eas-n190000-measure-db-1
+peak-lab-bagisto-k6
+peak-lab-bagisto-tools
+peak-lab-bagisto-web
+peak-lab-bagisto-app
+peak-lab-bagisto-db
+stopped peak-bagisto-b-eas-n190000-measure-php-1 exit=137
+stopped peak-lab-bagisto-k6 exit=137
+stopped peak-lab-bagisto-tools exit=137
+stopped peak-lab-bagisto-web exit=0
+stopped peak-lab-bagisto-app exit=0
+stopped peak-bagisto-b-eas-n190000-measure-db-1 exit=0
+-- last log line of peak-bagisto-b-eas-n190000-measure-db-1:
+2026-11-26T10:32:21.357387Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T10:32:21.357419Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+stopped peak-lab-bagisto-db exit=0
+-- last log line of peak-lab-bagisto-db:
+2026-11-26T10:32:22.948452Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T10:32:22.948483Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+running now: 0
+volumes: 57
