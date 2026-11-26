@@ -1,0 +1,1 @@
+ANALYZE peak_sim_measure_<runid>_lab_30000: 152 of 152 tables status OK, 1 s; the record is in docs/research/lab-data/dryrun-25/analyze

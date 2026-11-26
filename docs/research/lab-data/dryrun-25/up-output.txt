@@ -1,0 +1,134 @@
+ Image peak-dryrun25-php:8.4 Pulling 
+ Image peak-dryrun25-php:8.4 Error pull access denied for peak-dryrun25-php, repository does not exist or may require 'docker login'
+ Image peak-dryrun25-php:8.4 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 722B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.fpm
+#2 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.fpm
+#2 transferring dockerfile: 1.23kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/php:8.4-fpm
+#3 DONE 1.3s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [1/4] FROM docker.io/library/php:8.4-fpm@sha256:8374ec282efaccb7350fbea59c252fcd2e73a238b06b970e8f3c74fb605f1853
+#5 resolve docker.io/library/php:8.4-fpm@sha256:8374ec282efaccb7350fbea59c252fcd2e73a238b06b970e8f3c74fb605f1853 0.0s done
+#5 DONE 0.0s
+
+#6 [2/4] RUN apt-get update  && apt-get install -y --no-install-recommends libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev  && docker-php-ext-configure gd --with-jpeg --with-freetype  && docker-php-ext-install pdo_mysql zip bcmath intl exif pcntl gd  && rm -rf /var/lib/apt/lists/*
+#6 CACHED
+
+#7 [3/4] RUN if [ -n "calendar" ]; then docker-php-ext-install $(echo "calendar" | tr ',' ' '); fi
+#7 CACHED
+
+#8 [4/4] WORKDIR /peak-sim
+#8 CACHED
+
+#9 exporting to image
+#9 exporting layers done
+#9 exporting manifest sha256:9148c1d227096f18552bd95ea6ed4eb15f1ce38a5c1fb369450725b0770d45d6 0.0s done
+#9 exporting config sha256:fcfe63fa2b3b123160a881c194062e6f99a7a008e16046e225cf4abb90922be3 0.0s done
+#9 exporting attestation manifest sha256:b2b59777a0b2f41124705e2c8e7a16a028a7296b0f4f7926d09b73d2bd2f408e 0.0s done
+#9 exporting manifest list sha256:de7dd2c0579fb6d90d1b9ad4bea61ad9b199f60bad6770d5d34dcb5a8bf03825 done
+#9 naming to docker.io/library/peak-dryrun25-php:8.4
+#9 naming to docker.io/library/peak-dryrun25-php:8.4 done
+#9 unpacking to docker.io/library/peak-dryrun25-php:8.4 done
+#9 DONE 0.1s
+
+#10 resolving provenance for metadata file
+#10 DONE 0.0s
+ Image peak-dryrun25-php:8.4 Built 
+ Network peak-dryrun25_lab-internal Creating 
+ Network peak-dryrun25_lab-internal Created 
+ Volume peak-dryrun25-dbdata Creating 
+ Volume peak-dryrun25-dbdata Created 
+ Container peak-dryrun25-db Creating 
+ Container peak-dryrun25-db Created 
+ Container peak-dryrun25-app Creating 
+ Container peak-dryrun25-app Created 
+ Container peak-dryrun25-tools Creating 
+ Container peak-dryrun25-web Creating 
+ Container peak-dryrun25-web Created 
+ Container peak-dryrun25-k6 Creating 
+ Container peak-dryrun25-tools Created 
+ Container peak-dryrun25-k6 Created 
+ Container peak-dryrun25-db Starting 
+ Container peak-dryrun25-db Started 
+ Container peak-dryrun25-db Waiting 
+ Container peak-dryrun25-db Healthy 
+ Container peak-dryrun25-app Starting 
+ Container peak-dryrun25-app Started 
+ Container peak-dryrun25-db Waiting 
+ Container peak-dryrun25-web Starting 
+ Container peak-dryrun25-web Started 
+ Container peak-dryrun25-k6 Starting 
+ Container peak-dryrun25-k6 Started 
+ Container peak-dryrun25-db Healthy 
+ Container peak-dryrun25-tools Starting 
+ Container peak-dryrun25-tools Started 
+ Container peak-dryrun25-k6 Waiting 
+ Container peak-dryrun25-tools Waiting 
+ Container peak-dryrun25-db Waiting 
+ Container peak-dryrun25-app Waiting 
+ Container peak-dryrun25-web Waiting 
+ Container peak-dryrun25-app Healthy 
+ Container peak-dryrun25-tools Healthy 
+ Container peak-dryrun25-web Healthy 
+ Container peak-dryrun25-k6 Healthy 
+ Container peak-dryrun25-db Healthy 
+PASS container: peak-dryrun25-db is running
+PASS container: peak-dryrun25-app is running
+PASS container: peak-dryrun25-web is running
+PASS container: peak-dryrun25-k6 is running
+PASS container: peak-dryrun25-tools is running
+PASS network: peak-dryrun25_lab-internal internal=true
+PASS peak-dryrun25-db: network mode peak-dryrun25_lab-internal
+PASS peak-dryrun25-db: no published port
+PASS peak-dryrun25-app: network mode peak-dryrun25_lab-internal
+PASS peak-dryrun25-app: no published port
+PASS peak-dryrun25-web: network mode peak-dryrun25_lab-internal
+PASS peak-dryrun25-web: no published port
+PASS peak-dryrun25-k6: network mode peak-dryrun25_lab-internal
+PASS peak-dryrun25-k6: no published port
+PASS peak-dryrun25-tools: network mode peak-dryrun25_lab-internal
+PASS peak-dryrun25-tools: no published port
+peak-dryrun25-app: PASS negative dns:example.com              did not resolve
+peak-dryrun25-app: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun25-app: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun25-app: PASS negative http:example.com             no response
+peak-dryrun25-app: PASS negative default-route                no default route
+peak-dryrun25-app: PASS positive tcp:measure-db:3306          connected
+peak-dryrun25-app: PASS positive dns:measure-db               resolved to 172.25.0.2
+peak-dryrun25-app: PASS positive login:measure                logged in as the measurement user
+peak-dryrun25-app: PREFLIGHT OK
+peak-dryrun25-tools: PASS negative dns:example.com              did not resolve
+peak-dryrun25-tools: PASS negative tcp:1.1.1.1:443              could not connect
+peak-dryrun25-tools: PASS negative tcp:8.8.8.8:53               could not connect
+peak-dryrun25-tools: PASS negative http:example.com             no response
+peak-dryrun25-tools: PASS negative default-route                no default route
+peak-dryrun25-tools: PASS positive tcp:measure-db:3306          connected
+peak-dryrun25-tools: PASS positive dns:measure-db               resolved to 172.25.0.2
+peak-dryrun25-tools: PASS positive login:measure                logged in as the measurement user
+peak-dryrun25-tools: PREFLIGHT OK
+PASS peak-dryrun25-web: 1.1.1.1:443 is unreachable
+PASS peak-dryrun25-web: 8.8.8.8:53 is unreachable
+PASS peak-dryrun25-web: http://example.com is unreachable
+PASS peak-dryrun25-web: the app (lab-app:9000) (positive control)
+PASS peak-dryrun25-k6: 1.1.1.1:443 is unreachable
+PASS peak-dryrun25-k6: 8.8.8.8:53 is unreachable
+PASS peak-dryrun25-k6: http://example.com is unreachable
+PASS peak-dryrun25-k6: the web server (/__lab/health) (positive control)
+PASS peak-dryrun25-db: 1.1.1.1:443 is unreachable
+PASS peak-dryrun25-db: 8.8.8.8:53 is unreachable
+PASS peak-dryrun25-db: the name example.com is unreachable
+PASS peak-dryrun25-db: its own port (3306) (positive control)
+PREFLIGHT OK
+lab is up and sealed. scale=10000  web (from inside the network only): http://lab-web:8080

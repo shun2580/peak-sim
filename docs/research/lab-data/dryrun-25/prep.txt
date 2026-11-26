@@ -1,0 +1,38 @@
+== 2026-11-26 14:10:47 before
+STATE default
+f61b6e47eb4db5e8aa3be51494c98567bb5f6812968e5dc443bdb5b1acdc14a5  poc/lab/compose/nginx/lab-bagisto.conf
+f495eab57df06ffe1f1e0ab92f4a2b2d91fe4fbfbd3c12cd90a7ffabb25c261b  poc/lab/compose/php/zz-lab.ini
+== apply
+B ON: ladder-b-1800s-bagisto.diff applied at 2026-11-26T14:10:47+09:00; recreate the app and web containers (bin/use-db <scale>) and read the limits (bin/check-limits)
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+rc=0
+STATE B
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  poc/lab/compose/php/zz-lab.ini
+== real working tree (the files the real lab reads)
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  <real>/poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  <real>/poc/lab/compose/php/zz-lab.ini
+4efb82d3c35e7dd6f6b319dc7ccdcf685d75df460a4696e813c3fa7c0b684489  <copy>/poc/lab/compose/nginx/lab-bagisto.conf
+c9132257d61f3abad958aac571ca93f351859e3edfbbd1ecc64c9a9625f345f8  <copy>/poc/lab/compose/php/zz-lab.ini
+== use-db 30000 2026-11-26 14:10:47
+PASS peak-dryrun25-db: the name example.com is unreachable
+PASS peak-dryrun25-db: its own port (3306) (positive control)
+PREFLIGHT OK
+rc=0
+== check-limits
+LIMITS OK (require unlimited): { "php_max_execution_time": "0", "php_memory_limit": "4G", "php_fpm_request_terminate_timeout": "0s", "nginx_fastcgi_read_timeout": "1800s", "k6_request_timeout": "1800s", "k6_request_timeout_note": "given to every request of the step (REQUEST_TIMEOUT)" } 
+== targets
+usage: bin/targets --static=<analysis.json> [--scale=N]
+== 2026-11-26 14:11:14 targets
+8 of 8 routes filled; unfilled 0; not in the static analysis 0; written to /out/targets-30000.json
+static sha256: d04395480720e547910458e9950d8aa86f0ba1f8546a5f9c747673d6ab59b8fa
+== mounts/cpusets
+db 0-1 cpus=2000000000
+app 2-7,12-15 cpus=10000000000
+web 2-7,12-15 cpus=10000000000
+k6 8-9 cpus=2000000000
+tools 10-11 cpus=2000000000
+== free/df
+Mem:              15           9           1           0           5           6
+/dev/sdd       1007G   75G  882G   8% /

@@ -1,0 +1,3 @@
+2026-11-26T05:09:52Z 0 [System] [MY-013172] [Server] Received SHUTDOWN from user <via user signal>. Shutting down mysqld (Version: 8.4.7).
+2026-11-26T05:09:53Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.7)  MySQL Community Server - GPL.
+2026-11-26T05:09:53Z 0 [System] [MY-015016] [Server] MySQL Server - end.
