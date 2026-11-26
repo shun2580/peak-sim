@@ -160,3 +160,22 @@ Run through `run_one.sh` with the same stand-ins as the 1.5 rps run (R_0 = 1, R_
 
 It passed the checks of `check_run.sh` (`cal5-r1/check.txt`): the four settings files the same as the confirming run's, the count 30,000, the receive queue of port 9000 after the run 0, window start to end of tail 663 s. The steps after the window: one step of size 1 at t = 624 s (the last row of the tail; completions 600 to 608 over the tail); the mark of the stall reads "type iii: none" (no step of 13 to 18, no link of steps 55 to 70 s apart), so no stop of the rule is reached. It is written here as seen and is not read further.
 The utilization is inside the band and the run is valid, so by the rule written before the run **R_2 = 1.0 rps**, and this run is the calibration run of R_2 (not measured again). The 1.5 rps run above it (45.4000%) stays recorded as the first value. Written 2026-11-26 10:58:19.
+
+### The stand-ins of the R_1 runs (written before the first cal-4 run; 2026-11-26 10:59:35, nothing of R_1 measured)
+
+R_0 = 2.83, R_2 = 1.0 and R_3 = 0.3 are found and used as they are. R_4 = 1.0 is still a stand-in (not decided, see above), and cal-8 is asked of the gate only, at a stand-in R_5. Neither is a value of any R or kept as such. The search of R_1 is the doubling search from 1 rps (cal-4, 3,000 rows) with the flag `--search-gate-advisory` (D275, D277): a refusal of the gate is recorded and the run goes on.
+Asked of the gate by `gate_real.sh` (inputs only, nothing measured; records `gate-real-r0_2.83_r1_*_r2_1_r5_*/`), the smallest degree of the set cal-1 to cal-8 with R_0 = 2.83, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 at each R_1 the search can reach (rows) and each stand-in R_5 (columns):
+
+| R_1 \ R_5 | 1 | 2 | 4 | 8 | 16 | 32 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.328497 | 0.356462 | 0.356462 | 0.356462 | 0.356462 | 0.356462 |
+| 1.41 | 0.340460 | 0.367885 | 0.367885 | 0.367885 | 0.367885 | 0.367885 |
+| 2 | 0.361470 | 0.388289 | 0.388289 | 0.388289 | 0.388289 | 0.388289 |
+| 2.83 | 0.361470 | 0.405622 | 0.420473 | 0.420473 | 0.420473 | 0.420473 |
+| 4 | 0.361470 | 0.405622 | 0.463913 | 0.463913 | 0.463913 | 0.463913 |
+| 5.66 | 0.361470 | 0.405622 | 0.510976 | 0.510976 | 0.510976 | 0.510976 |
+| 8 | 0.361470 | 0.405622 | 0.512472 | 0.546895 | 0.546895 | 0.546895 |
+| 16 | 0.361470 | 0.405622 | 0.498169 | 0.523424 | 0.534727 | 0.534727 |
+| 32 | 0.349805 | 0.350595 | 0.353693 | 0.365180 | 0.400221 | 0.402131 |
+
+The gate does not open (below 0.50) at R_1 of 1 to 4 for any R_5, which is the case the flag is for; it is not read as a reason to change any rule. The stand-in R_5 = **16** is taken: it has the largest smallest degree (tied with 32) at every R_1 from 1 to 16 and is the stand-in the first search used nearest to it. The set given to the entry for every cal-4 run is R_0 = 2.83, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 (stand-in), cal-8 at R_5 = 16 (asked of the gate only). The search starts at 1 rps and doubles by the rule above; a rate not reached has the geometric mean tried once, and a plan file for it is made first.
