@@ -90,3 +90,20 @@ The search of R_4 starts at 1.0 rps and goes down by the rule above.
 
 Stand-ins as written above (R_0 = 1, R_1 = 4, R_2 = 0.2, R_3 = 0.3 real, cal-8 at R_5 = 8 asked of the gate only); the gate opened; the write check, the limits guard and the N tables passed. `check_run.sh` (`cal7-r1/check.txt`): settings the same as the confirming run's, count 30,000, steps after the window none, receive queue of port 9000 after the run 0, window start to end of tail 662 s.
 The rule of "The rules" above for the stage-value search says: the first value below 20% → **stop and report**. This run is the first value and is below 20%, so the search of R_4 stops here and **R_4 is not decided**. No other value of cal-7 was measured. It is a valid run outside the band; whether any type of D183's amendment applies to a first value below the band is not written (D279 appendix, B5 names the stop of D272 decision 1 and the stop of D277, not this one), and it is not read here. Written at 2026-11-26 09:31:34.
+
+**Where R_4 stands (added after the decision record D280 and its addendum were committed; written 2026-11-26 09:42).** R_4 = 1.0 rps (this run, 18.2450%, below the band) is the implementation lead's proposal, put to the maintainer in D280; by the addendum of D280 it is **not decided until the maintainer rules**, and this run is kept as it is, not moved. Until the ruling, 1.0 rps is used as a stand-in for R_4 in the gates in front of the other searches and for nothing else.
+
+### The gate on inputs alone, with R_3 = 0.3 and R_4 = 1.0 (stand-in), over the rest of the grid (2026-11-26 09:38; nothing measured)
+
+The same batch form of the gate as in `../ten-cpus/gate_batch_real.php` (inputs: the same estimate, sha256 92fd9b7b78a400f6e355c77d7492fa82a204fdb815fa1aaab196c7f4760a194c; the 49 plan files of the rates asked), run in a throw-away container with no network and the repository mounted read-only, with R_3 = 0.3 and R_4 = 1. Grid: R_0 and R_1 in 1, 2, 4, 8, 16, 32 and R_2 in 14 values, 504 points; with cal-8, R_5 in 1, 2, 4, 8, 16, 32 as well, 3,024 points. Tables: `gate-grid-r3-0.3-r4-1/`.
+
+- **cal-1 to cal-7: 0 of 504 points pass**; the largest smallest degree is 0.416489. As in the first search the set cal-1 to cal-7 fails at the rates found, so cal-8 is added.
+- **cal-1 to cal-8: 392 of 3,024 points pass** (13.0%); the largest smallest degree is 0.653823 (R_0 1, R_1 8, R_2 1.5, R_5 4).
+- By rate (points passing / points): R_0 1: 199/504, 2: 139/504, 4: 50/504, 8: 4/504, **16 and 32: 0**. R_1 1: 0/504, 2: 50, 4: 111, 8: 127, 16: 98, 32: 6. R_5 1: 0/504, 2: 33, 4: 67, 8: 88, 16: 101, 32: 103. R_2 21 to 31 of 216 for every value.
+- So the set cal-1 to cal-8 is used (cal-8 asked of the gate only until R_5 is searched). R_0 of 16 or more would end the search.
+
+### The stand-ins of the R_0 runs (written 2026-11-26 09:42, before the first cal-1 run)
+
+For the cal-1 runs: R_1 = 16, R_2 = 5 and cal-8 at R_5 = 32 as stand-ins (the same values the first search used for these runs), with R_3 = 0.3 (real) and R_4 = 1.0 (a stand-in, see above). They are **not values of any R and are not kept as such**. They are chosen from the grid: among the points that open the gate at R_0 of 1, 2 and 4 alike, the one with the largest smallest degree has R_1 16, R_2 5 and R_5 16 or 32 (0.57937 and 0.579366); no point opens it at R_0 of 1, 2, 4 and 8 alike.
+Asked of the gate by `gate_only.sh` (inputs only, nothing measured; records `gate-only-r0_*_r1_16_r2_5_r3_0.3_r4_1_r5_32/`), with cal-1 at each value the search can reach, the entry's gate opens at 1 (smallest degree 0.579366), 1.41 (0.587811), 2 (0.601621), 2.83 (0.620080), 4 (0.595468) and 5.66 (0.550314), all at or above 0.50, and **it does not open at 8** (0.484910, refused with exit 14). If the search reaches 8, the stand-ins for that run are chosen from the table and written here first. The geometric means 1.41, 2.83 and 5.66 are the ones the rule would try after a rate that is not reached.
+The search of R_0 starts at 1 rps and doubles by the rule above. After R_0 the order is R_2, R_1; R_5 is searched only after the maintainer rules on R_4 (D280 addendum).

@@ -1,0 +1,251 @@
+{
+    "threshold": 0.5,
+    "passed": false,
+    "min_degree": 0.4849100854673939,
+    "min_left_out": "cal-8",
+    "scenarios": [
+        {
+            "id": "cal-1",
+            "query_rate": 186.2581333571981,
+            "row_rate": 1369148.3655622713,
+            "rows_per_query": 7350.811161285374,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-2",
+            "query_rate": 212.50325334287925,
+            "row_rate": 1913581.5108167739,
+            "rows_per_query": 9004.951598219359,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-3",
+            "query_rate": 172.90325334287922,
+            "row_rate": 1637494.4883209558,
+            "rows_per_query": 9470.582286116329,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-4",
+            "query_rate": 367.8045982479583,
+            "row_rate": 817419.689655857,
+            "rows_per_query": 2222.4292288613183,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-5",
+            "query_rate": 118.00777773746943,
+            "row_rate": 2590192.2241963474,
+            "rows_per_query": 21949.33481383506,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-6",
+            "query_rate": 5.784106666113867,
+            "row_rate": 445569.9685149333,
+            "rows_per_query": 77033.49786498591,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-7",
+            "query_rate": 30.851784125141464,
+            "row_rate": 743345.5072436414,
+            "rows_per_query": 24094.084939414603,
+            "unknown_cost_routes": 0
+        },
+        {
+            "id": "cal-8",
+            "query_rate": 728.375941613661,
+            "row_rate": 544712.1952923075,
+            "rows_per_query": 747.8448479305061,
+            "unknown_cost_routes": 0
+        }
+    ],
+    "sets": [
+        {
+            "left_out": null,
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.6752287490493153,
+            "passed": true
+        },
+        {
+            "left_out": "cal-1",
+            "ids": [
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.6968930131063822,
+            "passed": true
+        },
+        {
+            "left_out": "cal-2",
+            "ids": [
+                "cal-1",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.7044881382229781,
+            "passed": true
+        },
+        {
+            "left_out": "cal-3",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.693761406558263,
+            "passed": true
+        },
+        {
+            "left_out": "cal-4",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-5",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.6949541024978184,
+            "passed": true
+        },
+        {
+            "left_out": "cal-5",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-6",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.6320965122822539,
+            "passed": true
+        },
+        {
+            "left_out": "cal-6",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-7",
+                "cal-8"
+            ],
+            "degree": 0.6733221461727846,
+            "passed": true
+        },
+        {
+            "left_out": "cal-7",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-8"
+            ],
+            "degree": 0.6728831146726818,
+            "passed": true
+        },
+        {
+            "left_out": "cal-8",
+            "ids": [
+                "cal-1",
+                "cal-2",
+                "cal-3",
+                "cal-4",
+                "cal-5",
+                "cal-6",
+                "cal-7"
+            ],
+            "degree": 0.4849100854673939,
+            "passed": false
+        }
+    ],
+    "inputs": [
+        {
+            "id": "cal-1",
+            "tables": {
+                "n_shared": 10000
+            },
+            "plan_sha256": "8175027378b72725b34ed73f6737340e9dc54fb17b6687c8e690f1df25d65a02"
+        },
+        {
+            "id": "cal-2",
+            "tables": {
+                "n_shared": 10000
+            },
+            "plan_sha256": "803ee098c68387f11ac68a3e56072460a207935b4e21d90e87056ca26ef5ac7b"
+        },
+        {
+            "id": "cal-3",
+            "tables": {
+                "n_shared": 10000
+            },
+            "plan_sha256": "abe874bf6485e69c0ae3942f736e37e655002359267c713068877082a5f6a72d"
+        },
+        {
+            "id": "cal-4",
+            "tables": {
+                "n_shared": 3000
+            },
+            "plan_sha256": "3d092848c1cd824518602f40c75c55fbc94416fb24f442109179fbf165b24235"
+        },
+        {
+            "id": "cal-5",
+            "tables": {
+                "n_shared": 30000
+            },
+            "plan_sha256": "f83b09a6549e27a3f3cd8ff1535d6e9c476cb64b2575c2e243000a314809b72c"
+        },
+        {
+            "id": "cal-6",
+            "tables": {
+                "n_shared": 30000
+            },
+            "plan_sha256": "db9e382ce0efe8c53dd50c464b26598766d2597a4ee60474c493808816de6f7e"
+        },
+        {
+            "id": "cal-7",
+            "tables": {
+                "n_shared": 30000
+            },
+            "plan_sha256": "f27b477b9412f9f1cf9db45814796b595fd4472d93bccc3a5d7fd985134a0569"
+        },
+        {
+            "id": "cal-8",
+            "tables": {
+                "n_shared": 1000
+            },
+            "plan_sha256": "a1be2964c1dea33d7767d1a09bf8246de4bf3939099080848a4bd05386e494c3"
+        }
+    ]
+}

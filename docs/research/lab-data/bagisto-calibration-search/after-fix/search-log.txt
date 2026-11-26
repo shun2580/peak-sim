@@ -1,4 +1,3 @@
-2026-11-26 08:52:37 PLAN written before any run of this search is measured: README.md "Before the first run" (rules, starting values R_3 0.45, R_4 1.0, R_0 1, R_2 1.5, R_1 1, R_5 1, the stand-ins of the R_3 runs). peak-sim HEAD f7dab84.
 2026-11-26 08:53:10 PRESTATE cal6-r0.45: HEAD 5bec431; poc/lab changed files:  M poc/lab/compose/nginx/lab-bagisto.conf; M poc/lab/compose/php/zz-lab.ini;; containers: peak-lab-bagisto-web:Up 31 minutes peak-lab-bagisto-app:Up 31 minutes peak-lab-bagisto-k6:Up 32 minutes peak-lab-bagisto-tools:Up 32 minutes peak-lab-bagisto-db:Up 32 minutes (healthy) 
 DB log lines: 13; lines naming recovery or error: 0
 2026-11-26 08:53:10 PRE free: total 15 available 10 df: 882G free
@@ -17,3 +16,4 @@ DB log lines: 13; lines naming recovery or error: 0
 2026-11-26 09:19:15 START cal-7 name=cal7-r1 R_0=1 R_1=4 R_2=0.2 R_3=0.3 R_4=1 R_5=8 (the one measured is cal-7; the other rates are real or stand-ins as the README says)
 2026-11-26 09:31:06 END cal-7 name=cal7-r1 exit=0
 RESULT target=1.0 achieved=1.0042 status=valid db_util=18.2450% app_cpu=11.220752619200349 requests=482 dropped=0 http={'200': 482}
+2026-11-26 09:39:42 GATE grid R_3=0.3 R_4=1 (stand-in): set7 0/504 pass, set8 392/3024; stand-ins for R_0 runs R_1=16 R_2=5 R_5=32 opens at 1,1.41,2,2.83,4,5.66, refused at 8
