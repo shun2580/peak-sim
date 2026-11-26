@@ -74,3 +74,10 @@ Run through `run_one.sh` with the stand-ins written above (R_0 = 1, R_1 = 4, R_2
 Both runs passed the entry's guards (the gate opened, the write check, the limits guard, the N tables identical before and after). `check_run.sh` (`cal6-r0.45/check.txt`, `cal6-r0.3/check.txt`): settings of the run the same as the confirming run's in the four files; the count 30,000; steps after the window: at 0.3 none (7 requests finished after the window), at 0.45 one bundle of 13 and a few of 1 to 4, none of 15 to 16 (type iii none); receive queue of port 9000 after the run 0 both times; window start to end of tail 664 s and 685 s (the confirming run 662 s).
 By the rule (D270 decision 2: a run whose rate is not reached is invalid even if it is in the band; D183: the next value down) **0.45 is not taken and 0.3 is the first valid run inside 20% to 30%: R_3 = 0.3**, and by rule 5 that run is cal-6's calibration run and is not measured again.
 The app was at its limit (99.92%) at 0.45 and not at 0.3 (58.95%). Written at 2026-11-26 09:18:41.
+
+### The stand-ins of the R_4 runs (written at 2026-11-26 09:19:15, before the first cal-7 run)
+
+R_3 = 0.3 is real now. For the cal-7 runs the set given to the entry has, as stand-ins, R_0 = 1, R_1 = 4, R_2 = 0.2 and cal-8 at R_5 = 8 (asked of the gate only); they are the same values as for the R_3 runs and are not values of any R.
+Asked of the gate by `gate_only.sh` (inputs only, nothing measured; records `gate-only-r0_1_r1_4_r2_0.2_r3_0.3_r4_*_r5_8/`) with cal-7 at each value the search can reach, the entry's gate opens every time:
+cal-7 at 1.0 → smallest degree 0.645383 (without cal-8); 0.7 → 0.652703 (without cal-8); 0.45 → 0.650583 (without cal-8); 0.3 → 0.643881 (without cal-6); 0.2 → 0.624906 (without cal-6); 0.15 → 0.617107 (without cal-6); all at or above 0.50.
+The search of R_4 starts at 1.0 rps and goes down by the rule above.
