@@ -81,3 +81,12 @@ R_3 = 0.3 is real now. For the cal-7 runs the set given to the entry has, as sta
 Asked of the gate by `gate_only.sh` (inputs only, nothing measured; records `gate-only-r0_1_r1_4_r2_0.2_r3_0.3_r4_*_r5_8/`) with cal-7 at each value the search can reach, the entry's gate opens every time:
 cal-7 at 1.0 → smallest degree 0.645383 (without cal-8); 0.7 → 0.652703 (without cal-8); 0.45 → 0.650583 (without cal-8); 0.3 → 0.643881 (without cal-6); 0.2 → 0.624906 (without cal-6); 0.15 → 0.617107 (without cal-6); all at or above 0.50.
 The search of R_4 starts at 1.0 rps and goes down by the rule above.
+
+### R_4: cal-7 at 1.0 rps (2026-11-26 09:19 to 09:31; `cal7-r1/`) — the search stops here
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 1.0 | 1.0042 (**valid**) | 0 | **18.2450%** (below 20%) | 11.22% | 482, all 200 |
+
+Stand-ins as written above (R_0 = 1, R_1 = 4, R_2 = 0.2, R_3 = 0.3 real, cal-8 at R_5 = 8 asked of the gate only); the gate opened; the write check, the limits guard and the N tables passed. `check_run.sh` (`cal7-r1/check.txt`): settings the same as the confirming run's, count 30,000, steps after the window none, receive queue of port 9000 after the run 0, window start to end of tail 662 s.
+The rule of "The rules" above for the stage-value search says: the first value below 20% → **stop and report**. This run is the first value and is below 20%, so the search of R_4 stops here and **R_4 is not decided**. No other value of cal-7 was measured. It is a valid run outside the band; whether any type of D183's amendment applies to a first value below the band is not written (D279 appendix, B5 names the stop of D272 decision 1 and the stop of D277, not this one), and it is not read here. Written at 2026-11-26 09:31:34.
