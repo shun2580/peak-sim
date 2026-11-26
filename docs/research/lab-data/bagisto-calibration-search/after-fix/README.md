@@ -300,3 +300,19 @@ Run through `run_one.sh` with the same stand-ins and flag as before (R_0 = 2.83,
 
 `check_run.sh` (`cal8-r16/check.txt`): all four settings files the same as the confirming run's (`recheck_nginx.sh` gives SAME as well), the first line of `tables-before.tsv` says 1,000 and the run's count is 1,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 664 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
 Valid and below the band: by the doubling rule the next rate is **32 rps**. Written 2026-11-26 13:04:50; committed before the next run starts.
+
+### R_5: cal-8 at 32 rps (2026-11-26 13:04 to 13:16; `cal8-r32/`) — the doubling search crosses the band
+
+Run through `run_one.sh` with the same stand-ins and flag as before (R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0 as decided by D283), 1,000 rows, request timeout 1800 s. The entry's gate opened (smallest degree 0.546895).
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 32 | 31.9958 (valid) | 0 | **42.4615%** (above the band) | 78.81% | 15358, all 200 |
+
+`check_run.sh` (`cal8-r32/check.txt`): all four settings files the same as the confirming run's (`recheck_nginx.sh` gives SAME as well), the first line of `tables-before.tsv` says 1,000 and the run's count is 1,000, no step after the window ("type iii: none"; the 11 requests that finished after the window ended all finished within 864 ms), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. Before the run: 15 GiB total and 8 available, 882 GB free, the database's log (13 lines) had no recovery or error line.
+
+### R_5 is decided: 16 rps (written 2026-11-26 13:17:05; before the effective gate and before any calibration run)
+
+The doubling search of R_5 crossed the band: 16 rps is valid and below it (17.6836%), the next rate, 32 rps, is valid and above it (42.4615%), and no rate of the doubling is inside the band. By D283 (the maintainer's ruling, with its addendum, section 6 point 2) the geometric mean is not measured; the valid run whose database utilization is nearest to 25% is taken as "outside the band". The distances, to four decimals: 16 rps 17.6836% is 7.3164 points from 25%; 32 rps 42.4615% is 17.4615 points; they are not equal. **R_5 = 16 rps (cal8-r16), outside the band (below it), database 17.6836%.** It is at least 10% and at most 40%, so the stop of that ruling does not apply; the run is not measured again. Valid runs of the search: 1:1.9045%, 2:2.9873%, 4:4.8429%, 8:8.9485%, 16:17.6836%, 32:42.4615%.
+The gate at R_5 = 16 (R_4 = 1.0): smallest degree 0.546895, open, so the stop for a closed gate (R_5 of 1 or 2) does not apply. R_4 = 1.0 is decided by D283 (ruling of 2026-11-26 11:58).
+With this, **R_0 = 2.83, R_1 = 8, R_2 = 1.0, R_3 = 0.3, R_4 = 1.0, R_5 = 16** are all decided. This task stops here: the effective gate and the calibration runs are not called.
