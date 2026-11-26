@@ -1,0 +1,7 @@
+recheck_nginx.sh at 2026-11-26 11:58:52 (the reading of the nginx settings file written before the fifth rate search; check.txt of each run is not rewritten)
+.cache/.../t5s/cal4-r8/cal-4: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
+.cache/.../t5s/cal4-r4/cal-4: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
+.cache/.../t5s/cal4-r2/cal-4: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
+.cache/.../t5s/cal4-r1/cal-4: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
+.cache/.../t5s/cal1-r2.83/cal-1: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
+.cache/.../t5s/cal5-r1/cal-5: notice lines once each: yes; other notice-like lines: 0; rest same byte for byte: yes; lines 192 vs 192 -> SAME
