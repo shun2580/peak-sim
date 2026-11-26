@@ -212,3 +212,14 @@ Run through `run_one.sh` with the stand-ins written above, the flag `--search-ga
 
 The checks of `check_run.sh` (`cal4-r4/check.txt`): the four settings files the same as the confirming run's, the count 3,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run 0, window start to end of tail 663 s. The gate's refusal, if any, is in `cal4-r4.out.txt`.
 Valid and below the band: by the doubling rule the next rate is **8 rps**. Written 2026-11-26 11:36:17; committed before any next run starts.
+
+### R_1: cal-4 at 8 rps (2026-11-26 11:36 to 11:48; `cal4-r8/`) — the search stops here on the same-conditions check
+
+Run through `run_one.sh` with the stand-ins written above, the flag `--search-gate-advisory` on, 3,000 rows, request timeout 1800 s. The gate opened (0.546895), so the advisory flag changed nothing.
+
+| Rate asked | Reached (status) | Dropped arrivals | Database | App | Requests in the kept window |
+| --- | --- | --- | --- | --- | --- |
+| 8 | 8.0000 (valid) | 0 | **20.1003%** (inside the band, 0.1003 points above its lower edge) | 38.45% | 3,840, all 200 |
+
+`check_run.sh` (`cal4-r8/check.txt`) reads **`settings-nginx.txt`: DIFFERENT** against the confirming run's, and so "B3 overall: DIFFERENT". The other three settings files are the same, the count is 3,000, no step after the window ("type iii: none"), the receive queue of port 9000 after the run is 0, and window start to end of tail is 663 s. The difference, seen with `diff` against `../ten-cpus/cal8-r32-confirm/cal-8/settings-nginx.txt`: the line "nginx: configuration file /etc/nginx/nginx.conf test is successful" is line 2 in the confirming run's file and line 191 (the last) in this one; no other line differs. The four earlier cal-4 runs (1, 2 and 4 rps) and every earlier run of this search read "same". The configuration files of the lab (`poc/lab/compose/nginx/lab-bagisto.conf`, `zz-lab.ini`) were not changed during the search.
+The rule says that if any of these files differs the search stops and is reported. **It is stopped here.** R_1 is not decided; this run is kept as it is, neither taken as R_1 nor discarded, and no run was added. Written 2026-11-26 11:48:31.
