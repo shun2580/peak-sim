@@ -1,6 +1,6 @@
 # Lab backtest (B) on Bagisto: B at 190,000 rows
 
-Status: **draft. The prediction was committed at 2026-11-27 02:25:59 (`87e8f6ec`) and has not been changed. The measurement chain stopped on 2026-11-27 at 06:35:09, at the 7th step of s-1, when the application container ran out of memory. Sections 1 to 7 are written. The verdict, the scenarios s-2 to s-5 and the closing of condition 2 are not written yet (section 8).**
+Status: **the verdict is written: B on Bagisto at 190,000 rows is inconclusive (undecidable). No scenario reached a measured limit (0 of the 4 needed). The prediction was committed at 2026-11-27 02:25:59 (`87e8f6ec`) and has not been changed. The measurement chain stopped on 2026-11-27 at 06:35:09, at the 7th step of s-1, when the application container ran out of memory; s-2 to s-5 were not run, by the maintainer's decision. Condition 2 (B on Bagisto) is not met.**
 
 This file is the record of test B on the third application, Bagisto (`docs/simulator-spec.md`, sections 7.2, 7.4.4 and 7.4.7). It follows `lab-backtest-6.md`, the sixth round on BookStack. The pass lines, the tolerances and the rule for "undecidable" are those of the spec and are not moved by this file.
 
@@ -14,7 +14,10 @@ What is checked is a **check against a busy period reproduced in the lab**: a pr
 4. Two rehearsals were made at a count already seen in the capture (30,000 rows). They are not tests (section 4).
 5. The request timeout of this B is **2,400 s, not 1,800 s** (section 5). The change was ruled after the upper bound of one request at this count had been seen and before any measured value was seen. It opens a way to measure, and that direction is disclosed (section 5.2).
 6. The prediction was committed before the first measured step, by git and by the record (section 6).
-7. **s-1 was measured to its 6th step; the 7th step (0.2 rps) ended with the application container killed for memory, is not judged and has no record. By the rule, the limit rps of s-1 is "not measured".** Whether to go on with s-2 to s-5 waits for the maintainer's ruling (section 7).
+7. **s-1 was measured to its 6th step; the 7th step (0.2 rps) ended with the application container killed for memory, is not judged and has no record. By the rule, the limit rps of s-1 is "not measured".** The cause is one heavy route: a single `GET /api/products` request takes about 150 s at this count, several overlap, and together they passed the container's 6 GiB. The prediction's mark for memory had not evaluated this route (section 7.3).
+8. **Verdict: inconclusive.** No scenario reached a measured limit (0 of the 4 needed); s-1 stopped at step 7 for application memory; s-2 to s-5 were not run by the maintainer's decision. Condition 2 (B on Bagisto) is not met (section 8).
+9. **For reading only**, the six judged steps of s-1 are set against the prediction in section 7.4: the measured database utilization is above the point of the prediction at every step (by 0.9 to 2.6 points; 23.42% measured against 20.83% at the 6th step). This table is used for no item and no pass or fail.
+10. **An estimate, not a measured value** (section 7.5): to reach 80% of the database in s-2 to s-5, the application would need about 6.7 to 13.6 GiB of memory, and its CPU and its 16 workers would be short as well, on a machine with 15.56 GiB. The lab cannot try the database prediction of an application with such a route (section 9).
 
 ## 1. What was tested, and why
 
@@ -350,50 +353,138 @@ Step 7 began at 06:06:53. The load tool finished at 06:35:09 with exit 0 (311 it
 - **The cause is not settled.** The record has the time and the route of the one failure and the peaks of the container's memory; it has no memory figure per request, so which request used how much cannot be said. That `GET /api/products` is the cause is a reading from the time, the route of the 502 and the number of that route's requests in flight (4 at the window's start and 5 at its end, in the load tool's own count; no other route had a request running at either edge), and not a measurement per request. The PHP memory limit of one request (4G) was not the one reached (no "Allowed memory size … exhausted" line); the container's total was.
 - **By the rule, s-1's limit rps is "not measured".** Step 6, the last judged step, is valid and below 80% (23.4220%); step 7 is not judged; no step of s-1 reached 80% and no extension of the line is opened by the rule. This is the same form and the same reading as the third round on BookStack (its s-5, whose 9th step was stopped by the memory guard after a valid 8th step at 75.51%; `lab-backtest-3.md`). It is neither a pass nor a fail.
 - **What the verdict can still do.** The rule for "undecidable" (spec 7.2) is that B is undecidable if fewer than 4 scenarios measured a limit rps or fewer than 10 steps are usable (valid and from 10% to 90%). From s-1 the usable steps are 3 (steps 4, 5 and 6). With s-1 "not measured", B can be decided only if s-2, s-3, s-4 and s-5 all measure a limit. Stopping here means 0 scenarios measured and B undecidable.
-- **What was done and not done.** Nothing was repaired, nothing was run again, and s-1 was not measured again (a repeat after the value was seen could favour a pass; the third round on BookStack did not repeat it either). The stack, the database, the output directories and all records were left as they are. Scenarios s-2 to s-5 were not started. **Whether to go on with s-2 to s-5 under the same prediction, flags and tools, or to stop here, waits for the maintainer's ruling.** The precedent on BookStack of going on after a stop (the sixth round) was for a stop that was not a real out-of-memory kill; there is no precedent for going on after a real one.
+- **What was done and not done.** Nothing was repaired, nothing was run again, and s-1 was not measured again (a repeat after the value was seen could favour a pass; the third round on BookStack did not repeat it either). The stack, the database, the output directories and all records were left as they are. Scenarios s-2 to s-5 were not started. The precedent on BookStack of going on after a stop (the sixth round) was for a stop that was not a real out-of-memory kill; there is no precedent for going on after a real one.
+- **The ruling.** On 2026-11-27 (09:35) the maintainer ruled to **stop here**: s-2 to s-5 are not measured, and the application container's memory limit is not raised. Raising it would be a change of the settings after values were seen, and the estimate of section 7.5 says that this machine's memory would not be enough, and that the CPU and the workers would run short first even if it were. After the ruling the stack's five containers were stopped one at a time, the database last (`docker stop -t 180`); no volume was removed, and the 190,000-row database is kept.
+
+### 7.3 Why s-1 stopped: one heavy route, and a mark that did not evaluate it
+
+**What the records show.** `GET /api/products` is the route with the longest request. At 190,000 rows one request takes about 150 s, and the requests overlap, because the arrivals are at a fixed rate and a request lasts longer than the gap between arrivals. The table is from the load tool's summary for each step and from the memory records before and after it (`run-20261127/s-1-190000/rung-*/`).
+
+| step | rps | longest request in the window (s) | `GET /api/products` running at the window's end | container's memory peak during the step (GiB) |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 0.025 | 144.7 | 1 | 4.00 |
+| 2 | 0.035 | 143.8 | 1 | 4.12 |
+| 3 | 0.05 | 145.9 | 1 | 4.28 |
+| 4 | 0.07 | 148.3 | 2 | 4.48 |
+| 5 | 0.1 | 151.2 | 2 | 4.82 |
+| 6 | 0.15 | 156.3 | 4 | 5.60 |
+| 7 | 0.2 | 162.1 | 5 | 6.00 (the container's limit; killed) |
+
+The longest request is the load tool's maximum over all routes; that it is `GET /api/products` is a reading from its length and from the count of that route's requests in flight, and not a measurement per request (as in section 7.2). At step 7, five requests of that route were running at the end of the window, and the container passed its 6 GiB limit (`oom_kill` 3). The container held 3.4 to 4.5 GiB between steps, before any step began its load.
+
+**Why the mark for memory did not say anything about this route.** The prediction marks a route when its predicted peak memory is near the application's limit (spec 6.4, the memory side of the mark). For `GET /api/products` there was no predicted peak memory, so the mark did not evaluate the route; by the spec such a route is not judged and is listed apart, and it is **not counted as safe** (`allocation.not_judged.memory` in the prediction's file lists it, in all five scenarios). The chain that led to this, read from the code and the records:
+
+1. The fit of peak memory needs a point at every scale it expects, including the empty database (scale 0). For this route the estimate's fit has the status `insufficient_scales` and the reason `scale 0: not measured`, for the three quantities (queries, rows examined, peak memory) alike (`poc/runtime/src/Judge/CostFit.php:140-152`).
+2. The fit reads only the cold request (the second attempt) of each scale (`CostFit.php:298`). In the records of two other runs at counts seen in the capture, the first request of this route in the empty database failed with a 500 and no second attempt was made (`poc/runtime/src/Run/MeasureOne.php:261-263`), which leaves no scale 0 point. **The third capture's own record of this point was not found and not read**, so that this is also what happened there is a reading that fits the records and has not been checked on the capture.
+3. Without a fit, the predictor makes no value (`not_predicted`; `poc/runtime/src/Judge/Predictor.php:67-76`), the memory mark takes the route as `not_evaluated` and never applies its rule of 1.51 times the predicted peak against the limit (`poc/runtime/src/Simulate/Predict/AppMemoryRisk.php:70-75`). This is not special to this route: four of the eight routes have no memory prediction, with the same status (`insufficient_scales`), and one more is marked (`GET /admin/customers/view/{id}`).
+
+**A second reason, which is a reading and not a checked fact.** Even with a scale 0 point, the fit would have used the cold request. The cold peak memory of this route in the records is 0.87 MB at 30,000 rows and 1.7 MB at 240,000 rows, while the first request of a worker (the warm-up attempt) used 120 MB at 30,000 rows and 913 MB at 240,000 rows. A real php-fpm request is closer to the warm-up one. The tool's fit would therefore have been far below what the route used, and the mark would probably not have been set. Whether other routes have the same shape was not looked at. No change was made to the tool, since changing a tool after the values have been seen would not count for this test.
+
+### 7.4 Steps 1 to 6 set against the prediction (for reading only)
+
+**This table is not used for any item, for the verdict or for a pass or fail.** The verdict (section 8) does not depend on it. It is given because the six steps are valid measurements and the prediction was fixed before them (section 6.2). The prediction's file is `poc/lab/predictions/ladder-prediction-bagisto-b.json`; the measured values are `db_utilization_percent` and `app_cpu_percent` of each step's `record.json`. "Point" is the prediction's point; "upper" is its upper reading, which is a wide range by design; "naive" is the naive estimate from cal-2 (section 3.3). The requests of the seven routes that are sent were in even shares (route 3 taken out, section 6.1).
+
+| step | rps | database, predicted point (%) | database, predicted upper (%) | naive (%) | database, measured (%) | measured minus point (points) | measured over point | application CPU, measured (%) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 0.025 | 3.47 | 24.51 | 0.33 | 4.37 | +0.90 | 1.26 | 4.99 |
+| 2 | 0.035 | 4.86 | 34.31 | 0.46 | 5.81 | +0.95 | 1.20 | 6.78 |
+| 3 | 0.05 | 6.94 | 49.02 | 0.65 | 7.95 | +1.01 | 1.15 | 9.98 |
+| 4 | 0.07 | 9.72 | 68.63 | 0.91 | 11.01 | +1.29 | 1.13 | 14.13 |
+| 5 | 0.1 | 13.89 | 98.04 | 1.31 | 15.81 | +1.93 | 1.14 | 20.66 |
+| 6 | 0.15 | 20.83 | 147.06 | 1.96 | 23.42 | +2.59 | 1.12 | 31.83 |
+| 7 | 0.2 | 27.77 | 196.07 | 2.61 | not judged (container killed) | | | |
+
+What can be read, and no more: at every one of the six steps the measured value is above the point and far below the upper reading, and the ratio of measured to point goes down from 1.26 to 1.12 as the rate goes up. The prediction of s-1's limit rps was 0.576 rps by the point and 0.082 rps by the safe-side reading (the naive estimate: 6.12 rps); **none of these was tested**, because no step reached 80%. The six steps are inside the part of the ladder where the database is far from 80%, and they say nothing about the part near 80%, which is where item 4 is decided. The measured values were not compared with the prediction while the measurement ran.
+
+### 7.5 What it would have taken to go on: an estimate, not measured values
+
+**Every number in this section is a calculation from the records, not a measured value.** The conditions of each are written beside it. No request was sent for it, the stack was not touched and nothing in the settings was changed.
+
+**What is taken from the records (real values):** the share of `GET /api/products` in each scenario after route 3 is taken out (s-1 0.1429; s-2, s-4 and s-5 0.2667; s-3 0.0667); the prediction's database points at each step; the ratio of measured to point in s-1 (1.12 to 1.26); the longest request of 143.8 to 162.1 s; the memory of the container before and after each step; the machine (15.56 GiB of memory, 4 GiB of swap that the application container cannot use; the application's limit 6 GiB, 10 CPUs, php-fpm 16 workers).
+
+**The calculation:**
+
+- The number of `GET /api/products` requests running at once is its arrival rate times its duration (145 to 162 s, the duration of an unloaded step; under load it is longer, which makes the number larger). It cannot pass the 16 php-fpm workers; the rest wait.
+- The memory is taken as `k × P + (16 − k) × r`, with P the peak of a worker running that route (0.55 to 0.85 GiB; three ways of deriving it from the records: an interpolation of the warm-up peaks to 190,000 rows, a recount from the peaks of steps 4 to 6, and the difference between steps) and r what a waiting worker keeps (0.22 to 0.28 GiB; up to about 0.45 GiB for a worker that has served the route). The same formula gives 5.2 to 6.4 GiB at step 6 (the measured peak was 5.60 GiB) and 5.8 to 7.3 GiB at step 7 (the container reached its 6 GiB limit): it does not contradict s-1. The memory that the other routes use at the same time is taken as 0.
+- The CPU of one `GET /api/products` request is taken as 130 to 148 core-seconds, by crediting the application's CPU of s-1 to this route (the upper figure takes all of step 6's 3.18 cores as this route's; the lower takes away an upper bound for the other routes). There is no per-route CPU record.
+
+**The result, for the step at which the database is predicted to pass 80% (and the one before it):**
+
+| scenario | step (total rps) | database, predicted point (×1.13 as seen in s-1) | `GET /api/products` arrivals per second | requests running at once | application CPU needed (the lab has 10 cores) | container memory needed (GiB) |
+| --- | --- | --- | --- | --- | --- | --- |
+| s-2, s-4 | 0.3 | 65.5% (74%) | 0.080 | 11.6 to 13.0 | 10.4 to 11.8 cores | 7.3 to 13.6 |
+| s-2, s-4 | **0.45** | 98.3% (111%) | 0.120 | 17.4 to 19.4, so the 16 workers are all full and the queue grows | 15.6 to 17.8 cores | **8.8 to 13.6** |
+| s-5 | 0.3 | 56.6% (64%) | 0.080 | 11.6 to 13.0 | 10.4 to 11.8 cores | 7.3 to 13.6 |
+| s-5 | **0.45** | 84.8% (96%) | 0.120 | 16 workers full | 15.6 to 17.8 cores | **8.8 to 13.6** |
+| s-3 | 0.7 | 63.0% (71%) | 0.047 | 6.8 to 7.6 | 6.1 to 6.9 cores, plus other routes | 5.8 to 10.2 |
+| s-3 | **1.0** | 89.9% (102%) | 0.067 | 9.7 to 10.8 | 8.7 to 9.9 cores, plus up to 2.8 for other routes, so at the edge | **6.7 to 11.5** (13.6 if the CPU is short and 16 requests run) |
+
+What the estimate says:
+
+1. **At the container's present limit of 6 GiB**, the memory would be reached at 2.9 to 6.0 requests of this route at once. That is a total of about 0.07 to 0.15 rps in s-2, s-4 and s-5 (the database predicted at 15% to 33%), and about 0.29 to 0.6 rps in s-3 (27% to 63%): in each case far before 80%.
+2. **The machine cannot give the memory that is needed.** The lab's rule for the application's limit (the memory available minus 2 GiB) gives about 6.8 GiB; giving all the available memory gives about 8.8 GiB. Both are below or only at the lower end of the 8.8 to 13.6 GiB needed in s-2, s-4 and s-5, and giving all of it would put the whole machine (the database, the tools, the lab's own processes) at risk of running out. A limit of about 14 GiB for the application would need about 19 to 20 GiB for the machine; that depends on the physical memory of the host and was not checked.
+3. **Even with enough memory, the application would probably run short first.** In s-2, s-4 and s-5 the step at which the database passes 80% would need 15.6 to 17.8 cores of the 10, and 17 to 19 requests at once against 16 workers. When all 16 workers hold this route, the queue grows during the whole step, and the database is read at about 73% to 88% (the other routes taken as passing at their arrival rate, which they would not entirely do): whether it would pass 80% is split. So the chance that the limit of s-2, s-4 and s-5 can be measured, even if the memory limit were raised, is put at even or less.
+4. **Fewer workers would not help either.** With 8 workers, the memory would be about 7 GiB, but at most 8 ÷ 150 = 0.053 requests per second of this route could be served, so s-2, s-4 and s-5 would stop at a total of about 0.2 rps (the database predicted at 44%) and the limit would not be measured.
+5. For B to be decided, all four of s-2 to s-5 have to measure a limit (section 8.2). By 1 to 4, this was judged unlikely, and any change of the settings that would make it possible changes memory, CPU and workers together, after values have been seen. That is the reason for the ruling in section 7.2.
+
+**What this does not say.** There is no measurement of the memory of one request of this route at 190,000 rows: P is an interpolation and a calculation from the container's counters, and that the real request is of the warm-up kind is a reading. The CPU per request is a share of the total. The duration under load, the length of the queue and the number of requests that would meet the 2,400 s limit were not calculated. The database's 73% to 88% when the workers are full is a reading that depends on the other routes passing. How far a larger host could be taken was not read.
 
 ## 8. Verdict
 
-*Not written yet.* To be written when the measurement ends (or is ended by ruling).
+**Inconclusive (undecidable).** No scenario reached a measured limit (0 of the 4 needed); s-1 stopped at step 7 for application memory; s-2 to s-5 were not run by the maintainer's decision. **Condition 2 (B on Bagisto) is not met.**
 
-### 8.1 How the verdict is to be made
+This is neither a pass nor a fail of the prediction. B stopped on the application's memory, not on the database, so the part of the prediction that B is meant to try (the database's utilization near 80% and the limit rps) was not tried.
 
-*Not written yet.* (Two readers rebuild the verdict from the raw records without seeing each other's work, and compare; the committed verdict scripts of `docs/research/lab-data/dryrun-286/judge/` are used unchanged.)
+### 8.1 How the verdict is made
+
+By the rule of spec 7.2 for "undecidable": B is undecidable if fewer than 4 scenarios measured a limit rps or fewer than 10 steps are usable. That is a count made from section 7, and no difference between a prediction and a measurement goes into it, so it does not depend on the verdict scripts. It can be checked by reading section 7 and the step records in `docs/research/lab-data/bagisto-ladder-190k/run-20261127/`. The pass lines, the tolerances and the rule are those of the spec and were not moved.
 
 ### 8.2 The steps, and "undecidable"
 
-*Not written yet.*
+Seven steps were started and six were judged (all valid). **Usable steps: 3** (steps 4, 5 and 6, at 11.01%, 15.81% and 23.42%); steps 1 to 3 are below 10% (4.37%, 5.81%, 7.95%) and step 7 is not judged. 10 are needed. **Scenarios with a measured limit rps: 0**: s-1 is "not measured" (section 7.2), and s-2 to s-5 were not run. 4 are needed. **Both lines are crossed, and either one alone makes B undecidable.**
 
 ### 8.3 The items (spec 7.4 B, items 1 to 4)
 
 | item | measured | lowest standard | goal | result |
 | --- | --- | --- | --- | --- |
-| 1. mean absolute difference smaller than the naive estimate's | not written yet | required | required | |
-| 2. mean absolute difference of utilization | not written yet | 15 points or less | 5 points or less | |
-| 3. "over 80% or not" agrees with the measurement | not written yet | 80% or more | 80% or more | |
-| 4. predicted limit rps within ±X% of the measured one | not written yet | ±20% in 80% or more of the scenarios | ±10% in 80% or more of the scenarios | |
+| 1. mean absolute difference smaller than the naive estimate's | not computed: B is undecidable | required | required | not decided |
+| 2. mean absolute difference of utilization | not computed: B is undecidable (3 usable steps of 10) | 15 points or less | 5 points or less | not decided |
+| 3. "over 80% or not" agrees with the measurement | not computed: B is undecidable | 80% or more | 80% or more | not decided |
+| 4. predicted limit rps within ±X% of the measured one | no limit rps was measured (0 of 4 scenarios) | ±20% in 80% or more of the scenarios | ±10% in 80% or more of the scenarios | not decided |
+
+The table of section 7.4 is not a substitute for items 1 to 3.
 
 ### 8.4 Scenarios s-2 to s-5
 
-*Not written yet.* (The measurement of s-2 to s-5 has not been started.)
+Not run. The maintainer ruled on 2026-11-27 to stop after s-1 and not to raise the application container's memory limit (section 7.2); the estimate that was before the ruling is in section 7.5. Nothing was repaired and s-1 was not measured again.
 
 ### 8.5 Comparison with the naive estimate, and condition 2
 
-*Not written yet.* (Condition 2's second half is counted as spec 7.4.7 counts it: 5 times the capture's largest size or more (190,000 ÷ 30,000 = 6.33), a count not seen before, passing at the goal; "undecidable" counts as not met, and no route is added afterwards.)
+No comparison with the naive estimate is made, since B is undecidable (the naive column of section 7.4 is for reading only). Condition 2's second half is counted as spec 7.4.7 counts it: 5 times the capture's largest size or more (190,000 ÷ 30,000 = 6.33), a count not seen before, passing at the goal; "undecidable" counts as not met, and no route is added afterwards. **B on Bagisto is not met, so condition 2 is not met by this file.**
 
 ### 8.6 The order check
 
-The order of the prediction and the first measurement is in section 6.2. *The part that depends on the verdict is not written yet.*
+The prediction was committed before the first measured step (section 6.2): `87e8f6ec` at 02:25:59 against the first step at 02:37:13. The prediction, the settings, the tools and the records were not changed after the stop; no step was measured again; the stack was stopped after the ruling and the volumes were kept.
+
+### 8.7 The disclosures, in one place
+
+- **The request timeout of 2,400 s, not 1,800 s**, ruled after the upper bound of one request had been seen and before any measured value was seen; it can work in favour of a pass (section 5.2, point 1). In the run no request came near either limit (the longest was 162.1 s over all seven steps), and the calibration's longest request was 27.1 s (section 5.2, point 2). **BookStack's B was kept at 1,800 s** (section 5.2, point 3).
+- **The gap of the web server and the runs thrown away.** The web server held the application's workers on idle connections after a load window; it was fixed in the Bagisto lab only, and all 22 runs measured before the fix (14 valid, 8 invalid) were set aside and none is used (section 2). The two labs' web server configurations therefore differ.
+- **The application has 10 cores, BookStack's had 6**, because with 6 the application was saturated before the database in a search run (section 1.2).
+- **How this B differs in make from the sixth round on BookStack**: the application, the rule that chooses the routes, the calibration, the web server's configuration, the timeout, the row count (section 1.2).
+- **Two runs of the calibration are outside the band** (R_4 and R_5, section 3.2). R_4 was taken by a decision made after its value (18.2450%) had been seen; the rule for R_5 was fixed before any run of it.
 
 ## 9. What this verdict does not say, and what the lab cannot say
 
-*Not written yet.* Points already fixed by the decisions, to be written out here:
-
+- **A limit of the lab.** In an application that has a heavy route, the application's memory can run out before the database reaches its limit, and then the prediction of the database's limit cannot be tried. That is what happened here: the memory of the application container ran out at 0.2 rps, with the database at 23.4% at the last judged step. The lab limits the application's container (6 GiB here), and an application whose single request is large and long can need more than this machine can give.
+- **The result does not say whether the database prediction at this count is good or bad.** It was not tried near 80%. The six steps of section 7.4 were all far from it, and they are not a test.
+- **The memory mark does not cover this kind of route.** For a route whose memory fit is missing, the mark does not evaluate it and does not call it safe; and the fit looks at the cold request, which may be far below what a real request uses (section 7.3). The first is how the spec is written; the second is a reading and was not checked on a capture.
 - The routes measured take GET only, and the allowed list of writes is empty.
 - The lab's data is the generator's; the capture and the lab fix session, cache and queue to fakes (array, sync), so the application's health check runs on every admin request in both, and may make admin requests heavier than a real deployment's (D269). The work that disappeared when the lab's host was made equal to the capture's was the lab's own (D267, condition 4).
-- At each request the application reads `core_config` twice with a full scan as part of its start-up. The estimate does not contain it and the measurement does (section 1.5; D269).
+- At each request the application reads `core_config` twice with a full scan as part of its start-up. The estimate does not contain it and the measurement does (section 1.5; D269). It works to make the measured utilization higher than the predicted one, and the six steps of section 7.4 are all higher.
 - The applications differ and the calibration is made per application, so the verdicts on BookStack and on Bagisto are not set side by side as a comparison of pass and fail, with the reasons of sections 1.2, 2 and 5.
 - B is measured with the application's time limit lifted and the memory limit at 4G inside a container limited to 6 GiB, with a request timeout of 2,400 s; the container's limit was reached in the first scenario (section 7.2). It says nothing about the application stopping early by time or by memory at the defaults.
+- The numbers of section 7.5 are calculations and not measurements, and no one of them is a limit that was observed.
 - One row count, once, on one application.
 
 This file does not claim any precision on a real deployment.
