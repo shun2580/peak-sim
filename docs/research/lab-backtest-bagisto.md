@@ -378,7 +378,7 @@ The longest request is the load tool's maximum over all routes; that it is `GET 
 2. The fit reads only the cold request (the second attempt) of each scale (`CostFit.php:298`). In the records of two other runs at counts seen in the capture, the first request of this route in the empty database failed with a 500 and no second attempt was made (`poc/runtime/src/Run/MeasureOne.php:261-263`), which leaves no scale 0 point. **The third capture's own record of this point was not found and not read**, so that this is also what happened there is a reading that fits the records and has not been checked on the capture.
 3. Without a fit, the predictor makes no value (`not_predicted`; `poc/runtime/src/Judge/Predictor.php:67-76`), the memory mark takes the route as `not_evaluated` and never applies its rule of 1.51 times the predicted peak against the limit (`poc/runtime/src/Simulate/Predict/AppMemoryRisk.php:70-75`). This is not special to this route: four of the eight routes have no memory prediction, with the same status (`insufficient_scales`), and one more is marked (`GET /admin/customers/view/{id}`).
 
-**A second reason, which is a reading and not a checked fact.** Even with a scale 0 point, the fit would have used the cold request. The cold peak memory of this route in the records is 0.87 MB at 30,000 rows and 1.7 MB at 240,000 rows, while the first request of a worker (the warm-up attempt) used 120 MB at 30,000 rows and 913 MB at 240,000 rows. A real php-fpm request is closer to the warm-up one. The tool's fit would therefore have been far below what the route used, and the mark would probably not have been set. Whether other routes have the same shape was not looked at. No change was made to the tool, since changing a tool after the values have been seen would not count for this test.
+**A second reason, which is a reading and not a checked fact.** Even with a scale 0 point, the fit would have used the cold request. The cold peak memory of this route in the records is 0.87 MB at 30,000 rows and 1.7 MB at 240,000 rows, while the first request of the measuring process (the warm-up attempt) used 120 MB at 30,000 rows and 913 MB at 240,000 rows. A real php-fpm request is closer to the warm-up one. The tool's fit would therefore have been far below what the route used, and the mark would probably not have been set. Whether other routes have the same shape was not looked at. No change was made to the tool, since changing a tool after the values have been seen would not count for this test.
 
 ### 7.4 Steps 1 to 6 set against the prediction (for reading only)
 
@@ -387,8 +387,8 @@ The longest request is the load tool's maximum over all routes; that it is `GET 
 | step | rps | database, predicted point (%) | database, predicted upper (%) | naive (%) | database, measured (%) | measured minus point (points) | measured over point | application CPU, measured (%) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | 0.025 | 3.47 | 24.51 | 0.33 | 4.37 | +0.90 | 1.26 | 4.99 |
-| 2 | 0.035 | 4.86 | 34.31 | 0.46 | 5.81 | +0.95 | 1.20 | 6.78 |
-| 3 | 0.05 | 6.94 | 49.02 | 0.65 | 7.95 | +1.01 | 1.15 | 9.98 |
+| 2 | 0.035 | 4.86 | 34.31 | 0.46 | 5.81 | +0.95 | 1.19 | 6.78 |
+| 3 | 0.05 | 6.94 | 49.02 | 0.65 | 7.95 | +1.01 | 1.14 | 9.98 |
 | 4 | 0.07 | 9.72 | 68.63 | 0.91 | 11.01 | +1.29 | 1.13 | 14.13 |
 | 5 | 0.1 | 13.89 | 98.04 | 1.31 | 15.81 | +1.93 | 1.14 | 20.66 |
 | 6 | 0.15 | 20.83 | 147.06 | 1.96 | 23.42 | +2.59 | 1.12 | 31.83 |
@@ -437,7 +437,7 @@ This is neither a pass nor a fail of the prediction. B stopped on the applicatio
 
 ### 8.1 How the verdict is made
 
-By the rule of spec 7.2 for "undecidable": B is undecidable if fewer than 4 scenarios measured a limit rps or fewer than 10 steps are usable. That is a count made from section 7, and no difference between a prediction and a measurement goes into it, so it does not depend on the verdict scripts. It can be checked by reading section 7 and the step records in `docs/research/lab-data/bagisto-ladder-190k/run-20261127/`. The pass lines, the tolerances and the rule are those of the spec and were not moved.
+By the rule of spec 7.2 for "undecidable": B is undecidable if fewer than 4 scenarios measured a limit rps or fewer than 10 steps are usable. That is a count made from section 7, and no difference between a prediction and a measurement goes into it, so it does not depend on the verdict scripts. It can be checked by reading section 7 and the step records in `docs/research/lab-data/bagisto-ladder-190k/run-20261127/`. The pass lines, the tolerances and the rule are those of the spec and were not moved. Two reviewers counted this separately and agreed.
 
 ### 8.2 The steps, and "undecidable"
 
