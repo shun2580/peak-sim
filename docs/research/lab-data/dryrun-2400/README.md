@@ -90,3 +90,8 @@ Added 2026-11-27 after the chain ended (the chain: 2026-11-27 01:19:42 to 02:16:
 ### Edits made to the kept files before the commit
 
 The home directory is written `~` and the run id of the database name `<runid>`. One value of the build's row counts, `product_attribute_values` (six rows per product), is written `6 x 30000`, and the estimated row count of that table in `analyze/analyze-table-stats-*.tsv` and `chain/stats-scenarios.tsv` is written `<over 150k>`; no other value was changed. The same two values are written the same way in the kept records of the chain (`chain/`, `ladder/`, the `*.tsv*` files, so the files compared by the chain stay equal). The other long digit strings in them are not counts of rows: the checksum column (the third) of `tables-*.tsv`, cumulative CPU counters and epoch seconds of the samplers, memory readings in bytes and KiB, the microsecond fields of `run.json`, and digits inside hashes and commit ids.
+
+
+## Note added on 2026-11-27 (after the measurement)
+
+The `prediction/` folder of this rehearsal was left out of version control when the rehearsal was recorded (see the files section above). On 2026-11-27 it was committed here as a record, **long after every measurement of the real rounds and of this rehearsal**. It is not used to claim any order in time, and the file in it is not a prediction of the backtest. The prediction gate reads only `poc/lab/predictions/`, which this commit does not touch. The files were not changed, and no home directory, user name, host name or secret-shaped value is in them (checked before the commit). The reason is in `docs/decisions.md` D286.

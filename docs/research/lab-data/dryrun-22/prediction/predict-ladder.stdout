@@ -1,0 +1,27 @@
+loaded: 12 scenario(s), estimate made at N=30000
+  cal-1 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  cal-2 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  cal-3 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  cal-4 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  cal-5 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  cal-6 (calibration): 7 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 56 route(s) with rps 0
+  cal-7 (calibration): 7 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 56 route(s) with rps 0
+  s-1 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  s-2 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  s-3 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  s-4 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+  s-5 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 55 route(s) with rps 0
+
+ladder prediction: 15 stage(s) x 5 scenario(s), calibration two_coefficient
+  estimate commit: 6ae51955765527efc0acd8f076c89f69a488d1ef (argument), NOT the expected 7c40774
+  naive basis: cal-2 among cal-1, cal-2, cal-3
+  s-1 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-2 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-3 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-4 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-5 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-1: limit rps point 1.1788 / safe 0.9540 / naive 2.1964
+  s-2: limit rps point 0.7373 / safe 0.5966 / naive 2.1964
+  s-3: limit rps point 2.9394 / safe 2.3800 / naive 2.1964
+  s-4: limit rps point 0.7564 / safe 0.6854 / naive 2.1964
+  s-5: limit rps point 2.6699 / safe 1.5687 / naive 2.1964

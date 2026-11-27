@@ -1,0 +1,24 @@
+diff --git a/poc/lab/compose/nginx/lab-bagisto.conf b/poc/lab/compose/nginx/lab-bagisto.conf
+index 045ad52a..0cbb185a 100644
+--- a/poc/lab/compose/nginx/lab-bagisto.conf
++++ b/poc/lab/compose/nginx/lab-bagisto.conf
+@@ -36,7 +36,7 @@ http {
+             fastcgi_pass lab_app;
+             fastcgi_param SCRIPT_FILENAME /peak-sim/poc/lab/app/entry.php;
+             fastcgi_param SCRIPT_NAME /index.php;
+-            fastcgi_read_timeout 120s;
++            fastcgi_read_timeout 2400s;
+             fastcgi_buffering on;
+             fastcgi_buffers 64 16k;
+         }
+diff --git a/poc/lab/compose/php/zz-lab.ini b/poc/lab/compose/php/zz-lab.ini
+index 56983a6c..d301de4e 100644
+--- a/poc/lab/compose/php/zz-lab.ini
++++ b/poc/lab/compose/php/zz-lab.ini
+@@ -15,3 +15,6 @@ opcache.interned_strings_buffer=32
+ opcache.max_accelerated_files=30000
+ realpath_cache_size=4M
+ realpath_cache_ttl=600
++; B (spec 7.4.2, 7.4.4; D206, D208, D227): the time limit off and memory_limit 4G for this measurement; put back for the mark
++max_execution_time=0
++memory_limit=4G

@@ -1,0 +1,28 @@
+loaded: 13 scenario(s), estimate made at N=30000
+  cal-1 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-2 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-3 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-4 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-5 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-6 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-7 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  cal-8 (calibration): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-1 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-2 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-3 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-4 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+  s-5 (target): 8 route(s) with rps, 0 with unknown cost, 0 unknown table(s), 112 route(s) with rps 0
+
+ladder prediction: 15 stage(s) x 5 scenario(s), calibration two_coefficient
+  estimate commit: 4d316265006c3e68ea4b52248ac247ca791aa376 (argument), NOT the expected 7c40774
+  naive basis: cal-2 among cal-1, cal-2, cal-3
+  s-1 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-2 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-3 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-4 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-5 safe side: marks of the estimate made at 30,000 rows (estimate_at_count) for 30,000 rows
+  s-1: limit rps point 3.5489 / safe 0.4617 / naive 6.1221
+  s-2: limit rps point 2.5455 / safe 0.2935 / naive 6.1221
+  s-3: limit rps point 5.8583 / safe 1.0819 / naive 6.1221
+  s-4: limit rps point 2.5464 / safe 0.2935 / naive 6.1221
+  s-5: limit rps point 2.8433 / safe 0.2972 / naive 6.1221
