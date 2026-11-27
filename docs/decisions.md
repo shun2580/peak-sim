@@ -4907,3 +4907,47 @@ D282 の §1〜§6 は書き換えず、その後ろに足す。点検者が、�
 - **開示(2)の数**:較正 8 本の最長の要求は、cal-6 の 27.056375 秒である(k6 の `summary.json` の `duration_ms.max`・測りの窓の中で送った要求)。時間切れ 1,800 秒に届いた本は無く、時間切れ・504・失敗・取りこぼしの印は 8 本とも 0 である。8 本の最長の要求(秒):cal-1 8.893520・cal-2 10.926418・cal-3 10.404857・cal-4 2.803058・cal-5 26.280403・cal-6 27.056375・cal-7 23.498909・cal-8 0.981196。
 - **限り**:窓の前(捨てる区間)の要求の所要は記録に無い。言えるのは、どの要求も k6 の走り全長(最長 623.7 秒)以下で終わっていることまでである。nginx の access log からの 504 の裏取りは、していない(k6 の status と失敗の数で 504 の無いことを示した)。
 - **記録の在処**:8 本の dir は `docs/research/lab-data/bagisto-calibration-search/after-fix/README.md` の表(cal-1・cal-4〜cal-8)と、`docs/research/lab-data/bagisto-calibration/`(cal-2・cal-3)にある。最長の cal-6 は `docs/research/lab-data/bagisto-calibration-search/after-fix/cal6-r0.3/cal-6` である。
+
+### D285. 版 1.0 は名乗らず、確かめた範囲と限界を書いて検証を区切る(メンテナー裁定 2026-11-27 10:01 の写し)(2026-11-27 10:09 記帳)
+
+#### 1. 経緯
+
+- 本項は、メンテナーの裁定の写しである。字は裁定に沿い、足さぬ。
+- Bagisto の B は、この機械では測れなかった(アプリのメモリの上限で、7 段目に当たる要求の途中でアプリが落ちた。記録は `docs/research/lab-data/bagisto-ladder-190k/`、結果の文書は `docs/research/lab-backtest-bagisto.md`)。仕様 §0 の条件を字のとおりには満たせない。
+
+#### 2. 裁定(メンテナー 2026-11-27 10:01)
+
+1. **版 1.0 は名乗らぬ**。条件を緩めて名乗ることもせぬ。仕様 §0 の条件の本文は書き換えず、冒頭に裁定の一文だけを補った。
+2. **検証は、確かめた範囲と限界を記して区切る**。まとめは `docs/research/verification-summary.md` に置く(本項を書いた時点では、まだ無い。別の担当が書く)。README は、確かめた範囲と限界が最初に読める形に書き改める。
+3. **条件 3 の原因の調べは続けぬ**。残った外れの原因を 1 本ずつ突き止める作業は、ここで止める。
+4. **次の段**(公式のツール `src/`・phar への移し、Zenn の記事)は、メンテナーが、次の段の見込み(指示書 #26 の T3)を見て決める。本項は次の段を決めぬ。
+5. **変えぬもの**:これまでの記録と合否・測る一覧・判定の規則。測らぬ・ラボを起こさぬ・push せぬ。
+
+#### 3. 変わらないもの
+
+予測・見積もりの規則・印の規則・較正の式・関門・合格線・許す誤差・規則 B・判定の規則・D284 以前の本文と追補・これまでの記録と合否。本項は、メンテナーの裁定の写しであり、いずれの規則の変更でもない。条件を緩める向きの変更でもない(緩めて名乗ることをせぬ、という裁定である)。
+
+### D286. 検証の区切りの片付け: 署名の無い commit・測り用の設定・予行の予測(D258 による実装担当の決め。メンテナーへは事後に一行知らせる)(2026-11-27 10:09 記帳)
+
+#### 1. 署名の無い commit(5712f338)は書き換えず、ここに記す
+
+- commit 5712f338(`docs: note the first start gap and the restart of the chain of the Bagisto backtest`、2026-11-27 02:38)には、`Co-Authored-By` の行が無い。
+- 履歴は書き換えぬ。本項に記すことで足りる。中身(記録の文)には影響せぬ。
+
+#### 2. 測り用の設定 2 ファイルは、差分を記録に残し、作業木から外した(commit しておらぬ)
+
+- 対象:`poc/lab/compose/nginx/lab-bagisto.conf`(`fastcgi_read_timeout` を 2400s)と `poc/lab/compose/php/zz-lab.ini`(`max_execution_time=0`・`memory_limit=4G`)。Bagisto の B の測りの間だけ当てた設定である(D284)。
+- 差分はそのままのファイルとして `docs/research/lab-data/bagisto-ladder-190k/run-20261127/settings-during-measurement.diff` に置いた。設定そのものは commit せぬ。
+- 作業木からは、この 2 つのパスだけを `git restore -- <path>` で外した。外した後の `git status` は報告に写した。
+- 作業木が元の設定に戻ったことは、**次に測るときは、この差分を当て直す必要がある**ことを意味する。測らぬ区切りゆえ、いまは当てぬ。
+
+#### 3. 予行の予測の 3 フォルダは、記録として commit して残した(消さぬ側)
+
+- 対象:`docs/research/lab-data/dryrun-22/prediction/`・`dryrun-2400/prediction/`・`dryrun-25/prediction/`。
+- 中身を先に見た。利用者名・ホスト名・メールの文字列・秘匿値の型は、3 フォルダとも 0 件だった(`token` が出た所は、ルートの型 `/customer/verify-account/{token}` と `/subscription/{token}` の語だけである)。ゆえに、書き換えずそのまま入れた。
+- **これらは、測りの後に commit した予行の物で、時刻の主張(「予測の commit が測りより前」)には使わぬ。** 3 つの README は、予行の予測を「ここでは commit しない・本番の予測ではない」と書いていた(dryrun-22 は「not committed here」、dryrun-2400 と dryrun-25 は「not committed on purpose」)。予行の予測は、本番の予測の置き場 `poc/lab/predictions/` には置かぬ、という意味である。予測の関門はその置き場だけを見る(`poc/lab/bin/prediction-gate`)。今回の置き場は `docs/research/lab-data/dryrun-*/prediction/` で、関門の見る所の外である。3 つの README の末尾に、その旨の注を足した(元の文は書き換えぬ)。
+- 4 つ目の `dryrun-286/prediction/` も未追跡のまま残っておる。指示の 3 つに入っておらず、README(dryrun-286)が「わざと commit しない」とだけ書く。ここでは commit せず、報告に書いた。
+
+#### 4. 変わらないもの
+
+予測・見積もりの規則・印の規則・較正の式・関門・合格線・許す誤差・判定の規則・これまでの記録と合否。本項は、片付けの記帳であり、いずれの規則の変更でもない。
